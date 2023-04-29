@@ -12,9 +12,11 @@
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^6.6.6",
     "@types/node": "^18",
-    "nuxt": "^3.4.2"
+    "nuxt": "^3.4.2",
+    "nuxt-icon": "^0.4.0"
   },
   "dependencies": {
+    "@headlessui/vue": "^1.7.13",
     "@storyblok/nuxt": "^5.4.2"
   }
 }

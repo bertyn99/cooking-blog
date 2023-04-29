@@ -1,12 +1,12 @@
 <template>
-  <NuxtLink
+  <!--   <NuxtLink
     :to="'/' + slug"
     v-editable="article"
     class="w-full h-full bg-[#f7f6fd] rounded-[5px] text-center overflow-hidden"
   >
     <img
-      :src="article.image.filename + '/m/600x0'"
-      :alt="article.image.alt"
+      :src="article.cover.filename + '/m/600x0'"
+      :alt="article.cover.alt"
       class="w-full h-48 xl:h-72 object-cover pointer-events-none"
     />
     <div class="p-4">
@@ -14,10 +14,10 @@
         {{ article.title }}
       </h3>
       <div class="line-clamp-4">
-        {{ article.teaser }}
+        {{ article.description }}
       </div>
     </div>
-  </NuxtLink>
+  </NuxtLink> -->
 </template>
 
 <script setup>
