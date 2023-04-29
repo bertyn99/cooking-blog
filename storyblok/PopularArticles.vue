@@ -6,7 +6,7 @@
     <div
       class="container mx-auto grid md:grid-cols-3 gap-12 my-12 place-items-start"
     >
-      <ArticleCard
+      <RecipeCard
         v-for="article in blok.articles"
         :key="article.uuid"
         :article="article.content"
