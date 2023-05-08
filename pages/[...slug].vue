@@ -4,6 +4,7 @@ const { slug } = useRoute().params;
 const resolveRelations = [
   "popular-articles.articles",
   "popular-recipes.articles",
+  "feature-article.article",
 ];
 
 const story = await useAsyncStoryblok(

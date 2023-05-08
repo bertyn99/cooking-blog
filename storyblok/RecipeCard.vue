@@ -5,7 +5,6 @@
         <img
           :src="article.cover?.filename + '/m/800x0'"
           :alt="article.cover?.alt"
-          alt=""
           class="aspect-[3/4] w-full rounded-2xl bg-gray-100 object-cover"
         />
         <div
