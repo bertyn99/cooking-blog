@@ -10,9 +10,12 @@
     "postinstall": "nuxt prepare"
   },
   "devDependencies": {
+    "@nuxtjs/google-fonts": "^3.0.0",
     "@nuxtjs/strapi": "^1.9.1",
     "@nuxtjs/tailwindcss": "^6.6.6",
     "@types/node": "^18",
+    "@vueuse/core": "^10.1.2",
+    "@vueuse/nuxt": "^10.1.2",
     "nuxt": "^3.4.2",
     "nuxt-icon": "^0.4.0"
   },

@@ -14,7 +14,16 @@ module.exports = {
     `./error.{js,ts,vue}`,
   ],
   theme: {
-    extend: {},
+    extend: {
+      FontFace: {
+        merriweather: {
+          family: "Merriweather, Serif",
+        },
+        catamaran: {
+          family: "Catamaran, Sans-serif",
+        },
+      },
+    },
   },
   plugins: [],
 };
