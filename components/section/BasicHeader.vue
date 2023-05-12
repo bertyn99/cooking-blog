@@ -1,5 +1,8 @@
 <script setup>
-import { Dialog, DialogPanel } from "@headlessui/vue";
+import { useWindowScroll } from "@vueuse/core";
+
+const { x, y } = useWindowScroll();
+
 const links = [
   {
     id: 1,
@@ -29,8 +32,8 @@ const subHeaderMenu = computed(() => {
 </script>
 
 <template>
-  <header class="w-full h-24 transparent">
-    <nav class="border-gray-200">
+  <header class="w-full h-24 transparent fixed top-0 z-20">
+    <nav class="border-gray-200" :class="[y < 120 ? '' : 'bg-gray-100']">
       <div
         class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4"
       >
@@ -41,7 +44,7 @@ const subHeaderMenu = computed(() => {
             alt="Flowbite Logo"
           />
           <span class="self-center text-2xl font-semibold whitespace-nowrap"
-            >Journal du Cuistot</span
+            >Cuistot</span
           >
         </a>
         <div class="flex md:order-2">

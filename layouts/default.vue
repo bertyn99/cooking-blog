@@ -1,6 +1,6 @@
 <template>
+  <SectionBasicHeader />
   <main>
-    <Header />
     <slot />
   </main>
 </template>
