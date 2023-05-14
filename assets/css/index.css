@@ -7,5 +7,5 @@ body {
 }
 
 h3 {
-  @apply text-3xl font-bold font-[merriweather] text-neutral-900;
+  @apply text-3xl font-bold font-[merriweather] text-neutral-900  leading-10;
 }
