@@ -4,6 +4,7 @@ export default defineNuxtConfig({
     "@nuxtjs/tailwindcss",
     "nuxt-icon",
     "@nuxtjs/strapi",
+    "@nuxt/image-edge",
     "@vueuse/nuxt",
     [
       "@nuxtjs/google-fonts",
