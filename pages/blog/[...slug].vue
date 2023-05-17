@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 definePageMeta({ layout: "content" });
-const content = useMarked("## Marked in browser\n\nRendered by **marked**.");
+import article from "~/assets/article.json";
+console.log(article);
+const content = useMarked(article.content);
 </script>
 
 <template>
@@ -43,5 +45,5 @@ const content = useMarked("## Marked in browser\n\nRendered by **marked**.");
       </div>
     </template>
   </SectionHeroArticle>
-  <article class="prose lg:prose-xl" v-html="content"></article>
+  <article class="prose md:prose-lg lg:prose-xl" v-html="content"></article>
 </template>
