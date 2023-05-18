@@ -1,5 +1,32 @@
 <script lang="ts" setup>
 definePageMeta({ layout: "content" });
+const data = [
+  {
+    name: "Calories",
+    value: "200",
+    unit: "g",
+  },
+  {
+    name: "Fat",
+    value: "200",
+    unit: "g",
+  },
+  {
+    name: "Carbs",
+    value: "200",
+    unit: "g",
+  },
+  {
+    name: "Protein",
+    value: "100",
+    unit: "g",
+  },
+  {
+    name: "Sugar",
+    value: "100",
+    unit: "g",
+  },
+];
 </script>
 
 <template>
@@ -43,4 +70,7 @@ definePageMeta({ layout: "content" });
       </div>
     </template>
   </SectionHeroArticle>
+  <RecipeReviews />
+  <RecipeIngredients />
+  <RecipeNutritional :data="data" />
 </template>
