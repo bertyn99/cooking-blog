@@ -1,7 +1,14 @@
 <script lang="ts" setup>
 definePageMeta({ layout: "content" });
 import article from "~/assets/article.json";
-console.log(article);
+
+const { find } = useStrapi();
+const slug = "le-masala-l-epice-indienne-emblematique";
+
+const { data, pending, refresh, error } = await useAsyncData("articles", () =>
+  find(`articles?filters[slug][$eq]=${slug}`)
+);
+console.log(data);
 const content = useMarked(article.content);
 </script>
 

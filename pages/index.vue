@@ -1,5 +1,13 @@
-<script setup>
-const data = [
+<script setup lang="ts">
+const { find } = useStrapi();
+
+const { data: articles } = await find(
+  "articles?fields[0]=title&populate=cover"
+);
+const { data: recipes } = await find("recipes?populate=cover");
+console.log(recipes);
+
+/* const data = [
   {
     title: "test",
     id: 1,
@@ -32,12 +40,12 @@ const data = [
     time: 20,
     difficulty: "easy",
   },
-];
+]; */
 </script>
 
 <template>
   <SectionHero></SectionHero>
   <SectionNewsletter></SectionNewsletter>
-  <RecipeList :list="data"></RecipeList>
+  <RecipeList :list="recipes"></RecipeList>
   <SectionFooter></SectionFooter>
 </template>

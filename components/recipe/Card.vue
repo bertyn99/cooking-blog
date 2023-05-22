@@ -19,7 +19,7 @@ defineProps({
     <div class="mt-8 flex items-center gap-x-4 text-xs">
       <span class="inline-flex items-center uppercase font-medium gap-1">
         <Icon name="ic:sharp-access-time" class="h-3 w-3 text-gray-400" />
-        {{ recipe.time }}
+        {{ recipe.attributes.time }}
         minutes
       </span>
       <!--  <NuxtLink
@@ -29,7 +29,7 @@ defineProps({
       > -->
       <span class="inline-flex items-center uppercase font-medium gap-1">
         <Icon name="ic:sharp-restaurant" class="h-3 w-3 text-gray-400" />
-        {{ recipe.difficulty }}
+        {{ recipe.attributes.difficulty }}
       </span>
     </div>
     <div class="group relative">
@@ -37,10 +37,10 @@ defineProps({
         class="mt-3 text-lg font-semibold leading-6 text-gray-900 group-hover:text-gray-600 capitalize"
       >
         <span class="absolute inset-0" />
-        {{ recipe.title }}
+        {{ recipe.attributes.title }}
       </h3>
       <p class="mt-5 line-clamp-3 text-sm leading-6 text-gray-600">
-        {{ recipe.description }}
+        {{ recipe.attributes.description }}
       </p>
     </div>
   </article>
