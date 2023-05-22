@@ -12,6 +12,11 @@ const data = [
     unit: "g",
   },
   {
+    name: "TransFat",
+    value: "50",
+    unit: "g",
+  },
+  {
     name: "Carbs",
     value: "200",
     unit: "g",
@@ -70,7 +75,16 @@ const data = [
       </div>
     </template>
   </SectionHeroArticle>
+  <div class="prose md:prose-lg lg:prose-xl">
+    Nam aliquam sem et tortor consequat. Odio tempor orci dapibus ultrices in
+    iaculis. Vitae proin sagittis nisl rhoncus mattis rhoncus. Sed risus
+    ultricies tristique nulla aliquet. Excepteur sint occaecat cupidatat non
+    proident, sunt in culpa qui officia deserunt mollit anim id est laborumd ut
+    perspiciatis unde omnis iste voluptatem accusantium doloremque laudantium,
+    aperiam, eaque.
+  </div>
   <RecipeReviews />
   <RecipeIngredients />
   <RecipeNutritional :data="data" />
+  <RecipeSteps />
 </template>

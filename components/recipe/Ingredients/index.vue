@@ -15,7 +15,7 @@ const ingredients = [
 </script>
 
 <template>
-  <Section class="space-y-6">
+  <section class="space-y-6 mb-6">
     <h3
       class="flex items-center p-0 m-0 font-serif text-2xl font-normal leading-6 text-black align-baseline break-words border-0"
     >
@@ -45,5 +45,5 @@ const ingredients = [
         </tr>
       </tbody>
     </table>
-  </Section>
+  </section>
 </template>
