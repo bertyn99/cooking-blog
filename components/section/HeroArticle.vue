@@ -18,12 +18,15 @@
       sizes="(max-width: 1300px) 100vw, 1300px"
     />
     <div
-      class="flex justify-center items-center py-5 mb-6 leading-6 align-baseline text-stone-500 gap-1"
+      class="flex flex-col md:flex-row justify-center items-center py-5 mb-6 leading-6 align-baseline text-stone-500 gap-1"
     >
       <span
         class="w-full h-2 text-xs font-semibold tracking-widest text-black uppercase align-baseline border-solid border-x-0 border-y border-stone-200"
       ></span>
-      <slot name="info" />
+      <div class="flex-[0_0_auto] flex flex-col md:flex-row">
+        <slot name="info" />
+      </div>
+
       <span
         class="p-0 my-0 w-full h-2 text-xs font-semibold tracking-widest text-black uppercase align-baseline border-solid border-x-0 border-y border-stone-200"
       ></span>
