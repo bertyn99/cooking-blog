@@ -1,9 +1,17 @@
 import { SitemapStream, streamToPromise } from "sitemap";
+
 export default defineEventHandler(async (event: any) => {
   // Fetch all documents
-  const docs = await nut(event).find();
+
+  const { data: articles } = await $fetch(
+    "https://admin.journalducuistot.fr/api/articles"
+  );
+
+  const { data: recipes } = await $fetch(
+    "https://admin.journalducuistot.fr/api/articles"
+  );
   const sitemap = new SitemapStream({
-    hostname: "https://www.sciredev.com",
+    hostname: "https://journalducuistot.com",
   });
 
   sitemap.write({
@@ -11,20 +19,36 @@ export default defineEventHandler(async (event: any) => {
     changefreq: "daily",
     priority: 1,
   });
-  for (const doc of docs) {
+  for (const doc of articles) {
     sitemap.write({
-      url: doc._path,
-      lastmod: doc.modifiedAt,
+      url: `articles/${doc.attributes.slug}`,
+      lastmod: doc.updatedAt,
       changefreq: "daily",
-      img: [
+      /* img: [
         {
           url: doc.image,
           caption: doc.description,
           title: doc.title,
         },
-      ],
+      ], */
     });
   }
+
+  for (const doc of recipes) {
+    sitemap.write({
+      url: `recipes/${doc.attributes.slug}`,
+      lastmod: doc.updatedAt,
+      changefreq: "daily",
+      /* img: [
+        {
+          url: doc.image,
+          caption: doc.description,
+          title: doc.title,
+        },
+      ], */
+    });
+  }
+
   sitemap.end();
   return streamToPromise(sitemap);
 });
