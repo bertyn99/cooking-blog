@@ -19,11 +19,14 @@
     "@vueuse/core": "^10.1.2",
     "@vueuse/nuxt": "^10.1.2",
     "nuxt": "^3.4.2",
-    "nuxt-icon": "^0.4.0"
+    "nuxt-icon": "^0.4.0",
+    "nuxt-schema-org": "^2.2.0"
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.13",
     "@types/marked": "^4.3.0",
-    "marked": "^5.0.2"
+    "marked": "^5.0.2",
+    "nuxt-simple-sitemap": "^2.6.1",
+    "sitemap": "^7.1.1"
   }
 }

@@ -5,6 +5,7 @@ export default defineNuxtConfig({
     "nuxt-icon",
     "@nuxtjs/strapi",
     "@nuxt/image-edge",
+    "nuxt-schema-org",
     "@vueuse/nuxt",
     [
       "@nuxtjs/google-fonts",

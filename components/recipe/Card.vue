@@ -11,9 +11,9 @@ defineProps({
   <article class="col-span-1 flex flex-col rounded-lg">
     <div class="overflow-hidden rounded-t-lg">
       <img
-        src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=4&w=256&h=256&q=60"
+        :src="formatUrlCover(recipe.attributes.cover, 'small')"
         alt=""
-        class="w-full object-cover object-center aspect-[3/4]"
+        class="w-full object-cover aspect-[3/4]"
       />
     </div>
     <div class="mt-8 flex items-center gap-x-4 text-xs">
@@ -39,9 +39,9 @@ defineProps({
         <span class="absolute inset-0" />
         {{ recipe.attributes.title }}
       </h3>
-      <p class="mt-5 line-clamp-3 text-sm leading-6 text-gray-600">
+      <!--   <p class="mt-5 line-clamp-3 text-sm leading-6 text-gray-600">
         {{ recipe.attributes.description }}
-      </p>
+      </p> -->
     </div>
   </article>
 </template>

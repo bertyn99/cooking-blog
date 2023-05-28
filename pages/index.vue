@@ -1,11 +1,32 @@
 <script setup lang="ts">
-const { find } = useStrapi();
+import { Article, Recipe } from "~/types/strapiMeta";
 
-const { data: articles } = await find(
-  "articles?fields[0]=title&populate=cover"
+useSeoMeta(
+  useLoadMeta({
+    title: "Accueil",
+    description: "Venez rejoindre la communauté des jeunes cuistots !",
+    image: "https://journalducuistot.fr/img/scire_logo_primary.png",
+    url: "https://journalducuistot.fr",
+  }) as any
 );
-const { data: recipes } = await find("recipes?populate=cover");
-console.log(recipes);
+useHead({
+  link: [
+    {
+      rel: "canonical",
+      href: "https://journalducuistot.fr",
+    },
+  ],
+});
+
+const { find } = useStrapi();
+try {
+  const { data: articles } = await find<Article[]>(
+    "articles?fields[0]=title&populate=cover"
+  );
+  const { data: recipes } = await find<Recipe>("recipes?populate=cover");
+} catch (e) {
+  console.log(e);
+}
 
 /* const data = [
   {
@@ -46,6 +67,7 @@ console.log(recipes);
 <template>
   <SectionHero></SectionHero>
   <SectionNewsletter></SectionNewsletter>
-  <RecipeList :list="recipes"></RecipeList>
+  <!--   <RecipeList :list="recipes"></RecipeList>
+  <ArticleList :list="articles"></ArticleList> -->
   <SectionFooter></SectionFooter>
 </template>
