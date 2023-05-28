@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import { Article, Recipe } from "~/types/strapiMeta";
+
 const { find } = useStrapi();
 
-const { data: articles } = await find(
+const { data: articles } = await find<Article[]>(
   "articles?fields[0]=title&populate=cover"
 );
-const { data: recipes } = await find("recipes?populate=cover");
-console.log(recipes);
+const { data: recipes } = await find<Recipe>("recipes?populate=cover");
 
 /* const data = [
   {
@@ -47,5 +48,6 @@ console.log(recipes);
   <SectionHero></SectionHero>
   <SectionNewsletter></SectionNewsletter>
   <RecipeList :list="recipes"></RecipeList>
+  <ArticleList :list="articles"></ArticleList>
   <SectionFooter></SectionFooter>
 </template>

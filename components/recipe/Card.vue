@@ -11,9 +11,9 @@ defineProps({
   <article class="col-span-1 flex flex-col rounded-lg">
     <div class="overflow-hidden rounded-t-lg">
       <img
-        :src="formatUrlCover(recipe.attributes.cover, 'thumbnail')"
+        :src="formatUrlCover(recipe.attributes.cover, 'small')"
         alt=""
-        class="w-full object-cover object-center aspect-[3/4]"
+        class="w-full object-cover aspect-[3/4]"
       />
     </div>
     <div class="mt-8 flex items-center gap-x-4 text-xs">
