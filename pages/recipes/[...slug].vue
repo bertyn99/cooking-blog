@@ -1,5 +1,28 @@
 <script lang="ts" setup>
 definePageMeta({ layout: "content" });
+const { find } = useStrapi();
+
+// set the meta
+useSeoMeta(
+  useLoadMeta({
+    title: capitalize(data.value.article.title),
+    description: "Journal du cuistot | " + data.value.article.description,
+    image: `https://www.journalducuistot.fr/${data.value.article.image}`,
+    url: "https://www.journalducuistot.fr/" + path,
+    author: data.value.article.author,
+    datePublished: data.value.article.createdAt,
+    dateModified: data.value.article.modifiedAt,
+  }) as any
+);
+useHead({
+  link: [
+    {
+      rel: "canonical",
+      href: "https://www.journalducuistot.fr/" + path,
+    },
+  ],
+});
+
 const data = [
   {
     name: "Calories",
