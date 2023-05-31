@@ -49,6 +49,14 @@ useSeoMeta(
     dateModified: article.value?.data[0].attributes?.updatedAt,
   }) as any
 );
+useHead({
+  link: [
+    {
+      rel: "canonical",
+      href: "https://www.journalducuistot.fr/" + slug,
+    },
+  ],
+});
 </script>
 
 <template>

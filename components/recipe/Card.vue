@@ -29,16 +29,18 @@ const cover = useFormatUrlCover(recipe.attributes.cover, "small");
         {{ recipe.attributes.difficulty }}
       </span>
     </div>
-    <div class="group relative">
-      <h3
-        class="mt-3 text-lg font-semibold leading-6 text-gray-900 group-hover:text-gray-600 capitalize"
-      >
-        <span class="absolute inset-0" />
-        {{ recipe.attributes.title }}
-      </h3>
-      <!--   <p class="mt-5 line-clamp-3 text-sm leading-6 text-gray-600">
+    <div class="group">
+      <NuxtLink :to="`recipe/${recipe.attributes.slug}`">
+        <h3
+          class="mt-3 text-lg font-semibold leading-6 text-gray-900 group-hover:text-gray-600 capitalize"
+        >
+          <!--  <span class="absolute inset-0" /> -->
+          {{ recipe.attributes.title }}
+        </h3>
+        <!--   <p class="mt-5 line-clamp-3 text-sm leading-6 text-gray-600">
         {{ recipe.attributes.description }}
       </p> -->
+      </NuxtLink>
     </div>
   </article>
 </template>
