@@ -19,15 +19,12 @@ useHead({
 });
 
 const { find } = useStrapi();
-try {
-  const { data: articles } = await find<Article[]>(
-    "articles?fields[0]=title&populate=cover"
-  );
-  const { data: recipes } = await find<Recipe>("recipes?populate=cover");
-} catch (e) {
-  console.log(e);
-}
 
+const { data: articles } = await find<Article[]>(
+  "articles?fields[0]=title&populate=*"
+);
+const { data: recipes } = await find<Recipe>("recipes?populate=cover");
+console.log(articles);
 /* const data = [
   {
     title: "test",
@@ -67,7 +64,7 @@ try {
 <template>
   <SectionHero></SectionHero>
   <SectionNewsletter></SectionNewsletter>
-  <!--   <RecipeList :list="recipes"></RecipeList>
-  <ArticleList :list="articles"></ArticleList> -->
+  <!--   <RecipeList :list="recipes"></RecipeList> -->
+  <ArticleList :articles="articles"></ArticleList>
   <SectionFooter></SectionFooter>
 </template>

@@ -24,11 +24,11 @@ if (!data) {
 
 // set meta for page
 useHead({
-  title: `${capitalize(category)} articles - JournalDuCuistot`,
+  title: ` articles - JournalDuCuistot`,
   meta: [
     {
       name: "description",
-      content: `JournalDuCuistot - Article et recete sur cuisine du ${category}`,
+      content: `JournalDuCuistot - Article et recete sur cuisine du `,
     },
     {
       name: "robots",
@@ -40,11 +40,11 @@ useHead({
     },
     {
       property: "og:title",
-      content: `Journal du cuistot - article of the category ${category}`,
+      content: `Journal du cuistot - article of the category `,
     },
     {
       property: "og:description",
-      content: `Article et recete sur cuisine du ${category} - JournalDuCuistot  `,
+      content: `Article et recete sur cuisine du  - JournalDuCuistot  `,
     },
     {
       property: "og:type",
