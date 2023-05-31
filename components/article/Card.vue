@@ -41,7 +41,7 @@ console.log(post.attributes);
         <div class="p-0 m-0 align-baseline border-0">
           <nuxt-link
             itemprop="url"
-            :to="post.attributes!.slug"
+            :to="'blog/'+post.attributes!.slug"
             class="p-0 m-0 text-black align-baseline border-0 cursor-pointer hover:text-stone-500"
             style="
               outline: 0px;

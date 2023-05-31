@@ -73,7 +73,7 @@ export type Category = {
       };
       locale?: string;
     };
-  };
+  }[];
 };
 export type Ingredient = {
   id?: number;
