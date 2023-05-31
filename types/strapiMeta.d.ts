@@ -1,5 +1,5 @@
-type Cover = {};
-type Category = {
+export type Cover = {};
+export type Category = {
   data?: {
     id?: number;
     attributes?: {
@@ -73,7 +73,7 @@ type Category = {
       };
       locale?: string;
     };
-  };
+  }[];
 };
 export type Ingredient = {
   id?: number;
@@ -362,7 +362,7 @@ export type Recipe = {
     };
   }[];
 };
-type Article = {
+export type Article = {
   id?: number;
   attributes?: {
     content?: string;

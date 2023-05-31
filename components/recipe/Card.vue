@@ -1,20 +1,17 @@
 <script lang="ts" setup>
-defineProps({
+const { recipe } = defineProps({
   recipe: {
     type: Object,
     required: true,
   },
 });
+const cover = useFormatUrlCover(recipe.attributes.cover, "small");
 </script>
 
 <template>
   <article class="col-span-1 flex flex-col rounded-lg">
     <div class="overflow-hidden rounded-t-lg">
-      <img
-        :src="formatUrlCover(recipe.attributes.cover, 'small')"
-        alt=""
-        class="w-full object-cover aspect-[3/4]"
-      />
+      <img :src="cover" alt="" class="w-full object-cover aspect-[3/4]" />
     </div>
     <div class="mt-8 flex items-center gap-x-4 text-xs">
       <span class="inline-flex items-center uppercase font-medium gap-1">
@@ -32,16 +29,18 @@ defineProps({
         {{ recipe.attributes.difficulty }}
       </span>
     </div>
-    <div class="group relative">
-      <h3
-        class="mt-3 text-lg font-semibold leading-6 text-gray-900 group-hover:text-gray-600 capitalize"
-      >
-        <span class="absolute inset-0" />
-        {{ recipe.attributes.title }}
-      </h3>
-      <!--   <p class="mt-5 line-clamp-3 text-sm leading-6 text-gray-600">
+    <div class="group">
+      <NuxtLink :to="`recipe/${recipe.attributes.slug}`">
+        <h3
+          class="mt-3 text-lg font-semibold leading-6 text-gray-900 group-hover:text-gray-600 capitalize"
+        >
+          <!--  <span class="absolute inset-0" /> -->
+          {{ recipe.attributes.title }}
+        </h3>
+        <!--   <p class="mt-5 line-clamp-3 text-sm leading-6 text-gray-600">
         {{ recipe.attributes.description }}
       </p> -->
+      </NuxtLink>
     </div>
   </article>
 </template>

@@ -3,7 +3,7 @@ useSchemaOrg([
   // @todo Select Identity: https://vue-schema-org.netlify.app/guide/guides/identity
   defineWebSite({
     "@id": "https://journalducuistot.fr/",
-    name: "ScireDev",
+    name: "journalducuistot",
   }),
   defineBreadcrumb({}),
   defineOrganization({
