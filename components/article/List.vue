@@ -10,7 +10,7 @@ defineProps({
 </script>
 
 <template>
-  <section class="mx-auto max-w-7xl px-8 lg:px-12 py-8 md:py-14 lg:py-20">
+  <section class="mx-auto max-w-7xl px-3 lg:px-12 py-8 md:py-14 lg:py-20">
     <div class="mx-auto max-w-2xl lg:max-w-4xl">
       <h4
         class="flex items-center p-0 m-0 font-serif text-xl font-normal leading-6 text-black align-baseline border-0"
@@ -31,7 +31,7 @@ defineProps({
           "
         ></span>
       </h4>
-      <div class="mt-16 space-y-20 lg:mt-20 lg:space-y-20">
+      <div class="mt-16 space-y-20 lg:mt-20 lg:space-y-20 px-2">
         <template v-for="article in articles" :key="article.id">
           <ArticleCard :post="article" />
         </template>

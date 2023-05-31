@@ -27,12 +27,13 @@ const responsiveCover = computed(() => {
                 ${checkIfExist(post.attributes!.cover, "meidum", "600w")}
               `;
 });
+console.log(post.attributes);
 </script>
 
 <template>
-  <article class="relative isolate flex flex-col gap-8 lg:flex-row md:px-9">
+  <article class="gap-8 lg:flex-row md:px-9">
     <div
-      class="flex flex-wrap relative justify-center items-center p-0 m-0 leading-6 align-baseline border-0 text-stone-500"
+      class="block lg:flex relative justify-center items-center p-0 m-0 leading-6 align-baseline border-0 text-stone-500"
     >
       <div
         class="overflow-hidden flex-grow lg:basis-[44%] flex-shrink p-0 m-0 align-baseline border-0"
@@ -70,7 +71,7 @@ const responsiveCover = computed(() => {
         </div>
       </div>
       <div
-        class="flex flex-col justify-center pt-4 lg:pl-12lg:pr-[4%] m-0 w-full lg:w-7/12 align-baseline"
+        class="flex flex-col justify-center pt-4 lg:pl-12 lg:pr-[4%] m-0 w-full lg:w-7/12 align-baseline"
       >
         <div class="flex items-center p-0 m-0 align-baseline">
           <p

@@ -20,9 +20,7 @@ useHead({
 
 const { find } = useStrapi();
 
-const { data: articles } = await find<Article[]>(
-  "articles?fields[0]=title&populate=*"
-);
+const { data: articles } = await find<Article[]>("articles?populate=*");
 const { data: recipes } = await find<Recipe>("recipes?populate=cover");
 console.log(articles);
 /* const data = [
