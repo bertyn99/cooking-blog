@@ -64,7 +64,7 @@ console.log(articles);
 <template>
   <SectionHero></SectionHero>
   <SectionNewsletter></SectionNewsletter>
-  <!--   <RecipeList :list="recipes"></RecipeList> -->
+  <RecipeList :list="recipes"></RecipeList>
   <ArticleList :articles="articles"></ArticleList>
   <SectionFooter></SectionFooter>
 </template>
