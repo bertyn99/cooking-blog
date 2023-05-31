@@ -1,20 +1,17 @@
 <script lang="ts" setup>
-defineProps({
+const { recipe } = defineProps({
   recipe: {
     type: Object,
     required: true,
   },
 });
+const cover = useFormatUrlCover(recipe.attributes.cover, "small");
 </script>
 
 <template>
   <article class="col-span-1 flex flex-col rounded-lg">
     <div class="overflow-hidden rounded-t-lg">
-      <img
-        :src="formatUrlCover(recipe.attributes.cover, 'small')"
-        alt=""
-        class="w-full object-cover aspect-[3/4]"
-      />
+      <img :src="cover" alt="" class="w-full object-cover aspect-[3/4]" />
     </div>
     <div class="mt-8 flex items-center gap-x-4 text-xs">
       <span class="inline-flex items-center uppercase font-medium gap-1">
