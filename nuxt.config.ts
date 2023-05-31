@@ -5,6 +5,7 @@ export default defineNuxtConfig({
     "nuxt-icon",
     "@nuxtjs/strapi",
     "@nuxt/image-edge",
+    "nuxt-schema-org",
     "@vueuse/nuxt",
     [
       "@nuxtjs/google-fonts",
@@ -19,6 +20,7 @@ export default defineNuxtConfig({
       },
     ],
   ],
+
   strapi: {
     url: process.env.STRAPI_URL || "http://localhost:1337",
     prefix: "/api",
