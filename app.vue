@@ -8,7 +8,7 @@ useSchemaOrg([
   defineBreadcrumb({}),
   defineOrganization({
     "@id": "https://journalducuistot.fr/#organization",
-    name: "ScireDev",
+    name: "Journal du cuistot",
     url: "https://journalducuistot.fr/",
     logo: "https://journalducuistot/img/scire_logo_primary.png",
     /*    sameAs: [

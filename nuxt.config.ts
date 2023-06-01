@@ -32,6 +32,20 @@ export default defineNuxtConfig({
     cssPath: "~/assets/css/index.css",
     configPath: "~/tailwind.config.ts",
   },
+  runtimeConfig: {
+    public: {
+      siteUrl:
+        process.env.NUXT_PUBLIC_SITE_URL || "https://journalducuistot.fr/",
+      titleSeparator: "|",
+      siteName: "Journal du cuistot",
+      siteDescription:
+        "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
+      language: "fr-FR", // prefer more explicit language codes like `en-AU` over `en`
+    },
+  },
+  schemaOrg: {
+    canonicalHost: "https://journalducuistot.fr/",
+  },
   /*  devServer: {
     https: {
       key: "localhost-key.pem",

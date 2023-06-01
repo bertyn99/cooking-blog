@@ -1,30 +1,31 @@
 const defaultMetaData: MetaData = {
   type: "website",
-  title: "ScireDev - your website to learn the web and mobile developpement",
+  title:
+    "JournalduCuistot - your website to learn the web and mobile developpement",
   description:
-    "Welcome to scireDev the website that share with you the key to become a better developper. Come learn with us",
+    "Welcome to JournalduCuistot the website that share with you the key to become a better developper. Come learn with us",
   robots: "index, follow, max-image-preview:large",
   ogType: "website",
-  ogLocale: "en-US",
-  ogLocaleAlternate: "en-AU",
-  ogUrl: "https://www.sciredev.com/",
-  ogSite_name: "Scire Dev",
-  ogTitle: "ScireDev - your website to learn the web and mobile developpement",
+  ogLocale: "fr-FR",
+  ogUrl: "https://www.journalducuistot.com/",
+  ogSite_name: "Journal du Cuistot",
+  ogTitle:
+    "JournalduCuistot - your website to learn the web and mobile developpement",
   ogDescription:
-    "Welcome to scireDev the website that share with you the key to become a better developper. Come learn with us",
-  ogImage: "https://www.sciredev.com/img/scire_logo_primary.png",
+    "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
+  ogImage: "https://www.journalducuistot.com/img/logo.webp",
 
   twitterCard: "summary_large_image",
 
-  twitterUrl: "https://www.sciredev.com/",
+  twitterUrl: "https://www.journalducuistot.com/",
 
   twitterTitle:
-    "ScireDev - your website to learn the web and mobile developpement",
+    "journalduCuistot - your website to learn the web and mobile developpement",
 
   twitterDescription:
-    "Welcome to scireDev the website that share with you the key to become a better developper. Come learn with us",
+    "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
 
-  twitterImage: "https://www.sciredev.com/img/scire_logo_primary.png",
+  twitterImage: "https://www.journalducuistot.com/img/logo.webp",
 };
 
 export const useLoadMeta = (metaOption: MetaOption) => {
@@ -52,7 +53,7 @@ export const useLoadMeta = (metaOption: MetaOption) => {
   };
   for (const [k, v] of Object.entries(defaultMetaData)) {
     if (k.toLowerCase().includes("title"))
-      metaData[k] = "Sciredev | " + metaOption.title;
+      metaData[k] = metaOption.title + " | JournalduCuistot ";
     if (k.toLowerCase().includes("description"))
       metaData[k] = metaOption.description;
     if (k.toLowerCase().includes("image")) metaData[k] = metaOption.image;
