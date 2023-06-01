@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-defineProps({
+const { list } = defineProps({
   list: {
     type: Array,
     required: true,
   },
 });
+console.log(list);
 </script>
 
 <template>
