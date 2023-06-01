@@ -5,7 +5,7 @@ const { recipe } = defineProps({
     required: true,
   },
 });
-const cover = useFormatUrlCover(recipe.attributes.cover, "small");
+const cover = useFormatUrlCover(recipe.attributes?.cover, "small");
 </script>
 
 <template>
