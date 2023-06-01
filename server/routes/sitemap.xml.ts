@@ -11,7 +11,7 @@ export default defineEventHandler(async (event: any) => {
     "https://admin.journalducuistot.fr/api/articles"
   );
   const sitemap = new SitemapStream({
-    hostname: "https://journalducuistot.com",
+    hostname: "https://journalducuistot.fr",
   });
 
   sitemap.write({
