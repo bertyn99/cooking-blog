@@ -1,3 +1,11 @@
+type Formats = {
+  [key: string]: sizeImg;
+  small?: sizeImg;
+  large?: sizeImg;
+  medium?: sizeImg;
+};
+type SizeKey = keyof typeof Formats;
+
 export type sizeImg = {
   url: string;
   hash: string;
@@ -18,12 +26,7 @@ export type Cover = {
       caption?: string;
       width?: number;
       height?: number;
-      formats?: {
-        small?: sizeImg;
-        large?: sizeImg;
-        medium?: sizeImg;
-        thumbnail?: sizeImg;
-      };
+      formats?: Formats;
       hash?: string;
       ext?: string;
       mime?: string;
