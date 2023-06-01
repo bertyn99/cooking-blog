@@ -46,12 +46,11 @@ const cover = computed(
 
 const urlCover = useFormatUrlCover(cover.value, "small");
 // set the meta
-console.log(urlCover);
 
 const steps = computed(
   () => recipe.value?.data[0].attributes?.step?.split("\n") || []
 );
-console.log(steps);
+
 useSeoMeta(
   useLoadMeta({
     title: titleContent || "Journal du cuistot",

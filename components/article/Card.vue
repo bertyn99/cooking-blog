@@ -27,7 +27,6 @@ const responsiveCover = computed(() => {
                 ${checkIfExist(post.attributes!.cover, "meidum", "600w")}
               `;
 });
-console.log(post.attributes);
 </script>
 
 <template>

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 const props = defineProps({ blok: Object });
-console.log(props.blok);
 
 const showShareButton = ref(false);
 </script>
