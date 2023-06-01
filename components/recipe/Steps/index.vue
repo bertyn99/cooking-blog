@@ -1,21 +1,11 @@
 <script lang="ts" setup>
-const stepss = [
-  {
-    content: useMarked(
-      "#### Make the barbecue sauce (or substitute 3/4 to 1 cup bottled sauce):\n Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
-    ),
-  },
-  {
-    content: useMarked(
-      "#### Cook the chicken (or substitute 2 cups shredded cooked chicken):\n Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
-    ),
-  },
-  {
-    content: useMarked(
-      "#### Mix the chicken with the barbecue sauce::\n Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
-    ),
-  },
-];
+import { marked } from "marked";
+
+const { steps } = defineProps<{
+  steps: string[];
+}>();
+
+const formatedSteps = steps.map((step) => marked(step.slice(3, -1)));
 </script>
 
 <template>
@@ -33,10 +23,10 @@ const stepss = [
 
   <div>
     <RecipeStepsContent
-      v-for="(step, index) in stepss"
+      v-for="(step, index) in formatedSteps"
       :index="index + 1"
-      :size="stepss.length"
-      :step="step.content"
+      :size="steps.length"
+      :step="step"
       :key="index"
     />
   </div>

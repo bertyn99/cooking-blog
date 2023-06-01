@@ -39,18 +39,18 @@ const subHeaderMenu = computed(() => {
   <header class="w-full h-24 transparent fixed top-0 z-20">
     <nav class="border-gray-200" :class="[y < 120 ? '' : 'bg-gray-100']">
       <div
-        class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4"
+        class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 py-3"
       >
-        <a href="/" class="flex items-center">
+        <NuxtLink href="/" class="flex items-center">
           <img
-            src="https://flowbite.com/docs/images/logo.svg"
-            class="h-8 mr-3"
-            alt="Flowbite Logo"
+            src="/img/logo.webp"
+            class="h-16 mr-3 object-cover"
+            alt="Logo Journal du cuistot"
           />
-          <span class="self-center text-2xl font-semibold whitespace-nowrap"
+          <!--   <span class="self-center text-2xl font-semibold whitespace-nowrap"
             >Cuistot</span
-          >
-        </a>
+          > -->
+        </NuxtLink>
         <div class="flex md:order-2">
           <button
             type="button"
@@ -163,8 +163,8 @@ const subHeaderMenu = computed(() => {
             <NuxtLink
               v-for="link in links"
               :to="link.url"
-              class="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
-              :active-class="'bg-blue-700 md:bg-transparent text-white md:text-blue-700'"
+              class="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-amber-100 active:text-white md:hover:bg-transparent md:hover:text-yellow-700 md:p-0"
+              :active-class="'bg-amber-400 md:bg-transparent text-white md:text-amber-700'"
               aria-current="page"
               >{{ link.name }}</NuxtLink
             >
