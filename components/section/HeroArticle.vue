@@ -1,20 +1,25 @@
-<script lang="ts" setup></script>
-
-<template>
-  <div class="w-full">
-    <nuxt-img
-      width="1300"
-      height="910"
-      src="https://easymeals.qodeinteractive.com/wp-content/uploads/2020/05/h3-img-1.jpg"
-      class="attachment-full size-full wp-post-image"
-      alt="d"
-      srcset="
+<script lang="ts" setup>
+defineProps<{
+  alt?: string;
+  url: string;
+}>();
+/*   srcset="
         https://easymeals.qodeinteractive.com/wp-content/uploads/2020/05/h3-img-1.jpg          1300w,
         https://easymeals.qodeinteractive.com/wp-content/uploads/2020/05/h3-img-1-300x210.jpg   300w,
         https://easymeals.qodeinteractive.com/wp-content/uploads/2020/05/h3-img-1-1024x717.jpg 1024w,
         https://easymeals.qodeinteractive.com/wp-content/uploads/2020/05/h3-img-1-768x538.jpg   768w,
         https://easymeals.qodeinteractive.com/wp-content/uploads/2020/05/h3-img-1-600x420.jpg   600w
-      "
+      " */
+</script>
+
+<template>
+  <div class="w-full">
+    <img
+      width="1300"
+      height="910"
+      :src="url"
+      class=""
+      :alt="alt"
       sizes="(max-width: 1300px) 100vw, 1300px"
     />
     <div

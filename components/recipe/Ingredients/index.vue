@@ -1,17 +1,10 @@
 <script lang="ts" setup>
+import { Ingredient } from "~/types/strapiMeta";
+
 //list of ingredients
-const ingredients = [
-  {
-    name: "butter, softened",
-    qty: "1/2",
-    unit: "cup",
-  },
-  {
-    name: " white sugar",
-    qty: "1/2",
-    unit: "cup",
-  },
-];
+defineProps<{
+  ingredients: Ingredient[];
+}>();
 </script>
 
 <template>

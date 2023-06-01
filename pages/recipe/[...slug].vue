@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { Category, Recipe } from "~/types/strapiMeta";
+import { url } from "inspector";
+import { Category, Cover, Ingredient, Recipe } from "~/types/strapiMeta";
 
 definePageMeta({ layout: "content" });
 
@@ -13,7 +14,7 @@ const {
   refresh,
   error,
 } = await useAsyncData<Recipe>(`recipe-${slug}`, () =>
-  find(`recipes?filters[slug][$eq]=${slug}&populate=categories`)
+  find(`recipes?filters[slug][$eq]=${slug}&populate=*`)
 );
 
 if (!recipe) {
@@ -35,7 +36,17 @@ const intro = computed(
   () => recipe.value?.data[0].attributes?.Intro || "No intro"
 );
 
+const ingredients = computed(
+  () => recipe.value?.data[0].attributes?.Ingredient || ([] as Ingredient[])
+);
+
+const cover = computed(
+  () => recipe.value?.data[0].attributes?.cover || ({} as Cover)
+);
+
+const urlCover = useFormatUrlCover(cover.value, "small");
 // set the meta
+console.log(urlCover);
 useSeoMeta(
   useLoadMeta({
     title: titleContent || "Journal du cuistot",
@@ -101,7 +112,10 @@ const data = [
     </h1>
     <Share />
   </div>
-  <SectionHeroArticle>
+  <SectionHeroArticle
+    :url="urlCover"
+    :alt="cover.data?.attributes?.alternativeText"
+  >
     <template #info>
       <p
         class="items-center mx-2 h-6 text-xs leading-6 font-semibold tracking-widest text-black uppercase align-baseline border-0"
@@ -140,7 +154,7 @@ const data = [
     {{ intro }}
   </div>
   <RecipeReviews />
-  <RecipeIngredients />
+  <RecipeIngredients :ingredients="ingredients" />
   <RecipeNutritional :data="data" />
   <RecipeSteps />
 </template>

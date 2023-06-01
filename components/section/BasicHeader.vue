@@ -6,18 +6,22 @@ const { x, y } = useWindowScroll();
 const links = [
   {
     id: 1,
-    name: "Home",
+    name: "Accueil",
     url: "/",
     current: true,
   },
   {
-    id: 3,
-    name: "Cuisine Européenne",
-    url: "/europe",
-    current: false,
+    id: 1,
+    name: "Blog",
+    url: "/blog",
+    current: true,
   },
-  { id: 4, name: "Cuisine Africaine", url: "/afrique", current: false },
-  { id: 5, name: "Cuisine Asiatique", url: "/asie", current: false },
+  {
+    id: 1,
+    name: "Recette",
+    url: "/recipe",
+    current: true,
+  },
   { id: 2, name: "A propos", url: "/a-propos", current: false },
 ];
 const headerMenu = computed(() => links || []);
