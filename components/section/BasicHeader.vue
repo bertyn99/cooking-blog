@@ -39,17 +39,17 @@ const subHeaderMenu = computed(() => {
   <header class="w-full h-24 transparent fixed top-0 z-20">
     <nav class="border-gray-200" :class="[y < 120 ? '' : 'bg-gray-100']">
       <div
-        class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4"
+        class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 py-3"
       >
         <a href="/" class="flex items-center">
           <img
-            src="https://flowbite.com/docs/images/logo.svg"
-            class="h-8 mr-3"
-            alt="Flowbite Logo"
+            src="/img/logo.webp"
+            class="h-16 mr-3 object-cover"
+            alt="Logo Journal du cuistot"
           />
-          <span class="self-center text-2xl font-semibold whitespace-nowrap"
+          <!--   <span class="self-center text-2xl font-semibold whitespace-nowrap"
             >Cuistot</span
-          >
+          > -->
         </a>
         <div class="flex md:order-2">
           <button
