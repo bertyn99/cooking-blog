@@ -41,7 +41,7 @@ const subHeaderMenu = computed(() => {
       <div
         class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 py-3"
       >
-        <a href="/" class="flex items-center">
+        <NuxtLink href="/" class="flex items-center">
           <img
             src="/img/logo.webp"
             class="h-16 mr-3 object-cover"
@@ -50,7 +50,7 @@ const subHeaderMenu = computed(() => {
           <!--   <span class="self-center text-2xl font-semibold whitespace-nowrap"
             >Cuistot</span
           > -->
-        </a>
+        </NuxtLink>
         <div class="flex md:order-2">
           <button
             type="button"
@@ -163,8 +163,8 @@ const subHeaderMenu = computed(() => {
             <NuxtLink
               v-for="link in links"
               :to="link.url"
-              class="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
-              :active-class="'bg-blue-700 md:bg-transparent text-white md:text-blue-700'"
+              class="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-amber-100 active:text-white md:hover:bg-transparent md:hover:text-yellow-700 md:p-0"
+              :active-class="'bg-amber-400 md:bg-transparent text-white md:text-amber-700'"
               aria-current="page"
               >{{ link.name }}</NuxtLink
             >
