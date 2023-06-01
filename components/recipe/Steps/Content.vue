@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-const { index, step } = defineProps({
-  index: Number,
-  size: Number,
-  step: Object,
-});
+const { index, step } = defineProps<{
+  index: number;
+  size: number;
+  step: string;
+}>();
 </script>
 
 <template>

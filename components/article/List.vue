@@ -20,7 +20,7 @@ defineProps({
         ></span> -->
         <span
           class="w-full max-w-max text-xl leading-7 text-black align-baseline"
-          >Recent recipes</span
+          >Recent Article</span
         >
         <span
           class="hidden md:block ml-4 w-full h-2 font-semibold tracking-widest text-black uppercase align-baseline border-solid border-x-0 border-y border-stone-200"
