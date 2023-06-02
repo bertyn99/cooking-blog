@@ -19,7 +19,7 @@ const links = [
   {
     id: 1,
     name: "Recette",
-    url: "/recipe",
+    url: "/recette",
     current: true,
   },
   { id: 2, name: "A propos", url: "/a-propos", current: false },
