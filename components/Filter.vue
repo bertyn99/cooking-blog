@@ -23,10 +23,10 @@ const check = (optionId: string, checked: any) => {
 
 <template>
   <div
-    class="block float-left py-0 pr-4 pl-0 m-0 leading-6 align-baseline border-0 text-stone-500 w-[24%]"
+    class="block py-0 pr-4 pl-0 m-0 leading-6 align-baseline border-0 text-stone-500"
   >
     <h3
-      class="p-0 m-0 font-serif text-2xl font-normal text-black align-baseline break-words border-0"
+      class="font-serif text-2xl font-normal text-black align-baseline break-words border-0"
     >
       Fitrer les Recettes:
     </h3>
@@ -60,7 +60,7 @@ const check = (optionId: string, checked: any) => {
           id="showmore-1"
           data-showmore=""
           style="max-width: 768px"
-          class="p-0 m-0 max-w-screen-md align-baseline border-0"
+          class="max-w-screen-md align-baseline border-0"
         >
           <div
             class="overflow-hidden align-baseline border-0"
@@ -111,7 +111,7 @@ const check = (optionId: string, checked: any) => {
         "
         @click="$emit('filter')"
       >
-        <span class="p-0 m-0 uppercase align-baseline border-0 tracking-[1.8px]"
+        <span class="uppercase align-baseline border-0 tracking-[1.8px]"
           >Filter Results</span
         >
       </button>
