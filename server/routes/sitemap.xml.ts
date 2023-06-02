@@ -36,7 +36,7 @@ export default defineEventHandler(async (event: any) => {
 
   for (const doc of recipes) {
     sitemap.write({
-      url: `recipe/${doc.attributes.slug}`,
+      url: `recette/${doc.attributes.slug}`,
       lastmod: doc.updatedAt,
       changefreq: "daily",
       /* img: [
