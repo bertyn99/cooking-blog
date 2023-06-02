@@ -11,8 +11,8 @@
       </h5>
       <img
         data-del="avatar"
-        src="https://easymeals.qodeinteractive.com/wp-content/uploads/2020/05/author-img.png"
-        class="max-w-full h-auto leading-6 text-center text-black align-middle cursor-pointer"
+        src="/img/author.jpg"
+        class="max-w-full h-auto rounded-full leading-6 text-center text-black align-middle cursor-pointer"
         height="138"
         width="138"
       />
@@ -20,8 +20,11 @@
         itemprop="description"
         class="p-0 mx-0 mt-0 mb-5 leading-6 text-center align-baseline border-0 text-zinc-600"
       >
-        I create simple, delicious recipes that require 10 ingredients or less,
-        one bowl, or 30 minutes or less to prepare.
+        Passioné de cuisine et de voyage qui m'ont conduit dans des marchés
+        alimentaires animés en Asie, des cuisines traditionnelles en Europe, des
+        scènes de street food vibrantes en Amérique du Sud et des villages
+        reculés en Afrique. Je viens partager ces recette que j'ai appris au fil
+        des années.
       </p>
       <img
         width="300"
@@ -39,12 +42,12 @@
         class="p-0 mx-0 mt-6 mb-3 font-serif text-2xl font-normal text-center text-black align-baseline break-words border-0"
         style="outline: 0px; background-position: 0px center"
       >
-        Never Miss A Post!
+        Ne Manquer jamais nos prochaine recette
       </h3>
       <p
         class="py-0 mx-0 mt-2 mb-8 text-center align-baseline border-0 px-[12%]"
       >
-        Sign up for free and be the first to get notified about updates.
+        Souscrivez à notre newsletter pour recevoir les dernières recettes.
       </p>
       <span
         class="relative p-0 m-0 text-center align-baseline border-0"
