@@ -30,7 +30,7 @@ console.log(formatCategories);
     aria-labelledby="products-heading"
     class="mx-auto max-w-7xl px-4 sm:px-6"
   >
-    <div class="pb-24 pt-6">
+    <div class="pb-24 pt-6 grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
       <Filter :categories="formatCategories" :value="checkedCategories" />
       <div class="lg:col-span-3">
         <ArticleList :articles="articles.data"></ArticleList>
