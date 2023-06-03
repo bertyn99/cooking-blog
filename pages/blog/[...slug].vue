@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 definePageMeta({ layout: "content" });
 
-import { Article, Category } from "~/types/strapiMeta";
+import { Article, Category, Cover } from "~/types/strapiMeta";
 // get current route slug
 const {
   params: { slug },
@@ -20,9 +20,7 @@ const {
   error,
 } = await useAsyncData<{
   data: Article[];
-}>("article", () =>
-  find(`articles?filters[slug][$eq]=${slug}&populate=categories`)
-);
+}>("article", () => find(`articles?filters[slug][$eq]=${slug}&populate=*`));
 
 if (!article) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
@@ -36,6 +34,21 @@ const categoriesContent = computed(
   () =>
     article.value?.data[0].attributes?.categories?.data || ([] as Category[])
 );
+const cover = computed(
+  () => article.value?.data[0].attributes?.cover || ({} as Cover)
+);
+
+const link = computed(
+  () =>
+    "https://journalducuistot.fr/blog/" +
+      article.value?.data[0].attributes?.slug || ""
+);
+const date = computed(
+  () => article.value?.data[0].attributes?.publishedAt || ""
+);
+
+const urlCover = useFormatUrlCover(cover.value, "small");
+// set the meta
 
 useSeoMeta(
   useLoadMeta({
@@ -67,10 +80,13 @@ useHead({
     >
       {{ titleContent }}
     </h1>
-    <Share />
+    <Share :date="date" :link="link" />
   </div>
 
-  <SectionHeroArticle>
+  <SectionHeroArticle
+    :url="urlCover"
+    :alt="cover.data?.attributes?.alternativeText"
+  >
     <template #info>
       <p
         class="flex-[0_0_auto] items-center mx-2 h-6 text-xs leading-6 font-semibold tracking-widest text-black uppercase align-baseline"
