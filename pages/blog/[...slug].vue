@@ -111,4 +111,5 @@ useHead({
     </template>
   </SectionHeroArticle>
   <article class="prose md:prose-lg lg:prose-xl" v-html="content"></article>
+  <Cta />
 </template>

@@ -135,4 +135,5 @@ useHead({
   <RecipeIngredients :ingredients="ingredients" />
   <RecipeNutritional :data="data" />
   <RecipeSteps :steps="steps" />
+  <Cta />
 </template>
