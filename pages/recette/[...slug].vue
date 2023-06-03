@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { url } from "inspector";
+import YouMayAlsoLike from "~/components/section/YouMayAlsoLike.vue";
 import { Category, Cover, Ingredient, Recipe } from "~/types/strapiMeta";
 
 definePageMeta({ layout: "content" });
@@ -58,6 +59,12 @@ const link = computed(
 const date = computed(
   () => recipe.value?.data[0].attributes?.publishedAt || ""
 );
+const categoryRecipe = computed(
+  () =>
+    recipe.value?.data[0].attributes?.categories?.data[0].attributes ||
+    ({} as Category)
+);
+
 useSeoMeta(
   useLoadMeta({
     title: titleContent.value || "Journal du cuistot",
@@ -136,4 +143,8 @@ useHead({
   <RecipeSteps :steps="steps" />
   <Cta />
   <PrevAndNext />
+  <SectionYouMayAlsoLike
+    :categorie="categoryRecipe.name"
+    type-content="recipes"
+  />
 </template>

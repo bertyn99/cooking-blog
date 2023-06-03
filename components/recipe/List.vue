@@ -1,15 +1,28 @@
 <script lang="ts" setup>
-const { list } = defineProps({
+const { list, showDetails, full } = defineProps({
   list: {
     type: Array,
     required: true,
   },
+  showDetails: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  full: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
 });
-console.log(list);
+console.log(full);
 </script>
 
 <template>
-  <div class="mx-auto max-w-6xl px-2 sm:px-4 lg:px-6 py-1">
+  <div
+    class="mx-auto max-w-6xl py-1"
+    :class="[!full ? '' : 'px-2 sm:px-4 lg:px-6']"
+  >
     <div
       role="list"
       class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
@@ -18,6 +31,7 @@ console.log(list);
         v-for="recipe in list"
         :key="recipe?.id || recipe?.title"
         :recipe="recipe"
+        :details="showDetails"
       ></RecipeCard>
     </div>
   </div>
