@@ -38,6 +38,15 @@ const cover = computed(
   () => article.value?.data[0].attributes?.cover || ({} as Cover)
 );
 
+const link = computed(
+  () =>
+    "https://journalducuistot.fr/blog/" +
+      article.value?.data[0].attributes?.slug || ""
+);
+const date = computed(
+  () => article.value?.data[0].attributes?.publishedAt || ""
+);
+
 const urlCover = useFormatUrlCover(cover.value, "small");
 // set the meta
 
@@ -71,7 +80,7 @@ useHead({
     >
       {{ titleContent }}
     </h1>
-    <Share />
+    <Share :date="date" :link="link" />
   </div>
 
   <SectionHeroArticle
