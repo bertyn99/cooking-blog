@@ -50,7 +50,14 @@ const urlCover = useFormatUrlCover(cover.value, "small");
 const steps = computed(
   () => recipe.value?.data[0].attributes?.step?.split("\n") || []
 );
-
+const link = computed(
+  () =>
+    "https://journalducuistot.fr/recette/" +
+      recipe.value?.data[0].attributes?.slug || ""
+);
+const date = computed(
+  () => recipe.value?.data[0].attributes?.publishedAt || ""
+);
 useSeoMeta(
   useLoadMeta({
     title: titleContent || "Journal du cuistot",
@@ -81,7 +88,7 @@ useHead({
     >
       {{ titleContent }}
     </h1>
-    <Share />
+    <Share :date="date" :link="link" />
   </div>
   <SectionHeroArticle
     :url="urlCover"
