@@ -50,8 +50,14 @@ const date = computed(
 );
 
 const urlCover = useFormatUrlCover(cover.value, "small");
-// set the meta
 
+const categoryRecipe = computed(
+  () =>
+    article.value?.data[0].attributes?.categories?.data[0].attributes ||
+    ({} as Category)
+);
+
+// set the meta
 useSeoMeta(
   useLoadMeta({
     title: titleContent.value || "Journal du cuistot",
@@ -115,4 +121,8 @@ useHead({
   <article class="prose md:prose-lg lg:prose-xl" v-html="content"></article>
   <Cta />
   <PrevAndNext />
+  <SectionYouMayAlsoLike
+    :categorie="categoryRecipe.name"
+    type-content="recipes"
+  />
 </template>

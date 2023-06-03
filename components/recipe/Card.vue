@@ -1,10 +1,16 @@
 <script lang="ts" setup>
-const { recipe } = defineProps({
+const { recipe, details } = defineProps({
   recipe: {
     type: Object,
     required: true,
   },
+  details: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
 });
+console.log(details);
 const cover = useFormatUrlCover(recipe.attributes?.cover, "small");
 </script>
 
@@ -13,7 +19,7 @@ const cover = useFormatUrlCover(recipe.attributes?.cover, "small");
     <div class="overflow-hidden rounded-t-lg">
       <img :src="cover" alt="" class="w-full object-cover aspect-[3/4]" />
     </div>
-    <div class="mt-8 flex items-center gap-x-4 text-xs">
+    <div class="mt-8 flex items-center gap-x-4 text-xs" v-if="details">
       <span class="inline-flex items-center uppercase font-medium gap-1">
         <Icon name="ic:sharp-access-time" class="h-3 w-3 text-gray-400" />
         {{ recipe.attributes.time }}
