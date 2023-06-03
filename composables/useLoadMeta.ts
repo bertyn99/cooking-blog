@@ -1,31 +1,28 @@
 const defaultMetaData: MetaData = {
   type: "website",
-  title:
-    "JournalduCuistot - your website to learn the web and mobile developpement",
+  title: "JournalduCuistot - recettes de cuisine d'un globe trotters",
   description:
-    "Welcome to JournalduCuistot the website that share with you the key to become a better developper. Come learn with us",
+    "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
   robots: "index, follow, max-image-preview:large",
   ogType: "website",
   ogLocale: "fr-FR",
-  ogUrl: "https://www.journalducuistot.com/",
+  ogUrl: "https://www.journalducuistot.fr/",
   ogSite_name: "Journal du Cuistot",
-  ogTitle:
-    "JournalduCuistot - your website to learn the web and mobile developpement",
+  ogTitle: "JournalduCuistot - recettes de cuisine d'un globe trotter",
   ogDescription:
     "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
-  ogImage: "https://www.journalducuistot.com/img/logo.webp",
+  ogImage: "https://www.journalducuistot.fr/img/logo.webp",
 
   twitterCard: "summary_large_image",
 
-  twitterUrl: "https://www.journalducuistot.com/",
+  twitterUrl: "https://www.journalducuistot.fr/",
 
-  twitterTitle:
-    "journalduCuistot - your website to learn the web and mobile developpement",
+  twitterTitle: "journalduCuistot - recettes de cuisine d'un globe trotter",
 
   twitterDescription:
     "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
 
-  twitterImage: "https://www.journalducuistot.com/img/logo.webp",
+  twitterImage: "https://www.journalducuistot.fr/img/logo.webp",
 };
 
 export const useLoadMeta = (metaOption: MetaOption) => {
