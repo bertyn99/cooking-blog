@@ -55,8 +55,8 @@ useSeoMeta(
     title: titleContent || "Journal du cuistot",
     description:
       "Journal du cuistot | " + article.value?.data[0].attributes?.content,
-    image: `https://www.journalducuistot.fr/${article.value?.data[0].attributes?.title}`,
-    url: "https://www.journalducuistot.fr/" + slug,
+    image: urlCover || "",
+    url: "https://www.journalducuistot.fr/blog/" + slug,
     author: "magius",
     datePublished: article.value?.data[0].attributes?.publishedAt,
     dateModified: article.value?.data[0].attributes?.updatedAt,
@@ -66,7 +66,7 @@ useHead({
   link: [
     {
       rel: "canonical",
-      href: "https://www.journalducuistot.fr/" + slug,
+      href: "https://www.journalducuistot.fr/blog/" + slug,
     },
   ],
 });

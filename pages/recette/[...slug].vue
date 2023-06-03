@@ -56,7 +56,7 @@ useSeoMeta(
     title: titleContent || "Journal du cuistot",
     description:
       "Journal du cuistot | " + recipe.value?.data[0].attributes?.title,
-    image: `https://www.journalducuistot.fr/${recipe.value?.data[0].attributes?.title}`,
+    image: urlCover || "",
     url: "https://www.journalducuistot.fr/" + slug,
     author: "magius",
     datePublished: recipe.value?.data[0].attributes?.publishedAt,
@@ -71,39 +71,6 @@ useHead({
     },
   ],
 });
-
-const data = [
-  {
-    name: "Calories",
-    value: "200",
-    unit: "g",
-  },
-  {
-    name: "Fat",
-    value: "200",
-    unit: "g",
-  },
-  {
-    name: "TransFat",
-    value: "50",
-    unit: "g",
-  },
-  {
-    name: "Carbs",
-    value: "200",
-    unit: "g",
-  },
-  {
-    name: "Protein",
-    value: "100",
-    unit: "g",
-  },
-  {
-    name: "Sugar",
-    value: "100",
-    unit: "g",
-  },
-];
 </script>
 
 <template>
