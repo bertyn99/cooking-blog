@@ -27,7 +27,7 @@ const { data: recipes } = await find<Recipe>("recipes?populate=cover");
 <template>
   <SectionHero></SectionHero>
   <SectionNewsletter></SectionNewsletter>
-  <RecipeList :list="recipes"></RecipeList>
+  <RecipeList :list="recipes" :showDetails="true"></RecipeList>
   <SectionRecentArticles :articles="articles"></SectionRecentArticles>
   <SectionFooter></SectionFooter>
 </template>
