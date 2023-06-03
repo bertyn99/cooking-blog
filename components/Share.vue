@@ -18,7 +18,7 @@ defineProps({
     <div class="flex gap-2">
       <img
         data-del="avatar"
-        src="https://easymeals.qodeinteractive.com/wp-content/uploads/2020/05/Untitled-2-100x100.png"
+        src="/img/author.jpg"
         class="max-w-full h-auto leading-6 text-black align-middle cursor-pointer rounded-full"
         height="48"
         width="48"
@@ -30,7 +30,7 @@ defineProps({
           href="https://easymeals.qodeinteractive.com/author/taylor-kinny/"
           style="transition: color 0.2s ease-out 0s; top: 2px"
         >
-          Taylor Kinny
+          bertyn boulikou
         </NuxtLink>
 
         <datetime

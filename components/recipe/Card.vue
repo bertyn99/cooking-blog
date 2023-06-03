@@ -30,7 +30,7 @@ const cover = useFormatUrlCover(recipe.attributes?.cover, "small");
       </span>
     </div>
     <div class="group">
-      <NuxtLink :to="`recipe/${recipe.attributes.slug}`">
+      <NuxtLink :to="`recette/${recipe.attributes.slug}`">
         <h3
           class="mt-3 text-lg font-semibold leading-6 text-gray-900 group-hover:text-gray-600 capitalize"
         >
