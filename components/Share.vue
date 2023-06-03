@@ -37,7 +37,11 @@ defineProps({
           itemprop="dateCreated"
           class="relative p-0 m-0 text-xs leading-6 align-baseline border-0 text-stone-500"
         >
-          {{ date }}
+          {{
+            new Intl.DateTimeFormat("fr-FR", {
+              dateStyle: "medium",
+            }).format(new Date(date))
+          }}
         </datetime>
       </div>
     </div>
