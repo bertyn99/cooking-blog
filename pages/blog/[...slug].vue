@@ -29,7 +29,9 @@ if (!article) {
 const content = useMarked(
   article.value?.data[0].attributes?.content || "No content"
 );
-const titleContent = article.value?.data[0].attributes?.title || "No title";
+const titleContent = computed(
+  () => article.value?.data[0].attributes?.title || "No title"
+);
 const categoriesContent = computed(
   () =>
     article.value?.data[0].attributes?.categories?.data || ([] as Category[])
@@ -52,7 +54,7 @@ const urlCover = useFormatUrlCover(cover.value, "small");
 
 useSeoMeta(
   useLoadMeta({
-    title: titleContent || "Journal du cuistot",
+    title: titleContent.value || "Journal du cuistot",
     description:
       "Journal du cuistot | " + article.value?.data[0].attributes?.content,
     image: urlCover || "",

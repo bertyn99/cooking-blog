@@ -60,9 +60,8 @@ const date = computed(
 );
 useSeoMeta(
   useLoadMeta({
-    title: titleContent || "Journal du cuistot",
-    description:
-      "Journal du cuistot | " + recipe.value?.data[0].attributes?.title,
+    title: titleContent.value || "Journal du cuistot",
+    description: "Journal du cuistot | " + titleContent.value,
     image: urlCover || "",
     url: "https://www.journalducuistot.fr/" + slug,
     author: "magius",
