@@ -1,7 +1,7 @@
 <script lang="ts" setup></script>
 
 <template>
-  <div class="flex py-2 gap-4">
+  <div class="flex py-5 gap-4">
     <button
       class="py-3 px-5 m-0 text-xs font-semibold leading-6 text-center text-black uppercase align-baseline border-0 cursor-pointer bg-neutral-100 hover:text-stone-500"
       title="Like this"

@@ -114,4 +114,5 @@ useHead({
   </SectionHeroArticle>
   <article class="prose md:prose-lg lg:prose-xl" v-html="content"></article>
   <Cta />
+  <PrevAndNext />
 </template>
