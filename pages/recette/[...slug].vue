@@ -87,6 +87,27 @@ useHead({
 </script>
 
 <template>
+  <SchemaOrgBreadcrumb
+    :itemListElement="[
+      { name: 'Accueil', item: '/' },
+      {
+        name: 'Recettes',
+        item: '/recette',
+      },
+      { name: titleContent, item: `/${slug}` },
+    ]"
+  />
+  <SchemaOrgArticle
+    type="Recipe"
+    :name="titleContent"
+    :totalTime="time"
+    :datePublished="date"
+    :dateModified="modifiedAt"
+    :author="{
+      name: 'bertyn boulikou',
+      image: 'https://journalducuistot.fr/img/author.jpg',
+    }"
+  />
   <div>
     <h1
       itemprop="name"

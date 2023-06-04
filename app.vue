@@ -10,7 +10,7 @@ useSchemaOrg([
     "@id": "https://journalducuistot.fr/#organization",
     name: "Journal du cuistot",
     url: "https://journalducuistot.fr/",
-    logo: "https://journalducuistot/img/scire_logo_primary.png",
+    logo: "https://journalducuistot/img/logo.webp",
     /*    sameAs: [
       "https://www.facebook.com/sciredev",
       "https://twitter.com/sciredev",
