@@ -25,6 +25,8 @@ const { data: recipes } = await find<Recipe>("recipes?populate=cover");
 </script>
 
 <template>
+  <SchemaOrgWebPage />
+  <SchemaOrgBreadcrumb :itemListElement="[{ name: 'Accueil', item: '/' }]" />
   <SectionHero></SectionHero>
   <SectionNewsletter></SectionNewsletter>
   <RecipeList :list="recipes" :showDetails="true"></RecipeList>
