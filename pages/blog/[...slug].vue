@@ -48,7 +48,9 @@ const link = computed(
 const date = computed(
   () => article.value?.data[0].attributes?.publishedAt || ""
 );
-
+const modifiedAt = computed(
+  () => article.value?.data[0].attributes?.updatedAt || ""
+);
 const urlCover = useFormatUrlCover(cover.value, "small");
 
 const categoryRecipe = computed(
@@ -81,6 +83,25 @@ useHead({
 </script>
 
 <template>
+  <SchemaOrgBreadcrumb
+    :itemListElement="[
+      { name: 'Accueil', item: '/' },
+      {
+        name: 'Blog',
+        item: '/blog',
+      },
+      { name: titleContent, item: `/${slug}` },
+    ]"
+  />
+  <SchemaOrgArticle
+    type="BlogPosting"
+    :datePublished="date"
+    :dateModified="modifiedAt"
+    :author="{
+      name: 'bertyn boulikou',
+      image: 'https://journalducuistot.fr/img/author.jpg',
+    }"
+  />
   <div>
     <h1
       itemprop="name"
