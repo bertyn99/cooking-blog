@@ -8,7 +8,7 @@ export default defineEventHandler(async (event: any) => {
   );
 
   const { data: recipes } = await $fetch(
-    "https://admin.journalducuistot.fr/api/articles"
+    "https://admin.journalducuistot.fr/api/recipes"
   );
   const sitemap = new SitemapStream({
     hostname: "https://journalducuistot.fr",
