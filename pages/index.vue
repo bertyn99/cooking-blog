@@ -20,8 +20,12 @@ useHead({
 
 const { find } = useStrapi();
 
-const { data: articles } = await find<Article[]>("articles?populate=*");
-const { data: recipes } = await find<Recipe>("recipes?populate=cover");
+const { data: articles } = await find<Article[]>(
+  "articles?populate=*&pagination[pageSize]=5"
+);
+const { data: recipes } = await find<Recipe>(
+  "recipes?populate=cover&pagination[pageSize]=4"
+);
 </script>
 
 <template>
