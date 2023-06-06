@@ -21,7 +21,7 @@ export default defineEventHandler(async (event: any) => {
   });
   for (const doc of articles) {
     sitemap.write({
-      url: `articles/${doc.attributes.slug}`,
+      url: `blog/${doc.attributes.slug}`,
       lastmod: doc.updatedAt,
       changefreq: "daily",
       /* img: [
