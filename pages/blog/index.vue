@@ -4,7 +4,7 @@ import { Recipe } from "~/types/strapiMeta";
 const { find } = useStrapi();
 
 const { data: articles } = await useAsyncData<Recipe>(`articles`, () =>
-  find(`articles?populate=*`)
+  find(`articles?populate=*&sort[0]=publishedAt%3Adesc&pagination[pageSize]=6`)
 );
 console.log(articles);
 
