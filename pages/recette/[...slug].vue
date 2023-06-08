@@ -65,6 +65,18 @@ const categoryRecipe = computed(
     ({} as Category)
 );
 
+const nutrition = computed(
+  () => recipe.value?.data[0].attributes?.nutrition || ({} as any)
+);
+
+const formated = computed(() =>
+  Object.keys(nutrition.value)
+    .filter((elm) => elm !== "id")
+    .map((key) => {
+      return { name: key, value: nutrition.value[key] };
+    })
+);
+console.log(formated.value);
 useSeoMeta(
   useLoadMeta({
     title: titleContent.value || "Journal du cuistot",
@@ -160,7 +172,7 @@ useHead({
   </div>
   <RecipeReviews />
   <RecipeIngredients :ingredients="ingredients" />
-  <RecipeNutritional :data="data" />
+  <RecipeNutritional :data="formated" />
   <RecipeSteps :steps="steps" />
   <Cta />
   <PrevAndNext />

@@ -22,16 +22,6 @@ const {
     `${typeContent}?filters[categories][name][$eq]=${categorie}&populate=cover&pagination[pageSize]=3`
   )
 );
-console.log(categorie);
-console.log(typeContent);
-console.log(content.value.data);
-/* const data = computed(() => {
-  if (typeContent == "recipes") {
-    return content.value?.data[0].attributes?.recipes.data;
-  } else {
-    return content.value?.data[0].attributes?.articles.data;
-  }
-}); */
 </script>
 
 <template>
