@@ -20,7 +20,16 @@ const {
   error,
 } = await useAsyncData<{
   data: Article[];
-}>("article", () => find(`articles?filters[slug][$eq]=${slug}&populate=*`));
+}>("article", () =>
+  find(`articles`, {
+    filters: { slug: { $eq: slug } },
+    populate: ["cover", "categories"],
+    pagination: {
+      page: 0,
+      pageSize: 1,
+    },
+  })
+);
 
 if (!article) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });

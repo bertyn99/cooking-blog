@@ -15,7 +15,14 @@ const {
   refresh,
   error,
 } = await useAsyncData<Recipe>(`recipe-${slug}`, () =>
-  find(`recipes?filters[slug][$eq]=${slug}&populate=*`)
+  find(`recipes`, {
+    filters: { slug: { $eq: slug } },
+    populate: ["cover", "categories", "nutrition", "Ingredient"],
+    pagination: {
+      page: 0,
+      pageSize: 1,
+    },
+  })
 );
 
 if (!recipe) {
