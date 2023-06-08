@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-defineProps({
+const { data } = defineProps({
   data: {
     type: Array,
     required: true,
   },
 });
+console.log(data);
 </script>
 
 <template>
@@ -15,7 +16,9 @@ defineProps({
       Nutritional Information
     </h4>
 
-    <div class="flex flex-wrap justify-center py-2 lg:py-0 mx-auto">
+    <div
+      class="flex-1 flex flex-wrap justify-center md:justify-around py-2 lg:py-0 mx-auto"
+    >
       <div
         v-for="nutri in data"
         class="flex flex-col items-center px-2 leading-6 text-center border-0 text-stone-500"
