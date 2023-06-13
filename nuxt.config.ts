@@ -28,7 +28,7 @@ export default defineNuxtConfig({
   ],
   plausible: {
     domain: "journalducuistot.fr",
-    apiHost: "https://analytics.journalducuistot.fr",
+    apiHost: "https://analytics.bertynboulikou.com",
   },
   strapi: {
     url: process.env.STRAPI_URL || "http://localhost:1337",
