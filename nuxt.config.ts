@@ -8,6 +8,7 @@ export default defineNuxtConfig({
   modules: [
     "@nuxtjs/tailwindcss",
     "nuxt-icon",
+    "@nuxtjs/plausible",
     "@nuxtjs/strapi",
     "@nuxt/image-edge",
     "nuxt-schema-org",
@@ -25,7 +26,10 @@ export default defineNuxtConfig({
       },
     ],
   ],
-
+  plausible: {
+    domain: "journalducuistot.fr",
+    apiHost: "https://analytics.journalducuistot.fr",
+  },
   strapi: {
     url: process.env.STRAPI_URL || "http://localhost:1337",
     prefix: "/api",
