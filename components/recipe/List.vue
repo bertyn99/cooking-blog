@@ -15,7 +15,6 @@ const { list, showDetails, full } = defineProps({
     default: false,
   },
 });
-console.log(full);
 </script>
 
 <template>

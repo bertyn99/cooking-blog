@@ -10,7 +10,7 @@ const { recipe, details } = defineProps({
     default: false,
   },
 });
-console.log(details);
+
 const cover = useFormatUrlCover(recipe.attributes?.cover, "small");
 </script>
 
