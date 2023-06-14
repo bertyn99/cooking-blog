@@ -3,6 +3,13 @@ export default defineNuxtConfig({
   app: {
     head: {
       link: [{ rel: "icon", type: "image/png", href: "img/logo.webp" }],
+      script: [
+        {
+          defer: true,
+          "data-domain": "journalducuistot.fr",
+          src: "https://analytics.bertynboulikou.com/js/script.js",
+        },
+      ],
     },
   },
   modules: [
