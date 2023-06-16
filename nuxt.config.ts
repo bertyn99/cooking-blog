@@ -26,6 +26,9 @@ export default defineNuxtConfig({
       },
     ],
   ],
+  vue: {
+    defineModel: true,
+  },
   plausible: {
     domain: "journalducuistot.fr",
     apiHost: "https://analytics.bertynboulikou.com",

@@ -4,9 +4,10 @@ type formatedData = { name: string; id: number }[];
 const { categories, value } = defineProps<{
   categories: formatedData;
   value: [];
+  searchValue: string;
 }>();
 
-const emit = defineEmits(["update:value"]);
+const emit = defineEmits(["update:value", "update:searchValue"]);
 const check = (optionId: string, checked: any) => {
   // copy the value Array to avoid mutating props
   let updatedValue = [...value];
@@ -18,6 +19,9 @@ const check = (optionId: string, checked: any) => {
   }
   // emit the updated value
   emit("update:value", updatedValue);
+};
+const onInput = (e: any) => {
+  emit("update:searchValue", e.target.value);
 };
 </script>
 
@@ -36,18 +40,19 @@ const check = (optionId: string, checked: any) => {
     </p>
     <div class="mx-0 mt-0 mb-8 align-baseline border-0">
       <div class="m-0 align-baseline border-0" data-type="custom_search">
-        <!--   <input
+        <input
           type="text"
           name="qodef-text-custom_search"
-          value=""
-          placeholder="What you are looking for?"
+          :value="searchValue"
+          @input="onInput"
+          placeholder="Que recherchez-vous ?"
           class="inline-block relative py-4 px-6 mx-0 mt-0 mb-5 w-full text-base align-top bg-transparent rounded-none border border-solid appearance-none cursor-text border-zinc-300 focus:border-black focus:bg-transparent focus:text-black"
           style="
             outline: 0px;
             transition: color 0.2s ease-out 0s,
               background-color 0.2s ease-out 0s, border-color 0.2s ease-out 0s;
           "
-        /> -->
+        />
       </div>
     </div>
     <div class="mx-0 mt-0 mb-8 align-baseline border-0">
