@@ -45,5 +45,4 @@ const { data: recipes } = await find<Recipe>("recipes", {
   <SectionNewsletter></SectionNewsletter>
   <RecipeList :list="recipes" :showDetails="true"></RecipeList>
   <SectionRecentArticles :articles="articles"></SectionRecentArticles>
-  <SectionFooter></SectionFooter>
 </template>
