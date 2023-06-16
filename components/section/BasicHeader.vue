@@ -33,13 +33,18 @@ const subHeaderMenu = computed(() => {
   const secondHalf = links.slice(half);
   return [firstHalf, secondHalf];
 });
+
+const route = useRoute();
+const currentRoute = computed(() => route.path);
+console.log(currentRoute.value);
+const heightPadding = computed(() => (currentRoute.value == "/" ? 120 : 80));
 </script>
 
 <template>
   <header class="w-full h-24 md:transparent fixed top-0 z-20">
     <nav
       class="border-gray-200"
-      :class="{ 'bg-gray-100': y > 120 || mobileMenuOpen }"
+      :class="{ 'bg-gray-100': y > heightPadding || mobileMenuOpen }"
     >
       <div
         class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 py-3"
