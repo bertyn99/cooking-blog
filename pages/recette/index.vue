@@ -3,10 +3,20 @@ import { Recipe } from "~/types/strapiMeta";
 
 const { find } = useStrapi();
 
-const { data: recipes } = await useAsyncData<Recipe>(`recipes`, () =>
-  find(`recipes?populate=*&sort[0]=publishedAt%3Adesc&pagination[pageSize]=16`)
+const checkedCategories = ref<string[]>([]);
+const { data: recipes, refresh } = await useAsyncData<Recipe>(`recipes`, () =>
+  find(`recipes`, {
+    filters: {
+      categories: { name: { $in: checkedCategories.value } },
+    },
+    sort: ["publishedAt:desc"],
+    populate: ["cover", "categories"],
+    pagination: {
+      page: 0,
+      pageSize: 16,
+    },
+  })
 );
-console.log(recipes);
 
 const { data: categories } = await useAsyncData(`categories`, () =>
   find(`categories?fields=name`)
@@ -17,9 +27,6 @@ const formatCategories = computed(() =>
     return { name: category.attributes?.name, id: category.id };
   })
 );
-
-const checkedCategories = ref([]);
-console.log(formatCategories);
 </script>
 
 <template>
@@ -31,7 +38,10 @@ console.log(formatCategories);
     class="mx-auto max-w-7xl px-4 sm:px-6"
   >
     <div class="pb-24 pt-6 grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
-      <Filter :categories="formatCategories" :value="checkedCategories" />
+      <Filter
+        v-model:selected="checkedCategories"
+        :categories="formatCategories"
+      />
       <div class="lg:col-span-3">
         <RecipeList :list="recipes?.data" />
       </div>

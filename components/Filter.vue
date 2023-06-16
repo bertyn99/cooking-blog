@@ -1,23 +1,26 @@
 <script lang="ts" setup>
 const showMoreCategories = ref(false);
 type formatedData = { name: string; id: number }[];
-const { categories, value } = defineProps<{
+const { categories, selected } = defineProps<{
   categories: formatedData;
-  value: [];
+  selected: Array<string>;
 }>();
 
-const emit = defineEmits(["update:value"]);
-const check = (optionId: string, checked: any) => {
+const emit = defineEmits(["update:selected"]);
+const check = (optionName: string, checked: any) => {
   // copy the value Array to avoid mutating props
-  let updatedValue = [...value];
+  let updatedValue = [...selected];
   // remove name if checked, else add name
+  console.log("arr copié", selected);
   if (checked) {
-    updatedValue.push(optionId);
+    updatedValue.push(optionName);
+    console.log("ajout", updatedValue);
   } else {
-    updatedValue.splice(updatedValue.indexOf(optionId), 1);
+    updatedValue.splice(updatedValue.indexOf(optionName), 1);
+    console.log("retrait", updatedValue);
   }
   // emit the updated value
-  emit("update:value", updatedValue);
+  emit("update:selected", updatedValue);
 };
 </script>
 
@@ -77,9 +80,11 @@ const check = (optionId: string, checked: any) => {
               <input
                 type="checkbox"
                 id="breakfast-breakfast"
-                name="qodef-e--category[]"
-                data-id="breakfast"
-                :checked="value.includes(category?.id)"
+                name="catefory"
+                @input="(e) => check(category?.name, e.target.checked)"
+                :data-id="category?.name"
+                :checked="selected.includes(category?.name)"
+                :key="category?.id"
                 class="font-sans text-sm text-black cursor-default"
               />
               <label
