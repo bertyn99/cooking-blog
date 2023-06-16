@@ -31,7 +31,8 @@ const check = (optionId: string, checked: any) => {
       Fitrer les Recettes:
     </h3>
     <p class="p-0 mx-0 mt-2 mb-8 align-baseline border-0">
-      Check multiple boxes below to narrow recipe search results
+      Cochez plusieurs cases ci-dessous pour affiner les résultats de la
+      recherche de recettes
     </p>
     <div class="mx-0 mt-0 mb-8 align-baseline border-0">
       <div class="m-0 align-baseline border-0" data-type="custom_search">

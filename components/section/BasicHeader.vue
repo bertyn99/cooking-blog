@@ -36,8 +36,11 @@ const subHeaderMenu = computed(() => {
 </script>
 
 <template>
-  <header class="w-full h-24 transparent fixed top-0 z-20">
-    <nav class="border-gray-200" :class="[y < 120 ? '' : 'bg-gray-100']">
+  <header class="w-full h-24 md:transparent fixed top-0 z-20">
+    <nav
+      class="border-gray-200"
+      :class="{ 'bg-gray-100': y > 120 || mobileMenuOpen }"
+    >
       <div
         class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 py-3"
       >
@@ -128,7 +131,7 @@ const subHeaderMenu = computed(() => {
           class="items-center justify-between w-full md:flex md:w-auto md:order-1"
           :class="{
             hidden: !mobileMenuOpen,
-            'mt-2 bg': mobileMenuOpen,
+            'mt-2 ': mobileMenuOpen,
           }"
           id="navbar-search"
         >
