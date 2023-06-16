@@ -42,7 +42,7 @@
         class="p-0 mx-0 mt-6 mb-3 font-serif text-2xl font-normal text-center text-black align-baseline break-words border-0"
         style="outline: 0px; background-position: 0px center"
       >
-        Ne Manquzr jamais nos prochaines recettes
+        Ne Manquez jamais nos prochaines recettes
       </h3>
       <p
         class="py-0 mx-0 mt-2 mb-8 text-center align-baseline border-0 px-[12%]"
