@@ -36,7 +36,7 @@ const check = (optionId: string, checked: any) => {
     </p>
     <div class="mx-0 mt-0 mb-8 align-baseline border-0">
       <div class="m-0 align-baseline border-0" data-type="custom_search">
-        <input
+        <!--   <input
           type="text"
           name="qodef-text-custom_search"
           value=""
@@ -47,7 +47,7 @@ const check = (optionId: string, checked: any) => {
             transition: color 0.2s ease-out 0s,
               background-color 0.2s ease-out 0s, border-color 0.2s ease-out 0s;
           "
-        />
+        /> -->
       </div>
     </div>
     <div class="mx-0 mt-0 mb-8 align-baseline border-0">
@@ -113,7 +113,7 @@ const check = (optionId: string, checked: any) => {
         @click="$emit('filter')"
       >
         <span class="uppercase align-baseline border-0 tracking-[1.8px]"
-          >Filter Results</span
+          >Filtrer le Resultats</span
         >
       </button>
     </div>
