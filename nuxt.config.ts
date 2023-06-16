@@ -41,6 +41,11 @@ export default defineNuxtConfig({
     cssPath: "~/assets/css/index.css",
     configPath: "~/tailwind.config.ts",
   },
+  nitro: {
+    prerender: {
+      routes: ["/rss.xml", "sitemap.xml"],
+    },
+  },
   runtimeConfig: {
     public: {
       siteUrl:
