@@ -5,7 +5,7 @@ useSeoMeta(
   useLoadMeta({
     title: "Accueil",
     description: "Venez rejoindre la communauté des jeunes cuistots !",
-    image: "https://journalducuistot.fr/img/scire_logo_primary.png",
+    image: "https://journalducuistot.fr/img/logo.png",
     url: "https://journalducuistot.fr",
   }) as any
 );

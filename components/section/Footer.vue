@@ -42,17 +42,23 @@ const links = [
 
       <ul class="flex justify-around">
         <li>
-          <NuxtLink to="/" class="text-neutral-600">
+          <NuxtLink
+            to="ttps://www.instagram.com/journalducuistot"
+            class="text-neutral-600"
+          >
             <Icon name="uil:instagram" />
           </NuxtLink>
         </li>
         <li>
-          <NuxtLink to="/" class="text-neutral-600">
+          <NuxtLink to="/rss.xml" class="text-neutral-600">
             <Icon name="ic:sharp-rss-feed" />
           </NuxtLink>
         </li>
         <li>
-          <NuxtLink to="/" class="text-neutral-600">
+          <NuxtLink
+            to="https://www.pinterest.com/journalducuistot/"
+            class="text-neutral-600"
+          >
             <Icon name="ph:pinterest-logo-bold" />
           </NuxtLink>
         </li>
