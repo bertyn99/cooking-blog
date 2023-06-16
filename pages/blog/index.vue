@@ -23,7 +23,7 @@ console.log(formatCategories);
 </script>
 
 <template>
-  <div class="py-24 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <div class="py-28 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <h1 class="text-4xl font-bold tracking-tight">Blog</h1>
   </div>
   <section
