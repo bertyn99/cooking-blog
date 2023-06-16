@@ -3,11 +3,12 @@ const showMoreCategories = ref(false);
 type formatedData = { name: string; id: number }[];
 const { categories, selected } = defineProps<{
   categories: formatedData;
-  selected: Array<string>;
+  value: [];
+  searchValue: string;
 }>();
 
-const emit = defineEmits(["update:selected"]);
-const check = (optionName: string, checked: any) => {
+const emit = defineEmits(["update:value", "update:searchValue"]);
+const check = (optionId: string, checked: any) => {
   // copy the value Array to avoid mutating props
   let updatedValue = [...selected];
   // remove name if checked, else add name
@@ -22,6 +23,9 @@ const check = (optionName: string, checked: any) => {
   // emit the updated value
   emit("update:selected", updatedValue);
 };
+const onInput = (e: any) => {
+  emit("update:searchValue", e.target.value);
+};
 </script>
 
 <template>
@@ -34,15 +38,17 @@ const check = (optionName: string, checked: any) => {
       Fitrer les Recettes:
     </h3>
     <p class="p-0 mx-0 mt-2 mb-8 align-baseline border-0">
-      Check multiple boxes below to narrow recipe search results
+      Cochez plusieurs cases ci-dessous pour affiner les résultats de la
+      recherche de recettes
     </p>
     <div class="mx-0 mt-0 mb-8 align-baseline border-0">
       <div class="m-0 align-baseline border-0" data-type="custom_search">
         <input
           type="text"
           name="qodef-text-custom_search"
-          value=""
-          placeholder="What you are looking for?"
+          :value="searchValue"
+          @input="onInput"
+          placeholder="Que recherchez-vous ?"
           class="inline-block relative py-4 px-6 mx-0 mt-0 mb-5 w-full text-base align-top bg-transparent rounded-none border border-solid appearance-none cursor-text border-zinc-300 focus:border-black focus:bg-transparent focus:text-black"
           style="
             outline: 0px;
@@ -117,7 +123,7 @@ const check = (optionName: string, checked: any) => {
         @click="$emit('filter')"
       >
         <span class="uppercase align-baseline border-0 tracking-[1.8px]"
-          >Filter Results</span
+          >Filtrer le Resultats</span
         >
       </button>
     </div>

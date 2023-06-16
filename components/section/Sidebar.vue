@@ -42,7 +42,7 @@
         class="p-0 mx-0 mt-6 mb-3 font-serif text-2xl font-normal text-center text-black align-baseline break-words border-0"
         style="outline: 0px; background-position: 0px center"
       >
-        Ne Manquer jamais nos prochaine recette
+        Ne Manquez jamais nos prochaines recettes
       </h3>
       <p
         class="py-0 mx-0 mt-2 mb-8 text-center align-baseline border-0 px-[12%]"
@@ -55,7 +55,7 @@
         style="outline: 0px; background-position: 0px center"
         ><input
           type="email"
-          name="your-email"
+          name="Ton Email"
           value=""
           size="40"
           class="inline-block relative py-4 pr-12 pl-6 mx-0 mt-0 mb-5 w-full text-base align-top bg-white rounded-none border border-solid appearance-none cursor-text border-zinc-300 focus:border-black focus:bg-transparent focus:text-black"
@@ -79,7 +79,7 @@
         <span
           class="block p-0 m-0 text-center uppercase align-baseline border-0"
           style="letter-spacing: 1.8px"
-          >Subscribe</span
+          >Souscrivez</span
         >
       </button>
     </div>

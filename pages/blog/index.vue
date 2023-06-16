@@ -17,21 +17,25 @@ const formatCategories = computed(() =>
     return { name: category.attributes?.name, id: category.id };
   })
 );
-
+const search = ref("");
 const checkedCategories = ref([]);
 console.log(formatCategories);
 </script>
 
 <template>
-  <div class="py-24 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <h1 class="text-4xl font-bold tracking-tight">Recettes</h1>
+  <div class="py-28 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <h1 class="text-4xl font-bold tracking-tight">Blog</h1>
   </div>
   <section
     aria-labelledby="products-heading"
     class="mx-auto max-w-7xl px-4 sm:px-6"
   >
     <div class="pb-24 pt-6 grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
-      <Filter :categories="formatCategories" :value="checkedCategories" />
+      <Filter
+        :categories="formatCategories"
+        :value="checkedCategories"
+        :searchValue="search"
+      />
       <div class="lg:col-span-3">
         <ArticleList :articles="articles.data"></ArticleList>
       </div>

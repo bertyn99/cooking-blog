@@ -26,6 +26,9 @@ export default defineNuxtConfig({
       },
     ],
   ],
+  vue: {
+    defineModel: true,
+  },
   plausible: {
     domain: "journalducuistot.fr",
     apiHost: "https://analytics.bertynboulikou.com",
@@ -40,6 +43,11 @@ export default defineNuxtConfig({
   tailwindcss: {
     cssPath: "~/assets/css/index.css",
     configPath: "~/tailwind.config.ts",
+  },
+  nitro: {
+    prerender: {
+      routes: ["/rss.xml", "sitemap.xml"],
+    },
   },
   runtimeConfig: {
     public: {
