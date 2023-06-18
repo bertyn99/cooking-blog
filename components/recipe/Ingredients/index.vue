@@ -22,12 +22,16 @@ const nbPerson = ref(1);
     <div class="flex gap-3">
       <span>Adjust Serving</span>
       <div class="inline-flex gap-2 items-center bg-white">
-        <Icon name="mdi:minus" class="h-4 w-4 text-amber-200" />
+        <Icon
+          name="mdi:minus"
+          class="h-4 w-4 text-amber-200"
+          @click="nbPerson > 1 ? nbPerson-- : null"
+        />
         <input
           type="number"
-          class="w-6 h-6 text-center text-black"
-          v-model="nbPerson"
-          @click="nbPerson--"
+          min="1"
+          class="w-6 h-6 text-center text-black appearance-none"
+          v-model.number="nbPerson"
         />
         <Icon
           name="mdi:plus"
