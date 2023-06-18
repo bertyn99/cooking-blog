@@ -23,7 +23,7 @@ const {
 }>("article", () =>
   find(`articles`, {
     filters: { slug: { $eq: slug } },
-    populate: ["cover", "categories"],
+    populate: ["cover", "categories", "seo"],
     pagination: {
       page: 0,
       pageSize: 1,
@@ -68,12 +68,14 @@ const categoryRecipe = computed(
     ({} as Category)
 );
 
+const seo = computed(() => article.value?.data[0].attributes?.seo[0] || {});
 // set the meta
 useSeoMeta(
   useLoadMeta({
     title: titleContent.value || "Journal du cuistot",
     description:
-      "Journal du cuistot | " + article.value?.data[0].attributes?.content,
+      "Journal du cuistot | " + seo.value?.description || "No description",
+    keywords: seo.value?.keywords || "No keyword",
     image: urlCover || "",
     url: "https://www.journalducuistot.fr/blog/" + slug,
     author: "magius",

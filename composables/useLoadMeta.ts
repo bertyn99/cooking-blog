@@ -12,7 +12,8 @@ const defaultMetaData: MetaData = {
   ogDescription:
     "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
   ogImage: "https://www.journalducuistot.fr/img/logo.webp",
-
+  keywords:
+    "cuisine du monde, recettes de cuisine, recettes de cuisine du monde",
   twitterCard: "summary_large_image",
 
   twitterUrl: "https://www.journalducuistot.fr/",
@@ -31,7 +32,7 @@ export const useLoadMeta = (metaOption: MetaOption) => {
     title: "",
     description: "",
     robots: "",
-
+    keywords: "",
     ogType: "",
     ogLocale: "",
     ogLocaleAlternate: "",
@@ -55,12 +56,18 @@ export const useLoadMeta = (metaOption: MetaOption) => {
       metaData[k] = metaOption.description;
     if (k.toLowerCase().includes("image")) metaData[k] = metaOption.image;
     if (k.toLowerCase().includes("url")) metaData[k] = metaOption.url;
-
+    if (k.toLowerCase().includes("keywords")) {
+      metaData[k] =
+        metaOption.keywords?.length !== 0
+          ? metaOption.keywords!
+          : "cuisine du monde, recettes de cuisine, recettes de cuisine du monde";
+    }
     if (
       !k.toLowerCase().includes("title") &&
       !k.toLowerCase().includes("description") &&
       !k.toLowerCase().includes("image") &&
-      !k.toLowerCase().includes("url")
+      !k.toLowerCase().includes("url") &&
+      !k.toLowerCase().includes("keywords")
     )
       metaData[k] = v;
   }

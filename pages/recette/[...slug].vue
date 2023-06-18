@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { url } from "inspector";
 import YouMayAlsoLike from "~/components/section/YouMayAlsoLike.vue";
-import { Category, Cover, Ingredient, Recipe } from "~/types/strapiMeta";
+import { Category, Cover, Ingredient, Recipe, SEO } from "~/types/strapiMeta";
 
 definePageMeta({ layout: "content" });
 
@@ -17,7 +17,7 @@ const {
 } = await useAsyncData<Recipe>(`recipe-${slug}`, () =>
   find(`recipes`, {
     filters: { slug: { $eq: slug } },
-    populate: ["cover", "categories", "nutrition", "Ingredient"],
+    populate: ["cover", "categories", "nutrition", "Ingredient", "seo"],
     pagination: {
       page: 0,
       pageSize: 1,
@@ -83,11 +83,15 @@ const formated = computed(() =>
       return { name: key, value: nutrition.value[key] };
     })
 );
-console.log(formated.value);
+const seo = computed(
+  () => recipe.value?.data[0].attributes?.seo[0] || ({} as SEO)
+);
 useSeoMeta(
   useLoadMeta({
     title: titleContent.value || "Journal du cuistot",
-    description: "Journal du cuistot | " + titleContent.value,
+    description:
+      "Journal du cuistot | " + seo.value?.description || "No description",
+    /*   keywords: seo.value?.keywords || "No keyword", */
     image: urlCover || "",
     url: "https://www.journalducuistot.fr/" + slug,
     author: "magius",

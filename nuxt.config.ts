@@ -26,6 +26,10 @@ export default defineNuxtConfig({
       },
     ],
   ],
+  vue: {
+    defineModel: true,
+    propsDestructure: true,
+  },
   plausible: {
     domain: "journalducuistot.fr",
     apiHost: "https://analytics.bertynboulikou.com",
@@ -43,7 +47,7 @@ export default defineNuxtConfig({
   },
   nitro: {
     prerender: {
-      routes: ["/rss.xml", "sitemap.xml"],
+      routes: ["rss.xml", "sitemap.xml"],
     },
   },
   runtimeConfig: {

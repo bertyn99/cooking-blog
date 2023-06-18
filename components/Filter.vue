@@ -1,23 +1,30 @@
 <script lang="ts" setup>
 const showMoreCategories = ref(false);
 type formatedData = { name: string; id: number }[];
-const { categories, value } = defineProps<{
-  categories: formatedData;
-  value: [];
-}>();
+const { categories, selected } = defineProps([
+  "categories",
+  "selected",
+  "searchValue",
+]);
 
-const emit = defineEmits(["update:value"]);
-const check = (optionId: string, checked: any) => {
+const emit = defineEmits(["update:selected", "update:searchValue", "filter"]);
+const check = (optionName: string, checked: any) => {
   // copy the value Array to avoid mutating props
-  let updatedValue = [...value];
+  let updatedValue = [...selected];
   // remove name if checked, else add name
+  console.log("arr copié", updatedValue);
   if (checked) {
-    updatedValue.push(optionId);
+    updatedValue.push(optionName);
+    console.log("ajout", updatedValue);
   } else {
-    updatedValue.splice(updatedValue.indexOf(optionId), 1);
+    updatedValue.splice(updatedValue.indexOf(optionName), 1);
+    console.log("retrait", updatedValue);
   }
   // emit the updated value
-  emit("update:value", updatedValue);
+  emit("update:selected", updatedValue);
+};
+const onInput = (e: any) => {
+  emit("update:searchValue", e.target.value);
 };
 </script>
 
@@ -36,18 +43,19 @@ const check = (optionId: string, checked: any) => {
     </p>
     <div class="mx-0 mt-0 mb-8 align-baseline border-0">
       <div class="m-0 align-baseline border-0" data-type="custom_search">
-        <!--   <input
+        <input
           type="text"
           name="qodef-text-custom_search"
-          value=""
-          placeholder="What you are looking for?"
+          :value="searchValue"
+          @input="onInput"
+          placeholder="Que recherchez-vous ?"
           class="inline-block relative py-4 px-6 mx-0 mt-0 mb-5 w-full text-base align-top bg-transparent rounded-none border border-solid appearance-none cursor-text border-zinc-300 focus:border-black focus:bg-transparent focus:text-black"
           style="
             outline: 0px;
             transition: color 0.2s ease-out 0s,
               background-color 0.2s ease-out 0s, border-color 0.2s ease-out 0s;
           "
-        /> -->
+        />
       </div>
     </div>
     <div class="mx-0 mt-0 mb-8 align-baseline border-0">
@@ -74,20 +82,29 @@ const check = (optionId: string, checked: any) => {
             <div
               class="flex items-center align-baseline border-0"
               v-for="category in categories"
+              :key="category?.id"
             >
-              <input
+              <!-- <input
                 type="checkbox"
-                id="breakfast-breakfast"
-                name="qodef-e--category[]"
-                data-id="breakfast"
-                :checked="value.includes(category?.id)"
+                :id="category?.name"
+                name="category"
+                @input="(e) => check(category?.name, e.target!.checked)"
+                :data-id="category?.name"
+                :checked="selected.includes(category?.name as never)"
+               
                 class="font-sans text-sm text-black cursor-default"
               />
               <label
                 for="breakfast-breakfast"
                 class="block p-0 my-0 mr-0 ml-1 align-baseline border-0 cursor-default"
                 >{{ category?.name }}</label
-              >
+              > -->
+              <BaseInputCheckbox
+                :fieldId="category?.name"
+                :checked="selected.includes(category?.name as never)"
+                @update:checked="check(category?.name, $event)"
+                :label="category?.name"
+              />
             </div>
           </div>
           <div
@@ -110,7 +127,7 @@ const check = (optionId: string, checked: any) => {
             border-color 0.2s ease-out 0s;
           box-shadow: none;
         "
-        @click="$emit('filter')"
+        @click="emit('filter')"
       >
         <span class="uppercase align-baseline border-0 tracking-[1.8px]"
           >Filtrer le Resultats</span
