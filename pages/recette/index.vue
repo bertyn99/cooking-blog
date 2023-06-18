@@ -44,10 +44,9 @@ const formatCategories = computed(() =>
     <div class="pb-24 pt-6 grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
       <Filter
         :categories="formatCategories"
-        :selected="checkedCategories"
         :searchValue="search"
         @update:search-value="search = $event"
-        @update:selected="checkedCategories = $event"
+        v-model:selected="checkedCategories"
         @filter="searchWithFilter"
       />
       <div class="lg:col-span-3">

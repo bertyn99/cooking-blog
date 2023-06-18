@@ -28,6 +28,7 @@ export default defineNuxtConfig({
   ],
   vue: {
     defineModel: true,
+    propsDestructure: true,
   },
   plausible: {
     domain: "journalducuistot.fr",
