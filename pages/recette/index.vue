@@ -4,10 +4,11 @@ import { Recipe } from "~/types/strapiMeta";
 const { find } = useStrapi();
 const search = ref("");
 const checkedCategories = ref<string[]>([]);
+
 const { data: recipes, refresh } = await useAsyncData<Recipe>(`recipes`, () =>
   find(`recipes`, {
     filters: {
-      title: { $regex: search.value, $options: "i" },
+      title: { $contains: search.value },
       categories: { name: { $in: checkedCategories.value } },
     },
     sort: ["publishedAt:desc"],
@@ -18,7 +19,9 @@ const { data: recipes, refresh } = await useAsyncData<Recipe>(`recipes`, () =>
     },
   })
 );
-
+const searchWithFilter = () => {
+  refresh();
+};
 const { data: categories } = await useAsyncData(`categories`, () =>
   find(`categories?fields=name`)
 );
@@ -40,9 +43,12 @@ const formatCategories = computed(() =>
   >
     <div class="pb-24 pt-6 grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
       <Filter
-        v-model:selected="checkedCategories"
         :categories="formatCategories"
+        :selected="checkedCategories"
         :searchValue="search"
+        @update:search-value="search = $event"
+        @update:selected="checkedCategories = $event"
+        @filter="searchWithFilter"
       />
       <div class="lg:col-span-3">
         <RecipeList :list="recipes?.data" />
