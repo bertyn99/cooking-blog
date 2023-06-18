@@ -6,6 +6,12 @@ type Formats = {
 };
 type SizeKey = keyof typeof Formats;
 
+type SEO = {
+  id?: number;
+  description: string;
+  metaRobots: string;
+  keywords: string;
+};
 export type sizeImg = {
   url: string;
   hash: string;
@@ -358,6 +364,7 @@ export type Recipe = {
           attributes?: Record<string, never>;
         }[];
       };
+      seo?: SEO;
       step?: string;
       slug?: string;
       /** @enum {string} */
@@ -391,7 +398,7 @@ export type Article = {
     categories?: Category;
     slug?: string;
     createdAt?: string;
-
+    seo?: SEO;
     updatedAt?: string;
     publishedAt?: string;
     createdBy?: {

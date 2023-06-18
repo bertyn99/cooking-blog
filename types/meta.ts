@@ -24,6 +24,7 @@ interface MetaData extends Meta {
   title: string;
   description: string;
   robots: string;
+  keywords?: string;
   author?: string;
   articleDatePublished?: string;
   articleDateModified?: string;
@@ -48,6 +49,7 @@ type MetaOption = {
   image: string;
   url: string;
   author?: string;
+  keywords?: string;
   articleDatePublished?: string;
   articleDateModified?: string;
 };
