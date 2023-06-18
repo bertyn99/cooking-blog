@@ -2,13 +2,13 @@
 const showMoreCategories = ref(false);
 type formatedData = { name: string; id: number }[];
 const { categories, selected } = defineProps<{
-  categories: formatedData;
-  value: [];
+  categories?: formatedData;
+  selected?: string[];
   searchValue: string;
 }>();
 
-const emit = defineEmits(["update:value", "update:searchValue"]);
-const check = (optionId: string, checked: any) => {
+const emit = defineEmits(["update:selected", "update:searchValue"]);
+const check = (optionName: string, checked: any) => {
   // copy the value Array to avoid mutating props
   let updatedValue = [...selected];
   // remove name if checked, else add name
@@ -87,9 +87,9 @@ const onInput = (e: any) => {
                 type="checkbox"
                 id="breakfast-breakfast"
                 name="catefory"
-                @input="(e) => check(category?.name, e.target.checked)"
+                @input="(e) => check(category?.name, e.target!.checked)"
                 :data-id="category?.name"
-                :checked="selected.includes(category?.name)"
+                :checked="selected.includes(category?.name as never)"
                 :key="category?.id"
                 class="font-sans text-sm text-black cursor-default"
               />
