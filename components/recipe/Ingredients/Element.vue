@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-defineProps(["ingredient"]);
+defineProps(["ingredient", "multiplicator"]);
 const isChecked = ref(false);
 </script>
 
@@ -22,7 +22,7 @@ const isChecked = ref(false);
     class="whitespace-nowrap py-4 pl-4 pr-4 text-sm text-gray-500 sm:pr-0"
     :class="{ 'line-through': isChecked }"
   >
-    {{ ingredient.qty }}
+    {{ ingredient.qty * multiplicator }}
     {{ ingredient.unit }}
     {{ ingredient.name }}
   </td>

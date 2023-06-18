@@ -5,6 +5,7 @@ import { Ingredient } from "~/types/strapiMeta";
 defineProps<{
   ingredients: Ingredient[];
 }>();
+const nbPerson = ref(1);
 </script>
 
 <template>
@@ -21,9 +22,22 @@ defineProps<{
     <div class="flex gap-3">
       <span>Adjust Serving</span>
       <div class="inline-flex gap-2 items-center bg-white">
-        <Icon name="mdi:minus" class="h-4 w-4 text-amber-200" />
-        <input type="number" class="w-6 h-6 text-center text-black" value="1" />
-        <Icon name="mdi:plus" class="h-4 w-4 text-amber-200" />
+        <Icon
+          name="mdi:minus"
+          class="h-4 w-4 text-amber-200"
+          @click="nbPerson > 1 ? nbPerson-- : null"
+        />
+        <input
+          type="number"
+          min="1"
+          class="w-6 h-6 text-center text-black appearance-none"
+          v-model.number="nbPerson"
+        />
+        <Icon
+          name="mdi:plus"
+          class="h-4 w-4 text-amber-200"
+          @click="nbPerson++"
+        />
       </div>
     </div>
 
@@ -34,7 +48,10 @@ defineProps<{
           :key="ingredient.name"
           class="divide-x divide-gray-200"
         >
-          <RecipeIngredientsElement :ingredient="ingredient" />
+          <RecipeIngredientsElement
+            :ingredient="ingredient"
+            :multiplicator="nbPerson"
+          />
         </tr>
       </tbody>
     </table>

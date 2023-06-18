@@ -86,12 +86,13 @@ const formated = computed(() =>
 const seo = computed(
   () => recipe.value?.data[0].attributes?.seo[0] || ({} as SEO)
 );
+
 useSeoMeta(
   useLoadMeta({
     title: titleContent.value || "Journal du cuistot",
     description:
       "Journal du cuistot | " + seo.value?.description || "No description",
-    /*   keywords: seo.value?.keywords || "No keyword", */
+    keywords: seo.value?.keywords || "No keyword",
     image: urlCover || "",
     url: "https://www.journalducuistot.fr/" + slug,
     author: "magius",
