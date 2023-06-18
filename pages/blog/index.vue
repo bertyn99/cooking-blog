@@ -4,7 +4,7 @@ const search = ref("");
 const checkedCategories = ref([]);
 const { find } = useStrapi();
 
-const { data: articles } = await useAsyncData<Recipe>(`articles`, () =>
+const { data: articles, refresh } = await useAsyncData<Recipe>(`articles`, () =>
   find(`articles`, {
     filters: {
       title: { $contains: search.value },
@@ -28,6 +28,9 @@ const formatCategories = computed(() =>
     return { name: category.attributes?.name, id: category.id };
   })
 );
+const searchWithFilter = () => {
+  refresh();
+};
 </script>
 
 <template>
@@ -43,6 +46,9 @@ const formatCategories = computed(() =>
         :categories="formatCategories"
         :selected="checkedCategories"
         :searchValue="search"
+        @update:search-value="search = $event"
+        @update:selected="checkedCategories = $event"
+        @filter="searchWithFilter"
       />
       <div class="lg:col-span-3">
         <ArticleList :articles="articles.data"></ArticleList>

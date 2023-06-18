@@ -7,7 +7,7 @@ const { categories, selected } = defineProps<{
   searchValue: string;
 }>();
 
-const emit = defineEmits(["update:selected", "update:searchValue"]);
+const emit = defineEmits(["update:selected", "update:searchValue", "filter"]);
 const check = (optionName: string, checked: any) => {
   // copy the value Array to avoid mutating props
   let updatedValue = [...selected];
@@ -120,7 +120,7 @@ const onInput = (e: any) => {
             border-color 0.2s ease-out 0s;
           box-shadow: none;
         "
-        @click="$emit('filter')"
+        @click="emit('filter')"
       >
         <span class="uppercase align-baseline border-0 tracking-[1.8px]"
           >Filtrer le Resultats</span
