@@ -187,9 +187,10 @@ useHead({
   <RecipeNutritional :data="formated" />
   <RecipeSteps :steps="steps" />
   <Cta />
-  <PrevAndNext />
+  <PrevAndNext class="print:hidden" />
   <SectionYouMayAlsoLike
     :categorie="categoryRecipe.name"
     type-content="recipes"
+    class="print:hidden"
   />
 </template>

@@ -2,7 +2,7 @@
 
 <template>
   <div
-    class="bg-yellow-50 inline-flex items-center gap-2 px-4 py-2 mt-2.5 mb-6"
+    class="bg-yellow-50 inline-flex items-center gap-2 px-4 py-2 mt-2.5 mb-6 print:hidden"
   >
     <span
       class="p-0 m-0 font-serif text-base leading-6 text-black align-baseline border-0"
