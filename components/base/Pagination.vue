@@ -1,9 +1,5 @@
 <script setup>
-const { offset, totalPage, currentPage, prev, to, next } = defineProps({
-  offset: {
-    type: Boolean,
-    default: false,
-  },
+const { totalPage, currentPage, prev, to, next } = defineProps({
   totalPage: Number,
   currentPage: Number,
   prev: Function,
@@ -14,13 +10,12 @@ const { offset, totalPage, currentPage, prev, to, next } = defineProps({
 
 <template>
   <div
-    class="bg-white w-full max-w-3xl px-2 h-14 inline-flex justify-end"
-    :class="[props.offset ? 'sm:-translate-x-[8.84vw]' : 'mx-auto']"
+    class="bg-white w-full max-w-3xl px-2 h-14 inline-flex justify-end my-4"
     v-if="totalPage > 1"
   >
     <nav class="h-full w-full max-w-[585px] inline-flex justify-end p-2 gap-2">
       <button
-        class="bg-primary-darken p-2 translate-y-5"
+        class="bg-primary-darken p-2"
         v-if="currentPage > 1"
         @click="prev"
       >
@@ -42,15 +37,19 @@ const { offset, totalPage, currentPage, prev, to, next } = defineProps({
       <ul class="h-full inline-flex justify-center items-center w-full gap-3">
         <li
           v-for="page in totalPage"
-          class="text-medium text-xl hover:bg-tertiary-default/50 p-2"
-          :class="[currentPage == page ? 'bg-tertiary-default/50' : '']"
+          class="text-medium text-xl text-zinc-500 hover:bg-tertiary-default/50 p-2 cursor-pointer"
+          :class="[
+            currentPage == page
+              ? 'bg-tertiary-default/50 text-zinc-900 font-semibold'
+              : '',
+          ]"
           key="page"
           @click="to(page)"
         >
           {{ page }}
         </li>
       </ul>
-      <button class="bg-black p-2 -translate-y-5" @click="next">
+      <button class="bg-black p-2" @click="next" v-if="currentPage < totalPage">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
