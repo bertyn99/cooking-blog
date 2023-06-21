@@ -4,20 +4,23 @@ import { Recipe } from "~/types/strapiMeta";
 const { find } = useStrapi();
 const search = ref("");
 const checkedCategories = ref<string[]>([]);
-
-const { data: recipes, refresh } = await useAsyncData<Recipe>(`recipes`, () =>
-  find(`recipes`, {
-    filters: {
-      title: { $contains: search.value },
-      categories: { name: { $in: checkedCategories.value } },
-    },
-    sort: ["publishedAt:desc"],
-    populate: ["cover", "categories"],
-    pagination: {
-      page: 0,
-      pageSize: 16,
-    },
-  })
+const currentPage = ref(1);
+const { data: recipes, refresh } = await useAsyncData<Recipe>(
+  `recipes`,
+  () =>
+    find(`recipes`, {
+      filters: {
+        title: { $contains: search.value },
+        categories: { name: { $in: checkedCategories.value } },
+      },
+      sort: ["publishedAt:desc"],
+      populate: ["cover", "categories"],
+      pagination: {
+        page: currentPage.value,
+        pageSize: 16,
+      },
+    }),
+  { watch: [currentPage] }
 );
 const searchWithFilter = () => {
   refresh();
@@ -31,6 +34,19 @@ const formatCategories = computed(() =>
     return { name: category.attributes?.name, id: category.id };
   })
 );
+
+const goNext = () => {
+  if (currentPage.value < recipes.value.meta.pagination.pageCount + 1) {
+    currentPage.value += 1;
+  }
+};
+
+const goPrev = () => {
+  if (currentPage.value > 1) currentPage.value -= 1;
+};
+const goTo = (id: number) => {
+  currentPage.value = id;
+};
 </script>
 
 <template>
@@ -51,6 +67,13 @@ const formatCategories = computed(() =>
       />
       <div class="lg:col-span-3">
         <RecipeList :list="recipes?.data" />
+        <BasePagination
+          :totalPage="recipes.meta.pagination.pageCount"
+          :currentPage="currentPage"
+          :prev="goPrev"
+          :next="goNext"
+          :to="goTo"
+        />
       </div>
     </div>
   </section>

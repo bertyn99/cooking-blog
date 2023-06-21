@@ -1,22 +1,27 @@
 <script lang="ts" setup>
 import { Recipe } from "~/types/strapiMeta";
+
 const search = ref("");
 const checkedCategories = ref([]);
+const currentPage = ref(1);
 const { find } = useStrapi();
 
-const { data: articles, refresh } = await useAsyncData<Recipe>(`articles`, () =>
-  find(`articles`, {
-    filters: {
-      title: { $contains: search.value },
-      categories: { name: { $in: checkedCategories.value } },
-    },
-    sort: ["publishedAt:desc"],
-    populate: ["cover", "categories"],
-    pagination: {
-      page: 0,
-      pageSize: 16,
-    },
-  })
+const { data: articles, refresh } = await useAsyncData<Recipe>(
+  `articles`,
+  () =>
+    find(`articles`, {
+      filters: {
+        title: { $contains: search.value },
+        categories: { name: { $in: checkedCategories.value } },
+      },
+      sort: ["publishedAt:desc"],
+      populate: ["cover", "categories"],
+      pagination: {
+        page: currentPage.value,
+        pageSize: 7,
+      },
+    }),
+  { watch: [currentPage] }
 );
 
 const { data: categories } = await useAsyncData(`categories`, () =>
@@ -28,8 +33,23 @@ const formatCategories = computed(() =>
     return { name: category.attributes?.name, id: category.id };
   })
 );
+console.log(articles.value.meta.pagination);
+
 const searchWithFilter = () => {
   refresh();
+};
+
+const goNext = () => {
+  if (currentPage.value < articles.value.meta.pagination.pageCount + 1) {
+    currentPage.value += 1;
+  }
+};
+
+const goPrev = () => {
+  if (currentPage.value > 1) currentPage.value -= 1;
+};
+const goTo = (id: number) => {
+  currentPage.value = id;
 };
 </script>
 
@@ -51,6 +71,13 @@ const searchWithFilter = () => {
       />
       <div class="lg:col-span-3">
         <ArticleList :articles="articles.data"></ArticleList>
+        <BasePagination
+          :totalPage="articles.meta.pagination.pageCount"
+          :currentPage="currentPage"
+          :prev="goPrev"
+          :next="goNext"
+          :to="goTo"
+        />
       </div>
     </div>
   </section>
