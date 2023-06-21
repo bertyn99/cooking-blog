@@ -1,7 +1,11 @@
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+const printPage = () => {
+  window.print();
+};
+</script>
 
 <template>
-  <div class="flex py-5 gap-4">
+  <div class="flex py-5 gap-4 print:hidden">
     <button
       class="py-3 px-5 m-0 text-xs font-semibold leading-6 text-center text-black uppercase align-baseline border-0 cursor-pointer bg-neutral-100 hover:text-stone-500"
       title="Like this"
@@ -28,11 +32,10 @@
       title="Like this"
       data-post-id="26"
       style="
-        outline: 0px;
-        text-decoration: none;
         transition: color 0.2s ease-out 0s;
         background-position: 0px center;
       "
+      @click="printPage"
     >
       <span
         class="p-0 m-0 font-semibold text-center uppercase align-baseline border-0"

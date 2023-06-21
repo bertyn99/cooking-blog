@@ -59,7 +59,7 @@ const heightPadding = computed(() => (currentRoute.value == "/" ? 120 : 80));
             >Cuistot</span
           > -->
         </NuxtLink>
-        <div class="flex md:order-2">
+        <div class="flex md:order-2 print:hidden">
           <button
             type="button"
             data-collapse-toggle="navbar-search"

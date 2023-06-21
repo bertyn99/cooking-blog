@@ -13,7 +13,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="w-full">
+  <div class="w-full print:hidden">
     <img
       width="1300"
       height="910"

@@ -13,7 +13,7 @@ defineProps({
 
 <template>
   <div
-    class="flex flex-wrap divide-y md:divide-y-0 md:divide-x py-1 items-center gap-6"
+    class="flex flex-wrap divide-y md:divide-y-0 md:divide-x py-1 items-center gap-6 print:hidden"
   >
     <div class="flex gap-2">
       <img

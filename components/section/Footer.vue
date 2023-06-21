@@ -24,7 +24,7 @@ const links = [
 
 <template>
   <footer
-    class="py-2 px-1 md:px-4lg:px-8 m-0 w-full leading-6 align-top border-0 border-solid border-stone-200 text-stone-500"
+    class="py-2 px-1 md:px-4lg:px-8 m-0 w-full leading-6 align-top border-0 print:hidden border-solid border-stone-200 text-stone-500"
     style="outline: 0px; background-position: 0px center"
   >
     <div class="w-full max-w-7xl mx-auto flex justify-around items-center">
