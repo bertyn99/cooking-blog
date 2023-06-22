@@ -23,7 +23,7 @@ const isChecked = ref(false);
     :class="{ 'line-through': isChecked }"
   >
     {{ ingredient.qty * multiplicator }}
-    {{ ingredient.unit }}
+    {{ ingredient.unit !== "none" ? ingredient.unit : "" }}
     {{ ingredient.name }}
   </td>
 </template>

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
+import { useReadingTime } from "~/composables/useReadingTime";
 import { Recipe, Article, Category } from "~/types/strapiMeta";
-
+import readingTime from "reading-time";
 const { post } = defineProps({
   post: {
     type: Object as PropType<Article>,
@@ -27,6 +28,7 @@ const responsiveCover = computed(() => {
                 ${checkIfExist(post.attributes!.cover, "meidum", "600w")}
               `;
 });
+const { minutes } = useReadingTime(post.attributes!.content || "");
 </script>
 
 <template>
@@ -77,9 +79,9 @@ const responsiveCover = computed(() => {
             class="p-0 mt-0 mr-4 mb-2 ml-0 text-xs font-semibold tracking-widest text-black uppercase align-baseline"
           >
             <span
-              class="inline-block p-0 mx-0 mt-px mb-0 h-4 tracking-wider leading-5 uppercase align-top"
+              class="inline-block p -0 mx-0 mt-px mb-0 h-4 tracking-wider leading-5 uppercase align-top"
             ></span>
-            30 minutes
+            {{ minutes }} minutes
           </p>
           <p
             v-for="category in categories"

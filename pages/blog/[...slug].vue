@@ -67,7 +67,9 @@ const categoryRecipe = computed(
     article.value?.data[0].attributes?.categories?.data[0].attributes ||
     ({} as Category)
 );
-
+const { minutes } = useReadingTime(
+  article.value?.data[0].attributes.content || ""
+);
 const seo = computed(() => article.value?.data[0].attributes?.seo[0] || {});
 // set the meta
 useSeoMeta(
@@ -132,7 +134,7 @@ useHead({
         class="flex-[0_0_auto] items-center mx-2 h-6 text-xs leading-6 font-semibold tracking-widest text-black uppercase align-baseline"
       >
         <Icon name="ic:sharp-access-time" class="h-3 w-3 text-gray-500" />
-        8 minutes
+        {{ minutes }} minutes
       </p>
 
       <div

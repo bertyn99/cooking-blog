@@ -6,6 +6,11 @@ const { steps } = defineProps<{
 }>();
 
 const formatedSteps = steps.map((step) => marked(step.slice(3, -1)));
+
+const schemaRecipeSteps = formatedSteps.map((step, index) => ({
+  "@type": "HowToStep",
+  text: step.slice(3, -5),
+}));
 </script>
 
 <template>
@@ -22,6 +27,7 @@ const formatedSteps = steps.map((step) => marked(step.slice(3, -1)));
   </section>
 
   <div>
+    <SchemaOrgArticle :recipeInstructions="schemaRecipeSteps" />
     <RecipeStepsContent
       v-for="(step, index) in formatedSteps"
       :index="index + 1"
