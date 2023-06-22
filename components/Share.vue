@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-defineProps({
+const props = defineProps({
   date: {
     type: String,
     required: true,
@@ -9,6 +9,8 @@ defineProps({
     required: true,
   },
 });
+const dateFormattedDisplay = useDateFormat(props.date, "DD MMM YYYY");
+const dateFormatted = useDateFormat(props.date, "DD-MM-YYYY");
 </script>
 
 <template>
@@ -33,16 +35,13 @@ defineProps({
           bertyn boulikou
         </NuxtLink>
 
-        <datetime
+        <time
+          :datetime="dateFormatted"
           itemprop="dateCreated"
           class="relative p-0 m-0 text-xs leading-6 align-baseline border-0 text-stone-500"
         >
-          {{
-            new Intl.DateTimeFormat("fr-FR", {
-              dateStyle: "medium",
-            }).format(new Date(date))
-          }}
-        </datetime>
+          {{ dateFormattedDisplay }}
+        </time>
       </div>
     </div>
     <div
