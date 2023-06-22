@@ -5,7 +5,9 @@ const { steps } = defineProps<{
   steps: string[];
 }>();
 
-const formatedSteps = steps.map((step) => marked(step.slice(3, -1)));
+const formatedSteps = steps.map((step) =>
+  marked(step.slice(3, -1), { mangle: false })
+);
 
 const schemaRecipeSteps = formatedSteps.map((step, index) => ({
   "@type": "HowToStep",
