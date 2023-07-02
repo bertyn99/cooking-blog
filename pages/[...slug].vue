@@ -18,10 +18,12 @@ const {
   error,
 } = await useAsyncData<{
   data: Article[];
-}>(`page-${slug}`, () =>
+}>(`page-${slug.length == 1 ? slug : slug[1]}`, () =>
   find(`pages`, {
-    filters: { slug: { $eq: slug } },
-    populate: ["Content", "seoMeta"],
+    filters: {
+      slug: { $eq: slug.length == 1 ? slug : slug[1] },
+    },
+    populate: ["Content", "seoMeta", "page"],
     pagination: {
       page: 0,
       pageSize: 1,
