@@ -5,7 +5,7 @@ const { x, y } = useWindowScroll();
 
 const links = [
   {
-    id: 1,
+    id: 0,
     name: "Accueil",
     url: "/",
     current: true,
@@ -17,12 +17,19 @@ const links = [
     current: true,
   },
   {
-    id: 1,
+    id: 2,
     name: "Recette",
     url: "/recette",
     current: true,
   },
-  { id: 2, name: "A propos", url: "/a-propos", current: false },
+
+  {
+    id: 3,
+    name: "Technique de Cuisine",
+    url: "/techniques-de-cuisine",
+    current: true,
+  },
+  { id: 4, name: "A propos", url: "/a-propos", current: false },
 ];
 const headerMenu = computed(() => links || []);
 const mobileMenuOpen = ref(false);
