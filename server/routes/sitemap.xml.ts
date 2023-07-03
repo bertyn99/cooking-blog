@@ -1,10 +1,6 @@
 import { SitemapStream, streamToPromise } from "sitemap";
+import { generateSlug } from "~/utils/format";
 export default defineEventHandler(async (event: any) => {
-  const generateSlug = (str: string, parent: any) => {
-    return parent?.data?.attributes?.slug
-      ? `/${parent?.data?.attributes?.slug}/${str}`
-      : `/${str}`;
-  };
   // Fetch all documents
   const { data: pages } = await $fetch(
     "https://admin.journalducuistot.fr/api/pages?populate=parent"
