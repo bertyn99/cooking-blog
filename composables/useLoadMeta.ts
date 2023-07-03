@@ -6,24 +6,24 @@ const defaultMetaData: MetaData = {
   robots: "index, follow, max-image-preview:large",
   ogType: "website",
   ogLocale: "fr-FR",
-  ogUrl: "https://www.journalducuistot.fr/",
+  ogUrl: "https://journalducuistot.fr/",
   ogSite_name: "Journal du Cuistot",
   ogTitle: "JournalduCuistot - recettes de cuisine d'un globe trotter",
   ogDescription:
     "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
-  ogImage: "https://www.journalducuistot.fr/img/logo.webp",
+  ogImage: "https://journalducuistot.fr/img/logo.webp",
   keywords:
     "cuisine du monde, recettes de cuisine, recettes de cuisine du monde",
   twitterCard: "summary_large_image",
 
-  twitterUrl: "https://www.journalducuistot.fr/",
+  twitterUrl: "https://journalducuistot.fr/",
 
   twitterTitle: "journalduCuistot - recettes de cuisine d'un globe trotter",
 
   twitterDescription:
     "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
 
-  twitterImage: "https://www.journalducuistot.fr/img/logo.webp",
+  twitterImage: "https://journalducuistot.fr/img/logo.webp",
 };
 
 export const useLoadMeta = (metaOption: MetaOption) => {

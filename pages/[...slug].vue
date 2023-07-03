@@ -39,6 +39,29 @@ const displayPage = page.value?.data[0].attributes?.Content || [];
 const titleContent = computed(
   () => page.value?.data[0].attributes?.title || "No title"
 );
+
+const seo = computed(() => page.value?.data[0].attributes?.seoMeta || {});
+// set the meta
+useSeoMeta(
+  useLoadMeta({
+    title: titleContent.value || "Journal du cuistot",
+    description: seo.value?.description || "No description",
+    keywords: seo.value?.keywords || "No keyword",
+
+    url: "https://www.journalducuistot.fr/" + [...slug].join("/"),
+    author: "bertyn",
+    datePublished: page.value?.data[0].attributes?.publishedAt,
+    dateModified: page.value?.data[0].attributes?.updatedAt,
+  }) as any
+);
+useHead({
+  link: [
+    {
+      rel: "canonical",
+      href: "https://www.journalducuistot.fr/" + [...slug].join("/"),
+    },
+  ],
+});
 </script>
 
 <template>
