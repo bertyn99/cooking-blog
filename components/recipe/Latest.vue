@@ -10,7 +10,6 @@ console.log(recipes);
 
 <template>
   <div
-    id="easymeals_core_recipe_list-2"
     class="table clear-both px-10 pt-3 pb-12 mx-0 mt-0 mb-10 leading-6 text-center align-baseline border border-solid table-fixed border-stone-200 text-stone-500"
     data-area="main-sidebar"
     style="content: ''"
@@ -23,7 +22,6 @@ console.log(recipes);
     </h5>
     <div
       class="inline-block relative p-0 mx-0 mt-0 -mb-5 w-full text-left align-top border-0"
-      data-options='{"plugin":"easymeals_core","module":"plugins\/recipe\/post-types\/recipe\/shortcodes","shortcode":"recipe-list","post_type":"recipe","next_page":"2","max_pages_num":5,"behavior":"columns","images_proportion":"medium","custom_image_width":"113","custom_image_height":"80","columns":"1","columns_responsive":"predefined","columns_1440":"3","columns_1366":"3","columns_1024":"3","columns_768":"3","columns_680":"3","columns_480":"3","space":"small","posts_per_page":"3","orderby":"date","order":"DESC","additional_params":"tax","tax":"recipe-category","tax_slug":"new","layout":"info-on-right","title_tag":"h6","custom_padding":"no","enable_top_info":"no","enable_categories":"no","enable_author_date":"yes","enable_share":"no","enable_like":"no","enable_bookmark":"no","enable_excerpt":"no","white_bg":"no","tags_column":"no","hover_type":"zoom","appear_effect":"no","zoom_out_effect":"no","pagination_type":"no-pagination","info_below_enable_button":"no","info_below_hide_image":"no","info_right_image_layout":"no","object_class_name":"EasyMealsCoreRecipeListShortcode","taxonomy_filter":"recipe-category","additional_query_args":{"tax_query":[{"taxonomy":"recipe-category","field":"slug","terms":"new"}]},"unique":"2","space_value":10}'
     >
       <div
         class="table clear-both p-0 my-0 -mx-3 align-baseline border-0 table-fixed"

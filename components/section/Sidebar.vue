@@ -29,7 +29,7 @@
       <img
         width="300"
         height="34"
-        src="https://easymeals.qodeinteractive.com/wp-content/uploads/2020/05/sidebar-img-2.png"
+        src="/img/sidebar-img-2.png"
         class="mb-1 max-w-full h-auto leading-6 text-center align-middle border-none text-stone-500"
         alt=""
         loading="lazy"
