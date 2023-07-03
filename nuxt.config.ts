@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   app: {
     head: {
-      link: [{ rel: "icon", type: "image/png", href: "img/logo.webp" }],
+      link: [{ rel: "icon", type: "image/webp", href: "/img/logo.webp" }],
     },
   },
   modules: [
