@@ -50,7 +50,7 @@ const links = [
           </NuxtLink>
         </li>
         <li>
-          <NuxtLink to="/rss.xml" class="text-neutral-600">
+          <NuxtLink to="/rss.xml" target="_blank" class="text-neutral-600">
             <Icon name="ic:sharp-rss-feed" />
           </NuxtLink>
         </li>

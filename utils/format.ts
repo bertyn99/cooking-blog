@@ -11,3 +11,9 @@ export function capitalizeFirstLetter(string: string) {
 export const truncate = (str: string, n: number) => {
   return str?.toString().replace(new RegExp(`(.{${n - 1}})..+`), "$1...");
 };
+
+export const generateSlug = (str: string, parent: any) => {
+  return parent?.data?.attributes?.slug
+    ? `/${parent?.data?.attributes?.slug}/${str}`
+    : `/${str}`;
+};
