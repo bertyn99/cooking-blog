@@ -13,9 +13,15 @@ const links = [
     current: true,
   },
   {
-    id: 1,
+    id: 2,
     name: "Recette",
     url: "/recette",
+    current: true,
+  },
+  {
+    id: 3,
+    name: "Bases de la Cuisine",
+    url: "/bases-culinaires",
     current: true,
   },
   { id: 2, name: "A propos", url: "/a-propos", current: false },
