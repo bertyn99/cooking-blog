@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-definePageMeta({ layout: "content" });
+definePageMeta({ layout: "content", middleware: ["broken-links-redirect"] });
 
 import { Article, Category, Cover } from "~/types/strapiMeta";
 const {

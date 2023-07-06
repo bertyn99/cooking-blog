@@ -18,15 +18,15 @@ const links = [
   },
   {
     id: 2,
-    name: "Recette",
+    name: "Recettes",
     url: "/recette",
     current: true,
   },
 
   {
     id: 3,
-    name: "Technique de Cuisine",
-    url: "/techniques-de-cuisine",
+    name: "Bases de la Cuisine",
+    url: "/bases-culinaires",
     current: true,
   },
   { id: 4, name: "A propos", url: "/a-propos", current: false },
