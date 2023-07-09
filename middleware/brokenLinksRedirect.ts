@@ -27,8 +27,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
       to: "/blog/le-roi-du-riz-tout-ceque-vous-devez-savoir-sur-le-riz-basmati",
     },
   ];
-  //
-  https: let redirectPath = listRedirects.filter((v) => v.from == to.path);
+  let redirectPath = listRedirects.filter((v) => v.from == to.path);
 
   if (redirectPath.length !== 0 && redirectPath[0].to) {
     return navigateTo(redirectPath[0].to, { redirectCode: 301 });
