@@ -1,4 +1,12 @@
 <script lang="ts" setup>
+useHead({
+  meta: [
+    {
+      "http-equiv": "content-language",
+      content: "fr-fr",
+    },
+  ],
+});
 useSchemaOrg([
   // @todo Select Identity: https://vue-schema-org.netlify.app/guide/guides/identity
   defineWebSite({
