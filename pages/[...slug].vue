@@ -65,7 +65,6 @@ useHead({
     },
   ],
 });
-console.log(ariane);
 </script>
 
 <template>
