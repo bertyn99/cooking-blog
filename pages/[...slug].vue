@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 definePageMeta({ layout: "content", middleware: ["broken-links-redirect"] });
 
+import { useGenerateSchemaArianne } from "~/composables/useGenerateSchemaArianne";
 import { Article, Category, Cover } from "~/types/strapiMeta";
 const {
   params: { slug },
@@ -30,6 +31,8 @@ const {
     },
   })
 );
+
+const ariane = useGenerateSchemaArianne(slug);
 console.log(page);
 if (page.value?.data.length === 0) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
@@ -62,8 +65,10 @@ useHead({
     },
   ],
 });
+console.log(ariane);
 </script>
 
 <template>
+  <SchemaOrgBreadcrumb :itemListElement="ariane" />
   <BaseContentDisplay :content="displayPage" />
 </template>

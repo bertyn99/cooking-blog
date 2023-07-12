@@ -50,6 +50,12 @@ const goTo = (id: number) => {
 </script>
 
 <template>
+  <SchemaOrgBreadcrumb
+    :itemListElement="[
+      { name: 'Accueil', item: '/' },
+      { name: 'Recette', item: '/recette' },
+    ]"
+  />
   <div class="py-28 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <h1 class="text-4xl font-bold tracking-tight">Recettes</h1>
   </div>
