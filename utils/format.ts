@@ -17,3 +17,4 @@ export const generateSlug = (str: string, parent: any) => {
     ? `/${parent?.data?.attributes?.slug}/${str}`
     : `/${str}`;
 };
+
