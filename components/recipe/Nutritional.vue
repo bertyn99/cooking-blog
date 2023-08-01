@@ -13,7 +13,7 @@ const schemaRecipeNutrition = data.map((nutri) => ({
 
 <template>
   <div class="flex flex-wrap bg-yellow-50 align-baseline items-center">
-    <SchemaOrgArticle :nutrition="schemaRecipeNutrition" />
+    <SchemaOrgRecipe :nutrition="schemaRecipeNutrition" />
     <h4
       class="flex-grow-0 flex-shrink-0 lg:basis-1/5 p-5 w-full font-serif text-xl font-normal leading-6 text-center text-black align-baseline break-words bg-amber-200 border-0"
     >

@@ -66,6 +66,20 @@ const link = computed(
 const date = computed(
   () => recipe.value?.data[0].attributes?.publishedAt || ""
 );
+const dateModified = computed(
+  () => recipe.value?.data[0].attributes?.updatedAt || ""
+);
+
+const dateFormattedDisplay = useDateFormat(
+  date.value.toString(),
+  "YYYY-MM-DD",
+  {
+    locales: "en-US",
+  }
+);
+const dateModifiedFormatted = useDateFormat(dateModified.value, "YYYY-MM-DD", {
+  locales: "en-US",
+});
 const categoryRecipe = computed(
   () =>
     recipe.value?.data[0].attributes?.categories?.data[0].attributes ||
@@ -121,16 +135,16 @@ useHead({
       { name: titleContent, item: `/${slug}` },
     ]"
   />
-  <SchemaOrgArticle
-    type="Recipe"
+  <SchemaOrgRecipe
     :name="titleContent"
-    :totalTime="time"
-    :datePublished="date"
-    :dateModified="modifiedAt"
+    :totalTime="`PT${time}M`"
+    :datePublished="dateFormattedDisplay"
+    :dateModified="dateModifiedFormatted"
     :author="{
       name: 'bertyn boulikou',
       image: 'https://journalducuistot.fr/img/author.jpg',
     }"
+    :keywords="seo.value?.keywords"
   />
   <div>
     <h1
