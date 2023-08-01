@@ -1,5 +1,6 @@
 User-agent: *
 Disallow:
 
-
+User-agent: *
+Allow: /
 Sitemap: https://journalducuistot.fr/sitemap.xml
