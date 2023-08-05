@@ -57,14 +57,18 @@ const heightPadding = computed(() => (currentRoute.value == "/" ? 120 : 80));
         class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 py-3"
       >
         <NuxtLink href="/" class="flex items-center">
-          <img
-            src="/img/logo.webp"
-            class="h-16 mr-3 object-cover"
-            alt="Logo Journal du cuistot"
-          />
-          <!--   <span class="self-center text-2xl font-semibold whitespace-nowrap"
+          <h1>
+            <span class="sr-only">Journal du Cuistot</span>
+            <img
+              src="/img/logo.webp"
+              class="h-16 mr-3 object-cover"
+              alt="Logo Journal du cuistot"
+              aria-hidden="true"
+            />
+            <!--   <span class="self-center text-2xl font-semibold whitespace-nowrap"
             >Cuistot</span
           > -->
+          </h1>
         </NuxtLink>
         <div class="flex md:order-2 print:hidden">
           <button
@@ -112,7 +116,7 @@ const heightPadding = computed(() => (currentRoute.value == "/" ? 120 : 80));
               type="text"
               id="search-navbar"
               class="block w-full p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Search..."
+              placeholder="Recherche..."
             />
           </div>
           <button
@@ -169,7 +173,7 @@ const heightPadding = computed(() => (currentRoute.value == "/" ? 120 : 80));
               type="text"
               id="search-navbar"
               class="block w-full p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Search..."
+              placeholder="Recherche..."
             />
           </div>
           <ul
@@ -191,7 +195,7 @@ const heightPadding = computed(() => (currentRoute.value == "/" ? 120 : 80));
 </template>
 
 <style scoped>
-nav a.router-link-active {
+/* nav a.router-link-active {
   @apply underline underline-offset-4 decoration-4 decoration-[#50b0ae];
-}
+} */
 </style>

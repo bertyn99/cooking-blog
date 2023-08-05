@@ -79,7 +79,7 @@ useSeoMeta(
       "Journal du cuistot | " + seo.value?.description || "No description",
     keywords: seo.value?.keywords || "No keyword",
     image: urlCover || "",
-    url: "https://www.journalducuistot.fr/blog/" + slug,
+    url: "https://journalducuistot.fr/blog/" + slug,
     author: "magius",
     datePublished: article.value?.data[0].attributes?.publishedAt,
     dateModified: article.value?.data[0].attributes?.updatedAt,
@@ -89,7 +89,7 @@ useHead({
   link: [
     {
       rel: "canonical",
-      href: "https://www.journalducuistot.fr/blog/" + slug,
+      href: "https://journalducuistot.fr/blog/" + slug,
     },
   ],
 });

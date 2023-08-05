@@ -66,6 +66,20 @@ const link = computed(
 const date = computed(
   () => recipe.value?.data[0].attributes?.publishedAt || ""
 );
+const dateModified = computed(
+  () => recipe.value?.data[0].attributes?.updatedAt || ""
+);
+
+const dateFormattedDisplay = useDateFormat(
+  date.value.toString(),
+  "YYYY-MM-DD",
+  {
+    locales: "en-US",
+  }
+);
+const dateModifiedFormatted = useDateFormat(dateModified.value, "YYYY-MM-DD", {
+  locales: "en-US",
+});
 const categoryRecipe = computed(
   () =>
     recipe.value?.data[0].attributes?.categories?.data[0].attributes ||
@@ -94,7 +108,7 @@ useSeoMeta(
       "Journal du cuistot | " + seo.value?.description || "No description",
     keywords: seo.value?.keywords || "No keyword",
     image: urlCover || "",
-    url: "https://www.journalducuistot.fr/" + slug,
+    url: "https://journalducuistot.fr/recette/" + slug,
     author: "magius",
     datePublished: recipe.value?.data[0].attributes?.publishedAt,
     dateModified: recipe.value?.data[0].attributes?.updatedAt,
@@ -104,7 +118,7 @@ useHead({
   link: [
     {
       rel: "canonical",
-      href: "https://www.journalducuistot.fr/" + slug,
+      href: "https://journalducuistot.fr/recette/" + slug,
     },
   ],
 });
@@ -121,16 +135,16 @@ useHead({
       { name: titleContent, item: `/${slug}` },
     ]"
   />
-  <SchemaOrgArticle
-    type="Recipe"
+  <SchemaOrgRecipe
     :name="titleContent"
-    :totalTime="time"
-    :datePublished="date"
-    :dateModified="modifiedAt"
+    :totalTime="`PT${time}M`"
+    :datePublished="dateFormattedDisplay"
+    :dateModified="dateModifiedFormatted"
     :author="{
       name: 'bertyn boulikou',
       image: 'https://journalducuistot.fr/img/author.jpg',
     }"
+    :keywords="seo.value?.keywords"
   />
   <div>
     <h1

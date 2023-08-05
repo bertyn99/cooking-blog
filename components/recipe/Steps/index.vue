@@ -29,7 +29,7 @@ const schemaRecipeSteps = formatedSteps.map((step, index) => ({
   </section>
 
   <div>
-    <SchemaOrgArticle :recipeInstructions="schemaRecipeSteps" />
+    <SchemaOrgRecipe :recipeInstructions="schemaRecipeSteps" />
     <RecipeStepsContent
       v-for="(step, index) in formatedSteps"
       :index="index + 1"
