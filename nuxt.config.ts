@@ -10,7 +10,7 @@ export default defineNuxtConfig({
     "nuxt-icon",
     "@nuxtjs/plausible",
     "@nuxtjs/strapi",
-    "@nuxt/image-edge",
+    "@nuxt/image",
     "nuxt-schema-org",
     "@vueuse/nuxt",
     [
