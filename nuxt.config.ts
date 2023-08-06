@@ -3,6 +3,13 @@ export default defineNuxtConfig({
   app: {
     head: {
       link: [{ rel: "icon", type: "image/webp", href: "/img/logo.webp" }],
+      script: [
+        {
+          src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5406721051491594",
+          crossorigin: "anonymous",
+          type: "text/partytown",
+        },
+      ],
     },
   },
   modules: [
@@ -10,7 +17,8 @@ export default defineNuxtConfig({
     "nuxt-icon",
     "@nuxtjs/plausible",
     "@nuxtjs/strapi",
-    "@nuxt/image-edge",
+    "@nuxtjs/partytown",
+    "@nuxt/image",
     "nuxt-schema-org",
     "@vueuse/nuxt",
     [
