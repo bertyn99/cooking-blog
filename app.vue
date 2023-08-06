@@ -33,10 +33,4 @@ useSchemaOrg([
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
-  <script
-    async
-    type="text/partytown"
-    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5406721051491594"
-    crossorigin="anonymous"
-  ></script>
 </template>
