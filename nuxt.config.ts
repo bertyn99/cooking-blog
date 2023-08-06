@@ -11,6 +11,7 @@ export default defineNuxtConfig({
     "@nuxtjs/plausible",
     "@nuxtjs/strapi",
     "@nuxt/image-edge",
+    "@nuxtjs/partytown",
     "nuxt-schema-org",
     "@vueuse/nuxt",
     [

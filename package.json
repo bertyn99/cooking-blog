@@ -12,6 +12,7 @@
   "devDependencies": {
     "@nuxt/image-edge": "1.0.0-28059208.2abef1b",
     "@nuxtjs/google-fonts": "^3.0.0",
+    "@nuxtjs/partytown": "^1.3.0",
     "@nuxtjs/plausible": "^0.2.1",
     "@nuxtjs/strapi": "^1.9.1",
     "@nuxtjs/tailwindcss": "^6.6.6",
