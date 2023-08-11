@@ -23,7 +23,7 @@ const {
 }>("article", () =>
   find(`articles`, {
     filters: { slug: { $eq: slug } },
-    populate: ["cover", "categories", "seo"],
+    populate: ["cover", "categories", "seo", "surround"],
     pagination: {
       page: 0,
       pageSize: 1,
@@ -70,6 +70,9 @@ const categoryRecipe = computed(
 const { minutes } = useReadingTime(
   article.value?.data[0].attributes.content || ""
 );
+
+const { prev, next } = article.value?.data[0];
+
 const seo = computed(() => article.value?.data[0].attributes?.seo[0] || {});
 // set the meta
 useSeoMeta(
@@ -154,7 +157,7 @@ useHead({
   </SectionHeroArticle>
   <article class="prose md:prose-lg lg:prose-xl" v-html="content"></article>
   <Cta />
-  <PrevAndNext />
+  <PrevAndNext :prev="prev?.slug" :next="next?.slug" />
   <SectionYouMayAlsoLike
     :categorie="categoryRecipe.name"
     type-content="recipes"

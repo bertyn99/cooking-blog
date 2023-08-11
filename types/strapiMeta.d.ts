@@ -418,4 +418,6 @@ export type Article = {
     };
     locale?: string;
   };
+  prev?: Article;
+  next?: Article;
 };
