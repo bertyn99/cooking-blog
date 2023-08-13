@@ -12,6 +12,14 @@ const categories = computed(() => {
   return (post.attributes?.categories?.data || []) as Category["data"][];
 });
 const cover = useFormatUrlCover(post.attributes!.cover, "small");
+
+const description = computed(() => {
+  return post.attributes!.seo[0].description;
+});
+
+const fallbackDescription = computed(() => {
+  return useMarked(post.attributes!.content!.substring(0, 200));
+});
 const responsiveCover = computed(() => {
   const checkIfExist = (img: any, size: string, sizeView: string) => {
     const exist = useFormatUrlCover(img, size);
@@ -21,7 +29,7 @@ const responsiveCover = computed(() => {
     return "";
   };
 
-  return ` ${checkIfExist(post.attributes!.cover, "thumbnail", "130w")} 
+  return ` ${checkIfExist(post.attributes!.cover, "thumbnail", "130w")}
                 ${checkIfExist(post.attributes!.cover, "small", "300w")}
                 ${checkIfExist(post.attributes!.cover, "large", "1024w")}
                 ${checkIfExist(post.attributes!.cover, "medium", "768w")}
@@ -109,13 +117,20 @@ const { minutes } = useReadingTime(post.attributes!.content || "");
             {{ post.attributes!.title }}
           </NuxtLink>
         </h3>
+
         <p
           itemprop="description"
           class="py-0 pl-0 pr-[16%] my-2 mx-0 align-baseline border-0"
         >
-          Lorem ipsum dolor sit amet, consectetuipisicing elit, sed do eiusmod
-          tempor incididunt ut labore et dolore magna aliqut enim ad mi
+          {{ description }}
         </p>
+        <!--  <template
+          itemprop="description"
+          class="py-0 pl-0 pr-[16%] my-2 mx-0 align-baseline border-0"
+          v-else
+          v-html="fallbackDescription"
+        >
+        </template> -->
       </div>
     </div>
   </article>
