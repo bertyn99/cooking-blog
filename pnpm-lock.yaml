@@ -2,6 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@headlessui/vue': ^1.7.13
+  '@nuxt-alt/proxy': ^2.3.0
   '@nuxt/image': 1.0.0-rc.1
   '@nuxtjs/google-fonts': ^3.0.0
   '@nuxtjs/partytown': ^1.3.0
@@ -25,6 +26,7 @@ specifiers:
 
 dependencies:
   '@headlessui/vue': 1.7.15
+  '@nuxt-alt/proxy': 2.3.0
   '@types/marked': 4.3.1
   marked: 5.1.2
   nuxt-simple-sitemap: 2.7.0
@@ -895,6 +897,19 @@ packages:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
 
+  /@nuxt-alt/proxy/2.3.0:
+    resolution: {integrity: sha512-+B+uBtIyjkijI5IK5de/zLUzePNPD6y8/LBDXfYUyNr9uauDuyjQV2GkNbCRaeWb+w1FjLSAv9h+uEfaJLBl/A==}
+    dependencies:
+      '@nuxt/kit': 3.6.5
+      '@refactorjs/http-proxy': 0.1.5
+      defu: 6.1.2
+      ofetch: 1.1.1
+    transitivePeerDependencies:
+      - debug
+      - rollup
+      - supports-color
+    dev: false
+
   /@nuxt/devalue/2.0.2:
     resolution: {integrity: sha512-GBzP8zOc7CGWyFQS6dv1lQz8VVpz5C2yRszbXufwG/9zhStTIH50EtD87NmWbTMwXDvZLNg8GIpb1UFdH93JCA==}
     dev: true
@@ -970,7 +985,6 @@ packages:
     transitivePeerDependencies:
       - rollup
       - supports-color
-    dev: true
 
   /@nuxt/postcss8/1.1.3:
     resolution: {integrity: sha512-CdHtErhvQwueNZPBOmlAAKrNCK7aIpZDYhtS7TzXlSgPHHox1g3cSlf+Ke9oB/8t4mNNjdB+prclme2ibuCOEA==}
@@ -1021,7 +1035,6 @@ packages:
     transitivePeerDependencies:
       - rollup
       - supports-color
-    dev: true
 
   /@nuxt/telemetry/2.3.2:
     resolution: {integrity: sha512-S2sF4hLQWS48lWPpRT8xqVUFuwFGTgeKvojp8vL/iP79fWxudua2DWXR15T8C2zpauYwNgEpEWJmy6vxY2ZQeg==}
@@ -1204,6 +1217,16 @@ packages:
       micromatch: 4.0.5
       napi-wasm: 1.1.0
     dev: true
+
+  /@refactorjs/http-proxy/0.1.5:
+    resolution: {integrity: sha512-h7fs8FQ1FpnvmlYHCnaZ5RZyiaUBUZ03Tqn5gsTmkCNWh0Who6GZlxvKtd4iRLBAvv+kksps794AgwYE8c7pZg==}
+    engines: {node: '>=14.13.1'}
+    dependencies:
+      follow-redirects: 1.15.2
+      requires-port: 1.0.0
+    transitivePeerDependencies:
+      - debug
+    dev: false
 
   /@rollup/plugin-alias/5.0.0_rollup@3.27.2:
     resolution: {integrity: sha512-l9hY5chSCjuFRPsnRm16twWBiSApl2uYFLsepQYwtBuAxNMQ/1dJqADld40P0Jkqm65GRTLy/AC6hnpVebtLsA==}
@@ -2877,7 +2900,6 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
-    dev: true
 
   /formdata-polyfill/4.0.10:
     resolution: {integrity: sha512-buewHzMvYL29jdeQTVILecSaZKnt/RJWjoZCF5OW60Z67/GmSLBkOFM7qh1PI3zFNtJbaZL5eQu1vLfazOwj4g==}
@@ -4308,7 +4330,6 @@ packages:
       destr: 2.0.1
       node-fetch-native: 1.2.0
       ufo: 1.2.0
-    dev: true
 
   /ohash/1.1.2:
     resolution: {integrity: sha512-9CIOSq5945rI045GFtcO3uudyOkYVY1nyfFxVQp+9BRgslr8jPNiSSrsFGg/BNTUFOLqx0P5tng6G32brIPw0w==}
@@ -5139,7 +5160,6 @@ packages:
 
   /requires-port/1.0.0:
     resolution: {integrity: sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ==}
-    dev: true
 
   /resolve-from/4.0.0:
     resolution: {integrity: sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==}
