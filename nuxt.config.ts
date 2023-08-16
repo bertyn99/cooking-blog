@@ -6,6 +6,7 @@ export default defineNuxtConfig({
       script: [
         {
           src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5406721051491594",
+          async: true,
           crossorigin: "anonymous",
           type: "text/partytown",
         },
@@ -14,6 +15,7 @@ export default defineNuxtConfig({
   },
   modules: [
     "@nuxtjs/tailwindcss",
+    "@nuxt-alt/proxy",
     "nuxt-icon",
     "@nuxtjs/plausible",
     "@nuxtjs/strapi",
@@ -34,6 +36,21 @@ export default defineNuxtConfig({
       },
     ],
   ],
+  nitro: {
+    prerender: {
+      routes: ["rss.xml", "sitemap.xml"],
+    },
+  },
+  proxy: {
+    proxies: {
+      // Using the proxy instance
+      "/uploads/": {
+        target: "https://admin.journalducuistot.fr/uploads",
+        changeOrigin: true,
+        rewrite: (path: string) => path.replace(/^\/uploads/, ""),
+      },
+    },
+  },
   vue: {
     defineModel: true,
     propsDestructure: true,
@@ -52,11 +69,6 @@ export default defineNuxtConfig({
   tailwindcss: {
     cssPath: "~/assets/css/index.css",
     configPath: "~/tailwind.config.ts",
-  },
-  nitro: {
-    prerender: {
-      routes: ["rss.xml", "sitemap.xml"],
-    },
   },
   runtimeConfig: {
     public: {

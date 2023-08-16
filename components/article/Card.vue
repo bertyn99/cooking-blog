@@ -14,7 +14,7 @@ const categories = computed(() => {
 const cover = useFormatUrlCover(post.attributes!.cover, "small");
 
 const description = computed(() => {
-  return post.attributes!.seo[0].description;
+  return post.attributes!.seo[0]?.description;
 });
 
 const fallbackDescription = computed(() => {
