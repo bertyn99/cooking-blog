@@ -37,6 +37,9 @@ export default defineNuxtConfig({
     ],
   ],
   nitro: {
+    storage: {
+      data: { driver: "vercelKV" },
+    },
     prerender: {
       routes: ["rss.xml", "sitemap.xml"],
     },
