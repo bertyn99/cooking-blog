@@ -40,6 +40,11 @@ export default defineNuxtConfig({
     prerender: {
       routes: ["rss.xml", "sitemap.xml"],
     },
+    routesRules: {
+      "/": { swr: 60 * 15 },
+      "/blog/**": { swr: 60 * 25 },
+      "/upload/**": { swr: 60 * 60 * 12 },
+    },
   },
   proxy: {
     proxies: {
