@@ -14,7 +14,10 @@ const categories = computed(() => {
 const cover = useFormatUrlCover(post.attributes!.cover, "small");
 
 const description = computed(() => {
-  return post.attributes!.seo[0]?.description;
+  return post.attributes!.seo?.length !== 0 &&
+    post.attributes!.seo !== undefined
+    ? post.attributes!.seo[0]?.description
+    : "";
 });
 
 const fallbackDescription = computed(() => {
@@ -91,12 +94,11 @@ const { minutes } = useReadingTime(post.attributes!.content || "");
             ></span>
             {{ minutes }} minutes
           </p>
-          <p
-            v-for="category in categories"
-            class="p-0 mt-0 mr-4 mb-2 ml-0 text-xs font-semibold tracking-widest text-black uppercase align-baseline"
+          <span
+            class="p-0 mt-0 mr-4 mb-2 ml-0 text-xs font-medium tracking-widest text-black uppercase align-baseline"
           >
-            {{ category!.attributes!.name }}
-          </p>
+            {{ categories.length > 0 ? categories[0]?.attributes!.name : "" }}
+          </span>
         </div>
         <h3
           itemprop="name"

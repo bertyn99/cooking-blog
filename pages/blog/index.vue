@@ -25,7 +25,7 @@ const { data: articles, refresh } = await useAsyncData<Recipe>(
 );
 
 const { data: categories } = await useAsyncData(`categories`, () =>
-  find(`categories?fields=name`)
+  find(`category-articles?fields=name`)
 );
 
 const formatCategories = computed(() =>
