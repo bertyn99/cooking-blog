@@ -364,7 +364,7 @@ export type Recipe = {
           attributes?: Record<string, never>;
         }[];
       };
-      seo?: SEO;
+      seo?: SEO[];
       step?: string;
       slug?: string;
       /** @enum {string} */
@@ -398,7 +398,7 @@ export type Article = {
     categories?: Category;
     slug?: string;
     createdAt?: string;
-    seo?: SEO;
+    seo?: SEO[];
     updatedAt?: string;
     publishedAt?: string;
     createdBy?: {
