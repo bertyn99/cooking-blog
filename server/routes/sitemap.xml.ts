@@ -7,11 +7,11 @@ export default defineEventHandler(async (event: any) => {
   );
 
   const { data: articles } = await $fetch(
-    "https://admin.journalducuistot.fr/api/articles"
+    "https://admin.journalducuistot.fr/api/articles?pagination[pageSize]=100"
   );
 
   const { data: recipes } = await $fetch(
-    "https://admin.journalducuistot.fr/api/recipes"
+    "https://admin.journalducuistot.fr/api/recipes?pagination[pageSize]=100"
   );
 
   const sitemap = new SitemapStream({
