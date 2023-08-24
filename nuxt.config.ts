@@ -39,14 +39,13 @@ export default defineNuxtConfig({
   routesRules: {
     "/": { swr: 60 * 15 },
     "/blog/**": { swr: 60 * 25 },
-    "/upload/**": { swr: 60 * 60 * 16 },
+    "/uploads/**": { swr: 60 * 60 * 24 * 5 },
+    "sitemap.xml": { swr: 60 * 60 * 24 },
+    "rss.xml": { swr: 60 * 60 * 24 * 3 },
   },
   nitro: {
     storage: {
       cache: { driver: "redis", url: process.env.REDIS_URL },
-    },
-    prerender: {
-      routes: ["rss.xml", "sitemap.xml"],
     },
   },
   proxy: {
