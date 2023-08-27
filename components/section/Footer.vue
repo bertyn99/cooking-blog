@@ -33,20 +33,22 @@ const links = [
     class="py-2 px-1 md:px-4lg:px-8 m-0 w-full leading-6 align-top border-0 print:hidden border-solid border-stone-200 text-stone-500"
     style="outline: 0px; background-position: 0px center"
   >
-    <div class="w-full max-w-7xl mx-auto flex justify-around items-center">
+    <div
+      class="w-full max-w-7xl mx-auto flex flex-wrap justify-around items-center"
+    >
       <div>© 2023 JournalDuCuistot, Tous droit reservée</div>
 
       <ul
         class="flex gap-3 text-xs text-center align-top border-0 text-zinc-700 font-semibold tracking-widest uppercase"
       >
-        <li v-for="item in links" :key="item.id">
+        <li class v-for="item in links" :key="item.id">
           <NuxtLink :to="item.url">
             {{ item.name }}
           </NuxtLink>
         </li>
       </ul>
 
-      <ul class="flex justify-around">
+      <ul class="flex w-2/3 md:w-auto justify-around">
         <li>
           <NuxtLink
             to="ttps://www.instagram.com/journalducuistot"
