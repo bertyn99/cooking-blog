@@ -15,6 +15,7 @@
         class="max-w-full h-auto rounded-full leading-6 text-center text-black align-middle cursor-pointer"
         height="138"
         width="138"
+        sizes="sm:25vw md:12vw lg:10vw"
       />
       <p
         itemprop="description"

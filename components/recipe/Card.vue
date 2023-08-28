@@ -24,7 +24,8 @@ const cover = useFormatUrlCover(recipe.attributes?.cover);
         height="1657"
         :alt="recipe.attributes?.cover.data.attributes.alternativeText"
         class="w-full object-cover aspect-[3/4]"
-        sizes="sm:70vw md:30vw lg:20vw"
+        sizes="sm:55vw md:25vw lg:20vw"
+        format="webp"
       />
     </div>
     <div class="mt-8 flex items-center gap-x-4 text-xs" v-if="details">
