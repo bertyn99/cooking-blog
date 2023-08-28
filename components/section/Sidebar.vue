@@ -26,12 +26,12 @@
         reculés en Afrique. Je viens partager ces recette que j'ai appris au fil
         des années.
       </p>
-      <img
+      <nuxt-img
         width="300"
         height="34"
         src="/img/sidebar-img-2.png"
         class="mb-1 max-w-full h-auto leading-6 text-center align-middle border-none text-stone-500"
-        alt=""
+        alt="signature"
         loading="lazy"
       />
     </div>

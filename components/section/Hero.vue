@@ -2,7 +2,7 @@
 
 <template>
   <div class="relative isolate overflow-hidden">
-    <img
+    <nuxt-img
       src="/img/hero.jpg"
       alt=""
       class="absolute inset-0 -z-10 h-full w-full object-cover"

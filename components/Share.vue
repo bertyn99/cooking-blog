@@ -18,7 +18,7 @@ const dateFormatted = useDateFormat(props.date, "DD-MM-YYYY");
     class="flex flex-wrap divide-y md:divide-y-0 md:divide-x py-1 items-center gap-6 print:hidden"
   >
     <div class="flex gap-2">
-      <img
+      <nuxt-img
         data-del="avatar"
         src="/img/author.jpg"
         class="max-w-full h-auto leading-6 text-black align-middle cursor-pointer rounded-full"
@@ -29,7 +29,7 @@ const dateFormatted = useDateFormat(props.date, "DD-MM-YYYY");
         <NuxtLink
           itemprop="author"
           class="relative p-0 m-0 text-xs font-semibold tracking-widest leading-6 text-black uppercase align-baseline border-0 cursor-pointer hover:text-stone-500"
-          href="https://easymeals.qodeinteractive.com/author/taylor-kinny/"
+          to="/"
           style="transition: color 0.2s ease-out 0s; top: 2px"
         >
           bertyn boulikou
