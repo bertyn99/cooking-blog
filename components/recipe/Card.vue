@@ -11,13 +11,21 @@ const { recipe, details } = defineProps({
   },
 });
 
-const cover = useFormatUrlCover(recipe.attributes?.cover, "small");
+const cover = useFormatUrlCover(recipe.attributes?.cover);
 </script>
 
 <template>
   <article class="col-span-1 flex flex-col rounded-lg">
     <div class="overflow-hidden rounded-t-lg">
-      <img :src="cover" alt="" class="w-full object-cover aspect-[3/4]" />
+      <nuxt-img
+        provider="localImageSharp"
+        :src="cover"
+        width="1300"
+        height="1657"
+        :alt="recipe.attributes?.cover.data.attributes.alternativeText"
+        class="w-full object-cover aspect-[3/4]"
+        sizes="sm:70vw md:30vw lg:20vw"
+      />
     </div>
     <div class="mt-8 flex items-center gap-x-4 text-xs" v-if="details">
       <span class="inline-flex items-center uppercase font-medium gap-1">

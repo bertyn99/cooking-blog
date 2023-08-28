@@ -48,11 +48,21 @@ export default defineNuxtConfig({
       cache: { driver: "redis", url: process.env.REDIS_URL },
     },
   },
+  image: {
+    providers: {
+      localImageSharp: {
+        provider: "~/providers/localImageSharp",
+        options: {
+          baseURL: `/uploads/`,
+        },
+      },
+    },
+  },
   proxy: {
     proxies: {
       // Using the proxy instance
       "/uploads/": {
-        target: "https://admin.journalducuistot.fr/uploads",
+        target: process.env.STRAPI_URL + "/uploads/",
         changeOrigin: true,
         rewrite: (path: string) => path.replace(/^\/uploads/, ""),
       },

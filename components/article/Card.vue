@@ -11,7 +11,7 @@ const { post } = defineProps({
 const categories = computed(() => {
   return (post.attributes?.categories?.data || []) as Category["data"][];
 });
-const cover = useFormatUrlCover(post.attributes!.cover, "small");
+const cover = useFormatUrlCover(post.attributes?.cover, "");
 
 const description = computed(() => {
   return post.attributes!.seo?.length !== 0 &&
@@ -63,21 +63,15 @@ const { minutes } = useReadingTime(post.attributes!.content || "");
               box-shadow: none;
             "
           >
-            <img
+            <nuxt-img
+              provider="localImageSharp"
+              :src="cover"
               width="1300"
               height="910"
-              :src="cover"
+              fit="cover"
+              :alt="post.attributes?.cover?.data?.attributes?.alternativeText"
               class="block max-w-full h-auto align-middle rounded-none will-change-transform aspect-[13/9] max-h-[500px]"
-              alt="d"
-              loading="lazy"
-              :srcset="responsiveCover"
-              sizes="(max-width: 1300px) 100vw, 1300px"
-              style="
-                transform: scale(1.01);
-                transition: transform 0.3s cubic-bezier(0.76, 0.35, 0.32, 0.79)
-                    0s,
-                  -webkit-transform 0.3s cubic-bezier(0.76, 0.35, 0.32, 0.79) 0s;
-              "
+              sizes="sm:70vw md:50vw lg:30vw"
             />
           </nuxt-link>
         </div>

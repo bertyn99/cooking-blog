@@ -24,7 +24,7 @@ const { list, showDetails, full } = defineProps({
   >
     <div
       role="list"
-      class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+      class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-4"
     >
       <RecipeCard
         v-for="recipe in list"

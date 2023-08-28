@@ -60,7 +60,7 @@ const date = computed(
 const modifiedAt = computed(
   () => article.value?.data[0].attributes?.updatedAt || ""
 );
-const urlCover = useFormatUrlCover(cover.value, "small");
+const urlCover = useFormatUrlCover(cover.value);
 
 const categoryRecipe = computed(
   () =>
