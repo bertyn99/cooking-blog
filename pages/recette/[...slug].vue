@@ -199,10 +199,10 @@ useHead({
   <RecipeReviews />
   <RecipeIngredients :ingredients="ingredients" />
   <RecipeNutritional :data="formated" />
-  <RecipeSteps :steps="steps" />
-  <Cta />
-  <PrevAndNext class="print:hidden" />
-  <SectionYouMayAlsoLike
+  <LazyRecipeSteps :steps="steps" />
+  <LazyCta />
+  <LazyPrevAndNext class="print:hidden" />
+  <LazySectionYouMayAlsoLike
     :categorie="categoryRecipe.name"
     type-content="recipes"
     class="print:hidden"
