@@ -3,5 +3,5 @@
   <main>
     <slot />
   </main>
-  <SectionFooter />
+  <LazySectionFooter />
 </template>

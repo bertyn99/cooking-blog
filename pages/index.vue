@@ -43,6 +43,6 @@ const { data: recipes } = await find<Recipe>("recipes", {
   <SchemaOrgBreadcrumb :itemListElement="[{ name: 'Accueil', item: '/' }]" />
   <SectionHero></SectionHero>
   <SectionNewsletter></SectionNewsletter>
-  <RecipeList :list="recipes" :showDetails="true"></RecipeList>
-  <SectionRecentArticles :articles="articles"></SectionRecentArticles>
+  <LazyRecipeList :list="recipes" :showDetails="true"></LazyRecipeList>
+  <LazySectionRecentArticles :articles="articles"></LazySectionRecentArticles>
 </template>

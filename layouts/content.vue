@@ -19,5 +19,5 @@ const someErrorLogger = (_error: any) => {
     <SectionSidebar class="print:hidden" />
   </div>
 
-  <SectionFooter />
+  <LazySectionFooter />
 </template>
