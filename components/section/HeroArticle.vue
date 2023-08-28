@@ -14,13 +14,14 @@ defineProps<{
 
 <template>
   <div class="w-full print:hidden">
-    <img
+    <nuxt-img
+      provider="localImageSharp"
       width="1300"
       height="910"
       :src="url"
-      class=""
+      fit="cover"
+      sizes="sm:70vw md:50vw lg:40vw"
       :alt="alt"
-      sizes="(max-width: 1300px) 100vw, 1300px"
     />
     <div
       class="flex flex-col md:flex-row justify-center items-center py-5 mb-6 leading-6 align-baseline text-stone-500 gap-1"

@@ -52,7 +52,7 @@ const cover = computed(
   () => recipe.value?.data[0].attributes?.cover || ({} as Cover)
 );
 
-const urlCover = useFormatUrlCover(cover.value, "small");
+const urlCover = useFormatUrlCover(cover.value);
 // set the meta
 
 const steps = computed(

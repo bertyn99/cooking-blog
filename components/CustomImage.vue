@@ -23,19 +23,19 @@ const responsiveCover = computed(() => {
                 ${checkIfExist(cover, "meidum", "600w")}
               `;
 });
-const urlCover = useFormatUrlCover(cover, "small");
+const urlCover = useFormatUrlCover(cover);
 </script>
 
 <template>
-  <img
+  <nuxt-img
+    provider="localImageSharp"
     width="300"
     height="213"
     :src="urlCover"
     class="block max-w-full h-auto align-middle will-change-transform aspect-[13/9] object-cover"
     :alt="cover.data?.attributes?.alternativeText"
     loading="lazy"
-    :srcset="responsiveCover"
-    sizes="(max-width: 300px) 100vw, 300px"
+    sizes="sm:60vw md:30vw lg:20vw"
     style="
       transform: scale(1.01);
       transition: transform 0.3s cubic-bezier(0.76, 0.35, 0.32, 0.79) 0s,

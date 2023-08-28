@@ -9,7 +9,7 @@
       <h5 class="uppercase tracking-widest -translate-y-2.5 bg-neutral-100">
         A Propos de moi
       </h5>
-      <img
+      <nuxt-img
         data-del="avatar"
         src="/img/author.jpg"
         class="max-w-full h-auto rounded-full leading-6 text-center text-black align-middle cursor-pointer"
