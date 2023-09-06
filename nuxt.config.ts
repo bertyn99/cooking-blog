@@ -39,11 +39,11 @@ export default defineNuxtConfig({
     ],
   ],
   routeRules: {
-    "/": { swr: 60 * 15 },
-    "/blog/**": { swr: 60 * 25 },
-    "/uploads/**": { swr: 60 * 60 * 24 * 5 },
-    "/sitemap.xml": { swr: 60 * 60 * 24 },
-    "/rss.xml": { swr: 60 * 60 * 24 * 3 },
+    "/": { isr: 60 * 15 },
+    "/blog/**": { isr: 60 * 25 },
+    "/uploads/**": { isr: 60 * 60 * 24 * 5 },
+    "/sitemap.xml": { isr: 60 * 60 * 24 },
+    "/rss.xml": { isr: 60 * 60 * 24 * 3 },
     ...listRedirects,
   },
   nitro: {
