@@ -1,16 +1,18 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import listRedirects from "./utils/redirect";
+
 export default defineNuxtConfig({
   app: {
     head: {
       link: [{ rel: "icon", type: "image/webp", href: "/img/logo.webp" }],
-      script: [
+      /* script: [
         {
           src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5406721051491594",
           async: true,
           crossorigin: "anonymous",
           type: "text/partytown",
         },
-      ],
+      ], */
     },
   },
   modules: [
@@ -36,12 +38,13 @@ export default defineNuxtConfig({
       },
     ],
   ],
-  routesRules: {
+  routeRules: {
     "/": { swr: 60 * 15 },
     "/blog/**": { swr: 60 * 25 },
     "/uploads/**": { swr: 60 * 60 * 24 * 5 },
     "/sitemap.xml": { swr: 60 * 60 * 24 },
     "/rss.xml": { swr: 60 * 60 * 24 * 3 },
+    ...listRedirects,
   },
   nitro: {
     storage: {

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-definePageMeta({ layout: "content", middleware: ["broken-links-redirect"] });
+definePageMeta({ layout: "content" });
 
 import { useGenerateSchemaArianne } from "~/composables/useGenerateSchemaArianne";
 import { Article, Category, Cover } from "~/types/strapiMeta";
