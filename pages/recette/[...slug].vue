@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { url } from "inspector";
-import YouMayAlsoLike from "~/components/section/YouMayAlsoLike.vue";
 import { Category, Cover, Ingredient, Recipe, SEO } from "~/types/strapiMeta";
 
 definePageMeta({ layout: "content" });
