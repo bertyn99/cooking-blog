@@ -15,7 +15,7 @@ const {
 } = await useAsyncData<Recipe>(`recipe-${slug}`, () =>
   find(`recipes`, {
     filters: { slug: { $eq: slug } },
-    populate: ["cover", "categories", "nutrition", "Ingredient", "seo"],
+    populate: ["cover", "categories", "nutrition", "Ingredient", "seo", "tags"],
     pagination: {
       page: 0,
       pageSize: 1,
@@ -60,6 +60,14 @@ const steps = computed(
   () =>
     recipe.value?.data![0].attributes?.step?.split("\n\n")[0].split("\n") || []
 );
+
+const tags = computed(
+  () =>
+    recipe.value?.data[0].attributes?.tags?.data.map(
+      (elm: any) => elm.attributes.name
+    ) || []
+);
+console.log(tags.value);
 const link = computed(
   () =>
     "https://journalducuistot.fr/recette/" +
@@ -148,6 +156,8 @@ useHead({
       image: 'https://journalducuistot.fr/img/author.jpg',
     }"
     :keywords="seo.value?.keywords"
+    :recipeCuisine="categoryRecipe"
+    :recipeCategory="tags[0]"
   />
   <div>
     <h1

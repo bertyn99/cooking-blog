@@ -350,6 +350,21 @@ export type Ingredient = {
     | "cuillère à café"
     | "tasse";
 };
+
+export type Tags = {
+  data?: {
+    id?: number;
+    attributes?: {
+      name?: string;
+      createdAt?: string;
+      /** Format: date-time */
+      updatedAt?: string;
+      /** Format: date-time */
+      publishedAt?: string;
+      locale?: string;
+    };
+  }[];
+};
 export type Recipe = {
   data?: {
     id?: number;
@@ -366,6 +381,7 @@ export type Recipe = {
       };
       seo?: SEO[];
       step?: string;
+      tags?: Tags[];
       slug?: string;
       /** @enum {string} */
       difficulty?: "easy" | "medium" | "hard";
