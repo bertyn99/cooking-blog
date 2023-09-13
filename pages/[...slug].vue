@@ -33,7 +33,7 @@ const {
 );
 
 const ariane = useGenerateSchemaArianne(slug);
-console.log(page);
+
 if (page.value?.data.length === 0) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }

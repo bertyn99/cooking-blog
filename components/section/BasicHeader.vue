@@ -43,7 +43,7 @@ const subHeaderMenu = computed(() => {
 
 const route = useRoute();
 const currentRoute = computed(() => route.path);
-console.log(currentRoute.value);
+
 const heightPadding = computed(() => (currentRoute.value == "/" ? 120 : 80));
 </script>
 

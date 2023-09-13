@@ -67,7 +67,7 @@ const tags = computed(
       (elm: any) => elm.attributes.name
     ) || []
 );
-console.log(tags.value);
+
 const link = computed(
   () =>
     "https://journalducuistot.fr/recette/" +
