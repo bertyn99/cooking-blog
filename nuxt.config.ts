@@ -19,7 +19,6 @@ export default defineNuxtConfig({
     "@nuxtjs/tailwindcss",
     "@nuxt-alt/proxy",
     "nuxt-icon",
-    "@nuxtjs/plausible",
     "@nuxtjs/strapi",
     "@nuxtjs/partytown",
     "@nuxt/image",
@@ -75,10 +74,6 @@ export default defineNuxtConfig({
   vue: {
     defineModel: true,
     propsDestructure: true,
-  },
-  plausible: {
-    domain: "journalducuistot.fr",
-    apiHost: "https://analytics.bertynboulikou.com",
   },
   strapi: {
     url: process.env.STRAPI_URL || "http://localhost:1337",
