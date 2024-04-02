@@ -1,4 +1,8 @@
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+const someErrorLogger = (_error: any) => {
+  console.error(_error);
+};
+</script>
 
 <template>
   <SectionBasicHeader />
@@ -15,5 +19,5 @@
     <SectionSidebar class="print:hidden" />
   </div>
 
-  <SectionFooter />
+  <LazySectionFooter />
 </template>

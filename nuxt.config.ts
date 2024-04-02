@@ -1,16 +1,18 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import listRedirects from "./utils/redirect";
+
 export default defineNuxtConfig({
   app: {
     head: {
       link: [{ rel: "icon", type: "image/webp", href: "/img/logo.webp" }],
-      script: [
+      /* script: [
         {
           src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5406721051491594",
           async: true,
           crossorigin: "anonymous",
           type: "text/partytown",
         },
-      ],
+      ], */
     },
   },
   modules: [
@@ -38,22 +40,33 @@ export default defineNuxtConfig({
   ],
   extends: ['nuxt-umami'],
   routeRules: {
-    "/": { swr: 60 * 15 },
-    "/blog/**": { swr: 60 * 25 },
-    "/uploads/**": { swr: 60 * 60 * 24 * 5 },
-    "/sitemap.xml": { swr: 60 * 60 * 24 },
-    "/rss.xml": { swr: 60 * 60 * 24 * 3 },
+    "/": { isr: 60 * 15 },
+    "/blog/**": { isr: 60 * 25 },
+    "/uploads/**": { isr: 60 * 60 * 24 * 5 },
+    "/sitemap.xml": { isr: 60 * 60 * 24 },
+    "/rss.xml": { isr: 60 * 60 * 24 * 3 },
+    ...listRedirects,
   },
   nitro: {
     storage: {
       cache: { driver: "redis", url: process.env.REDIS_URL },
     },
   },
+  image: {
+    providers: {
+      localImageSharp: {
+        provider: "~/providers/localImageSharp",
+        options: {
+          baseURL: `/uploads/`,
+        },
+      },
+    },
+  },
   proxy: {
     proxies: {
       // Using the proxy instance
       "/uploads/": {
-        target: "https://admin.journalducuistot.fr/uploads",
+        target: process.env.STRAPI_URL + "/uploads/",
         changeOrigin: true,
         rewrite: (path: string) => path.replace(/^\/uploads/, ""),
       },

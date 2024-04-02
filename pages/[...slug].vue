@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-definePageMeta({ layout: "content", middleware: ["broken-links-redirect"] });
+definePageMeta({ layout: "content" });
 
 import { useGenerateSchemaArianne } from "~/composables/useGenerateSchemaArianne";
 import { Article, Category, Cover } from "~/types/strapiMeta";
@@ -33,7 +33,7 @@ const {
 );
 
 const ariane = useGenerateSchemaArianne(slug);
-console.log(page);
+
 if (page.value?.data.length === 0) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }

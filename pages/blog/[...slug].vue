@@ -60,7 +60,7 @@ const date = computed(
 const modifiedAt = computed(
   () => article.value?.data[0].attributes?.updatedAt || ""
 );
-const urlCover = useFormatUrlCover(cover.value, "small");
+const urlCover = useFormatUrlCover(cover.value);
 
 const categoryRecipe = computed(
   () =>
@@ -156,9 +156,9 @@ useHead({
     </template>
   </SectionHeroArticle>
   <article class="prose md:prose-lg lg:prose-xl" v-html="content"></article>
-  <Cta />
-  <PrevAndNext :prev="prev?.slug" :next="next?.slug" />
-  <SectionYouMayAlsoLike
+  <LazyCta />
+  <LazyPrevAndNext :prev="prev?.slug" :next="next?.slug" />
+  <LazySectionYouMayAlsoLike
     :categorie="categoryRecipe.name"
     type-content="recipes"
   />

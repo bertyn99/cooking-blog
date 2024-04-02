@@ -9,12 +9,13 @@
       <h5 class="uppercase tracking-widest -translate-y-2.5 bg-neutral-100">
         A Propos de moi
       </h5>
-      <img
+      <nuxt-img
         data-del="avatar"
         src="/img/author.jpg"
         class="max-w-full h-auto rounded-full leading-6 text-center text-black align-middle cursor-pointer"
         height="138"
         width="138"
+        sizes="sm:25vw md:12vw lg:10vw"
       />
       <p
         itemprop="description"
@@ -26,12 +27,12 @@
         reculés en Afrique. Je viens partager ces recette que j'ai appris au fil
         des années.
       </p>
-      <img
+      <nuxt-img
         width="300"
         height="34"
         src="/img/sidebar-img-2.png"
         class="mb-1 max-w-full h-auto leading-6 text-center align-middle border-none text-stone-500"
-        alt=""
+        alt="signature"
         loading="lazy"
       />
     </div>

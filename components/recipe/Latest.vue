@@ -4,8 +4,6 @@ const { find } = useStrapi();
 const { data: recipes } = useAsyncData("lates-recipes", () => {
   return find("recipes?sort[0]=id%3Adesc&pagination[pageSize]=3&populate=*");
 });
-
-console.log(recipes);
 </script>
 
 <template>
@@ -78,9 +76,9 @@ console.log(recipes);
                     <div
                       class="hidden p-0 my-0 mr-4 ml-0 w-12 align-baseline border-0"
                     >
-                      <a
+                      <nuxt-link
                         itemprop="url"
-                        href="https://easymeals.qodeinteractive.com/author/laura-dern/"
+                        to="/a-propos"
                         class="block align-baseline border-0 cursor-pointer hover:text-black"
                         style="
                           outline: 0px;
@@ -89,21 +87,20 @@ console.log(recipes);
                           background-position: 0px center;
                         "
                       >
-                        <img
+                        <nuxt-img
                           data-del="avatar"
-                          src="https://easymeals.qodeinteractive.com/wp-content/uploads/2020/05/author-img-2-100x100.png"
-                          class="w-full max-w-full h-auto align-middle"
-                          height="48"
-                          width="48"
-                          style="border-radius: 50%"
+                          src="/img/author.jpg"
+                          class="max-w-full h-auto rounded-full leading-6 text-center text-black align-middle cursor-pointer"
+                          height="138"
+                          width="138"
                         />
-                      </a>
+                      </nuxt-link>
                     </div>
                     <div class="relative -top-px align-baseline border-0">
-                      <a
+                      <nuxt-link
                         itemprop="author"
+                        to="/a-propos"
                         class="hidden relative text-xs font-semibold tracking-widest leading-5 text-black uppercase align-baseline border-0 cursor-pointer hover:text-black"
-                        href="https://easymeals.qodeinteractive.com/author/laura-dern/"
                         style="
                           outline: 0px;
                           text-decoration: none;
@@ -112,7 +109,7 @@ console.log(recipes);
                         "
                       >
                         Magius
-                      </a>
+                      </nuxt-link>
                       <p
                         itemprop="dateCreated"
                         class="relative text-xs leading-4 align-baseline border-0 text-neutral-500"

@@ -12,13 +12,11 @@ const check = (optionName: string, checked: any) => {
   // copy the value Array to avoid mutating props
   let updatedValue = [...selected];
   // remove name if checked, else add name
-  console.log("arr copié", updatedValue);
+
   if (checked) {
     updatedValue.push(optionName);
-    console.log("ajout", updatedValue);
   } else {
     updatedValue.splice(updatedValue.indexOf(optionName), 1);
-    console.log("retrait", updatedValue);
   }
   // emit the updated value
   emit("update:selected", updatedValue);

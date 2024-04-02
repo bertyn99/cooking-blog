@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { url } from "inspector";
-import YouMayAlsoLike from "~/components/section/YouMayAlsoLike.vue";
 import { Category, Cover, Ingredient, Recipe, SEO } from "~/types/strapiMeta";
 
 definePageMeta({ layout: "content" });
@@ -17,7 +15,7 @@ const {
 } = await useAsyncData<Recipe>(`recipe-${slug}`, () =>
   find(`recipes`, {
     filters: { slug: { $eq: slug } },
-    populate: ["cover", "categories", "nutrition", "Ingredient", "seo"],
+    populate: ["cover", "categories", "nutrition", "Ingredient", "seo", "tags"],
     pagination: {
       page: 0,
       pageSize: 1,
@@ -38,7 +36,7 @@ const difficulty = computed(
   () => recipe.value?.data[0].attributes?.difficulty || "easy"
 );
 const categoriesRecipe = computed(
-  () => recipe.value?.data[0].attributes?.categories?.data || ([] as Category[])
+  () => recipe.value?.data[0].attributes?.categories?.data || []
 );
 const intro = computed(
   () => recipe.value?.data[0].attributes?.Intro || "No intro"
@@ -52,12 +50,24 @@ const cover = computed(
   () => recipe.value?.data[0].attributes?.cover || ({} as Cover)
 );
 
-const urlCover = useFormatUrlCover(cover.value, "small");
+const urlCover = useFormatUrlCover(cover.value);
 // set the meta
 
-const steps = computed(
-  () => recipe.value?.data[0].attributes?.step?.split("\n") || []
+const recipeNote = computed(
+  () => recipe.value?.data![0].attributes?.step?.split("\n\n")[1] || []
 );
+const steps = computed(
+  () =>
+    recipe.value?.data![0].attributes?.step?.split("\n\n")[0].split("\n") || []
+);
+
+const tags = computed(
+  () =>
+    recipe.value?.data[0].attributes?.tags?.data.map(
+      (elm: any) => elm.attributes.name
+    ) || []
+);
+
 const link = computed(
   () =>
     "https://journalducuistot.fr/recette/" +
@@ -80,10 +90,11 @@ const dateFormattedDisplay = useDateFormat(
 const dateModifiedFormatted = useDateFormat(dateModified.value, "YYYY-MM-DD", {
   locales: "en-US",
 });
-const categoryRecipe = computed(
-  () =>
-    recipe.value?.data[0].attributes?.categories?.data[0].attributes ||
-    ({} as Category)
+
+const categoryRecipe = computed(() =>
+  categoriesRecipe.value.length > 0
+    ? categoriesRecipe.value[0].attributes!.name
+    : "cuisine africaine"
 );
 
 const nutrition = computed(
@@ -145,6 +156,8 @@ useHead({
       image: 'https://journalducuistot.fr/img/author.jpg',
     }"
     :keywords="seo.value?.keywords"
+    :recipeCuisine="categoryRecipe"
+    :recipeCategory="tags[0]"
   />
   <div>
     <h1
@@ -185,7 +198,7 @@ useHead({
           itemprop="url"
           class="p-0 m-0 leading-6 uppercase align-baseline border-0 cursor-pointer hover:text-stone-500"
           style="transition: color 0.2s ease-out 0s"
-          v-for="category in categoriesContent"
+          v-for="category in categoriesRecipe"
         >
           <Icon name="ion:ios-pricetag-outline" />
           {{ category.attributes!.name }}
@@ -199,11 +212,11 @@ useHead({
   <RecipeReviews />
   <RecipeIngredients :ingredients="ingredients" />
   <RecipeNutritional :data="formated" />
-  <RecipeSteps :steps="steps" />
-  <Cta />
-  <PrevAndNext class="print:hidden" />
-  <SectionYouMayAlsoLike
-    :categorie="categoryRecipe.name"
+  <LazyRecipeSteps :steps="steps" />
+  <LazyCta />
+  <LazyPrevAndNext class="print:hidden" />
+  <LazySectionYouMayAlsoLike
+    :categorie="categoryRecipe.name || 'cuisine africaine'"
     type-content="recipes"
     class="print:hidden"
   />

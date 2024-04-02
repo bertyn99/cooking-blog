@@ -43,7 +43,7 @@ const subHeaderMenu = computed(() => {
 
 const route = useRoute();
 const currentRoute = computed(() => route.path);
-console.log(currentRoute.value);
+
 const heightPadding = computed(() => (currentRoute.value == "/" ? 120 : 80));
 </script>
 
@@ -59,7 +59,8 @@ const heightPadding = computed(() => (currentRoute.value == "/" ? 120 : 80));
         <NuxtLink href="/" class="flex items-center">
           <h1>
             <span class="sr-only">Journal du Cuistot</span>
-            <img
+            <nuxt-img
+              preload
               src="/img/logo.webp"
               class="h-16 mr-3 object-cover"
               alt="Logo Journal du cuistot"
