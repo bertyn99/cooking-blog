@@ -33,7 +33,6 @@ const formatCategories = computed(() =>
     return { name: category.attributes?.name, id: category.id };
   })
 );
-console.log(articles.value.meta.pagination);
 
 const searchWithFilter = () => {
   refresh();

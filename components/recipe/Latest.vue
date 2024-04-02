@@ -4,8 +4,6 @@ const { find } = useStrapi();
 const { data: recipes } = useAsyncData("lates-recipes", () => {
   return find("recipes?sort[0]=id%3Adesc&pagination[pageSize]=3&populate=*");
 });
-
-console.log(recipes);
 </script>
 
 <template>
