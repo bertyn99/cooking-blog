@@ -36,7 +36,8 @@ export default defineNuxtConfig({
       },
     ],
   ],
-  routesRules: {
+  extends: ['nuxt-umami'],
+  routeRules: {
     "/": { swr: 60 * 15 },
     "/blog/**": { swr: 60 * 25 },
     "/uploads/**": { swr: 60 * 60 * 24 * 5 },
