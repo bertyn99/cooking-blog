@@ -82,6 +82,7 @@ export default defineNuxtConfig({
     cookie: {},
     cookieName: "strapi_jwt",
   },
+
   tailwindcss: {
     cssPath: "~/assets/css/index.css",
     configPath: "~/tailwind.config.ts",
