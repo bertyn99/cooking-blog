@@ -1,11 +1,19 @@
 <script lang="ts" setup>
 import type { Category, Cover, Ingredient, Recipe, SEO } from "~/types/strapiMeta";
 
-definePageMeta({ layout: "content" });
+definePageMeta({ layout: "content",
+/*    validate: async (route) => {
+    // Check if this is a recipe slug (not a category)
+    // Return false for routes containing "recettes-d"
+    console.log(route.params.slug);
+    return !route.params.slug.includes('recettes-d');
+  } */
+ });
 
 const {
   params: { slug },
 } = useRoute();
+
 const { find } = useStrapi();
 const {
   data: recipe,
@@ -24,7 +32,7 @@ const {
 );
 
 if (!recipe) {
-  throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
+  throw createError({ statusCode: 404, statusMessage: "Page dNot Found" });
 }
 
 const titleContent = computed(

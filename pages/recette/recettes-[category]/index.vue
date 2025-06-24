@@ -4,12 +4,12 @@ definePageMeta({ layout: "content" });
 import { useGenerateSchemaArianne } from "~/composables/useGenerateSchemaArianne";
 import type { Article, Category, Cover } from "~/types/strapiMeta";
 const {
-  params: { slug },
+  params: { category },
 } = useRoute();
-
-if (slug.length === 0 || slug === " ") {
-  throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
+if (category.length === 0 || category === " ") {
+  throw createError({ statusCode: 404, statusMessage: "Category Page Not Found" });
 }
+
 
 const { find } = useStrapi();
 const {
@@ -19,26 +19,16 @@ const {
   error,
 } = await useAsyncData<{
   data: Article[];
-}>(`page-${slug.length == 1 ? slug : slug[1]}`, () =>
+}>(`page-recettes-category-${category.length == 1 ? category[0]:category}`, () =>
   find(`pages`, {
     filters: {
-      slug: { $eq: slug.length == 1 ? slug : slug[1] },
-      ...(slug.length > 1
-        ? {
-            parent: {
-              slug: { $eq: slug[0] }, // Ensure the parent slug is 'recette'
-            },
-          }
-        : {}),
+      slug: { $eq: category.length !==0 ? `recettes-${category}`:`recettes-${category[0]}`},
+     
+      parent: {
+        slug: { $eq: "recette" }, // Ensure the parent slug is 'recette'
+      },
     },
-    populate: {
-      Content: true,
-      seoMeta: true,
-      page: true,
-     /*  parent: {
-        fields: ['slug'] // Only get the slug field from parent
-      } */
-    },
+    populate: ["Content", "seoMeta", "page"],
     pagination: {
       page: 0,
       pageSize: 1,
@@ -46,12 +36,11 @@ const {
   })
 );
 
-const ariane = useGenerateSchemaArianne(slug);
+const ariane = useGenerateSchemaArianne(category);
 
 if (page.value?.data.length === 0) {
-  throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
+  throw createError({ statusCode: 404, statusMessage: "Paged Not Found" });
 }
-console.log(page.value);
 
 const displayPage = page.value?.data[0].attributes?.Content || [];
 const titleContent = computed(
@@ -66,7 +55,7 @@ useSeoMeta(
     description: seo.value?.description || "No description",
     keywords: seo.value?.keywords || "No keyword",
 
-    url: "https://www.journalducuistot.fr/" + [...slug].join("/"),
+    url: "https://www.journalducuistot.fr/recette/" + [...category].join("/"),
     author: "bertyn",
     datePublished: page.value?.data[0].attributes?.publishedAt,
     dateModified: page.value?.data[0].attributes?.updatedAt,
@@ -76,7 +65,7 @@ useHead({
   link: [
     {
       rel: "canonical",
-      href: "https://www.journalducuistot.fr/" + [...slug].join("/"),
+      href: "https://www.journalducuistot.fr/" + [...category].join("/"),
     },
   ],
 });

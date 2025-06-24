@@ -21,18 +21,33 @@ const links = [
     name: "Recettes",
     url: "/recette",
     current: true,
+    children: [
+      { name: "Toutes les recettes", url: "/recette" },
+      { name: "Recettes du monde", url: "/recette/recettes-du-monde" }
+    ]
   },
-
   {
     id: 3,
     name: "Bases de la Cuisine",
     url: "/bases-culinaires",
     current: true,
+    children: [
+  /*     {name:"Introduction", url: "/bases-culinaires"},
+      { name: "Ingrédients", url: "/bases-culinaires/ingredients" },
+      { name: "Ustensiles", url: "/bases-culinaires/ustensiles" }, */
+      { name: "Techniques de base", url: "/bases-culinaires" },
+      { name: "Technique de préparation", url: "/bases-culinaires/preparation" },
+      { name: "Technique de cuisson", url: "/bases-culinaires/techniques-de-cuisson" },
+      { name: "Technique de découpe", url: "/bases-culinaires/techniques-de-decoupes" }
+    ]
   },
   { id: 4, name: "A propos", url: "/a-propos", current: false },
 ];
+
 const headerMenu = computed(() => links || []);
 const mobileMenuOpen = ref(false);
+const openDropdown = ref(null);
+
 const subHeaderMenu = computed(() => {
   //split array in 2
   const half = Math.ceil(links.length / 2);
@@ -45,6 +60,14 @@ const route = useRoute();
 const currentRoute = computed(() => route.path);
 
 const heightPadding = computed(() => (currentRoute.value == "/" ? 120 : 80));
+
+const toggleDropdown = (linkId) => {
+  openDropdown.value = openDropdown.value === linkId ? null : linkId;
+};
+
+const closeDropdown = () => {
+  openDropdown.value = null;
+};
 </script>
 
 <template>
@@ -66,9 +89,6 @@ const heightPadding = computed(() => (currentRoute.value == "/" ? 120 : 80));
               alt="Logo Journal du cuistot"
               aria-hidden="true"
             />
-            <!--   <span class="self-center text-2xl font-semibold whitespace-nowrap"
-            >Cuistot</span
-          > -->
           </h1>
         </NuxtLink>
         <div class="flex md:order-2 print:hidden">
@@ -151,6 +171,7 @@ const heightPadding = computed(() => (currentRoute.value == "/" ? 120 : 80));
             'mt-2 ': mobileMenuOpen,
           }"
           id="navbar-search"
+          @click="closeDropdown"
         >
           <div class="relative mt-3 md:hidden">
             <div
@@ -180,14 +201,67 @@ const heightPadding = computed(() => (currentRoute.value == "/" ? 120 : 80));
           <ul
             class="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg md:flex-row md:space-x-8 md:mt-0 md:border-0"
           >
-            <NuxtLink
+            <li 
               v-for="link in links"
-              :to="link.url"
-              class="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-amber-100 active:text-white md:hover:bg-transparent md:hover:text-yellow-700 md:p-0"
-              :active-class="'bg-amber-400 md:bg-transparent text-white md:text-amber-700'"
-              aria-current="page"
-              >{{ link.name }}</NuxtLink
+              :key="link.id"
+              class="relative"
+              @click.stop
             >
+              <!-- Link with children -->
+              <div v-if="link.children && link.children.length > 0" class="relative">
+                <button
+                  @click="toggleDropdown(link.id)"
+                  class="flex items-center justify-between w-full py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-amber-100 md:hover:bg-transparent md:hover:text-yellow-700 md:p-0 md:w-auto"
+                  :class="{
+                    'bg-amber-400 md:bg-transparent text-white md:text-amber-700': 
+                      currentRoute.startsWith(link.url)
+                  }"
+                >
+                  {{ link.name }}
+                  <svg
+                    class="w-4 h-4 ml-1 transform transition-transform duration-200"
+                    :class="{ 'rotate-180': openDropdown === link.id }"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+                
+                <!-- Dropdown menu -->
+                <div
+                  v-show="openDropdown === link.id"
+                  class="absolute top-full left-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50 md:mt-2"
+                >
+                  <div class="py-1">
+                    <NuxtLink
+                      v-for="dropdownItem in link.children"
+                      :key="dropdownItem.name"
+                      :to="dropdownItem.url"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-amber-100 hover:text-amber-700"
+                      @click="closeDropdown"
+                    >
+                      {{ dropdownItem.name }}
+                    </NuxtLink>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Regular link without dropdown -->
+              <NuxtLink
+                v-else
+                :to="link.url"
+                class="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-amber-100 active:text-white md:hover:bg-transparent md:hover:text-yellow-700 md:p-0"
+                :active-class="'bg-amber-400 md:bg-transparent text-white md:text-amber-700'"
+                aria-current="page"
+              >
+                {{ link.name }}
+              </NuxtLink>
+            </li>
           </ul>
         </div>
       </div>
