@@ -6,6 +6,10 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   app: {
     head: {
+      titleTemplate: '%s — %siteName',
+      templateParams: {
+        siteName: 'Journal du cuistot' // set a site name
+      },
       link: [{ rel: "icon", type: "image/webp", href: "/img/logo.webp" }],
       /* script: [
         {
@@ -24,20 +28,20 @@ export default defineNuxtConfig({
     "@nuxtjs/strapi",
     "@nuxtjs/partytown",
     "@nuxt/image",
-    "nuxt-schema-org",
-    "@vueuse/nuxt"
-    /*     [
-          "@nuxtjs/google-fonts",
-          {
-            families: {
-              Merriweather: true,
-              "Merriweather+Sans": true,
-              Catamaran: true,
-              download: true,
-              inject: true,
-            },
-          },
-        ], */,
+    '@nuxtjs/seo',
+    "@vueuse/nuxt",
+    /*    [
+       "@nuxtjs/google-fonts",
+       {
+         families: {
+           Merriweather: true,
+           "Merriweather+Sans": true,
+           Catamaran: true,
+           download: true,
+           inject: true,
+         },
+       }
+       ], */
     "nuxt-umami"
   ],
   routeRules: {
@@ -53,6 +57,16 @@ export default defineNuxtConfig({
       cache: { driver: "redis", url: process.env.REDIS_URL },
     },
   },
+  site: {
+    url: process.env.NUXT_PUBLIC_SITE_URL || "https://journalducuistot.fr",
+    name: "Journal du cuistot",
+  },
+  seo: {
+    meta: {
+      description: "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
+    }
+
+  },
   image: {
     providers: {
       localImageSharp: {
@@ -62,6 +76,14 @@ export default defineNuxtConfig({
         },
       },
     },
+  },
+  umami: {
+    id: process.env.NUXT_UMAMI_ID,
+    host: process.env.NUXT_UMAMI_HOST,
+    autoTrack: true,
+    ignoreLocalhost: true,
+    enabled: true,
+
   },
   proxy: {
     proxies: {
@@ -87,15 +109,15 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      siteUrl:
-        process.env.NUXT_PUBLIC_SITE_URL || "https://journalducuistot.fr/",
-      titleSeparator: "|",
-      siteName: "Journal du cuistot",
-      siteDescription:
-        "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
       language: "fr-FR", // prefer more explicit language codes like `en-AU` over `en`
     },
   },
+  sitemap: {
+    sources: [
+      '/api/__sitemap__/urls',
+    ]
+  },
+
 
   /*  devServer: {
     https: {
