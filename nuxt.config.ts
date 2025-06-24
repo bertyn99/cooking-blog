@@ -2,6 +2,8 @@
 import listRedirects from "./utils/redirect";
 
 export default defineNuxtConfig({
+  /*  future: { compatibilityVersion: 4 }, */
+  compatibilityDate: '2024-11-01',
   app: {
     head: {
       link: [{ rel: "icon", type: "image/webp", href: "/img/logo.webp" }],
@@ -18,26 +20,26 @@ export default defineNuxtConfig({
   modules: [
     "@nuxtjs/tailwindcss",
     "@nuxt-alt/proxy",
-    "nuxt-icon",
+    "@nuxt/icon",
     "@nuxtjs/strapi",
     "@nuxtjs/partytown",
     "@nuxt/image",
     "nuxt-schema-org",
-    "@vueuse/nuxt",
-    [
-      "@nuxtjs/google-fonts",
-      {
-        families: {
-          Merriweather: true,
-          "Merriweather+Sans": true,
-          Catamaran: true,
-          download: true,
-          inject: true,
-        },
-      },
-    ],
+    "@vueuse/nuxt"
+    /*     [
+          "@nuxtjs/google-fonts",
+          {
+            families: {
+              Merriweather: true,
+              "Merriweather+Sans": true,
+              Catamaran: true,
+              download: true,
+              inject: true,
+            },
+          },
+        ], */,
+    "nuxt-umami"
   ],
-  extends: ['nuxt-umami'],
   routeRules: {
     "/": { isr: 60 * 15 },
     "/blog/**": { isr: 60 * 25 },
@@ -71,10 +73,6 @@ export default defineNuxtConfig({
       },
     },
   },
-  vue: {
-    defineModel: true,
-    propsDestructure: true,
-  },
   strapi: {
     url: process.env.STRAPI_URL || "http://localhost:1337",
     prefix: "/api",
@@ -98,9 +96,7 @@ export default defineNuxtConfig({
       language: "fr-FR", // prefer more explicit language codes like `en-AU` over `en`
     },
   },
-  schemaOrg: {
-    canonicalHost: "https://journalducuistot.fr/",
-  },
+
   /*  devServer: {
     https: {
       key: "localhost-key.pem",
