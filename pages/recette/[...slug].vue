@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Category, Cover, Ingredient, Recipe, SEO } from "~/types/strapiMeta";
+import type { Category, Cover, Ingredient, Recipe, SEO } from "~/types/strapiMeta";
 
 definePageMeta({ layout: "content" });
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Article } from "~/types/strapiMeta";
+import type { Article } from "~/types/strapiMeta";
 
 defineProps({
   articles: {

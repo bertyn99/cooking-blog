@@ -2,7 +2,7 @@
 definePageMeta({ layout: "content" });
 
 import { useGenerateSchemaArianne } from "~/composables/useGenerateSchemaArianne";
-import { Article, Category, Cover } from "~/types/strapiMeta";
+import type { Article, Category, Cover } from "~/types/strapiMeta";
 const {
   params: { slug },
 } = useRoute();

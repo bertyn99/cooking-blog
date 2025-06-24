@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Ingredient } from "~/types/strapiMeta";
+import type { Ingredient } from "~/types/strapiMeta";
 
 //list of ingredients
 const props = defineProps<{

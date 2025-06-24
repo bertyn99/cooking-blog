@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useReadingTime } from "~/composables/useReadingTime";
-import { Recipe, Article, Category } from "~/types/strapiMeta";
+import type { Recipe, Article, Category } from "~/types/strapiMeta";
 import readingTime from "reading-time";
 const { post } = defineProps({
   post: {

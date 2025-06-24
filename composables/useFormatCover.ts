@@ -1,4 +1,4 @@
-import { Cover, sizeImg } from "~/types/strapiMeta";
+import type { Cover, sizeImg } from "~/types/strapiMeta";
 
 export const useFormatUrlCover = (cover: Cover, size?: string) => {
   const config = useRuntimeConfig();

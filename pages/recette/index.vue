@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Recipe } from "~/types/strapiMeta";
+import type { Recipe } from "~/types/strapiMeta";
 
 const { find } = useStrapi();
 const search = ref("");

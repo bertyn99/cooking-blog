@@ -2,8 +2,14 @@
 import listRedirects from "./utils/redirect";
 
 export default defineNuxtConfig({
+  /*  future: { compatibilityVersion: 4 }, */
+  compatibilityDate: '2024-11-01',
   app: {
     head: {
+      titleTemplate: '%s — %siteName',
+      templateParams: {
+        siteName: 'Journal du cuistot' // set a site name
+      },
       link: [{ rel: "icon", type: "image/webp", href: "/img/logo.webp" }],
       /* script: [
         {
@@ -18,26 +24,26 @@ export default defineNuxtConfig({
   modules: [
     "@nuxtjs/tailwindcss",
     "@nuxt-alt/proxy",
-    "nuxt-icon",
+    "@nuxt/icon",
     "@nuxtjs/strapi",
     "@nuxtjs/partytown",
     "@nuxt/image",
-    "nuxt-schema-org",
+    '@nuxtjs/seo',
     "@vueuse/nuxt",
-    [
-      "@nuxtjs/google-fonts",
-      {
-        families: {
-          Merriweather: true,
-          "Merriweather+Sans": true,
-          Catamaran: true,
-          download: true,
-          inject: true,
-        },
-      },
-    ],
+    /*    [
+       "@nuxtjs/google-fonts",
+       {
+         families: {
+           Merriweather: true,
+           "Merriweather+Sans": true,
+           Catamaran: true,
+           download: true,
+           inject: true,
+         },
+       }
+       ], */
+    "nuxt-umami"
   ],
-  extends: ['nuxt-umami'],
   routeRules: {
     "/": { isr: 60 * 15 },
     "/blog/**": { isr: 60 * 25 },
@@ -51,6 +57,16 @@ export default defineNuxtConfig({
       cache: { driver: "redis", url: process.env.REDIS_URL },
     },
   },
+  site: {
+    url: process.env.NUXT_PUBLIC_SITE_URL || "https://journalducuistot.fr",
+    name: "Journal du cuistot",
+  },
+  seo: {
+    meta: {
+      description: "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
+    }
+
+  },
   image: {
     providers: {
       localImageSharp: {
@@ -61,6 +77,14 @@ export default defineNuxtConfig({
       },
     },
   },
+  umami: {
+    id: process.env.NUXT_UMAMI_ID,
+    host: process.env.NUXT_UMAMI_HOST,
+    autoTrack: true,
+    ignoreLocalhost: true,
+    enabled: true,
+
+  },
   proxy: {
     proxies: {
       // Using the proxy instance
@@ -70,10 +94,6 @@ export default defineNuxtConfig({
         rewrite: (path: string) => path.replace(/^\/uploads/, ""),
       },
     },
-  },
-  vue: {
-    defineModel: true,
-    propsDestructure: true,
   },
   strapi: {
     url: process.env.STRAPI_URL || "http://localhost:1337",
@@ -89,18 +109,16 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      siteUrl:
-        process.env.NUXT_PUBLIC_SITE_URL || "https://journalducuistot.fr/",
-      titleSeparator: "|",
-      siteName: "Journal du cuistot",
-      siteDescription:
-        "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
       language: "fr-FR", // prefer more explicit language codes like `en-AU` over `en`
     },
   },
-  schemaOrg: {
-    canonicalHost: "https://journalducuistot.fr/",
+  sitemap: {
+    sources: [
+      '/api/__sitemap__/urls',
+    ]
   },
+
+
   /*  devServer: {
     https: {
       key: "localhost-key.pem",
