@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Cover } from "~/types/strapiMeta";
+import type { Cover } from "~/types/strapiMeta";
 
 const { cover } = defineProps({
   cover: {

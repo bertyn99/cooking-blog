@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 definePageMeta({ layout: "content" });
 
-import { Article, Category, Cover } from "~/types/strapiMeta";
+import type { Article, Category, Cover } from "~/types/strapiMeta";
 // get current route slug
 const {
   params: { slug },

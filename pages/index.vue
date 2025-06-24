@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Article, Recipe } from "~/types/strapiMeta";
+import type { Article, Recipe } from "~/types/strapiMeta";
 
 useSeoMeta(
   useLoadMeta({

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Category } from "~/types/strapiMeta";
+import type { Category } from "~/types/strapiMeta";
 
 const { categorie, typeContent } = defineProps({
   categorie: {
