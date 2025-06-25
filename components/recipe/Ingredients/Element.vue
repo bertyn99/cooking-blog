@@ -4,7 +4,7 @@ const isChecked = ref(false);
 </script>
 
 <template>
-  <td class="whitespace-nowrap py-4 pl-4 text-sm font-medium text-gray-900">
+  <td class="whitespace-nowrap py-4 pl-4 text-sm font-medium text-gray-900 w-16">
     <Icon
       name="mdi:checkbox-blank-circle-outline"
       class="h-4 w-4 text-amber-200"

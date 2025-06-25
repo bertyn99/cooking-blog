@@ -17,7 +17,7 @@ const reFormtedContent = computed(() => {
 <template>
   <template v-for="item in reFormtedContent" :key="item.id">
     <template v-if="item['__component'] === 'ui.text'">
-      <div class="prose md:prose-lg" v-html="item.content"></div>
+      <div class="w-full prose md:prose-lg max-w-3xl px-1" v-html="item.content"></div>
     </template>
   </template>
 </template>

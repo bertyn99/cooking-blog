@@ -16,11 +16,13 @@ defineProps<{
   <div class="w-full print:hidden">
     <nuxt-img
       provider="localImageSharp"
-      width="1300"
-      height="910"
+      width="900"
+      height="600"
       :src="url"
       fit="cover"
-      sizes="sm:70vw md:50vw lg:40vw"
+      loading="eager"
+      class="aspect-[3/2]"
+      sizes="sm:70vw md:51vw lg:41vw"
       :alt="alt"
     />
     <div

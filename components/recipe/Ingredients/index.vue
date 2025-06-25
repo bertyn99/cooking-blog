@@ -53,7 +53,7 @@ const schemaRecipeIngredients = props.ingredients.map(
     </div>
 
     <table class="min-w-full divide-y divide-gray-300">
-      <tbody class="divide-y divide-gray-200 border-y-2">
+      <tbody class="divide-y divide-gray-200 border-y-2 ">
         <tr
           v-for="ingredient in ingredients"
           :key="ingredient.name"

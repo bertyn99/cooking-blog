@@ -214,7 +214,7 @@ useHead({
       </div>
     </template>
   </SectionHeroArticle>
-  <div class="prose md:prose-lg lg:prose-xl">
+  <div class="prose md:prose-lg lg:prose-xl max-w-4xl">
     {{ intro }}
   </div>
   <RecipeReviews />
