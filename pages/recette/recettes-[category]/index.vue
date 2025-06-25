@@ -39,7 +39,7 @@ const {
 const ariane = useGenerateSchemaArianne(category);
 
 if (page.value?.data.length === 0) {
-  throw createError({ statusCode: 404, statusMessage: "Paged Not Found" });
+  throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
 const displayPage = page.value?.data[0].attributes?.Content || [];

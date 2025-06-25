@@ -32,7 +32,7 @@ const {
 );
 
 if (!recipe) {
-  throw createError({ statusCode: 404, statusMessage: "Page dNot Found" });
+  throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
 const titleContent = computed(
