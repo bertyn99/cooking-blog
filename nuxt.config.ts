@@ -8,9 +8,6 @@ export default defineNuxtConfig({
   app: {
     head: {
       titleTemplate: '%s — %siteName',
-      templateParams: {
-        siteName: 'Journal du cuistot' // set a site name
-      },
       htmlAttrs: {
         lang: 'fr' // Set the default language here
       },
