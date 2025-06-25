@@ -9,11 +9,11 @@
         class="max-w-xl text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl lg:col-span-7"
       >
         <h2 class="inline sm:block lg:inline xl:block">
-          You want to learn more recipes?
+          Tu veux recevoir les dernières recettes ?
         </h2>
         {{ " " }}
         <p class="inline sm:block lg:inline xl:block">
-          Sign up for our newsletter.
+          Inscris-toi à notre newsletter pour ne rien rater !
         </p>
       </div>
       <form class="w-full max-w-md lg:col-span-5 lg:pt-2">
