@@ -19,7 +19,7 @@ type MetaKey =
   | "twitterDescription"
   | "twitterImage";
 type Meta = { [key: string]: string | undefined };
-interface MetaData extends Meta {
+export interface MetaData extends Meta {
   type: string;
   title: string;
   description: string;
@@ -43,7 +43,7 @@ interface MetaData extends Meta {
   twitterImage: string;
 }
 
-type MetaOption = {
+export type MetaOption = {
   title: string;
   description: string;
   image: string;

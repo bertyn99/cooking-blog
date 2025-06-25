@@ -1,3 +1,5 @@
+import type { MetaData, MetaOption } from "~/types/meta";
+
 const defaultMetaData: MetaData = {
   type: "website",
   title: "JournalduCuistot - recettes de cuisine d'un globe trotters",

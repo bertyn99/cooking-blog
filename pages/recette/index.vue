@@ -22,6 +22,29 @@ const { data: recipes, refresh } = await useAsyncData<Recipe>(
     }),
   { watch: [currentPage] }
 );
+defineOgImageComponent('Cooking', {
+  headline:"Recettes",
+  description: "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.",
+})
+useSeoMeta(
+  useLoadMeta({
+    title:"Recettes",
+    description: "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.",
+    keywords: "recettes, cuisine, gastronomie, plats, desserts, entrées",
+
+    url: "https://journalducuistot.fr/recette",
+    author: "bertyn",
+  }) as any
+);
+useHead({
+  link: [
+    {
+      rel: "canonical",
+      href: "https://journalducuistot.fr/recette/recette"
+    },
+  ],
+});
+
 const searchWithFilter = () => {
   refresh();
 };

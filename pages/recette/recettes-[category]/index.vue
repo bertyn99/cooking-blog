@@ -55,7 +55,8 @@ useSeoMeta(
     description: seo.value?.description || "No description",
     keywords: seo.value?.keywords || "No keyword",
 
-    url: "https://www.journalducuistot.fr/recette/" + [...category].join("/"),
+    url: "https://journalducuistot.fr/recette/recettes-" + category,
+
     author: "bertyn",
     datePublished: page.value?.data[0].attributes?.publishedAt,
     dateModified: page.value?.data[0].attributes?.updatedAt,
@@ -65,9 +66,13 @@ useHead({
   link: [
     {
       rel: "canonical",
-      href: "https://www.journalducuistot.fr/" + [...category].join("/"),
+      href: "https://journalducuistot.fr/recette/recettes-" + category,
     },
   ],
+});
+defineOgImageComponent('Cooking', {
+  headline: titleContent.value || "Journal du cuistot",
+  description: seo.value?.description || "No description",
 });
 </script>
 

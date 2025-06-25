@@ -11,6 +11,9 @@ export default defineNuxtConfig({
       templateParams: {
         siteName: 'Journal du cuistot' // set a site name
       },
+      htmlAttrs: {
+        lang: 'fr' // Set the default language here
+      },
       link: [{ rel: "icon", type: "image/webp", href: "/img/logo.webp" }],
       /* script: [
         {
@@ -60,10 +63,9 @@ export default defineNuxtConfig({
         component: "Cooking",
         props: {
           title: "Journal du cuistot",
-          description: "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
-          image: "/img/logo.webp",
         },
       },
+
     },
   },
 
@@ -81,6 +83,10 @@ export default defineNuxtConfig({
   seo: {
     meta: {
       description: "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
+      ogLocale: 'fr_FR',
+      ogType: 'website',
+      ogUrl: "https://journalducuistot.fr",
+      ogTitle: 'JournalduCuistot',
     }
 
   },

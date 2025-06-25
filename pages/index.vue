@@ -36,6 +36,9 @@ const { data: recipes } = await find<Recipe>("recipes", {
     pageSize: 4,
   },
 });
+defineOgImageComponent('Cooking', {
+  headline:"Accueil",
+})
 </script>
 
 <template>
