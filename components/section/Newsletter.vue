@@ -32,15 +32,16 @@
             type="submit"
             class="flex-none rounded-md bg-yellow-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-600"
           >
-            Subscribe
+            Inscrire-toi
           </button>
         </div>
         <p class="mt-4 text-sm leading-6 text-gray-900">
-          We care about your data. Read our
+          Vous pouvez vous
+          désinscrire à tout moment. Pour plus d'informations, consultez notre
           <a
             href="#"
             class="font-semibold text-yellow-600 hover:text-yellow-500"
-            >privacy&nbsp;policy</a
+            >politique de confidentialité</a
           >.
         </p>
       </form>
