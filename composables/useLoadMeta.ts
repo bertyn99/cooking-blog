@@ -1,3 +1,5 @@
+import type { MetaData, MetaOption } from "~/types/meta";
+
 const defaultMetaData: MetaData = {
   type: "website",
   title: "JournalduCuistot - recettes de cuisine d'un globe trotters",
@@ -51,7 +53,7 @@ export const useLoadMeta = (metaOption: MetaOption) => {
   };
   for (const [k, v] of Object.entries(defaultMetaData)) {
     if (k.toLowerCase().includes("title"))
-      metaData[k] = metaOption.title + " | JournalduCuistot ";
+      metaData[k] = metaOption.title;
     if (k.toLowerCase().includes("description"))
       metaData[k] = metaOption.description;
     if (k.toLowerCase().includes("image")) metaData[k] = metaOption.image;

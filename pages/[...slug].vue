@@ -66,7 +66,7 @@ useSeoMeta(
     description: seo.value?.description || "No description",
     keywords: seo.value?.keywords || "No keyword",
 
-    url: "https://www.journalducuistot.fr/" + [...slug].join("/"),
+    url: "https://journalducuistot.fr/" + [...slug].join("/"),
     author: "bertyn",
     datePublished: page.value?.data[0].attributes?.publishedAt,
     dateModified: page.value?.data[0].attributes?.updatedAt,
@@ -76,11 +76,17 @@ useHead({
   link: [
     {
       rel: "canonical",
-      href: "https://www.journalducuistot.fr/" + [...slug].join("/"),
+      href: "https://journalducuistot.fr/" + [...slug].join("/"),
     },
   ],
 });
-</script>
+
+
+defineOgImageComponent('Cooking', {
+  headline: titleContent.value,
+  description: seo.value?.description ,
+})
+</script> 
 
 <template>
   <SchemaOrgBreadcrumb :itemListElement="ariane" />

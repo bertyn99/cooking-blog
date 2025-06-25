@@ -1,14 +1,7 @@
 <script lang="ts" setup>
 import type { Category, Cover, Ingredient, Recipe, SEO } from "~/types/strapiMeta";
 
-definePageMeta({ layout: "content",
-/*    validate: async (route) => {
-    // Check if this is a recipe slug (not a category)
-    // Return false for routes containing "recettes-d"
-    console.log(route.params.slug);
-    return !route.params.slug.includes('recettes-d');
-  } */
- });
+definePageMeta({ layout: "content"});
 
 const {
   params: { slug },
@@ -129,8 +122,8 @@ useSeoMeta(
     image: urlCover || "",
     url: "https://journalducuistot.fr/recette/" + slug,
     author: "magius",
-    datePublished: recipe.value?.data[0].attributes?.publishedAt,
-    dateModified: recipe.value?.data[0].attributes?.updatedAt,
+    datePublished: recipe.value?.data![0].attributes?.publishedAt,
+    dateModified: recipe.value?.data![0].attributes?.updatedAt,
   }) as any
 );
 useHead({
