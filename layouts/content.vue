@@ -6,8 +6,8 @@ const someErrorLogger = (_error: any) => {
 
 <template>
   <SectionBasicHeader />
-  <div class="max-w-6xl mx-auto mt-20 lg:flex gap-8 px-4 sm:px-10 lg:px-14">
-    <main class="w-full lg:w-2/3 print:block">
+  <div class="max-w-7xl mx-auto mt-24 lg:flex gap-8  px-7 sm:px-5">
+    <main class="w-full lg:w-3/4 print:block">
       <NuxtErrorBoundary @error="someErrorLogger">
         <template #default>
           <slot></slot>

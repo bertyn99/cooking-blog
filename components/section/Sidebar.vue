@@ -1,7 +1,7 @@
 <script lang="ts" setup></script>
 
 <template>
-  <aside class="w-full lg:w-1/3 space-y-8">
+  <aside class="w-full lg:w-1/4 space-y-8">
     <div class="w-full h-64"></div>
     <div
       class="w-full flex flex-col gap-4 items-center border border-stone-200"

@@ -4,6 +4,7 @@ import listRedirects from "./utils/redirect";
 export default defineNuxtConfig({
   /*  future: { compatibilityVersion: 4 }, */
   compatibilityDate: '2024-11-01',
+
   app: {
     head: {
       titleTemplate: '%s — %siteName',
@@ -21,6 +22,7 @@ export default defineNuxtConfig({
       ], */
     },
   },
+
   modules: [
     "@nuxtjs/tailwindcss",
     "@nuxt-alt/proxy",
@@ -44,6 +46,7 @@ export default defineNuxtConfig({
        ], */
     "nuxt-umami"
   ],
+
   routeRules: {
     "/": { isr: 60 * 15 },
     "/blog/**": { isr: 60 * 25 },
@@ -51,22 +54,37 @@ export default defineNuxtConfig({
     "/sitemap.xml": { isr: 60 * 60 * 24 },
     "/rss.xml": { isr: 60 * 60 * 24 * 3 },
     ...listRedirects,
+
+    "/*/**": {
+      ogImage: {
+        component: "Cooking",
+        props: {
+          title: "Journal du cuistot",
+          description: "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
+          image: "/img/logo.webp",
+        },
+      },
+    },
   },
+
   nitro: {
     storage: {
       cache: { driver: "redis", url: process.env.REDIS_URL },
     },
   },
+
   site: {
     url: process.env.NUXT_PUBLIC_SITE_URL || "https://journalducuistot.fr",
     name: "Journal du cuistot",
   },
+
   seo: {
     meta: {
       description: "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
     }
 
   },
+
   image: {
     providers: {
       localImageSharp: {
@@ -77,6 +95,7 @@ export default defineNuxtConfig({
       },
     },
   },
+
   umami: {
     id: process.env.NUXT_UMAMI_ID,
     host: process.env.NUXT_UMAMI_HOST,
@@ -85,6 +104,7 @@ export default defineNuxtConfig({
     enabled: true,
 
   },
+
   proxy: {
     proxies: {
       // Using the proxy instance
@@ -95,6 +115,7 @@ export default defineNuxtConfig({
       },
     },
   },
+
   strapi: {
     url: process.env.STRAPI_URL || "http://localhost:1337",
     prefix: "/api",
@@ -107,16 +128,18 @@ export default defineNuxtConfig({
     cssPath: "~/assets/css/index.css",
     configPath: "~/tailwind.config.ts",
   },
+
   runtimeConfig: {
     public: {
       language: "fr-FR", // prefer more explicit language codes like `en-AU` over `en`
     },
   },
+
   sitemap: {
     sources: [
       '/api/__sitemap__/urls',
     ]
-  },
+  }
 
 
   /*  devServer: {
@@ -124,5 +147,9 @@ export default defineNuxtConfig({
       key: "localhost-key.pem",
       cert: "localhost.pem",
     },
-  }, */
+  }, */,
+
+  devtools: {
+    enabled: true
+  }
 });
