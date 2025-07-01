@@ -36,7 +36,7 @@ const links = [
     <div
       class="w-full max-w-7xl mx-auto flex flex-wrap justify-around items-center"
     >
-      <div>© 2023 JournalDuCuistot, Tous droit reservée</div>
+      <div>© {{ new Date().getFullYear() }} JournalDuCuistot, Tous droit reservée</div>
 
       <ul
         class="flex gap-3 text-xs text-center align-top border-0 text-zinc-700 font-semibold tracking-widest uppercase"
