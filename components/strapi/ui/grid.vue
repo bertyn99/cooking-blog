@@ -1,4 +1,3 @@
-<script lang="ts" setup>
 <script setup lang="ts">
 // Define a specific item type instead of using `any`
 interface GridItem {
@@ -11,7 +10,7 @@ defineProps<{
   items: GridItem[]
 }>()
 </script>
-</script>
+
 
 <template>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
