@@ -48,18 +48,18 @@ const ingredients = computed(
 );
 
 const cover = computed(
-  () => recipe.value?.data[0].attributes?.cover || ({} as Cover)
+  () => recipe.value[0].attributes?.cover || ({} as Cover)
 );
 
 const urlCover = useFormatUrlCover(cover.value);
 // set the meta
 
 const recipeNote = computed(
-  () => recipe.value?.data![0].attributes?.step?.split("\n\n")[1] || []
+  () => recipe.value[0].attributes?.step?.split("\n\n")[1] || []
 );
 const steps = computed(
   () =>
-    recipe.value?.data![0].attributes?.step?.split("\n\n")[0].split("\n") || []
+    recipe.value[0].attributes?.step?.split("\n\n")[0].split("\n") || []
 );
 
 const tags = computed(
@@ -122,8 +122,8 @@ useSeoMeta(
     image: urlCover || "",
     url: "https://journalducuistot.fr/recette/" + slug,
     author: "magius",
-    datePublished: recipe.value?.data![0].attributes?.publishedAt,
-    dateModified: recipe.value?.data![0].attributes?.updatedAt,
+    /* datePublished: recipe.value[0].attributes?.publishedAt, 
+    dateModified: recipe.value[0].attributes?.updatedAt,*/
   }) as any
 );
 useHead({
@@ -171,7 +171,7 @@ useHead({
   </div>
   <SectionHeroArticle
     :url="urlCover"
-    :alt="cover.data?.attributes?.alternativeText"
+    :alt="cover.attributes?.alternativeText"
   >
     <template #info>
       <p

@@ -58,7 +58,7 @@ const titleContent = computed(
   () => page.value?.data[0].attributes?.title || "No title"
 );
 
-const seo = computed(() => page.value?.data[0].attributes?.seoMeta || {});
+const seo = computed(() => page.value?.data[0]?.attributes?.seoMeta || {});
 // set the meta
 useSeoMeta(
   useLoadMeta({

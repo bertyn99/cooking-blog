@@ -21,7 +21,7 @@ useHead({
 const { find } = useStrapi();
 
 const { data: articles } = await find<Article>("articles", {
-  populate: ["cover", "seo"],
+  populate: ["cover", "seo","categories"],
   sort: ["publishedAt:desc"],
   pagination: {
     page: 0,
@@ -39,6 +39,8 @@ const { data: recipes } = await find<Recipe>("recipes", {
 defineOgImageComponent('Cooking', {
   headline:"Accueil",
 })
+
+console.log(articles);
 </script>
 
 <template>
@@ -46,6 +48,6 @@ defineOgImageComponent('Cooking', {
   <SchemaOrgBreadcrumb :itemListElement="[{ name: 'Accueil', item: '/' }]" />
   <SectionHero></SectionHero>
   <SectionNewsletter></SectionNewsletter>
-  <LazyRecipeList :list="recipes" :showDetails="true"></LazyRecipeList>
-  <LazySectionRecentArticles :articles="articles"></LazySectionRecentArticles>
+  <LazyRecipeList :list="recipes" :showDetails="true"></LazyRecipeList> 
+ <LazySectionRecentArticles :articles="articles"></LazySectionRecentArticles>
 </template>
