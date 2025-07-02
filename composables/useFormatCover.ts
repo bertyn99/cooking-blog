@@ -1,15 +1,15 @@
-import type { Cover, sizeImg } from "~/types/strapiMeta";
+import type { Cover, } from "~/types/strapiMeta";
 
 export const useFormatUrlCover = (cover: Cover, size?: string) => {
   const config = useRuntimeConfig();
 
-  const format = cover?.attributes?.formats && size ? cover?.attributes.formats[size] : null;
+  const format = cover?.formats && size ? cover?.formats[size] : null;
 
   if (typeof format !== "undefined" && format !== null) {
     const url = format.url;
     return url
       ? url
-      : `${cover?.attributes?.hash}${cover?.attributes?.ext}`;
+      : `${cover?.hash}${cover?.ext}`;
   }
-  return `${cover?.attributes?.hash}${cover?.attributes?.ext}`;
+  return `${cover?.hash}${cover?.ext}`;
 };
