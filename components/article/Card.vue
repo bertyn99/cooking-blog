@@ -9,19 +9,19 @@ const { post } = defineProps({
   },
 });
 const categories = computed(() => {
-  return (post.attributes?.categories?.data || []) as Category["data"][];
+  return (post.categories || []) as Category[];
 });
-const cover = useFormatUrlCover(post.attributes?.cover, "");
+const cover = useFormatUrlCover(post.cover, "");
 
 const description = computed(() => {
-  return post.attributes!.seo?.length !== 0 &&
-    post.attributes!.seo !== undefined
-    ? post.attributes!.seo[0]?.description
+  return post.seo?.length !== 0 &&
+    post.seo !== undefined
+    ? post.seo[0]?.description
     : "";
 });
 
 const fallbackDescription = computed(() => {
-  return useMarked(post.attributes!.content!.substring(0, 200));
+  return useMarked(post.content?.substring(0, 200));
 });
 const responsiveCover = computed(() => {
   const checkIfExist = (img: any, size: string, sizeView: string) => {
@@ -32,14 +32,14 @@ const responsiveCover = computed(() => {
     return "";
   };
 
-  return ` ${checkIfExist(post.attributes!.cover, "thumbnail", "130w")}
-                ${checkIfExist(post.attributes!.cover, "small", "300w")}
-                ${checkIfExist(post.attributes!.cover, "large", "1024w")}
-                ${checkIfExist(post.attributes!.cover, "medium", "768w")}
-                ${checkIfExist(post.attributes!.cover, "meidum", "600w")}
+  return ` ${checkIfExist(post.cover, "thumbnail", "130w")}
+                ${checkIfExist(post.cover, "small", "300w")}
+                ${checkIfExist(post.cover, "large", "1024w")}
+                ${checkIfExist(post.cover, "medium", "768w")}
+                ${checkIfExist(post.cover, "meidum", "600w")}
               `;
 });
-const { minutes } = useReadingTime(post.attributes!.content || "");
+const { minutes } = useReadingTime(post.content || "");
 </script>
 
 <template>
@@ -53,7 +53,7 @@ const { minutes } = useReadingTime(post.attributes!.content || "");
         <div class="p-0 m-0 align-baseline border-0">
           <nuxt-link
             itemprop="url"
-            :to="'blog/'+post.attributes!.slug"
+            :to="'blog/'+post.slug"
             class="p-0 m-0 text-black align-baseline border-0 cursor-pointer hover:text-stone-500"
             style="
               outline: 0px;
@@ -69,7 +69,7 @@ const { minutes } = useReadingTime(post.attributes!.content || "");
               width="1300"
               height="910"
               fit="cover"
-              :alt="post.attributes?.cover?.data?.attributes?.alternativeText"
+              :alt="post.cover?.alternativeText"
               class="block max-w-full h-auto align-middle rounded-none will-change-transform aspect-[13/9] max-h-[500px]"
               sizes="sm:70vw md:50vw lg:30vw"
             />
@@ -91,7 +91,7 @@ const { minutes } = useReadingTime(post.attributes!.content || "");
           <span
             class="p-0 mt-0 mr-4 mb-2 ml-0 text-xs font-medium tracking-widest text-black uppercase align-baseline"
           >
-            {{ categories.length > 0 ? categories[0]?.attributes!.name : "" }}
+            {{ categories?.length > 0 ? categories[0]?.name : "" }}
           </span>
         </div>
         <h3
@@ -101,7 +101,7 @@ const { minutes } = useReadingTime(post.attributes!.content || "");
           <NuxtLink
             itemprop="url"
             class="p-0 m-0 align-baseline border-0 cursor-pointer hover:text-stone-500"
-            :to="'blog/'+post.attributes!.slug"
+            :to="'blog/'+post.slug"
             style="
               outline: 0px;
               text-decoration: none;
@@ -110,7 +110,7 @@ const { minutes } = useReadingTime(post.attributes!.content || "");
               box-shadow: none;
             "
           >
-            {{ post.attributes!.title }}
+            {{ post.title }}
           </NuxtLink>
         </h3>
 

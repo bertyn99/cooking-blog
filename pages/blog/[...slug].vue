@@ -130,7 +130,7 @@ useHead({
 
   <SectionHeroArticle
     :url="urlCover"
-    :alt="cover.data?.attributes?.alternativeText"
+    :alt="cover.attributes?.alternativeText"
   >
     <template #info>
       <p
