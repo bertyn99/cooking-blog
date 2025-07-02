@@ -1,8 +1,16 @@
 <script lang="ts" setup>
+<script setup lang="ts">
+// Define a specific item type instead of using `any`
+interface GridItem {
+  id: string | number;
+  [key: string]: any;
+}
+
 defineProps<{
-  // Array of grid items; extend this type as needed.
-  items: any[]
+  // Array of grid items with unique identifiers
+  items: GridItem[]
 }>()
+</script>
 </script>
 
 <template>
