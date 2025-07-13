@@ -69,8 +69,8 @@ useSeoMeta({
     keywords: seo.value?.keywords || "No keyword",
     url: "https://journalducuistot.fr/" + [...slug].join("/"),
     author: "bertyn",
-    datePublished: page.value?.attributes?.publishedAt,
-    dateModified: page.value?.attributes?.updatedAt,
+    datePublished: page.value?.publishedAt,
+    dateModified: page.value?.updatedAt,
   }
 );
 useHead({
