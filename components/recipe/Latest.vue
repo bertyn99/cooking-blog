@@ -110,7 +110,7 @@ const { data: recipes } = useAsyncData("lates-recipes", () => {
                       >
                         Magius
                       </nuxt-link>
-                      <p
+                     <!--  <p
                         itemprop="dateCreated"
                         class="relative text-xs leading-4 align-baseline border-0 text-neutral-500"
                       >
@@ -119,7 +119,7 @@ const { data: recipes } = useAsyncData("lates-recipes", () => {
                             dateStyle: "medium",
                           }).format(new Date(recipe.attributes?.publishedAt))
                         }}
-                      </p>
+                      </p> -->
                     </div>
                   </div>
                 </div>
