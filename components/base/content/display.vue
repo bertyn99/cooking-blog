@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
 
 import UiText from '@/components/strapi/ui/text.vue'
 import UiImage from '@/components/strapi/ui/image.vue'
