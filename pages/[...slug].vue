@@ -44,8 +44,8 @@ const {
         fields: ['slug'],
       },
     },
-  }),{
-    transform: (data) => data.data[0] as Article
+  }), {
+    transform: (data) => data.data?.[0] || null
   }
 );
 console.log('page: ', page.value);
