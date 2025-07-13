@@ -28,7 +28,9 @@ const {
       page: 0,
       pageSize: 1,
     },
-  })
+  }),{
+    transform: (data) => data.data[0] as Article
+  }
 );
 
 if (!article) {
@@ -36,47 +38,47 @@ if (!article) {
 }
 
 const content = useMarked(
-  article.value?.data[0].attributes?.content || "No content"
+  article.value?.content || "No content"
 );
 const titleContent = computed(
-  () => article.value?.data[0].attributes?.title || "No title"
+  () => article.value?.title || "No title"
 );
 const categoriesContent = computed(
   () =>
-    article.value?.data[0].attributes?.categories?.data || ([] as Category[])
+      article.value?.categories || ([] as Category[])
 );
 const cover = computed(
-  () => article.value?.data[0].attributes?.cover || ({} as Cover)
+  () => article.value?.cover || ({} as Cover)
 );
 
 const link = computed(
   () =>
     "https://journalducuistot.fr/blog/" +
-      article.value?.data[0].attributes?.slug || ""
+      article.value?.slug || ""
 );
 const date = computed(
-  () => article.value?.data[0].attributes?.publishedAt || ""
+  () => article.value?.publishedAt || ""
 );
 const modifiedAt = computed(
-  () => article.value?.data[0].attributes?.updatedAt || ""
+  () => article.value?.updatedAt || ""
 );
 const urlCover = useFormatUrlCover(cover.value);
 
 const categoryRecipe = computed(
   () =>
-    article.value?.data[0].attributes?.categories?.data[0].attributes ||
+        article.value?.categories ||
     ({} as Category)
 );
 const { minutes } = useReadingTime(
-  article.value?.data[0].attributes.content || ""
+  article.value?.content || ""
 );
 
-const { prev, next } = article.value?.data[0];
+/* const { prev, next } = article.value; */
 
-const seo = computed(() => article.value?.data[0].attributes?.seo[0] || {});
+const seo = computed(() => article.value?.seo || {});
 // set the meta
 useSeoMeta(
-  useLoadMeta({
+{
     title: titleContent.value || "Journal du cuistot",
     description:
       "Journal du cuistot | " + seo.value?.description || "No description",
@@ -84,9 +86,9 @@ useSeoMeta(
     image: urlCover || "",
     url: "https://journalducuistot.fr/blog/" + slug,
     author: "magius",
-    datePublished: article.value?.data[0].attributes?.publishedAt,
-    dateModified: article.value?.data[0].attributes?.updatedAt,
-  }) as any
+    datePublished: article.value?.publishedAt,
+    dateModified: article.value?.updatedAt,
+  }
 );
 useHead({
   link: [
@@ -150,14 +152,14 @@ useHead({
           v-for="category in categoriesContent"
         >
           <Icon name="ion:ios-pricetag-outline" />
-          {{ category.attributes!.name }}
+          {{ category.name }}
         </span>
       </div>
     </template>
   </SectionHeroArticle>
   <article class="prose md:prose-lg lg:prose-xl" v-html="content"></article>
   <LazyCta />
-  <LazyPrevAndNext :prev="prev?.slug" :next="next?.slug" />
+<!--   <LazyPrevAndNext :prev="prev?.slug" :next="next?.slug" /> -->
   <LazySectionYouMayAlsoLike
     :categorie="categoryRecipe.name"
     type-content="recipes"

@@ -20,27 +20,45 @@ useHead({
 
 const { find } = useStrapi();
 
-const { data: articles } = await find<Article>("articles", {
-  populate: ["cover", "seo","categories"],
-  sort: ["publishedAt:desc"],
-  pagination: {
-    page: 0,
-    pageSize: 5,
-  },
+interface HomepageData {
+  articles: { data: Article[]; meta: any };
+  recipes: { data: Recipe[]; meta: any };
+}
+
+const { data } = await useAsyncData<HomepageData>('homepage-data', async () => {
+  const [articlesResponse, recipesResponse] = await Promise.all([
+    find<Article>("articles", {
+      populate: ["cover", "seo","categories"],
+      sort: ["publishedAt:desc"],
+      pagination: {
+        page: 0,
+        pageSize: 5,
+      },
+    }),
+    find<Recipe>("recipes", {
+      populate: ["cover", "seo"],
+      sort: ["publishedAt:desc"],
+      pagination: {
+        page: 0,
+        pageSize: 4,
+      },
+    })
+  ]);
+
+  return {
+    articles: articlesResponse.data??[],
+    recipes: recipesResponse.data??[]
+  };
 });
-const { data: recipes } = await find<Recipe>("recipes", {
-  populate: ["cover", "seo"],
-  sort: ["publishedAt:desc"],
-  pagination: {
-    page: 0,
-    pageSize: 4,
-  },
-});
+
+const articles = computed(() => data.value?.articles || []);
+const recipes = computed(() => data.value?.recipes || []);
+
 defineOgImageComponent('Cooking', {
   headline:"Accueil",
 })
 
-console.log(articles);
+console.log(articles.value);
 </script>
 
 <template>
