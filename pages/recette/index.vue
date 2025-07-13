@@ -27,14 +27,14 @@ defineOgImageComponent('Cooking', {
   description: "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.",
 })
 useSeoMeta(
-  useLoadMeta({
+  {
     title:"Recettes",
     description: "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.",
     keywords: "recettes, cuisine, gastronomie, plats, desserts, entrées",
 
     url: "https://journalducuistot.fr/recette",
     author: "bertyn",
-  }) as any
+  }
 );
 useHead({
   link: [
@@ -53,8 +53,8 @@ const { data: categories } = await useAsyncData(`categories`, () =>
 );
 
 const formatCategories = computed(() =>
-  categories.value?.data.map((category) => {
-    return { name: category.attributes?.name, id: category.id };
+  categories.value?.data.map((category: any) => {
+    return { name: category.name, id: category.id };
   })
 );
 
@@ -95,7 +95,7 @@ const goTo = (id: number) => {
         @filter="searchWithFilter"
       />
       <div class="lg:col-span-3">
-        <RecipeList :list="recipes?.data" />
+        <RecipeList :list="recipes?.data" showDetails />
         <BasePagination
           :totalPage="recipes.meta.pagination.pageCount"
           :currentPage="currentPage"
