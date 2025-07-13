@@ -38,7 +38,7 @@ const {
       pageSize: 1,
     },
     populate: {
-      Content: true,
+      content: true,
       seoMeta: true,
       parent: {
         fields: ['slug'],
@@ -56,7 +56,7 @@ if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
-const displayPage = page.value?.Content || [];
+const displayPage = page.value?.content || [];
 const titleContent = computed(
   () => page.value?.title || "No title"
 );

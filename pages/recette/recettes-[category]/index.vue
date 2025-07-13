@@ -28,7 +28,7 @@ const {
         slug: { $eq: "recette" }, // Ensure the parent slug is 'recette'
       },
     },
-    populate: ["Content", "seoMeta", "page"],
+    populate: ["content", "seoMeta", "page"],
     pagination: {
       page: 0,
       pageSize: 1,
@@ -42,15 +42,15 @@ if (page.value?.data.length === 0) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
-const displayPage = page.value?.data[0].attributes?.Content || [];
+const displayPage = page.value?.data[0].content || [];
 const titleContent = computed(
-  () => page.value?.data[0].attributes?.title || "No title"
+  () => page.value?.data[0].title || "No title"
 );
 
-const seo = computed(() => page.value?.data[0].attributes?.seoMeta || {});
+const seo = computed(() => page.value?.data[0].seoMeta || {});
 // set the meta
 useSeoMeta(
-  useLoadMeta({
+  {
     title: titleContent.value || "Journal du cuistot",
     description: seo.value?.description || "No description",
     keywords: seo.value?.keywords || "No keyword",
@@ -58,9 +58,9 @@ useSeoMeta(
     url: "https://journalducuistot.fr/recette/recettes-" + category,
 
     author: "bertyn",
-    datePublished: page.value?.data[0].attributes?.publishedAt,
-    dateModified: page.value?.data[0].attributes?.updatedAt,
-  }) as any
+    datePublished: page.value?.data[0].publishedAt,
+    dateModified: page.value?.data[0].updatedAt,
+  }
 );
 useHead({
   link: [

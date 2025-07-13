@@ -29,8 +29,8 @@ const { data: categories } = await useAsyncData(`categories`, () =>
 );
 
 const formatCategories = computed(() =>
-  categories.value?.data.map((category) => {
-    return { name: category.attributes?.name, id: category.id };
+  categories.value?.data.map((category: any) => {
+    return { name: category.name, id: category.id };
   })
 );
 

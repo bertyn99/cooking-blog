@@ -16,69 +16,72 @@ const {
 } = await useAsyncData<Recipe>(`recipe-${slug}`, () =>
   find(`recipes`, {
     filters: { slug: { $eq: slug } },
-    populate: ["cover", "categories", "nutrition", "Ingredient", "seo", "tags"],
+    populate: ["cover", "categories", "nutrition", "ingredients", "seo"],
     pagination: {
       page: 0,
       pageSize: 1,
     },
-  })
+  }),{
+    transform: (data) => data.data[0]
+  }
 );
 
 if (!recipe) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
+console.log(recipe.value);
 const titleContent = computed(
-  () => recipe.value?.data[0].attributes?.title || "No title"
+  () => recipe.value?.title || "No title"
 );
 
-const time = computed(() => recipe.value?.data[0].attributes?.time || "10");
+const time = computed(() => recipe.value?.time || "10");
 const difficulty = computed(
-  () => recipe.value?.data[0].attributes?.difficulty || "easy"
+  () => recipe.value?.difficulty || "easy"
 );
 const categoriesRecipe = computed(
-  () => recipe.value?.data[0].attributes?.categories?.data || []
+  () => recipe.value?.categories || []
 );
 const intro = computed(
-  () => recipe.value?.data[0].attributes?.Intro || "No intro"
+  () => recipe.value?.intro || "No intro"
 );
 
 const ingredients = computed(
-  () => recipe.value?.data[0].attributes?.Ingredient || ([] as Ingredient[])
+  () => recipe.value?.ingredients || ([] as Ingredient[])
 );
 
 const cover = computed(
-  () => recipe.value[0].attributes?.cover || ({} as Cover)
+  () => recipe.value?.cover || ({} as Cover)
 );
 
 const urlCover = useFormatUrlCover(cover.value);
 // set the meta
 
 const recipeNote = computed(
-  () => recipe.value[0].attributes?.step?.split("\n\n")[1] || []
+  () => recipe.value?.step?.split("\n\n")[1] || []
 );
 const steps = computed(
   () =>
-    recipe.value[0].attributes?.step?.split("\n\n")[0].split("\n") || []
+    recipe.value?.step?.split("\n\n")[0].split("\n") || []
 );
 
-const tags = computed(
+/* const tags = computed(
   () =>
-    recipe.value?.data[0].attributes?.tags?.data.map(
-      (elm: any) => elm.attributes.name
+    recipe.value?.tags.map(
+      (elm: any) => elm.name
     ) || []
-);
+);  */
 
 const link = computed(
   () =>
     "https://journalducuistot.fr/recette/" +
-      recipe.value?.data[0].attributes?.slug || ""
+      recipe.value?.slug || ""
 );
 const date = computed(
-  () => recipe.value?.data[0].attributes?.publishedAt || ""
+  () => recipe.value?.publishedAt || ""
 );
 const dateModified = computed(
-  () => recipe.value?.data[0].attributes?.updatedAt || ""
+  () => recipe.value?.updatedAt || ""
 );
 
 const dateFormattedDisplay = useDateFormat(
@@ -94,12 +97,12 @@ const dateModifiedFormatted = useDateFormat(dateModified.value, "YYYY-MM-DD", {
 
 const categoryRecipe = computed(() =>
   categoriesRecipe.value.length > 0
-    ? categoriesRecipe.value[0].attributes!.name
+    ? categoriesRecipe.value[0].name
     : "cuisine africaine"
 );
 
 const nutrition = computed(
-  () => recipe.value?.data[0].attributes?.nutrition || ({} as any)
+    () => recipe.value?.nutrition || ({} as any)
 );
 
 const formated = computed(() =>
@@ -110,11 +113,11 @@ const formated = computed(() =>
     })
 );
 const seo = computed(
-  () => recipe.value?.data[0].attributes?.seo[0] || ({} as SEO)
+  () => recipe.value?.seo[0] || ({} as SEO)
 );
 
 useSeoMeta(
-  useLoadMeta({
+{
     title: titleContent.value || "Journal du cuistot",
     description:
       "Journal du cuistot | " + seo.value?.description || "No description",
@@ -122,9 +125,9 @@ useSeoMeta(
     image: urlCover || "",
     url: "https://journalducuistot.fr/recette/" + slug,
     author: "magius",
-    /* datePublished: recipe.value[0].attributes?.publishedAt, 
-    dateModified: recipe.value[0].attributes?.updatedAt,*/
-  }) as any
+    datePublished: recipe.value?.publishedAt, 
+    dateModified: recipe.value?.updatedAt,
+  }
 );
 useHead({
   link: [
@@ -158,7 +161,6 @@ useHead({
     }"
     :keywords="seo.value?.keywords"
     :recipeCuisine="categoryRecipe"
-    :recipeCategory="tags[0]"
   />
   <div>
     <h1
@@ -171,7 +173,7 @@ useHead({
   </div>
   <SectionHeroArticle
     :url="urlCover"
-    :alt="cover.attributes?.alternativeText"
+    :alt="cover.alternativeText"
   >
     <template #info>
       <p
@@ -202,7 +204,7 @@ useHead({
           v-for="category in categoriesRecipe"
         >
           <Icon name="ion:ios-pricetag-outline" />
-          {{ category.attributes!.name }}
+          {{ category.name }}
         </span>
       </div>
     </template>
