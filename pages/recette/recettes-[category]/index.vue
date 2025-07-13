@@ -28,26 +28,29 @@ const {
         slug: { $eq: "recette" }, // Ensure the parent slug is 'recette'
       },
     },
-    populate: ["content", "seoMeta", "page"],
+    populate: ["content", "seoMeta", "parent"],
     pagination: {
       page: 0,
       pageSize: 1,
     },
-  })
+  }),{
+    transform: (data) => data.data[0]
+  }
 );
 
+console.log(page.value);  
 const ariane = useGenerateSchemaArianne(category);
 
-if (page.value?.data.length === 0) {
+if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
-const displayPage = page.value?.data[0].content || [];
+const displayPage = page.value?.content || [];
 const titleContent = computed(
-  () => page.value?.data[0].title || "No title"
+  () => page.value?.title || "No title"
 );
 
-const seo = computed(() => page.value?.data[0].seoMeta || {});
+const seo = computed(() => page.value?.seoMeta || {});
 // set the meta
 useSeoMeta(
   {
@@ -58,8 +61,8 @@ useSeoMeta(
     url: "https://journalducuistot.fr/recette/recettes-" + category,
 
     author: "bertyn",
-    datePublished: page.value?.data[0].publishedAt,
-    dateModified: page.value?.data[0].updatedAt,
+    datePublished: page.value?.publishedAt,
+    dateModified: page.value?.updatedAt,
   }
 );
 useHead({
