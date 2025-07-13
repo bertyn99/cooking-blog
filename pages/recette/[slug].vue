@@ -16,7 +16,7 @@ const {
 } = await useAsyncData<Recipe>(`recipe-${slug}`, () =>
   find(`recipes`, {
     filters: { slug: { $eq: slug } },
-    populate: ["cover", "categories", "nutrition", "Ingredient", "seo"],
+    populate: ["cover", "categories", "nutrition", "ingredients", "seo"],
     pagination: {
       page: 0,
       pageSize: 1,
@@ -43,7 +43,7 @@ const categoriesRecipe = computed(
   () => recipe.value?.categories || []
 );
 const intro = computed(
-  () => recipe.value?.Intro || "No intro"
+  () => recipe.value?.intro || "No intro"
 );
 
 const ingredients = computed(
