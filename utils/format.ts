@@ -13,8 +13,8 @@ export const truncate = (str: string, n: number) => {
 };
 
 export const generateSlug = (str: string, parent: any) => {
-  return parent?.data?.attributes?.slug
-    ? `/${parent?.data?.attributes?.slug}/${str}`
+  return parent?.slug
+    ? `/${parent?.slug}/${str}`
     : `/${str}`;
 };
 
