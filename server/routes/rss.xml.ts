@@ -18,32 +18,33 @@ export default defineEventHandler(async (event) => {
   const { data: recipes } = await $fetch(
     "https://admin.journalducuistot.fr/api/recipes?populate=*&publishedAt:desc"
   );
+  console.log(articles[0]);
 
   for (const doc of pages) {
     feed.item({
-      title: doc.attributes.title ?? "-",
+      title: doc.title ?? "-",
       url: `https://journalducuistot.fr${generateSlug(
-        doc.attributes.slug,
-        doc.attributes.parent
+        doc.slug,
+        doc.parent
       )}`,
-      date: doc.attributes.publishedAt,
-      description: doc.attributes?.seoMeta?.description,
+      date: doc.publishedAt,
+      description: doc.seoMeta?.description,
     });
   }
   for (const doc of articles) {
     feed.item({
-      title: doc.attributes.title ?? "-",
-      url: `https://journalducuistot.fr/blog/${doc.attributes.slug}`,
-      date: doc.attributes.publishedAt,
-      description: doc.attributes?.seo[0]?.description,
+      title: doc.title ?? "-",
+      url: `https://journalducuistot.fr/blog/${doc.slug}`,
+      date: doc.publishedAt,
+      description: doc.seoMeta?.description,
     });
   }
   for (const doc of recipes) {
     feed.item({
-      title: doc.attributes.title ?? "-",
-      url: `https://journalducuistot.fr/recette/${doc.attributes.slug}`,
-      date: doc.attributes.publishedAt,
-      description: doc.attributes?.seo[0]?.description,
+      title: doc.title ?? "-",
+      url: `https://journalducuistot.fr/recette/${doc.slug}`,
+      date: doc.publishedAt,
+      description: doc.seoMeta?.description,
     });
   }
   const feedString = feed.xml({ indent: true });

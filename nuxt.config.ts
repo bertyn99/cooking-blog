@@ -139,10 +139,43 @@ export default defineNuxtConfig({
   },
 
   sitemap: {
-    sources: [
-      '/api/__sitemap__/urls',
-    ]
-  }
+
+    sitemaps: {
+      pages: {
+        includeGlobalSources: true,
+        includeAppSources: true,
+        path: '/sitemap-pages.xml',
+        changefreq: 'daily',
+        priority: 0.8,
+        sources: [
+          '/api/__sitemap__/urls',
+        ],
+        exclude: ['/blog/**', '/recette/**'],
+      },
+      blog: {
+        includeGlobalSources: true,
+        includeAppSources: true,
+        path: '/sitemap-blog.xml',
+        changefreq: 'daily',
+        priority: 0.8,
+        exclude: ['/recette/**', '/'],
+        sources: [
+          '/api/__sitemap__/urls',
+        ],
+      },
+      recipes: {
+        includeGlobalSources: true,
+        includeAppSources: true,
+        path: '/sitemap-recipes.xml',
+        changefreq: 'daily',
+        priority: 0.8,
+        exclude: ['/blog/**', '/'],
+        sources: [
+          '/api/__sitemap__/urls',
+        ],
+      },
+    }
+  },
 
 
   /*  devServer: {
@@ -150,7 +183,7 @@ export default defineNuxtConfig({
       key: "localhost-key.pem",
       cert: "localhost.pem",
     },
-  }, */,
+  }, */
 
   devtools: {
     enabled: true
