@@ -65,7 +65,7 @@ export default defineSitemapEventHandler(async () => {
       lastmod: doc.updatedAt,
       priority: 0.7,
       changefreq: "daily",
-      _sitemap: 'recette',
+      _sitemap: 'recipes',
       /* img: [
         {
           url: doc.image,
