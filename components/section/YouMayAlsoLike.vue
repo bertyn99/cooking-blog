@@ -2,7 +2,7 @@
 import type { Category } from "~/types/strapiMeta";
 
 const { categorie, typeContent } = defineProps({
-  categorie: {
+  categories: {
     type: String,
     required: true,
   },
@@ -17,11 +17,13 @@ const {
   pending,
   refresh,
   error,
-} = await useAsyncData<Category>(`recipe-you-may-like`, () =>
+} = await useAsyncData<Category>(`recipe-you-may-like-${categorie}`, () =>
   find(
-    `${typeContent}?filters[categories][name][$eq]=${categorie}&populate=cover&pagination[pageSize]=3`
+    `${typeContent}?filters[category][$eq]=${categorie}&populate=cover&pagination[pageSize]=3`
   )
 );
+
+console.log(categorie,content.value);
 </script>
 
 <template>

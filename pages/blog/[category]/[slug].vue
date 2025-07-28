@@ -68,7 +68,7 @@ const urlCover = useFormatUrlCover(cover.value);
 
 const categoryRecipe = computed(
   () =>
-        article.value?.categories ||
+        article.value?.category ||
     ({} as Category)
 );
 const { minutes } = useReadingTime(
@@ -170,7 +170,7 @@ useHead({
   <LazyCta />
 <!--   <LazyPrevAndNext :prev="prev?.slug" :next="next?.slug" /> -->
   <LazySectionYouMayAlsoLike
-    :categorie="categoryRecipe.name"
+    :categorie="categoryRecipe.id"
     type-content="recipes"
   />
 </template> 
