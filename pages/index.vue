@@ -28,7 +28,7 @@ interface HomepageData {
 const { data } = await useAsyncData<HomepageData>('homepage-data', async () => {
   const [articlesResponse, recipesResponse] = await Promise.all([
     find<Article>("articles", {
-      populate: ["cover", "seo","categories"],
+      populate: ["cover", "seo","category"],
       sort: ["publishedAt:desc"],
       pagination: {
         page: 0,

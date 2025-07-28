@@ -8,8 +8,8 @@ const { post } = defineProps({
     required: true,
   },
 });
-const categories = computed(() => {
-  return (post.categories || []) as Category[];
+const category = computed(() => {
+  return (post.category) as Category;
 });
 const cover = useFormatUrlCover(post.cover, "");
 
@@ -53,7 +53,7 @@ const { minutes } = useReadingTime(post.content || "");
         <div class="p-0 m-0 align-baseline border-0">
           <nuxt-link
             itemprop="url"
-            :to="'blog/'+post.slug"
+            :to="`blog/${category?.slug}/${post.slug}`"
             class="p-0 m-0 text-black align-baseline border-0 cursor-pointer hover:text-stone-500"
             style="
               outline: 0px;
@@ -91,7 +91,7 @@ const { minutes } = useReadingTime(post.content || "");
           <span
             class="p-0 mt-0 mr-4 mb-2 ml-0 text-xs font-medium tracking-widest text-black uppercase align-baseline"
           >
-            {{ categories?.length > 0 ? categories[0]?.name : "" }}
+            {{ category?.name }}
           </span>
         </div>
         <h3
@@ -101,7 +101,7 @@ const { minutes } = useReadingTime(post.content || "");
           <NuxtLink
             itemprop="url"
             class="p-0 m-0 align-baseline border-0 cursor-pointer hover:text-stone-500"
-            :to="'blog/'+post.slug"
+            :to="`blog/${category?.slug}/${post.slug}`"
             style="
               outline: 0px;
               text-decoration: none;
