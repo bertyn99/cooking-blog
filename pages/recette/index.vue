@@ -13,8 +13,8 @@ const { data: recipes, refresh } = await useAsyncData<Recipe>(
         title: { $contains: search.value },
         categories: { name: { $in: checkedCategories.value } },
       },
-      sort: ["publishedAt:desc"],
-      populate: ["cover", "categories"],
+      sort: ["firstPublishedAt:desc"],
+      populate: ["cover", "category"],
       pagination: {
         page: currentPage.value,
         pageSize: 16,
