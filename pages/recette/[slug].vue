@@ -212,7 +212,7 @@ useHead({
   <LazyCta />
   <LazyPrevAndNext class="print:hidden" />
   <LazySectionYouMayAlsoLike
-    :category="categoryRecipe.id || 'cuisine africaine'"
+    :category="categoryRecipe.id || 'cuisine-africaine'"
     type-content="recipes"
     class="print:hidden"
   />

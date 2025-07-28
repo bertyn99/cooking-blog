@@ -171,6 +171,6 @@ useHead({
 <!--   <LazyPrevAndNext :prev="prev?.slug" :next="next?.slug" /> -->
   <LazySectionYouMayAlsoLike
     :category="categoryRecipe.id"
-    type-content="recipes"
+    type-content="articles"
   />
 </template> 

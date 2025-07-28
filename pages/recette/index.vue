@@ -11,7 +11,7 @@ const { data: recipes, refresh } = await useAsyncData<Recipe>(
     find(`recipes`, {
       filters: {
         title: { $contains: search.value },
-        categories: { name: { $in: checkedCategories.value } },
+        category: { name: { $in: checkedCategories.value } },
       },
       sort: ["firstPublishedAt:desc"],
       populate: ["cover", "category"],
