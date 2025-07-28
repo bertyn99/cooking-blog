@@ -39,11 +39,11 @@ const { data: recipes } = useAsyncData("lates-recipes", () => {
               <div class="align-baseline border-0">
                 <NuxtLink
                   itemprop="url"
-                  :to="`/recette/${recipe.attributes?.slug}`"
+                  :to="`/recette/${recipe?.slug}`"
                   class="align-baseline border-0 cursor-pointer hover:text-black"
                   style="transition: color 0.2s ease-out 0s"
                 >
-                  <CustomImage :cover="recipe.attributes?.cover" />
+                  <CustomImage :cover="recipe?.cover" />
                 </NuxtLink>
               </div>
             </div>
@@ -57,7 +57,7 @@ const { data: recipes } = useAsyncData("lates-recipes", () => {
                 <NuxtLink
                   itemprop="url"
                   class="align-baseline border-0 cursor-pointer hover:text-stone-500"
-                  :to="`/recette/${recipe.attributes?.slug}`"
+                  :to="`/recette/${recipe?.slug}`"
                   style="
                     outline: 0px;
                     text-decoration: none;
@@ -65,7 +65,7 @@ const { data: recipes } = useAsyncData("lates-recipes", () => {
                     background-position: 0px center;
                   "
                 >
-                  {{ recipe.attributes?.title }}
+                  {{ recipe?.title }}
                 </NuxtLink>
               </h6>
               <div
@@ -117,7 +117,7 @@ const { data: recipes } = useAsyncData("lates-recipes", () => {
                         {{
                           new Intl.DateTimeFormat("fr-FR", {
                             dateStyle: "medium",
-                          }).format(new Date(recipe.publishedAt))
+                          }).format(new Date(recipe?.firstPublishedAt))
                         }}
                       </p> 
                     </div>

@@ -170,7 +170,7 @@ useHead({
   <LazyCta />
 <!--   <LazyPrevAndNext :prev="prev?.slug" :next="next?.slug" /> -->
   <LazySectionYouMayAlsoLike
-    :categorie="categoryRecipe.id"
+    :category="categoryRecipe.id"
     type-content="recipes"
   />
 </template> 
