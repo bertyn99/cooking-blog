@@ -16,7 +16,7 @@ const {
 } = await useAsyncData<Recipe>(`recipe-${slug}`, () =>
   find(`recipes`, {
     filters: { slug: { $eq: slug } },
-    populate: ["cover", "categories", "nutrition", "ingredients", "seo"],
+    populate: ["cover", "category", "nutrition", "ingredients", "seo"],
     pagination: {
       page: 0,
       pageSize: 1,
@@ -39,8 +39,8 @@ const time = computed(() => recipe.value?.time || "10");
 const difficulty = computed(
   () => recipe.value?.difficulty || "easy"
 );
-const categoriesRecipe = computed(
-  () => recipe.value?.categories || []
+const categoryRecipe = computed(
+  () => recipe.value?.category || ({} as Category)
 );
 const intro = computed(
   () => recipe.value?.intro || "No intro"
@@ -94,12 +94,6 @@ const dateFormattedDisplay = useDateFormat(
 const dateModifiedFormatted = useDateFormat(dateModified.value, "YYYY-MM-DD", {
   locales: "en-US",
 });
-
-const categoryRecipe = computed(() =>
-  categoriesRecipe.value.length > 0
-    ? categoriesRecipe.value[0].name
-    : "cuisine africaine"
-);
 
 const nutrition = computed(
     () => recipe.value?.nutrition || ({} as any)
@@ -201,10 +195,9 @@ useHead({
           itemprop="url"
           class="p-0 m-0 leading-6 uppercase align-baseline border-0 cursor-pointer hover:text-stone-500"
           style="transition: color 0.2s ease-out 0s"
-          v-for="category in categoriesRecipe"
         >
-          <Icon name="ion:ios-pricetag-outline" />
-          {{ category.name }}
+          <Icon name="ion:ios-pricetag-outline" />  
+          {{ categoryRecipe.name }}
         </span>
       </div>
     </template>
@@ -219,7 +212,7 @@ useHead({
   <LazyCta />
   <LazyPrevAndNext class="print:hidden" />
   <LazySectionYouMayAlsoLike
-    :categorie="categoryRecipe.name || 'cuisine africaine'"
+    :category="categoryRecipe.id || 'cuisine-africaine'"
     type-content="recipes"
     class="print:hidden"
   />

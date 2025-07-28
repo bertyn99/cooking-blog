@@ -2,12 +2,12 @@
 definePageMeta({ layout: "content" });
 
 import type { Article, Category, Cover } from "~/types/strapiMeta";
-// get current route slug
+// get current route slug and category
 const {
-  params: { slug },
+  params: { category, slug },
 } = useRoute();
 
-if (slug.length === 0 || slug === " ") {
+if (slug.length === 0 || slug === " " || category.length === 0 || category === " ") {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
@@ -22,8 +22,11 @@ const {
   data: Article[];
 }>("article", () =>
   find(`articles`, {
-    filters: { slug: { $eq: slug } },
-    populate: ["cover", "categories", "seo", "surround"],
+    filters: { 
+      slug: { $eq: slug },
+      category: { slug: { $eq: category } }
+    },
+    populate: ["cover", "category", "seo", "surround"],
     pagination: {
       page: 0,
       pageSize: 1,
@@ -53,8 +56,7 @@ const cover = computed(
 
 const link = computed(
   () =>
-    "https://journalducuistot.fr/blog/" +
-      article.value?.slug || ""
+    "https://journalducuistot.fr/blog/" + category + "/" + (article.value?.slug || "")
 );
 const date = computed(
   () => article.value?.publishedAt || ""
@@ -66,7 +68,7 @@ const urlCover = useFormatUrlCover(cover.value);
 
 const categoryRecipe = computed(
   () =>
-        article.value?.categories ||
+        article.value?.category ||
     ({} as Category)
 );
 const { minutes } = useReadingTime(
@@ -84,7 +86,7 @@ useSeoMeta(
       "Journal du cuistot | " + seo.value?.description || "No description",
     keywords: seo.value?.keywords || "No keyword",
     image: urlCover || "",
-    url: "https://journalducuistot.fr/blog/" + slug,
+    url: "https://journalducuistot.fr/blog/" + category + "/" + slug,
     author: "magius",
     datePublished: article.value?.publishedAt,
     dateModified: article.value?.updatedAt,
@@ -94,7 +96,7 @@ useHead({
   link: [
     {
       rel: "canonical",
-      href: "https://journalducuistot.fr/blog/" + slug,
+      href: "https://journalducuistot.fr/blog/" + category + "/" + slug,
     },
   ],
 });
@@ -108,7 +110,14 @@ useHead({
         name: 'Blog',
         item: '/blog',
       },
-      { name: titleContent, item: `/${slug}` },
+      { 
+        name: category, 
+        item: `/blog/${category}` 
+      },
+      { 
+        name: titleContent, 
+        item: `/blog/${category}/${slug}` 
+      },
     ]"
   />
   <SchemaOrgArticle
@@ -161,7 +170,7 @@ useHead({
   <LazyCta />
 <!--   <LazyPrevAndNext :prev="prev?.slug" :next="next?.slug" /> -->
   <LazySectionYouMayAlsoLike
-    :categorie="categoryRecipe.name"
-    type-content="recipes"
+    :category="categoryRecipe.id"
+    type-content="articles"
   />
-</template>
+</template> 

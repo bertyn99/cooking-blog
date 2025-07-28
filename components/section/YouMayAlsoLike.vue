@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { Category } from "~/types/strapiMeta";
 
-const { categorie, typeContent } = defineProps({
-  categorie: {
+const { category, typeContent } = defineProps({
+  category: {
     type: String,
     required: true,
   },
@@ -17,11 +17,13 @@ const {
   pending,
   refresh,
   error,
-} = await useAsyncData<Category>(`recipe-you-may-like`, () =>
+} = await useAsyncData<Category>(`recipe-you-may-like-${category}`, () =>
   find(
-    `${typeContent}?filters[categories][name][$eq]=${categorie}&populate=cover&pagination[pageSize]=3`
+    `${typeContent}?filters[category][$eq]=${category}&populate=cover&pagination[pageSize]=3`
   )
 );
+
+console.log(category,content.value);
 </script>
 
 <template>

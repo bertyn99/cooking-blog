@@ -7,6 +7,7 @@ const listRedirects: {
   "/techniques-de-cuisine/**": {
     redirect: { to: "/bases-culinaires/**", statusCode: 301 },
   },
+
   "/recipe/tout-sur-le-the-indien": {
     redirect: { to: "/blog/tout-sur-le-the-indien", statusCode: 301 },
   },

@@ -5,9 +5,9 @@ export default defineSitemapEventHandler(async () => {
   // Fetch all documents in parallel
   const [pagesResponse, articlesResponse, recipesResponse] = await Promise.all([
     $fetch("https://admin.journalducuistot.fr/api/pages?populate=parent"),
-    $fetch("https://admin.journalducuistot.fr/api/articles?pagination[pageSize]=100"),
+    $fetch("https://admin.journalducuistot.fr/api/articles?pagination[pageSize]=100&populate=category"),
     $fetch("https://admin.journalducuistot.fr/api/recipes?pagination[pageSize]=100")
-  ]);
+  ]) as any[];
 
   const pages = pagesResponse.data;
   const articles = articlesResponse.data;
@@ -43,7 +43,7 @@ export default defineSitemapEventHandler(async () => {
   // Add articles
   for (const doc of articles) {
     urls.push({
-      loc: `/blog/${doc.slug}`,
+      loc: `/blog/${doc.category?.slug || 'uncategorized'}/${doc.slug}`,
       lastmod: doc.updatedAt,
       priority: 0.6,
       changefreq: "daily",
@@ -65,7 +65,7 @@ export default defineSitemapEventHandler(async () => {
       lastmod: doc.updatedAt,
       priority: 0.7,
       changefreq: "daily",
-      _sitemap: 'recette',
+      _sitemap: 'recipes',
       /* img: [
         {
           url: doc.image,

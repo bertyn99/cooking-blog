@@ -136,6 +136,9 @@ export default defineNuxtConfig({
     public: {
       language: "fr-FR", // prefer more explicit language codes like `en-AU` over `en`
     },
+    strapi: {
+      url: process.env.STRAPI_URL || "http://localhost:1337",
+    },
   },
 
   sitemap: {
