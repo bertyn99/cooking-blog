@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
   for (const doc of articles) {
     feed.item({
       title: doc.title ?? "-",
-      url: `https://journalducuistot.fr/blog/${doc.slug}`,
+      url: `https://journalducuistot.fr/blog/${doc.category?.slug || 'uncategorized'}/${doc.slug}`,
       date: doc.publishedAt,
       description: doc.seoMeta?.description,
     });
