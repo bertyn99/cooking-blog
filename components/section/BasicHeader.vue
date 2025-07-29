@@ -29,16 +29,16 @@ const links = [
   {
     id: 3,
     name: "Bases de la Cuisine",
-    url: "/bases-culinaires",
+    url: "/techniques-culinaires",
     current: true,
     children: [
-  /*     {name:"Introduction", url: "/bases-culinaires"},
-      { name: "Ingrédients", url: "/bases-culinaires/ingredients" },
-      { name: "Ustensiles", url: "/bases-culinaires/ustensiles" }, */
-      { name: "Techniques de base", url: "/bases-culinaires" },
-      { name: "Technique de préparation", url: "/bases-culinaires/preparation" },
-      { name: "Technique de cuisson", url: "/bases-culinaires/techniques-de-cuisson" },
-      { name: "Technique de découpe", url: "/bases-culinaires/techniques-de-decoupes" }
+  /*     {name:"Introduction", url: "/techniques-culinaires"},
+      { name: "Ingrédients", url: "/techniques-culinaires/ingredients" },
+      { name: "Ustensiles", url: "/techniques-culinaires/ustensiles" }, */
+      { name: "Techniques de base", url: "/techniques-culinaires" },
+      { name: "Technique de préparation", url: "/techniques-culinaires/preparation" },
+      { name: "Technique de cuisson", url: "/techniques-culinaires/methodes-de-cuisson" },
+      { name: "Technique de découpe", url: "/techniques-culinaires/techniques-de-decoupes" }
     ]
   },
   { id: 4, name: "A propos", url: "/a-propos", current: false },
