@@ -90,6 +90,23 @@ export type Tag = {
   locale?: string;
 };
 
+// Type for nested parent structure
+export type NestedParent = {
+  id?: number;
+  name?: string;
+  title?: string;
+  slug?: string;
+  /** Format: date-time */
+  createdAt?: string;
+  /** Format: date-time */
+  updatedAt?: string;
+  /** Format: date-time */
+  publishedAt?: string;
+  documentId?: string;
+  locale?: string;
+  parent?: NestedParent; // Recursive type for nested parents
+};
+
 export type Recipe = {
   id?: number;
   title?: string;
@@ -111,6 +128,7 @@ export type Recipe = {
   /** Format: date-time */
   publishedAt?: string;
   locale?: string;
+  parent?: NestedParent; // Add parent field
 };
 
 export type Article = {
@@ -130,4 +148,5 @@ export type Article = {
   locale?: string;
   prev?: Article;
   next?: Article;
+  parent?: NestedParent; // Add parent field
 };

@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   });
 
   const { data: pages } = await $fetch(
-    "https://admin.journalducuistot.fr/api/pages?populate=*"
+    "https://admin.journalducuistot.fr/api/pages?populate[0]=parent&populate[1]=parent.parent&populate[2]=seoMeta&pagination[pageSize]=100&pagination[page]=1&status=published"
   );
 
   const { data: articles } = await $fetch(

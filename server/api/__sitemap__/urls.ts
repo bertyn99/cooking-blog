@@ -4,7 +4,7 @@ import { generateSlug } from "~/utils/format";
 export default defineSitemapEventHandler(async () => {
   // Fetch all documents in parallel
   const [pagesResponse, articlesResponse, recipesResponse] = await Promise.all([
-    $fetch("https://admin.journalducuistot.fr/api/pages?populate=parent"),
+    $fetch("https://admin.journalducuistot.fr/api/pages?populate[parent][populate][0]=parent&pagination[pageSize]=100&status=published"),
     $fetch("https://admin.journalducuistot.fr/api/articles?pagination[pageSize]=100&populate=category"),
     $fetch("https://admin.journalducuistot.fr/api/recipes?pagination[pageSize]=100")
   ]) as any[];
