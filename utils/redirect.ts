@@ -5,7 +5,10 @@ const listRedirects: {
       redirect: { to: "/bases-culinaires", statusCode: 301 },
     }, */
   "/techniques-de-cuisine/**": {
-    redirect: { to: "/bases-culinaires/**", statusCode: 301 },
+    redirect: { to: "/techniques-culinaires/**", statusCode: 301 },
+  },
+  "/techniques-de-culinaires/techniques-de-cuisson": {
+    redirect: { to: "/techniques-culinaires/methodes-de-cuisson", statusCode: 301 },
   },
 
   "/recipe/tout-sur-le-the-indien": {

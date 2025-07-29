@@ -11,28 +11,34 @@ if (slug.length === 0 || slug === " ") {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
-console.log('slug: ', `page-${slug.length == 1 ? slug: (slug as string[]).join('-')}`);
+// Ensure slug is always an array for consistent handling
+const slugArray = Array.isArray(slug) ? slug : [slug];
+const currentSlug = slugArray[slugArray.length - 1];
+const parentSlug = slugArray.length > 1 ? slugArray[slugArray.length - 2] : null;
+
+console.log('slug: ', slugArray.join('-'));
 
 const { find } = useStrapi();
+
+// Create a unique key for caching
+const cacheKey = `page-${slugArray.join('-')}`;
+const filters: any = {
+    slug: { $eq: currentSlug },
+  };
+
+  // Add parent filter if we have a parent slug
+  if (parentSlug) {
+    filters.parent = {
+      slug: { $eq: parentSlug },
+    };
+  }
 const {
   data: page,
   pending,
   refresh,
   error,
-} = await useAsyncData<{
-  data: Article | null;
-}>(`page-${slug.length === 1 ? slug : (slug as string[]).join('-')}`, () =>
-  find<Article>('pages', {
-    filters: {
-      slug: { $eq: slug.length === 1 ? slug : slug[1] },
-      ...(slug.length > 1
-        ? {
-            parent: {
-              slug: { $eq: slug[0] },
-            },
-          }
-        : {}),
-    },
+} = await useAsyncData<Article | null>(cacheKey, async () =>  find<Article>('pages', {
+    filters,
     pagination: {
       page: 0,
       pageSize: 1,
@@ -67,7 +73,7 @@ useSeoMeta({
     title: titleContent.value || "Journal du cuistot",
     description: seo.value?.description || "No description",
     keywords: seo.value?.keywords || "No keyword",
-    url: "https://journalducuistot.fr/" + [...slug].join("/"),
+    url: "https://journalducuistot.fr/" + slugArray.join("/"),
     author: "bertyn",
     datePublished: page.value?.publishedAt,
     dateModified: page.value?.updatedAt,
@@ -77,7 +83,7 @@ useHead({
   link: [
     {
       rel: "canonical",
-      href: "https://journalducuistot.fr/" + [...slug].join("/"),
+      href: "https://journalducuistot.fr/" + slugArray.join("/"),
     },
   ],
 });
@@ -85,7 +91,7 @@ useHead({
 
 defineOgImageComponent('Cooking', {
   headline: titleContent.value,
-  description: seo.value?.description ,
+  description: seo.value?.description,
 })
 </script> 
 

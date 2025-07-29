@@ -21,7 +21,7 @@ const links = [
   {
     id: 3,
     name: "Bases de la Cuisine",
-    url: "/bases-culinaires",
+    url: "/techniques-culinaires",
     current: true,
   },
   { id: 2, name: "A propos", url: "/a-propos", current: false },
