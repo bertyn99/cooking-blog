@@ -11,7 +11,8 @@
 
   onMounted(async () => {
     show.value = true
-    $mermaid().initialize({ 
+    try {
+      $mermaid().initialize({ 
       startOnLoad: true,
       theme: 'default',
       look: 'handDrawn',
@@ -90,6 +91,11 @@
     })
     await nextTick()
     $mermaid().init()
+    } catch (error) {
+      console.error('Failed to initialize Mermaid:', error)
+      show.value = false
+    }
+    
   })
 
   

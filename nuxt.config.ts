@@ -1,9 +1,9 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
-import listRedirects from "./utils/redirect";
+import listRedirects from "./app/utils/redirect";
 
 export default defineNuxtConfig({
-  /*  future: { compatibilityVersion: 4 }, */
-  compatibilityDate: '2024-11-01',
+  future: { compatibilityVersion: 4 },
+  compatibilityDate: '2025-01-01',
 
   app: {
     head: {
