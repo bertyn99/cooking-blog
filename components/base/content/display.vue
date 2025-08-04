@@ -31,7 +31,7 @@ const { content } = defineProps<{ content: any[] }>()
 const formattedContent = computed(() =>
   content.map((item) => {
     if (item["__component"] === "ui.text") {
-      return { ...item, content: useMarked(item.content) }
+      return { ...item, content: item?.content || "" }
     }
     return item
   })

@@ -32,6 +32,7 @@ export default defineNuxtConfig({
     "@nuxt/image",
     '@nuxtjs/seo',
     "@vueuse/nuxt",
+    '@nuxtjs/mdc',
     /*    [
        "@nuxtjs/google-fonts",
        {
@@ -71,6 +72,20 @@ export default defineNuxtConfig({
       cache: { driver: "redis", url: process.env.REDIS_URL },
     },
   },
+
+  mdc: {
+    components: {
+      prose: true
+    }
+  },
+  components: [{
+    path: '~/components',
+    exclude: ['prose/**'],
+  }, {
+    global: true,
+    path: '~/components/prose',
+    /*  pathPrefix: false, */
+  }],
 
   site: {
     url: process.env.NUXT_PUBLIC_SITE_URL || "https://journalducuistot.fr",
