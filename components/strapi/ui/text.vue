@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-defineProps<{
+const { content } = defineProps<{
   content: string
 }>()
 </script>
 
 <template>
-  <div class="w-full prose md:prose-lg max-w-3xl px-1" v-html="content"></div>
+  <MDC class="w-full prose md:prose-lg max-w-3xl px-1" :value="content" tag="div"></MDC>
 </template>

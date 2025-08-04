@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 definePageMeta({ layout: "content" });
 
+
 import type { Article, Category, Cover } from "~/types/strapiMeta";
 // get current route slug and category
 const {
@@ -40,9 +41,7 @@ if (!article) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
-const content = useMarked(
-  article.value?.content || "No content"
-);
+const content =article.value?.content || "No content";
 const titleContent = computed(
   () => article.value?.title || "No title"
 );
@@ -166,7 +165,7 @@ useHead({
       </div>
     </template>
   </SectionHeroArticle>
-  <article class="prose md:prose-lg lg:prose-xl" v-html="content"></article>
+  <MDC class="prose md:prose-lg lg:prose-xl" :value="content" tag="article"></MDC>
   <LazyCta />
 <!--   <LazyPrevAndNext :prev="prev?.slug" :next="next?.slug" /> -->
   <LazySectionYouMayAlsoLike
