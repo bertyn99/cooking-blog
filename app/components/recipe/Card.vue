@@ -17,16 +17,9 @@ const cover = useFormatUrlCover(recipe.cover);
 <template>
   <article class="col-span-1 flex flex-col rounded-lg">
     <div class="overflow-hidden rounded-t-lg">
-      <nuxt-img
-        provider="localImageSharp"
-        :src="cover"
-        width="1300"
-        height="1657"
-        :alt="recipe.cover.alternativeText"
-        class="w-full object-cover aspect-[3/4]"
-        sizes="sm:55vw md:25vw lg:20vw"
-        format="webp"
-      />
+      <nuxt-img provider="localImageSharp" :src="cover" width="1300" height="1657"
+        :alt="recipe.cover?.alternativeText || recipe.title" class="w-full object-cover aspect-[3/4]"
+        sizes="sm:55vw md:25vw lg:20vw" format="webp" />
     </div>
     <div class="mt-8 flex items-center gap-x-4 text-xs" v-if="details">
       <span class="inline-flex items-center uppercase font-medium gap-1">
@@ -46,9 +39,7 @@ const cover = useFormatUrlCover(recipe.cover);
     </div>
     <div class="group">
       <NuxtLink :to="`/recette/${recipe.slug}`">
-        <h3
-          class="mt-3 text-lg font-semibold leading-6 text-gray-900 group-hover:text-gray-600 capitalize"
-        >
+        <h3 class="mt-3 text-lg font-semibold leading-6 text-gray-900 group-hover:text-gray-600 capitalize">
           <!--  <span class="absolute inset-0" /> -->
           {{ recipe.title }}
         </h3>

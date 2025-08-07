@@ -23,12 +23,12 @@ const { data: recipes, refresh } = await useAsyncData<Recipe>(
   { watch: [currentPage] }
 );
 defineOgImageComponent('Cooking', {
-  headline:"Recettes",
+  headline: "Recettes",
   description: "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.",
 })
 useSeoMeta(
   {
-    title:"Recettes",
+    title: "Recettes",
     description: "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.",
     keywords: "recettes, cuisine, gastronomie, plats, desserts, entrées",
 
@@ -73,36 +73,21 @@ const goTo = (id: number) => {
 </script>
 
 <template>
-  <SchemaOrgBreadcrumb
-    :itemListElement="[
-      { name: 'Accueil', item: '/' },
-      { name: 'Recette', item: '/recette' },
-    ]"
-  />
+  <SchemaOrgBreadcrumb :itemListElement="[
+    { name: 'Accueil', item: '/' },
+    { name: 'Recette', item: '/recette' },
+  ]" />
   <div class="py-28 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <h1 class="text-4xl font-bold tracking-tight">Recettes</h1>
   </div>
-  <section
-    aria-labelledby="products-heading"
-    class="mx-auto max-w-7xl px-4 sm:px-6"
-  >
+  <section aria-labelledby="products-heading" class="mx-auto max-w-7xl px-4 sm:px-6">
     <div class="pb-24 pt-6 grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
-      <Filter
-        :categories="formatCategories"
-        :searchValue="search"
-        @update:search-value="search = $event"
-        v-model:selected="checkedCategories"
-        @filter="searchWithFilter"
-      />
+      <Filter :categories="formatCategories" :searchValue="search" @update:search-value="search = $event"
+        v-model:selected="checkedCategories" @filter="searchWithFilter" />
       <div class="lg:col-span-3">
         <RecipeList :list="recipes?.data" showDetails />
-        <BasePagination
-          :totalPage="recipes.meta.pagination.pageCount"
-          :currentPage="currentPage"
-          :prev="goPrev"
-          :next="goNext"
-          :to="goTo"
-        />
+        <BasePagination :totalPage="recipes?.meta?.pagination?.pageCount" :currentPage="currentPage" :prev="goPrev"
+          :next="goNext" :to="goTo" />
       </div>
     </div>
   </section>
