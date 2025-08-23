@@ -165,7 +165,7 @@ useHead({
       </div>
     </template>
   </SectionHeroArticle>
-  <MDC class="prose md:prose-lg lg:prose-xl" :value="content" tag="article"></MDC>
+  <MDC class="w-full prose md:prose-lg lg:prose-xl max-w-4xl" :value="content" tag="article"></MDC>
   <LazyCta />
 <!--   <LazyPrevAndNext :prev="prev?.slug" :next="next?.slug" /> -->
   <LazySectionYouMayAlsoLike
