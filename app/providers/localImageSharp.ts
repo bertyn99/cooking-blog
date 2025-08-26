@@ -31,8 +31,16 @@ const operationsGenerator = createOperationsGenerator({
 export default defineProvider<{ baseURL?: string }>({
   getImage(src, { modifiers, baseURL = "http://localhost:1337/uploads" }) {
     const operations = operationsGenerator(modifiers)
+    
+    // Check if src already starts with /uploads to avoid double path
+    let finalSrc = src
+    if (src.startsWith('/uploads/')) {
+      // Remove the /uploads prefix since baseURL already contains it
+      finalSrc = src.replace('/uploads/', '')
+    }
+    
     return {
-      url: joinURL(baseURL, operations, src)
+      url: joinURL(baseURL, operations, finalSrc)
     }
   }
 })
