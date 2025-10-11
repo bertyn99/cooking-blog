@@ -6,7 +6,7 @@ export default defineSitemapEventHandler(async () => {
   const [pagesResponse, articlesResponse, recipesResponse] = await Promise.all([
     $fetch("https://admin.journalducuistot.fr/api/pages?populate[parent][populate][0]=parent&pagination[pageSize]=100&status=published&sort[0]=publishedAt:desc"),
     $fetch("https://admin.journalducuistot.fr/api/articles?pagination[pageSize]=100&populate=category&sort[0]=firstPublishedAt:desc"),
-    $fetch("https://admin.journalducuistot.fr/api/recipes?pagination[pageSize]=100&sort[0]=firstPublishedAt:desc")
+    $fetch("https://admin.journalducuistot.fr/api/recipes?pagination[pageSize]=100&status=published&sort[0]=firstPublishedAt:desc")
   ]) as any[];
 
   const pages = pagesResponse.data;
