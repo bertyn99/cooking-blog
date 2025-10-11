@@ -36,9 +36,11 @@
     "@headlessui/vue": "^1.7.13",
     "@nuxt-alt/proxy": "^2.3.0",
     "@nuxtjs/seo": "^3.0.3",
+    "clsx": "^2.1.1",
     "mermaid": "^11.9.0",
     "nuxi": "^3.25.1",
     "reading-time": "2.0.0-1",
-    "rss": "^1.2.2"
+    "rss": "^1.2.2",
+    "tailwind-merge": "^3.3.1"
   }
 }

@@ -1,5 +1,8 @@
 import type { NestedParent } from '~/types/strapiMeta';
 
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
 function capitalize(sentence: string): string {
   return sentence
     .split(" ")
@@ -74,3 +77,8 @@ export const generateSlug = (str: string, parent: NestedParent | null | undefine
   return parentPath ? `/${parentPath}/${str}` : `/${str}`;
 };
 
+
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
