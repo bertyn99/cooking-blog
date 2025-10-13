@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Category, Cover, Ingredient, Recipe, SEO } from "~/types/strapiMeta";
 
-definePageMeta({ layout: "content"});
+definePageMeta({ layout: "content" });
 
 const {
   params: { slug },
@@ -21,9 +21,9 @@ const {
       page: 0,
       pageSize: 1,
     },
-  }),{
-    transform: (data) => data.data[0]
-  }
+  }), {
+  transform: (data) => data.data[0]
+}
 );
 
 if (!recipe) {
@@ -75,7 +75,7 @@ const steps = computed(
 const link = computed(
   () =>
     "https://journalducuistot.fr/recette/" +
-      recipe.value?.slug || ""
+    recipe.value?.slug || ""
 );
 const date = computed(
   () => recipe.value?.publishedAt || ""
@@ -96,7 +96,7 @@ const dateModifiedFormatted = useDateFormat(dateModified.value, "YYYY-MM-DD", {
 });
 
 const nutrition = computed(
-    () => recipe.value?.nutrition || ({} as any)
+  () => recipe.value?.nutrition || ({} as any)
 );
 
 const formated = computed(() =>
@@ -111,7 +111,7 @@ const seo = computed(
 );
 
 useSeoMeta(
-{
+  {
     title: titleContent.value || "Journal du cuistot",
     description:
       "Journal du cuistot | " + seo.value?.description || "No description",
@@ -119,7 +119,7 @@ useSeoMeta(
     image: urlCover || "",
     url: "https://journalducuistot.fr/recette/" + slug,
     author: "magius",
-    datePublished: recipe.value?.publishedAt, 
+    datePublished: recipe.value?.publishedAt,
     dateModified: recipe.value?.updatedAt,
   }
 );
@@ -134,69 +134,44 @@ useHead({
 </script>
 
 <template>
-  <SchemaOrgBreadcrumb
-    :itemListElement="[
-      { name: 'Accueil', item: '/' },
-      {
-        name: 'Recettes',
-        item: '/recette',
-      },
-      { name: titleContent, item: `/${slug}` },
-    ]"
-  />
-  <SchemaOrgRecipe
-    :name="titleContent"
-    :totalTime="`PT${time}M`"
-    :datePublished="dateFormattedDisplay"
-    :dateModified="dateModifiedFormatted"
-    :author="{
-      name: 'bertyn boulikou',
-      image: 'https://journalducuistot.fr/img/author.jpg',
-    }"
-    :keywords="seo.value?.keywords"
-    :recipeCuisine="categoryRecipe"
-  />
+  <SchemaOrgBreadcrumb :itemListElement="[
+    { name: 'Accueil', item: '/' },
+    {
+      name: 'Recettes',
+      item: '/recette',
+    },
+    { name: titleContent, item: `/recette/${slug}` },
+  ]" />
+  <SchemaOrgRecipe :name="titleContent" :totalTime="`PT${time}M`" :datePublished="dateFormattedDisplay"
+    :dateModified="dateModifiedFormatted" author="bertyn boulikou" :keywords="seo.value?.keywords"
+    :recipeCategory="categoryRecipe.name" />
   <div>
-    <h1
-      itemprop="name"
-      class="block mb-4 font-serif text-5xl font-normal text-black align-baseline"
-    >
+    <h1 itemprop="name" class="block mb-4 font-serif text-5xl font-normal text-black align-baseline">
       {{ titleContent }}
     </h1>
     <Share :date="date" :link="link" />
   </div>
-  <SectionHeroArticle
-    :url="urlCover"
-    :alt="cover.alternativeText"
-  >
+  <SectionHeroArticle :url="urlCover" :alt="cover.alternativeText">
     <template #info>
       <p
-        class="items-center mx-2 h-6 text-xs leading-6 font-semibold tracking-widest text-black uppercase align-baseline border-0"
-      >
+        class="items-center mx-2 h-6 text-xs leading-6 font-semibold tracking-widest text-black uppercase align-baseline border-0">
         <Icon name="ic:sharp-access-time" class="h-3 w-3 text-gray-500" />
         {{ time }} min
       </p>
       <p
-        class="items-center mx-2 h-6 text-xs leading-6 font-semibold tracking-widest text-black uppercase align-baseline border-0"
-      >
+        class="items-center mx-2 h-6 text-xs leading-6 font-semibold tracking-widest text-black uppercase align-baseline border-0">
         <Icon name="icon-park-outline:good-two" class="h-3 w-3 text-gray-500" />
         {{ difficulty }}
       </p>
-      <p
-        class="mx-2 h-6 text-xs leading-6 font-semibold tracking-widest text-black uppercase align-baseline border-0"
-      >
+      <p class="mx-2 h-6 text-xs leading-6 font-semibold tracking-widest text-black uppercase align-baseline border-0">
         <Icon name="mdi:silverware-fork-knife" class="h-3 w-3 text-gray-500" />
         serves 1
       </p>
-      <div
-        class="p-0 my-0 mx-2 h-6 text-xs font-semibold tracking-widest text-black uppercase align-baseline border-0"
-      >
-        <span
-          itemprop="url"
+      <div class="p-0 my-0 mx-2 h-6 text-xs font-semibold tracking-widest text-black uppercase align-baseline border-0">
+        <span itemprop="url"
           class="p-0 m-0 leading-6 uppercase align-baseline border-0 cursor-pointer hover:text-stone-500"
-          style="transition: color 0.2s ease-out 0s"
-        >
-          <Icon name="ion:ios-pricetag-outline" />  
+          style="transition: color 0.2s ease-out 0s">
+          <Icon name="ion:ios-pricetag-outline" />
           {{ categoryRecipe.name }}
         </span>
       </div>
@@ -211,9 +186,6 @@ useHead({
   <LazyRecipeSteps :steps="steps" />
   <LazyCta />
   <LazyPrevAndNext class="print:hidden" />
-  <LazySectionYouMayAlsoLike
-    :category="categoryRecipe.id || 'cuisine-africaine'"
-    type-content="recipes"
-    class="print:hidden"
-  />
+  <LazySectionYouMayAlsoLike :category="categoryRecipe.id || 'cuisine-africaine'" type-content="recipes"
+    class="print:hidden" />
 </template>
