@@ -28,18 +28,18 @@ interface HomepageData {
 const { data } = await useAsyncData<HomepageData>('homepage-data', async () => {
   const [articlesResponse, recipesResponse] = await Promise.all([
     find<Article>("articles", {
-      populate: ["cover", "seo","category"],
+      populate: "*",
       sort: ["publishedAt:desc"],
       pagination: {
-        page: 0,
+        page: 1,
         pageSize: 5,
       },
     }),
     find<Recipe>("recipes", {
-      populate: ["cover", "seo"],
+      populate: "*",
       sort: ["publishedAt:desc"],
       pagination: {
-        page: 0,
+        page: 1,
         pageSize: 4,
       },
     })

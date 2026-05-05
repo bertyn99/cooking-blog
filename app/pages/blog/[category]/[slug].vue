@@ -12,36 +12,25 @@ if (slug.length === 0 || slug === " " || category.length === 0 || category === "
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
-const { find } = useStrapi();
+const config = useRuntimeConfig();
+const strapiUrl = config.public.strapi?.url || config.strapi?.url || "http://localhost:1337";
 
 const {
   data: article,
   pending,
   refresh,
   error,
-} = await useAsyncData<{
-  data: Article[];
-}>("article", () =>
-  find(`articles`, {
-    filters: { 
-      slug: { $eq: slug },
-      category: { slug: { $eq: category } }
-    },
-    populate: ["cover", "category", "seo", "surround"],
-    pagination: {
-      page: 0,
-      pageSize: 1,
-    },
-  }),{
-    transform: (data) => data.data[0] as Article
-  }
-);
+} = await useAsyncData<Article>("article", async () => {
+  const url = `${strapiUrl}/api/articles?filters[slug][$eq]=${slug}&populate=*&pagination[page]=1&pagination[pageSize]=1`;
+  const response = await $fetch(url);
+  return (response as any).data[0] as Article;
+});
 
 if (!article) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
-const content =article.value?.content || "No content";
+const content = computed(() => article.value?.content || "No content");
 const titleContent = computed(
   () => article.value?.title || "No title"
 );

@@ -7,24 +7,19 @@ const {
   params: { slug },
 } = useRoute();
 
-const { find } = useStrapi();
+const config = useRuntimeConfig();
+const strapiUrl = config.public.strapi?.url || config.strapi?.url || "http://localhost:1337";
+
 const {
   data: recipe,
   pending,
   refresh,
   error,
-} = await useAsyncData<Recipe>(`recipe-${slug}`, () =>
-  find(`recipes`, {
-    filters: { slug: { $eq: slug } },
-    populate: ["cover", "category", "nutrition", "ingredients", "seo"],
-    pagination: {
-      page: 0,
-      pageSize: 1,
-    },
-  }), {
-  transform: (data) => data.data[0]
-}
-);
+} = await useAsyncData<Recipe>(`recipe-${slug}`, async () => {
+  const url = `${strapiUrl}/api/recipes?filters[slug][$eq]=${slug}&populate=*&pagination[page]=1&pagination[pageSize]=1`;
+  const response = await $fetch(url);
+  return (response as any).data[0];
+});
 
 if (!recipe) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });

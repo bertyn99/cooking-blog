@@ -19,7 +19,7 @@ const {
   error,
 } = await useAsyncData<Category>(`recipe-you-may-like-${category}`, () =>
   find(
-    `${typeContent}?filters[category][$eq]=${category}&populate=cover&pagination[pageSize]=3`
+    `${typeContent}?filters[category][$eq]=${category}&populate=*&pagination[pageSize]=3`
   )
 );
 
