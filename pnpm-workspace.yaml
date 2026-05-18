@@ -1,0 +1,12 @@
+packages:
+  - 'layers/*'
+
+catalog:
+  nuxt: '^4.4.5'
+
+ignoredBuiltDependencies:
+  - '@parcel/watcher'
+  - '@tailwindcss/oxide'
+  - esbuild
+  - unrs-resolver
+  - vue-demi

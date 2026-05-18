@@ -2,7 +2,6 @@
 import listRedirects from "./app/utils/redirect";
 
 export default defineNuxtConfig({
-  future: { compatibilityVersion: 4 },
   compatibilityDate: '2025-01-01',
 
   app: {
