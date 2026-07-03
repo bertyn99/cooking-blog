@@ -1,0 +1,42 @@
+{
+  "name": "layer-blog-cms",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "typecheck": "nuxt typecheck",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "test:unit": "vitest --project unit",
+    "test:nuxt": "vitest --project nuxt",
+    "test:e2e": "vitest --project e2e",
+    "db:generate": "nuxt db generate",
+    "db:migrate": "nuxt db migrate"
+  },
+  "dependencies": {
+    "@libsql/client": "latest",
+    "@nuxt/test-utils": "4.0.3",
+    "@nuxthub/core": "0.10.7",
+    "drizzle-orm": "latest",
+    "evlog": "2.17.0",
+    "nuxt": "catalog:",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^1.15.2",
+    "@vitest/browser-playwright": "^4.1.6",
+    "@vitest/coverage-v8": "^4.1.6",
+    "@vue/test-utils": "^2.4.10",
+    "eslint": "^10.3.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.6",
+    "vue-tsc": "^3.2.8",
+    "drizzle-kit": "latest"
+  },
+  "packageManager": "pnpm@10.33.4"
+}
