@@ -1,0 +1,50 @@
+/**
+ * DELETE /api/category-articles/[id] — Soft delete an article category.
+ *
+ * Auth required (enforced by middleware).
+ *
+ * Sets deletedAt to the current timestamp instead of physically removing
+ * the row. The category becomes invisible to unauthenticated users but
+ * remains recoverable by admins.
+ *
+ * Returns 404 if the category does not exist or is already soft-deleted.
+ */
+import { db, schema } from 'hub:db'
+import { eq, isNull } from 'drizzle-orm'
+import { createApiError } from '../../utils/errors'
+
+export default defineEventHandler(async (event) => {
+  const id = Number(getRouterParam(event, 'id'))
+  if (!Number.isFinite(id) || id < 1) {
+    throw createApiError('VALIDATION_ERROR', 'Invalid category ID')
+  }
+
+  // Check category exists and is not already deleted
+  const existing = await db
+    .select({ id: schema.categoryArticles.id, deletedAt: schema.categoryArticles.deletedAt })
+    .from(schema.categoryArticles)
+    .where(eq(schema.categoryArticles.id, id))
+    .limit(1)
+    .all()
+
+  if (existing.length === 0) {
+    throw createApiError('NOT_FOUND', 'Category not found')
+  }
+
+  if (existing[0]!.deletedAt !== null) {
+    throw createApiError('VALIDATION_ERROR', 'Category is already deleted')
+  }
+
+  const now = new Date().toISOString()
+
+  await db
+    .update(schema.categoryArticles)
+    .set({
+      deletedAt: now,
+      updatedAt: now,
+    })
+    .where(eq(schema.categoryArticles.id, id))
+    .run()
+
+  return { data: { id, deletedAt: now } }
+})
