@@ -4,6 +4,14 @@ import listRedirects from "./app/utils/redirect";
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
 
+  extends: [
+    'layers/layer-blog-cms'
+  ],
+
+  future: {
+    compatibilityVersion: 5
+  },
+
   app: {
     head: {
       titleTemplate: '%s — %siteName',
@@ -24,9 +32,7 @@ export default defineNuxtConfig({
 
   modules: [
     "@nuxtjs/tailwindcss",
-    "@nuxt-alt/proxy",
     "@nuxt/icon",
-    "@nuxtjs/strapi",
     "@nuxtjs/partytown",
     "@nuxt/image",
     '@nuxtjs/seo',
@@ -50,7 +56,7 @@ export default defineNuxtConfig({
   routeRules: {
     "/": { isr: 60 * 15 },
     "/blog/**": { isr: 60 * 25 },
-    "/uploads/**": { isr: 60 * 60 * 24 * 5 },
+    "/images/**": { isr: 60 * 60 * 24 * 5 },
     "/sitemap.xml": { isr: 60 * 60 * 24 },
     "/rss.xml": { isr: 60 * 60 * 24 * 3 },
     ...listRedirects,
@@ -67,6 +73,9 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    experimental: {
+      tasks: true
+    },
     storage: {
       cache: { driver: "redis", url: process.env.REDIS_URL },
     },
@@ -107,7 +116,7 @@ export default defineNuxtConfig({
       localImageSharp: {
         provider: "~/providers/localImageSharp",
         options: {
-          baseURL: `/uploads/`,
+          baseURL: `/images/`,
         },
       },
     },
@@ -122,25 +131,6 @@ export default defineNuxtConfig({
 
   },
 
-  proxy: {
-    proxies: {
-      // Using the proxy instance
-      "/uploads/": {
-        target: process.env.STRAPI_URL + "/uploads/",
-        changeOrigin: true,
-        rewrite: (path: string) => path.replace(/^\/uploads/, ""),
-      },
-    },
-  },
-
-  strapi: {
-    url: process.env.STRAPI_URL || "http://localhost:1337",
-    prefix: "/api",
-    version: "v5",
-    cookie: {},
-    cookieName: "strapi_jwt",
-  },
-
   tailwindcss: {
     cssPath: "~/assets/css/index.css",
     configPath: "~/tailwind.config.ts",
@@ -149,9 +139,6 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       language: "fr-FR", // prefer more explicit language codes like `en-AU` over `en`
-    },
-    strapi: {
-      url: process.env.STRAPI_URL || "http://localhost:1337",
     },
   },
 
