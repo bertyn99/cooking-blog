@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import type { SeoQueryFilter } from '../db/query-types'
 
 /**
  * Returns a Drizzle WHERE filter for the given contentType + contentId pair.
@@ -16,6 +17,15 @@ export function getSeoFilter(contentType: string, contentId: number) {
   }
 }
 
+function getSeoQueryWhere(contentType: string, contentId: number): SeoQueryFilter {
+  switch (contentType) {
+    case 'article': return { articleId: contentId }
+    case 'recipe': return { recipeId: contentId }
+    case 'page': return { pageId: contentId }
+    default: throw new Error(`Invalid contentType: ${contentType}`)
+  }
+}
+
 /**
  * Fetches the SEO record for a content item, including nested socialMeta.
  *
@@ -23,7 +33,7 @@ export function getSeoFilter(contentType: string, contentId: number) {
  */
 export async function getSeoForContent(contentType: string, contentId: number) {
   const result = await db.query.seo.findFirst({
-    where: getSeoFilter(contentType, contentId),
+    where: getSeoQueryWhere(contentType, contentId),
     with: { socialMeta: true },
   })
   return result ?? null

@@ -161,7 +161,7 @@ export default defineEventHandler(async (event) => {
 
   // Fetch and return the fresh record with socialMeta
   const seo = await db.query.seo.findFirst({
-    where: eq(schema.seo.id, result),
+    where: { id: result },
     with: { socialMeta: true },
   })
 

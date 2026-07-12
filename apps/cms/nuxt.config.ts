@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { resolve } from 'node:path'
+
 export default defineNuxtConfig({
   devServer: {
     port: 3001
@@ -33,5 +35,13 @@ export default defineNuxtConfig({
     }
   },
 
-  compatibilityDate: '2025-01-15'
+  compatibilityDate: '2025-01-15',
+
+  hooks: {
+    ready(nuxt) {
+      const dbClient = resolve(nuxt.options.rootDir, 'server/db/client')
+      nuxt.options.alias['hub:db'] = dbClient
+      nuxt.options.alias['@nuxthub/db'] = dbClient
+    },
+  },
 })

@@ -15,7 +15,7 @@ import { sql } from 'drizzle-orm'
 import { pages } from '../../db/schema/pages'
 import { validateQuery } from '../../utils/validate'
 import { parsePagination, paginateResult } from '../../utils/pagination'
-import { PAGES_RELATIONS, buildPagesWhere, buildPagesWith } from '../../utils/queries/pages'
+import { PAGES_RELATIONS, buildPagesWhere, buildPagesQueryWhere, buildPagesWith } from '../../utils/queries/pages'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -32,6 +32,7 @@ export default defineEventHandler(async (event) => {
 
   // Build where clause
   const where = buildPagesWhere({ include, locale, isAuthenticated })
+  const queryWhere = buildPagesQueryWhere({ include, locale, isAuthenticated })
   const withObj = buildPagesWith(include)
 
   // Count total (without includes for performance)
@@ -42,24 +43,15 @@ export default defineEventHandler(async (event) => {
 
   const total = countResult[0]?.count ?? 0
 
-  // Build query
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let dbQuery: any = db.select().from(pages)
-
-  if (where) {
-    dbQuery = dbQuery.where(where)
-  }
-  if (withObj) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    dbQuery = dbQuery.with(withObj)
-  }
-
   const { offset, limit } = parsePagination(query as Record<string, string>)
 
-  const rows = await dbQuery
-    .orderBy(sql`${pages.createdAt} DESC`)
-    .limit(limit)
-    .offset(offset)
+  const rows = await db.query.pages.findMany({
+    where: queryWhere,
+    with: withObj,
+    orderBy: { createdAt: 'desc' },
+    limit,
+    offset,
+  })
 
   return paginateResult(rows, total, page, pageSize)
 })

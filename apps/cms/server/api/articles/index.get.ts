@@ -1,7 +1,7 @@
 import { db, schema } from 'hub:db'
-import { sql, desc } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 import { parsePagination, paginateResult } from '../../utils/pagination'
-import { buildArticlesWhere, buildArticlesWith } from '../../utils/queries/articles'
+import { buildArticlesWhere, buildArticlesQueryWhere, buildArticlesWith } from '../../utils/queries/articles'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
   if (isNaN(filters.categoryId as number)) delete filters.categoryId
 
   const where = buildArticlesWhere({ include, filters, isAuthenticated })
+  const queryWhere = buildArticlesQueryWhere({ include, filters, isAuthenticated })
   const withObj = buildArticlesWith(include)
 
   const countResult = await db.select({ count: sql<number>`count(*)` }).from(schema.articles).where(where).all()
@@ -24,9 +25,9 @@ export default defineEventHandler(async (event) => {
   const { offset, limit, page, pageSize } = parsePagination(query as Record<string, string>)
 
   const rows = await db.query.articles.findMany({
-    where,
+    where: queryWhere,
     with: withObj,
-    orderBy: [desc(schema.articles.publishedAt)],
+    orderBy: { publishedAt: 'desc' },
     limit,
     offset,
   })

@@ -8,6 +8,7 @@
  */
 import { eq, and, isNull } from 'drizzle-orm'
 import { pages } from '../../db/schema/pages'
+import type { PagesQueryFilter, PagesWith } from '../../db/query-types'
 
 // biome-ignore format: keep relations readable
 export const PAGES_RELATIONS = ['content', 'seoMeta', 'parent'] as const
@@ -53,6 +54,33 @@ export function buildPagesWhere(options: PagesQueryOptions) {
   return conditions.length > 0 ? and(...conditions) : undefined
 }
 
+export function buildPagesQueryWhere(options: PagesQueryOptions): PagesQueryFilter | undefined {
+  const filters: NonNullable<PagesQueryFilter>[] = []
+
+  if (!options.isAuthenticated) {
+    filters.push({ status: 'published' }, { deletedAt: { isNull: true } })
+  }
+
+  if (options.locale) {
+    filters.push({ locale: options.locale })
+  }
+
+  if (filters.length === 0) return undefined
+  if (filters.length === 1) return filters[0]
+  return { AND: filters }
+}
+
+export function buildPageDetailQueryWhere(id: number, isAuthenticated: boolean): PagesQueryFilter | undefined {
+  const filters: NonNullable<PagesQueryFilter>[] = [{ id }]
+
+  if (!isAuthenticated) {
+    filters.push({ status: 'published' }, { deletedAt: { isNull: true } })
+  }
+
+  if (filters.length === 1) return filters[0]
+  return { AND: filters }
+}
+
 // ---------------------------------------------------------------------------
 // With (relation population) builder
 // ---------------------------------------------------------------------------
@@ -66,12 +94,12 @@ export function buildPagesWhere(options: PagesQueryOptions) {
  *
  * When `*` wildcard is present, ALL allowed relations are populated.
  */
-export function buildPagesWith(include: string[]): Record<string, unknown> | undefined {
+export function buildPagesWith(include: string[]): PagesWith | undefined {
   const expanded = include.includes('*')
     ? [...PAGES_RELATIONS]
     : include.filter((r) => (PAGES_RELATIONS as readonly string[]).includes(r))
 
-  const withObj: Record<string, unknown> = {}
+  const withObj: PagesWith = {}
 
   // seoMeta: SEO metadata linked via seo.pageId, with nested socialMeta
   if (expanded.includes('seoMeta')) {
