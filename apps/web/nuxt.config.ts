@@ -4,10 +4,6 @@ import listRedirects from "./app/utils/redirect";
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
 
-  extends: [
-    'layers/layer-blog-cms'
-  ],
-
   future: {
     compatibilityVersion: 5
   },
@@ -139,6 +135,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       language: "fr-FR", // prefer more explicit language codes like `en-AU` over `en`
+      cmsBaseUrl: process.env.NUXT_PUBLIC_CMS_BASE_URL || 'http://localhost:3001',
+      apiBase: process.env.NUXT_PUBLIC_CMS_BASE_URL || 'http://localhost:3001',
     },
   },
 

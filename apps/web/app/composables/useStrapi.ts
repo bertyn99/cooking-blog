@@ -22,7 +22,7 @@ interface StrapiResponse<T> {
 
 export function useStrapi() {
   const config = useRuntimeConfig()
-  const baseUrl = config.public?.apiBase || 'http://localhost:3000'
+  const baseUrl = config.public?.cmsBaseUrl || config.public?.apiBase || 'http://localhost:3001'
 
   /**
    * Translates Strapi-style populate to the layer's `include` param.

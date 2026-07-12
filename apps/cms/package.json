@@ -1,5 +1,5 @@
 {
-  "name": "layer-blog-cms",
+  "name": "cms",
   "private": true,
   "type": "module",
   "scripts": {
@@ -7,7 +7,10 @@
     "dev": "nuxt dev",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "lint": "eslint .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "fmt": "oxfmt --write .",
+    "fmt:check": "oxfmt --check .",
     "typecheck": "nuxt typecheck",
     "test": "vitest",
     "test:watch": "vitest --watch",
@@ -22,21 +25,22 @@
     "@libsql/client": "latest",
     "@nuxt/test-utils": "4.0.3",
     "@nuxthub/core": "0.10.7",
-    "drizzle-orm": "latest",
+    "drizzle-orm": "catalog:",
     "evlog": "2.17.0",
     "nuxt": "catalog:",
-    "zod": "latest"
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@nuxt/eslint": "^1.15.2",
+    "@nuxt/eslint-plugin": "catalog:",
     "@vitest/browser-playwright": "^4.1.6",
     "@vitest/coverage-v8": "^4.1.6",
     "@vue/test-utils": "^2.4.10",
-    "eslint": "^10.3.0",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.6",
-    "vue-tsc": "^3.2.8",
-    "drizzle-kit": "latest"
+    "drizzle-kit": "latest",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "vue-tsc": "catalog:"
   },
   "packageManager": "pnpm@10.33.4"
 }

@@ -1,21 +1,23 @@
-# Strapi → Nuxt CMS Layer (Backend Focus)
+# Strapi → Nuxt Monorepo (Web + CMS + Alchemy v2)
+
+> **Plan revision**: 2026-07-12 — NuxtHub removed; [Alchemy v2](https://v2.alchemy.run/) for infra; pnpm monorepo (`apps/web` + `apps/cms`); [@comark/nuxt](https://comark.dev/rendering/nuxt) for markdown; Strapi extract as Nitro task.
 
 ## TL;DR
 
-> **Quick Summary**: Build the backend foundation of `cooking-blog/layers/layer-blog-cms/` — a lean API-only Nuxt layer with Drizzle ORM schemas replicating all Strapi content types, a clean CRUD API with i18n baked in, and a Strapi-compatible adapter. Admin UI and data migration are deferred.
-> 
+> **Quick Summary**: Reorganize into a **pnpm monorepo** with two Nuxt apps — `apps/web` (public SSR frontend) and `apps/cms` (API-only backend, evolved from `layer-blog-cms`) — plus shared `packages/db`. Provision **Cloudflare D1, R2, KV** via **Alchemy v2** (`alchemy.run.ts`). Migrate content with a **Strapi extract pipeline** (per-entity services + orchestrator task). Render markdown with **Comark** (not `@nuxtjs/mdc`). All CMS content stays in **D1** (not Nuxt Content).
+>
 > **Deliverables**:
-> - Lean Nuxt layer (API-only, no UI deps) with Drizzle ORM schemas for all 5 Strapi content types + components
-> - Full CRUD API (Nitro server routes) for articles, recipes, categories, pages — with locale filtering built in
-> - Shared utilities (pagination, populate resolver, validation, error format, slug generation)
-> - Publishing workflow (draft/publish/scheduled) via NuxtHub CRON
-> - Media upload/management API via NuxtHub Blob
-> - Basic API auth (JWT + RBAC) for write operations
-> - Strapi-compatible adapter in cooking-blog (supports `populate: "*"`)
-> 
-> **Estimated Effort**: Large (14 implementation tasks + 4 verification)
-> **Parallel Execution**: YES — 3 waves
-> **Critical Path**: T1 → T2 → T3 → T5 → T8 → T13 → T14 → F1-F4
+> - Monorepo layout: `apps/web`, `apps/cms`, `packages/db`, `infra/`, root `alchemy.run.ts`
+> - Alchemy v2 stack: D1 + R2 (media) + KV (cache/rate-limit) + Worker bindings + Cron
+> - Drizzle schemas (shared package) for all 5 Strapi content types + components
+> - Full CRUD API in `apps/cms` with locale filtering, auth, publishing workflow
+> - Strapi extract: `server/tasks/strapi-extract.ts` + `server/services/extract/*` per entity
+> - Strapi-compatible adapter in `apps/web` (`useStrapi.ts`, supports `populate: "*"`)
+> - Comark rendering on article/recipe/page detail views (streaming-capable)
+>
+> **Estimated Effort**: Large (T0 monorepo + T-ALCHEMY + T-EXTRACT + 14 CMS tasks + 4 verification)
+> **Parallel Execution**: YES — after T0 + T-ALCHEMY foundation
+> **Critical Path**: T0 → T-ALCHEMY → T2 → T3 → T-EXTRACT → T8 → T13 → T14-COMARK → F1-F4
 
 ---
 
@@ -25,27 +27,157 @@
 Migrate from Strapi v5 CMS to a custom Nuxt layer. Focus first on building the layer backend (database schemas + API) and the Strapi compatibility adapter. Admin UI and data migration come in a separate plan.
 
 ### Interview Summary
-- **Motivation**: Simplify stack — one unified Nuxt codebase
-- **Nuxt version**: Both layer and cooking-blog use Nuxt 4 (^4.4.5 via pnpm catalog) — ALREADY DONE
-- **Database**: Cloudflare D1 (SQLite) via NuxtHub
-- **Media Storage**: NuxtHub Blob
-- **Page Content**: MDC (Markdown + Vue components) instead of Strapi dynamic zones
-- **Auth**: Multi-user with roles (for future admin UI — API auth only for now)
-- **API Design**: Clean new API + Strapi-compatibility adapter in cooking-blog
-- **Testing**: TDD with Vitest
-- **i18n**: Baked into schemas and CRUD APIs from the start (separate DB rows per locale linked by `locale_group_id`)
+- **Motivation**: Simplify stack — one unified TypeScript monorepo (web + CMS API)
+- **Nuxt version**: Nuxt 4 (^4.4.5 via pnpm catalog) on both apps
+- **Infrastructure**: [Alchemy v2](https://v2.alchemy.run/) — D1, R2, KV, Cron (NOT NuxtHub)
+- **Media Storage**: Cloudflare R2 via Alchemy `Cloudflare.R2.Bucket` binding
+- **Page/Article content**: Comark markdown strings in D1 (migrated from Strapi dynamic zones → markdown)
+- **Markdown rendering**: [@comark/nuxt](https://comark.dev/rendering/nuxt) — auto-imported `<Comark>`, streaming support, `~/components/prose` overrides
+- **Content store**: D1 for all CMS entities (articles, recipes, pages, categories) — NOT Nuxt Content
+- **Auth**: Multi-user JWT + RBAC on CMS API (admin UI deferred)
+- **API Design**: Clean REST API on `apps/cms` + Strapi-compat adapter in `apps/web`
+- **Data migration**: Strapi extract Nitro task with per-entity extract services
+- **Testing**: Vitest unit tests + Alchemy `alchemy/Test/Vitest` for integration (isolated stages)
+- **i18n**: `locale` + `locale_group_id` on all content tables from day one
+
+### Architecture v2 (decisions)
+
+#### Monorepo layout
+
+```
+journalducuistot/                    # pnpm workspace root (current: cooking-blog/)
+├── alchemy.run.ts                   # Alchemy v2 Stack — composition root
+├── infra/
+│   ├── resources/                   # D1, R2, KV, Worker definitions (optional split)
+│   └── migrations/                  # Drizzle-generated SQL (committed)
+├── packages/
+│   └── db/                          # Shared Drizzle schema + types (@journalducuistot/db)
+├── apps/
+│   ├── web/                         # Public SSR frontend (was cooking-blog root)
+│   │   ├── app/                     # pages, components, composables
+│   │   ├── server/                  # sitemap, rss, legacy redirects
+│   │   └── nuxt.config.ts           # @comark/nuxt, @nuxtjs/seo, NO Strapi module
+│   └── cms/                         # API-only backend (was layers/layer-blog-cms)
+│       ├── server/                  # CRUD, auth, extract, tasks
+│       └── nuxt.config.ts           # API-only, nitro cloudflare preset
+├── pnpm-workspace.yaml
+└── package.json                       # alchemy deploy / dev scripts
+```
+
+**Why two apps instead of a Nuxt layer?**
+- Clear separation: `apps/web` = read/SSR, `apps/cms` = write/API
+- Independent dev ports (`web:3000`, `cms:3001`)
+- Alchemy can deploy each as its own Worker (or one Worker in early phase — see spike)
+- Better DX: no `extends` magic, explicit `$fetch` to CMS base URL
+
+`apps/web` consumes `apps/cms` via `runtimeConfig.public.cmsBaseUrl` (not layer merge).
+
+#### Alchemy v2 (replaces NuxtHub)
+
+| Concern | Alchemy v2 | Docs |
+|---------|------------|------|
+| Stack entry | `export default Alchemy.Stack(..., Effect.gen(...))` | [Getting started](https://v2.alchemy.run/getting-started) |
+| D1 | `yield* Cloudflare.D1.Database("DB", { migrationsDir })` | [D1](https://v2.alchemy.run/cloudflare/data/d1) |
+| R2 media | `yield* Cloudflare.R2.Bucket("Media")` | [R2](https://v2.alchemy.run/cloudflare/data/r2) |
+| KV cache | `yield* Cloudflare.KV.Namespace("Cache")` | [KV](https://v2.alchemy.run/cloudflare/data/kv) |
+| Deploy | `alchemy deploy` / `alchemy dev` | [Local dev](https://v2.alchemy.run/environments/local-development) |
+| Migrations | `Drizzle.Schema` + `migrationsDir` on D1 | [Drizzle](https://v2.alchemy.run/drizzle/migrations) |
+| Cron | `Worker({ crons: ["*/5 * * * *"] })` + Nitro `defineTask` | [Cron](https://v2.alchemy.run/cloudflare/messaging/cron) |
+| Testing | `alchemy/Test/Vitest` isolated stages | [Testing](https://v2.alchemy.run/testing) |
+| Monorepo | Single stack at workspace root | [Monorepo](https://v2.alchemy.run/project-structure/monorepo) |
+
+**Bindings in Nitro** (replaces `hub:db`, `hub:blob`, `hub:kv`):
+
+```ts
+// apps/cms/server/utils/db.ts
+import { drizzle } from 'drizzle-orm/d1'
+import * as schema from '@journalducuistot/db/schema'
+
+export function useDb(event: H3Event) {
+  const env = event.context.cloudflare.env  // typed via Cloudflare.InferEnv
+  return drizzle(env.DB, { schema })
+}
+```
+
+**Removed entirely**: `@nuxthub/core`, `hub: { db, blob, kv }`, `hub:db` / `hub:blob` / `hub:kv` virtual modules, `nuxt db generate`.
+
+**Spike required**: [Alchemy Nuxt page](https://v2.alchemy.run/cloudflare/frontend/nuxt) states Nuxt SSR is not yet a first-class Alchemy resource. Validate `nuxt build` (cloudflare preset) → `Cloudflare.Worker` with D1/R2 bindings before full migration. Fallback: Alchemy provisions resources; Nitro deploys separately until Nuxt support lands.
+
+**v1 → v2**: If any v1 Alchemy code exists, read [Migrating from v1](https://v2.alchemy.run/migrating-from-v1). Use `alchemy login` (profiles in `~/.alchemy/profiles.json`) — do NOT export `CLOUDFLARE_API_TOKEN` in docs/runbooks.
+
+#### Comark (replaces @nuxtjs/mdc for content rendering)
+
+| Before | After |
+|--------|-------|
+| `@nuxtjs/mdc` + `<MDC :value="content">` | `@comark/nuxt` + `<Comark>{{ content }}</Comark>` |
+| `app/components/prose/Prose*.vue` | `app/components/prose/*.vue` (Comark auto-registers) |
+| Strapi dynamic zones via `BaseContentDisplay` | Comark markdown in D1 `content` column |
+
+**`apps/web/nuxt.config.ts`**:
+```ts
+export default defineNuxtConfig({
+  modules: ['@comark/nuxt', /* ... */],
+})
+```
+
+**Detail pages** (article, recipe intro, CMS pages):
+```vue
+<Comark class="prose lg:prose-xl" :streaming="false">
+  {{ article.content }}
+</Comark>
+```
+
+Use `:streaming="true"` + `caret` only for live preview / AI-assisted editing (future admin). See [Comark Nuxt docs](https://comark.dev/rendering/nuxt) and [Migrating from MDC](https://comark.dev/).
+
+**Custom Vue blocks** in markdown: map via `:components="{ alert: Alert }"` or prose overrides in `~/components/prose/`.
+
+#### Strapi extract pipeline
+
+```
+apps/cms/server/
+├── tasks/
+│   └── strapi-extract.ts              # defineTask orchestrator
+└── services/extract/
+    ├── base.ts                        # Strapi client, pagination, rate limit
+    ├── articles.ts
+    ├── recipes.ts                     # includes ingredients, nutrition, reviews
+    ├── categories.ts
+    ├── category-articles.ts
+    ├── pages.ts                       # dynamic zone → Comark markdown
+    ├── media.ts                       # Strapi /uploads → R2
+    └── seo.ts
+```
+
+**Orchestration order** (FK dependencies): `media (partial)` → `categories` → `category-articles` → `articles` / `recipes` → `pages` → `seo`
+
+**Idempotency**: `legacy_strapi_map` table (`content_type`, `strapi_document_id`, `local_id`, `locale`)
+
+**Trigger**: `npx nuxt task run strapi-extract` (manual, pre-cutover) — NOT on every request.
+
+#### NuxtHub → Alchemy v2 mapping (for task updates below)
+
+| Old (NuxtHub plan) | New (Alchemy v2) |
+|--------------------|------------------|
+| `import { db } from 'hub:db'` | `useDb(event)` → `drizzle(env.DB)` |
+| `import { blob } from 'hub:blob'` | `event.context.cloudflare.env.Media` (R2) |
+| `import { kv } from 'hub:kv'` | `event.context.cloudflare.env.Cache` (KV) |
+| `blob.serve(event, pathname)` | Custom `server/routes/images/[...pathname].get.ts` using R2 `get()` |
+| `nuxt db generate` | `drizzle-kit generate` or `Drizzle.Schema` in Alchemy |
+| NuxtHub CRON | Alchemy `Worker({ crons })` + Nitro `defineTask` |
+| `extends: ['layers/layer-blog-cms']` | `apps/web` → `$fetch(cmsBaseUrl + '/api/...')` |
+
+> **Note**: Tasks T1–T14 below retain their original structure. Where they mention NuxtHub or `hub:*`, apply the mapping table above.
 
 ### Current State (Verified)
-- **pnpm workspace**: Set up at `cooking-blog/` level with catalog resolving `nuxt: '^4.4.5'` ✓
-- **Nuxt 4 upgrade**: cooking-blog already on Nuxt 4 (no `future: { compatibilityVersion: 4 }`) ✓
-- **Layer state**: Still has full Nuxt UI starter template (app.vue, AppLogo, TemplateMenu, index.vue) — needs cleanup
-- **Layer deps**: Heavy — has @nuxt/ui, @pinia/nuxt, @nuxtjs/i18n, tailwindcss, @nuxt/image. Most unnecessary for API-only layer.
-- **No `server/` directory**: Does not exist yet in the layer
-- **Test infrastructure**: Vitest configured with unit/nuxt/e2e projects ✓
-- **NuxtHub version**: @nuxthub/core 0.10.7 — uses v0.10 API (`hub: { db: 'sqlite' }`, `hub:db` virtual module, `nuxt db generate`). NOT v0.9 API (`hubDatabase()`, `database: true`)
-- **Nuxt 5 target**: Both layer and cooking-blog use `future: { compatibilityVersion: 5 }` on Nuxt 4.4.x for early Nuxt 5 opt-in (Vite Environment API, Nitro v3, normalized page names). Nuxt 5 is NOT released yet — this is the officially supported testing path.
-- **Nuxt SEO**: cooking-blog currently has `@nuxtjs/seo: ^3.0.3` — needs upgrade to v5 (latest). Sitemap at v8, OG Image at v6, Schema.org at v6.
-- **Nitro v3 tasks**: `defineTask()` requires `nitro: { experimental: { tasks: true } }`. Scheduled tasks auto-generate Cloudflare Cron Triggers.
+- **pnpm workspace**: Partial — only `layers/*` in workspace; needs T0 monorepo restructure
+- **CMS code**: `layers/layer-blog-cms/` has schemas, CRUD routes, auth — to move to `apps/cms`
+- **Frontend**: Root `app/`, `nuxt.config.ts` — to move to `apps/web`
+- **NuxtHub in layer**: `@nuxthub/core` still in `layer-blog-cms/nuxt.config.ts` — **remove in T-ALCHEMY**
+- **MDC in web**: `@nuxtjs/mdc` on article pages — **replace with @comark/nuxt in T14-COMARK**
+- **Strapi still live**: sitemap/RSS/detail pages hit `admin.journalducuistot.fr` — extract + adapter pending
+- **Nuxt 5 compat**: `future: { compatibilityVersion: 5 }` on both apps
+- **Nuxt SEO**: `@nuxtjs/seo: ^3.0.3` in web — upgrade to v5
+- **Lockfile**: `pnpm-lock.yaml` out of sync with layer `package.json` — run `pnpm install` before tests
 
 ### Strapi Content Types (to replicate)
 - **Article**: title, content (richtext), cover (media), slug (uid), seo (repeatable component), category (manyToOne → CategoryArticle), firstPublishedAt, draft/publish, i18n
@@ -72,49 +204,52 @@ Migrate from Strapi v5 CMS to a custom Nuxt layer. Focus first on building the l
 ## Work Objectives
 
 ### Core Objective
-Build the layer-blog-cms backend: lean API-only layer, Drizzle schemas with i18n, shared utilities, CRUD API with locale filtering, publishing workflow, media handling, auth — and wire cooking-blog to consume it via a Strapi-compatible adapter.
+Build a **pnpm monorepo** with `apps/cms` (API backend), `apps/web` (SSR frontend), shared `packages/db`, and **Alchemy v2** infra. Migrate Strapi data via extract pipeline. Render content with **Comark**.
 
 ### Concrete Deliverables
-- `cooking-blog/layers/layer-blog-cms/server/` — Drizzle schemas, API routes, auth, media, CRON, shared utils
-- `cooking-blog/layers/layer-blog-cms/server/utils/` — DB connection, query builders, auth, validation, pagination
-- `cooking-blog/app/composables/useCmsApi.ts` — Clean API client
-- `cooking-blog/app/composables/useStrapiAdapter.ts` — Strapi-compatible wrapper (supports `populate: "*"`)
-- Updated `cooking-blog/nuxt.config.ts` — Remove Strapi, add layer extends
+- `alchemy.run.ts` — Alchemy v2 Stack (D1, R2, KV, Workers, Cron)
+- `packages/db/` — Shared Drizzle schemas + types
+- `apps/cms/server/` — CRUD, auth, media (R2), extract services, scheduled publish
+- `apps/web/app/composables/useStrapi.ts` — Strapi-compatible adapter → CMS API
+- `apps/web` — Comark rendering, no `@nuxtjs/mdc`, no `@nuxtjs/strapi`
+- `apps/cms/server/tasks/strapi-extract.ts` — Orchestrated migration from Strapi
 
 ### Definition of Done
-- [ ] All 5 content types have Drizzle schemas in D1 with locale fields
-- [ ] All CRUD API routes work (list, get, create, update, delete) with `?locale=` support
-- [ ] Draft/publish/scheduled workflow functional for ALL content types
-- [ ] cooking-blog renders content WITHOUT Strapi running
-- [ ] `pnpm test` passes in layer-blog-cms
-- [ ] Layer has NO unnecessary UI dependencies
+- [ ] Monorepo structure: `apps/web`, `apps/cms`, `packages/db`, root `alchemy.run.ts`
+- [ ] Alchemy v2 deploys D1 + R2 + KV bindings (spike validated)
+- [ ] All 5 content types in D1 with locale fields
+- [ ] Strapi extract populates D1 + R2 from production Strapi (dry-run + full run)
+- [ ] `apps/web` renders articles/recipes/pages with `<Comark>` (no Strapi, no MDC)
+- [ ] `apps/cms` CRUD + auth + publishing workflow functional
+- [ ] `pnpm test` passes in both apps + Alchemy integration test (optional stage)
+- [ ] `apps/cms` has NO UI dependencies
 
 ### Must Have
-- Drizzle ORM schemas for all 5 content types + components (with locale fields from start)
-- Shared API utilities: pagination, populate resolver, Zod validation, error format, slug generation
-- CRUD API for every content type with populate/relation support AND locale filtering
-- Draft/publish workflow with `firstPublishedAt` tracking
-- Scheduled publishing via NuxtHub CRON
-- Basic JWT auth for write operations
-- Media upload to NuxtHub Blob
-- SEO meta fields on all content types
-- i18n locale support with `locale_group_id` linking (baked into CRUD, not retrofitted)
-- Strapi-compatible adapter in cooking-blog (supports `populate: "*"`)
-- TDD: tests written before implementation
-- Consistent JSON error format: `{ error: { code: string, message: string, details?: any } }`
-- Input validation via Zod on all write endpoints
+- Alchemy v2 stack with D1, R2, KV bindings ([docs](https://v2.alchemy.run/llms.txt))
+- Monorepo with `apps/web` + `apps/cms` + `packages/db`
+- Drizzle ORM schemas in shared package (locale fields from start)
+- Strapi extract: per-entity services + orchestrator task + `legacy_strapi_map`
+- CRUD API on `apps/cms` with populate, locale filtering, draft protection
+- Publishing workflow + Cron via Alchemy Worker `crons` + Nitro `defineTask`
+- Media upload to R2 (not NuxtHub Blob)
+- JWT auth + RBAC on CMS write endpoints
+- Comark (`@comark/nuxt`) on web app for markdown rendering
+- Strapi-compatible adapter in `apps/web` (`useStrapi.ts`, `populate: "*"`)
+- TDD: Vitest unit tests; Alchemy staged integration tests for CMS API
+- Consistent error format: `{ error: { code, message, details? } }`
+- Zod validation on all write endpoints
 
 ### Must NOT Have (Guardrails)
-- **NO admin UI** — deferred to next plan
-- **NO data migration** — deferred to next plan
-- **NO generic CMS** — hardcode Article, Recipe, Page, Category, CategoryArticle only
-- **NO generic Strapi emulator** — adapter supports ONLY exact queries cooking-blog uses
-- **NO complex WYSIWYG** — content stored as text/markdown, editors come later
-- **NO UI dependencies in layer** — no @nuxt/ui, no tailwindcss, no pinia, no @nuxt/image (these belong in cooking-blog)
-- **NO `as any` / `@ts-ignore`** — type safety is non-negotiable
-- **NO OAuth/social login** — JWT only
-- **NO Strapi password migration** — fresh auth system
-- **AI slop prevention**: No excessive JSDoc, no over-abstraction, no generic names, no unnecessary utilities
+- **NO NuxtHub** — use Alchemy v2 only
+- **NO Nuxt layer `extends`** — two separate apps, HTTP between them
+- **NO Nuxt Content** for CMS entities — D1 is canonical
+- **NO @nuxtjs/mdc** on web — use @comark/nuxt
+- **NO admin UI** — deferred
+- **NO generic Strapi emulator** — adapter supports ONLY exact queries web uses
+- **NO UI dependencies in apps/cms**
+- **NO `as any` / `@ts-ignore`**
+- **NO OAuth/social login**
+- **NO Strapi password migration**
 
 ---
 
@@ -153,37 +288,29 @@ HTTP status: 400 (validation), 401 (no token), 403 (wrong role), 404 (not found)
 ### Parallel Execution Waves
 
 ```
-Wave 1 (Foundation — 5 tasks):
-├── T1: Clean starter, strip UI deps, create server/ skeleton [quick]
-├── T2: Drizzle ORM + D1 database setup [quick]
-├── T3: Database schema: core content types (with locale) [quick]
-├── T4: Database schema: component/embedded types [quick]
-└── T5: Shared API utilities (pagination, populate, validation, errors, slug) [quick]
+Wave 0 (Foundation — 3 tasks, sequential):
+├── T0: Monorepo restructure (apps/web + apps/cms + packages/db)
+├── T-ALCHEMY: Alchemy v2 stack (D1, R2, KV, Cron) — depends T0
+└── T-EXTRACT: Strapi extract pipeline — depends T-ALCHEMY + T3 schemas
+
+Wave 1 (CMS foundation — 5 tasks):
+├── T1: Clean cms app, strip UI deps [quick]
+├── T2: Drizzle + D1 via Alchemy bindings [quick]
+├── T3: Core schemas in packages/db [quick]
+├── T4: Component schemas [quick]
+└── T5: Shared API utilities [quick]
 
 Wave 2 (Core API — 7 tasks, max parallel):
-├── T6: Auth (JWT + RBAC for API) (depends: T3, T5) [deep]
-├── T7: NuxtHub Blob media utilities + upload API (depends: T1) [unspecified-high]
-├── T8: Articles CRUD API + locale (depends: T3, T5) [unspecified-high]
-├── T9: Recipes CRUD API + locale (depends: T3, T4, T5) [unspecified-high]
-├── T10: Categories CRUD API + locale (depends: T3, T5) [unspecified-high]
-├── T11: Pages CRUD API + locale (depends: T3, T5) [unspecified-high]
-└── T12: SEO meta API (depends: T3, T4, T5) [unspecified-high]
+├── T6-T12: Auth, media (R2), CRUD APIs, SEO
 
 Wave 3 (Integration — 2 tasks):
-├── T13: Publishing workflow API + CRON (depends: T8-T11 all CRUD) [deep]
-└── T14: Strapi adapter for cooking-blog (depends: T8-T12) [deep]
+├── T13: Publishing + Cron (Alchemy Worker crons)
+└── T14: Web adapter + Comark migration
 
-Wave FINAL (4 parallel reviews → user okay):
-├── F1: Plan compliance audit (oracle)
-├── F2: Code quality review (unspecified-high)
-├── F3: Real manual QA (unspecified-high)
-└── F4: Scope fidelity check (deep)
-→ Present results → Get explicit user okay
-
-Critical Path: T1 → T2 → T3 → T5 → T8 → T13 → T14 → F1-F4
-Parallel Speedup: ~60% faster than sequential
-Max Concurrent: 7 (Wave 2)
+Wave FINAL: F1-F4 reviews
 ```
+
+Critical Path: **T0 → T-ALCHEMY → T3 → T-EXTRACT → T8 → T13 → T14 → F1-F4**
 
 ### Dependency Matrix
 
@@ -222,6 +349,97 @@ Max Concurrent: 7 (Wave 2)
 ---
 
 ## TODOs
+
+- [ ] T0. Monorepo restructure (apps/web + apps/cms + packages/db)
+
+  **What to do**:
+  - Create monorepo layout per **Architecture v2** above
+  - Move current root `app/`, `nuxt.config.ts`, `server/`, `public/` → `apps/web/`
+  - Move `layers/layer-blog-cms/` → `apps/cms/` (drop `extends` pattern)
+  - Extract Drizzle schemas from `apps/cms/server/db/schema/` → `packages/db/src/schema/`
+  - Update `pnpm-workspace.yaml`:
+    ```yaml
+    packages:
+      - 'apps/*'
+      - 'packages/*'
+    catalog:
+      nuxt: '^4.4.5'
+      drizzle-orm: 'latest'
+      zod: 'latest'
+    ```
+  - Root `package.json` scripts: `dev:web`, `dev:cms`, `dev` (parallel), `build`, `test`
+  - `apps/web`: add `runtimeConfig.public.cmsBaseUrl` (default `http://localhost:3001`)
+  - `apps/cms`: API-only, no `app/pages`, port 3001
+  - Remove `extends: ['layers/layer-blog-cms']` from web config
+  - Run `pnpm install` to sync lockfile
+
+  **Acceptance Criteria**:
+  - [ ] `pnpm --filter web dev` starts frontend on :3000
+  - [ ] `pnpm --filter cms dev` starts CMS API on :3001
+  - [ ] `packages/db` importable from both apps
+  - [ ] No `layers/` directory remains
+
+  **Commit**: YES — `chore: restructure to pnpm monorepo (apps/web + apps/cms + packages/db)`
+
+- [ ] T-ALCHEMY. Alchemy v2 infrastructure stack
+
+  **What to do**:
+  - Install: `alchemy`, `effect` (see [getting started](https://v2.alchemy.run/getting-started))
+  - Create root `alchemy.run.ts` with `Alchemy.Stack` + `Cloudflare.providers()` + `Drizzle.providers()`
+  - Provision resources:
+    - `Cloudflare.D1.Database("DB", { migrationsDir: "./infra/migrations" })`
+    - `Cloudflare.R2.Bucket("Media")`
+    - `Cloudflare.KV.Namespace("Cache")`
+  - **Spike**: `Command.Build` for `apps/cms` → `Cloudflare.Worker` with `env: { DB, Media, Cache }`, `crons: ["*/5 * * * *"]`
+  - Remove `@nuxthub/core` from `apps/cms`; replace all `hub:db` / `hub:blob` / `hub:kv` with `useDb(event)` + R2/KV via `event.context.cloudflare.env`
+  - Both apps: `nitro.preset: 'cloudflare_module'`, `compatibility.flags: ['nodejs_compat']`
+  - Root scripts: `"deploy": "alchemy deploy"`, `"dev:infra": "alchemy dev"`
+  - Auth: `alchemy login` (profiles) — document in README, never hardcode CF tokens
+  - Migrations: `Drizzle.Schema` in stack OR `drizzle-kit generate` → `infra/migrations/`
+
+  **References**:
+  - [Alchemy v2](https://v2.alchemy.run/)
+  - [D1](https://v2.alchemy.run/cloudflare/data/d1) · [R2](https://v2.alchemy.run/cloudflare/data/r2) · [KV](https://v2.alchemy.run/cloudflare/data/kv)
+  - [Drizzle migrations](https://v2.alchemy.run/drizzle/migrations) · [Monorepo](https://v2.alchemy.run/project-structure/monorepo)
+  - [Nuxt status](https://v2.alchemy.run/cloudflare/frontend/nuxt) — validate spike before prod deploy
+
+  **Acceptance Criteria**:
+  - [ ] `alchemy deploy` provisions D1 + R2 + KV (confirm before each deploy)
+  - [ ] `GET /api/health` on CMS returns DB ping via `env.DB`
+  - [ ] No `@nuxthub/core` or `hub:*` imports remain
+  - [ ] Cron trigger attached to CMS Worker
+
+  **Commit**: YES — `feat(infra): add Alchemy v2 stack (D1, R2, KV, Cron)`
+
+- [ ] T-EXTRACT. Strapi extract pipeline (per-entity services)
+
+  **What to do**:
+  - Add `legacy_strapi_map` table to `packages/db`
+  - Create `apps/cms/server/services/extract/` — one file per Strapi content type:
+    - `base.ts` — Strapi REST client (`STRAPI_URL` env), pagination, rate limit
+    - `articles.ts`, `recipes.ts`, `categories.ts`, `category-articles.ts`, `pages.ts`, `media.ts`, `seo.ts`
+  - Each extractor: fetch → transform → upsert D1 (idempotent via `legacy_strapi_map`) → delegate media to R2
+  - `pages.ts`: convert Strapi dynamic zones → Comark markdown (replace `BaseContentDisplay` block arrays)
+  - `recipes.ts`: nested ingredients, nutrition, reviews in one pass
+  - Create `apps/cms/server/tasks/strapi-extract.ts`:
+    ```ts
+    export default defineTask({
+      meta: { name: 'strapi-extract', description: 'Import all content from Strapi' },
+      async run() {
+        // orchestrate in FK order; return { created, updated, errors }
+      },
+    })
+    ```
+  - CLI: `pnpm --filter cms exec nuxt task run strapi-extract`
+  - TDD: unit tests per extractor with Strapi JSON fixtures (no live Strapi in CI)
+
+  **Acceptance Criteria**:
+  - [ ] Dry-run against staging D1: record counts match Strapi (+/- locale rows)
+  - [ ] Re-run is idempotent (no duplicates)
+  - [ ] Media files land in R2 with pathname preserved for `/uploads/` rewrite
+  - [ ] Pages store Comark markdown, not JSON dynamic zones
+
+  **Commit**: YES — `feat(cms): add Strapi extract pipeline with per-entity services`
 
 - [ ] 1. Clean starter template, strip UI deps, create server/ skeleton
 
@@ -1038,131 +1256,30 @@ Max Concurrent: 7 (Wave 2)
 
   **Commit**: YES — `feat(layer): add publishing workflow with CRON for all content types`
 
-- [ ] 14. Strapi adapter for cooking-blog
+- [ ] 14. Strapi adapter + Comark migration for apps/web
 
-  **What to do**:
-  - Create `cooking-blog/app/composables/useCmsApi.ts` — Clean API client for the layer:
-    - `$apiGet(path, params)` / `$apiPost(path, body)` / `$apiPut(path, body)` / `$apiDelete(path)`
-    - Typed responses matching layer API shapes
-  - **Create `cooking-blog/app/composables/useStrapi.ts`** (H4: NOT `useStrapiAdapter.ts` — Nuxt auto-imports by filename, must match `useStrapi()` to avoid breaking all existing pages). Wraps useCmsApi to provide drop-in replacement:
-    ```ts
-    // Translates Strapi-style queries to clean API calls:
-    // { populate: "*", sort: ["publishedAt:desc"], pagination: { page: 1, pageSize: 5 } }
-    // → GET /api/articles?include=*&sort=publishedAt:desc&page=1&pageSize=5
-    // Returns: { data: [...], meta: { pagination: {...} } }
-    ```
-    - **DELETE `cooking-blog/app/plugins/strapi.client.ts`** (no longer needed — the composable replaces it)
-    ```ts
-    // Translates Strapi-style queries to clean API calls:
-    // { populate: "*", sort: ["publishedAt:desc"], pagination: { page: 1, pageSize: 5 } }
-    // → GET /api/articles?include=*&sort=publishedAt:desc&page=1&pageSize=5
-    // Returns: { data: [...], meta: { pagination: {...} } }
-    ```
-  - Support ONLY these exact query shapes (from cooking-blog, verified):
-    - Articles: `populate: "*"`, sort publishedAt:desc, pagination → wildcard include
-    - Articles: filter by slug + category.slug, populate specific fields → filtered include
-    - Recipes: `populate: "*"`, sort publishedAt:desc, pagination → wildcard include
-    - Recipes: filter by slug, populate cover/category/nutrition/ingredients/seo → specific include
-    - Pages: filter by slug + parent.slug, populate content/seoMeta/parent → nested include
-    - Sitemap/RSS: direct $fetch with populate params → translate to layer API
-  - Return data in Strapi's `{ data: [...], meta: { pagination } }` format
-  - Support `populate: "*"` (wildcard) — maps to `include=*`
-  - **SITEMAP/RSS STATUS FILTERING (H8)**: Adapter must auto-pass `status=published` for all sitemap/RSS queries — never expose drafts to search engines
-  - **SPARSE FIELDSETS FOR SITEMAP (H11)**: Sitemap/RSS queries should request only `?fields=slug,updated_at` — NOT full populate, to avoid OOM from loading 100 full MDC articles into Worker memory
-  - Update `cooking-blog/nuxt.config.ts`:
-    - Remove `@nuxtjs/strapi` module
-    - Remove `@nuxt-alt/proxy` module + proxy config for `/uploads/`
-    - Remove strapi config section
-    - Remove strapi runtime config
-    - Add `extends: ['layers/layer-blog-cms']`
-    - **Add Nuxt 5 compat**: `future: { compatibilityVersion: 5 }` (matches layer config)
-    - **Upgrade @nuxtjs/seo from v3 to v5**: `pnpm add @nuxtjs/seo@latest` — breaking changes include OG Image v6 (components removed, use `defineOgImageComponent()`), Sitemap v8, Schema.org v6. Verify sitemap `sources` and `defineSitemapEventHandler` API still works.
-    - **Enable Nitro tasks**: `nitro: { experimental: { tasks: true } }` (for scheduled publishing CRON in T13)
-    - **BLOB SERVING ROUTE**: Create `server/routes/images/[...pathname].get.ts` in the LAYER that uses `import { blob } from 'hub:blob'` + `blob.serve(event, pathname)` — this serves all media via `/images/{pathname}` URL pattern (NuxtHub v0.10 pattern for Nuxt Image integration)
-    - **LEGACY URL REWRITE (H12)**: Create `server/routes/uploads/[...filename].get.ts` in the LAYER that maps old `/uploads/{filename}` → `blob.serve(event, filename)` (existing MDC content has hardcoded Strapi URLs that would otherwise 404)
-  - ~~Update `cooking-blog/app/plugins/strapi.client.ts`~~ → **DELETE it** (useStrapi.ts composable replaces it)
-  - Update `cooking-blog/server/api/__sitemap__/urls.ts` — replace hardcoded `admin.journalducuistot.fr` URLs with layer API calls. **Use sparse fieldsets** (`?fields=slug,updated_at&status=published`)
-    - Update `cooking-blog/server/routes/rss.xml.ts` — replace hardcoded Strapi URLs. **Use sparse fieldsets** + `status=published`
-    - Update `cooking-blog/app/composables/useFormatCover.ts` — update cover URL formatting: Strapi returns `{ url: '/uploads/image.jpg' }`, new API returns `{ pathname: 'uploads/image.jpg' }`. Cover URL should be `/images/uploads/image.jpg` (served via blob.serve route).
-  - TDD: Tests verifying adapter returns Strapi-compatible data for each query shape
-
-  **Must NOT do**:
-  - Build a generic Strapi query parser — only support the exact shapes listed above
-  - Remove cooking-blog's existing component structure
-  - Break any existing page rendering
-
-  **Recommended Agent Profile**:
-  - **Category**: `deep` | **Skills**: [`nuxt`, `vue-best-practices`]
-  - **Blocked By**: T7-T12 (all APIs must exist)
-
-  **References**:
-  - `cooking-blog/app/pages/index.vue` — Homepage: `populate: "*"`, sort publishedAt:desc, pageSize 5/4
-  - `cooking-blog/app/pages/blog/[category]/[slug].vue` — Article: filter slug + category.slug, populate specific
-  - `cooking-blog/app/pages/recette/[slug].vue` — Recipe: filter slug, populate specific
-  - `cooking-blog/app/pages/[...slug].vue` — Page: filter slug + parent.slug, populate nested
-  - `cooking-blog/server/api/__sitemap__/urls.ts` — 3 $fetch calls to admin.journalducuistot.fr
-  - `cooking-blog/server/routes/rss.xml.ts` — 3 $fetch calls to admin.journalducuistot.fr
-  - `cooking-blog/nuxt.config.ts` lines 29 (strapi module), 125-143 (proxy + strapi config)
-  - `cooking-blog/app/types/strapiMeta.d.ts` — TypeScript types
-  - `cooking-blog/app/composables/useFormatCover.ts` — Cover image formatting
+  **What to do** (extends original T14):
+  - `apps/web/app/composables/useStrapi.ts` — adapter calls `cmsBaseUrl/api/*` (not layer merge)
+  - `apps/web/app/composables/useCmsApi.ts` — typed clean API client
+  - Remove `@nuxtjs/strapi`, `@nuxt-alt/proxy`, `@nuxtjs/mdc` from web
+  - Add `@comark/nuxt` — replace `<MDC>` with `<Comark>` on:
+    - `apps/web/app/pages/blog/[category]/[slug].vue`
+    - `apps/web/app/pages/recette/[slug].vue` (intro + step markdown)
+    - `apps/web/app/pages/[...slug].vue` (CMS pages)
+    - `apps/web/app/components/preview/*`
+  - Migrate `app/components/prose/Prose*.vue` → Comark prose overrides (or delete if Comark defaults suffice)
+  - Remove `BaseContentDisplay` dynamic-zone renderer after pages use Comark markdown
+  - Update sitemap/RSS to CMS API with sparse fieldsets
+  - R2 media: `server/routes/images/[...pathname].get.ts` on CMS; web `useFormatCover` → `/images/...`
+  - Legacy `/uploads/` rewrite route on CMS Worker
 
   **Acceptance Criteria**:
-  - [ ] Adapter provides `find()` compatible with `useStrapi()` — **file named `useStrapi.ts` not `useStrapiAdapter.ts`** (H4)
-    - [ ] Adapter supports `populate: "*"` (wildcard)
-    - [ ] Adapter returns Strapi-compatible `{ data, meta: { pagination } }` shape
-    - [ ] **Sitemap/RSS queries pass `status=published` and use sparse fieldsets** (H8, H11)
-    - [ ] **Legacy `/uploads/` URLs rewritten to Blob** (H12)
-    - [ ] cooking-blog homepage loads articles and recipes without Strapi
-  - [ ] Article page (`/blog/category/slug`) renders without Strapi
-  - [ ] Recipe page (`/recette/slug`) renders without Strapi
-  - [ ] Pages render without Strapi
-  - [ ] Sitemap and RSS feed use new API
-  - [ ] `/uploads/` serves from NuxtHub Blob
-  - [ ] No hardcoded `admin.journalducuistot.fr` URLs remain
+  - [ ] Homepage, article, recipe, page render without Strapi
+  - [ ] `<Comark>` renders migrated markdown with custom prose components
+  - [ ] No `@nuxtjs/mdc` or `admin.journalducuistot.fr` in web app
+  - [ ] Adapter supports `populate: "*"` and listing-page filter shapes
 
-  **QA Scenarios:**
-  ```
-  Scenario: Article page renders without Strapi
-    Tool: Playwright
-    Steps:
-      1. Ensure Strapi is NOT running
-      2. Start cooking-blog with layer API
-      3. Navigate to /blog/{category}/{slug}
-    Expected Result: Article renders with title, content, cover, category
-    Evidence: .sisyphus/evidence/task-14-adapter-article.png
-
-  Scenario: Homepage loads recent content
-    Tool: Playwright
-    Steps: Navigate to /
-    Expected Result: Recent articles and recipes displayed with covers
-    Evidence: .sisyphus/evidence/task-14-adapter-homepage.png
-
-  Scenario: Recipe page renders
-    Tool: Playwright
-    Steps: Navigate to /recette/{slug}
-    Expected Result: Recipe renders with ingredients, steps, nutrition, cover
-    Evidence: .sisyphus/evidence/task-14-adapter-recipe.png
-
-  Scenario: Sitemap generates from new API
-    Tool: Bash
-    Steps: curl -s http://localhost:3000/sitemap.xml | head -20
-    Expected Result: XML with URLs from new API, no Strapi errors
-    Evidence: .sisyphus/evidence/task-14-adapter-sitemap.xml
-
-  Scenario: RSS generates from new API
-    Tool: Bash
-    Steps: curl -s http://localhost:3000/rss.xml | head -20
-    Expected Result: Valid RSS XML, no Strapi errors
-    Evidence: .sisyphus/evidence/task-14-adapter-rss.xml
-
-  Scenario: No hardcoded Strapi URLs remain
-    Tool: Bash
-    Steps: grep -r "admin.journalducuistot.fr" cooking-blog/app/ cooking-blog/server/ --include="*.ts" --include="*.vue" | grep -v node_modules
-    Expected Result: No matches (exit code 1)
-    Evidence: .sisyphus/evidence/task-14-no-strapi-urls.txt
-  ```
-
-  **Commit**: YES — `feat(blog): add Strapi adapter, migrate to layer API`
+  **Commit**: YES — `feat(web): Strapi adapter, Comark rendering, CMS API wiring`
 
 ---
 
@@ -1192,9 +1309,12 @@ Max Concurrent: 7 (Wave 2)
 
 | Wave | Commit Message |
 |------|---------------|
-| 1 | `feat(layer): scaffold CMS layer foundation — strip UI deps, Drizzle + D1 + schemas + shared utils` |
-| 2 | `feat(layer): add CRUD API for all content types + auth + media + publishing + SEO` |
-| 3 | `feat(blog): add Strapi adapter, wire cooking-blog to layer API` |
+| 0 | `chore: restructure to pnpm monorepo (apps/web + apps/cms + packages/db)` |
+| 0 | `feat(infra): add Alchemy v2 stack (D1, R2, KV, Cron)` |
+| 0 | `feat(cms): add Strapi extract pipeline with per-entity services` |
+| 1 | `feat(cms): scaffold foundation — Drizzle schemas + shared utils` |
+| 2 | `feat(cms): add CRUD API for all content types + auth + media + publishing` |
+| 3 | `feat(web): Strapi adapter, Comark rendering, CMS API wiring` |
 | FINAL | `chore: verification and cleanup` |
 
 ---
@@ -1203,61 +1323,55 @@ Max Concurrent: 7 (Wave 2)
 
 ### Verification Commands
 ```bash
-# Layer tests
-cd cooking-blog/layers/layer-blog-cms && pnpm test           # Expected: All tests pass
-cd cooking-blog/layers/layer-blog-cms && pnpm typecheck      # Expected: No errors
+# Monorepo install
+pnpm install                              # sync lockfile first
 
-# Layer has no UI deps
-cd cooking-blog/layers/layer-blog-cms && node -e "const p=require('./package.json'); ['@nuxt/ui','@pinia/nuxt','tailwindcss'].forEach(d=>{if(p.dependencies?.[d]||p.devDependencies?.[d]) process.exit(1)})" # Expected: exit 0
+# Unit tests
+pnpm --filter cms test                    # CMS unit tests
+pnpm --filter web test                    # Web unit tests (when added)
 
-# API health
-curl http://localhost:3000/api/articles   # Expected: JSON with articles
-curl http://localhost:3000/api/recipes    # Expected: JSON with recipes
-curl http://localhost:3000/api/pages      # Expected: JSON with pages
-curl http://localhost:3000/api/categories # Expected: JSON with categories
-curl http://localhost:3000/api/category-articles # Expected: JSON
+# Alchemy (confirm with team before deploy)
+alchemy login                             # once per machine
+alchemy deploy                            # provisions D1 + R2 + KV
 
-# Locale filtering
-curl http://localhost:3000/api/articles?locale=fr  # Expected: French articles only
+# CMS API health (cms on :3001)
+curl http://localhost:3001/api/health     # Expected: { status: 'ok' } + DB ping
+curl http://localhost:3001/api/articles # Expected: JSON with articles
 
-# cooking-blog works without Strapi
-curl http://localhost:3000/sitemap.xml    # Expected: Valid XML
-curl http://localhost:3000/rss.xml        # Expected: Valid RSS
+# Strapi extract (staging)
+pnpm --filter cms exec nuxt task run strapi-extract
 
-# No hardcoded Strapi URLs
-grep -r "admin.journalducuistot.fr" cooking-blog/app/ cooking-blog/server/ --include="*.ts" --include="*.vue" | grep -v node_modules
+# Web renders without Strapi (web on :3000)
+curl http://localhost:3000/sitemap.xml
+curl http://localhost:3000/rss.xml
+
+# No hardcoded Strapi URLs in web
+grep -r "admin.journalducuistot.fr" apps/web/ --include="*.ts" --include="*.vue"
+# Expected: no matches
+
+# No NuxtHub remnants
+grep -r "hub:db\|@nuxthub/core\|hub:blob" apps/ packages/
 # Expected: no matches
 ```
 
 ### Final Checklist
-- [ ] All "Must Have" present
-- [ ] All "Must NOT Have" absent
-- [ ] All tests pass
-- [ ] Layer has NO UI dependencies (@nuxt/ui, pinia, tailwindcss removed)
-- [ ] Locale filtering works on ALL content type APIs
-- [ ] cooking-blog renders content without Strapi
-- [ ] Scheduled publishing works via CRON for ALL content types
-- [ ] All API endpoints respond correctly
+- [ ] Monorepo: `apps/web`, `apps/cms`, `packages/db`
+- [ ] Alchemy v2 stack deploys D1 + R2 + KV ([v2 docs](https://v2.alchemy.run/))
+- [ ] No NuxtHub (`@nuxthub/core`, `hub:*`) anywhere
+- [ ] Strapi extract pipeline idempotent with `legacy_strapi_map`
+- [ ] All CMS content in D1 (NOT Nuxt Content)
+- [ ] Comark (`@comark/nuxt`) replaces `@nuxtjs/mdc` on web
+- [ ] Locale filtering on ALL CMS APIs
+- [ ] `apps/web` renders without Strapi
+- [ ] Scheduled publishing via Alchemy Cron + Nitro `defineTask`
 - [ ] `populate: "*"` supported in adapter
-- [ ] No hardcoded Strapi URLs in cooking-blog
-- [ ] Zod validation on all write endpoints
-- [ ] Consistent error response format
-- [ ] **Drafts NOT exposed via unauthenticated GET** (status='published' auto-filter)
-- [ ] **Sitemap/RSS filter status=published** (H8)
-- [ ] **Sitemap/RSS use sparse fieldsets** (H11 — only slug, updated_at)
-- [ ] **File upload validates MIME + size** (H10)
-- [ ] **JWT has 1h expiration, secret from env** (M6)
-- [ ] **PBKDF2 used (not scrypt)** (C1)
-- [ ] **SEO uses nullable FKs (not polymorphic)** (C2)
-- [ ] **All slugs use UNIQUE(slug, locale) composite** (H1)
-- [ ] **`future: { compatibilityVersion: 5 }`** set in both layer AND cooking-blog nuxt.config.ts
-- [ ] **Nitro tasks enabled** (`nitro: { experimental: { tasks: true } }`)
-- [ ] **@nuxtjs/seo upgraded from v3 to v5** in cooking-blog
-- [ ] **`hub:db` virtual module works** (NOT `hubDatabase()` — v0.10 API)
-- [ ] **`npx nuxt db generate` produces migrations** (NOT `drizzle-kit generate`)
-- [ ] **Adapter file named `useStrapi.ts`** (H4)
-- [ ] **`password_hash` never in API responses** (M7)
-- [ ] **Legacy /uploads/ URLs rewritten to Blob** (H12)
-- [ ] **First admin bootstrap works** (H6)
-- [ ] **Rate limiting on login** (M5)
-- [ ] **Soft deletes (deleted_at) on all content** (M4)
+- [ ] Draft protection on unauthenticated GET
+- [ ] Sitemap/RSS use CMS API with sparse fieldsets
+- [ ] Media served from R2 via `/images/` + legacy `/uploads/` rewrite
+- [ ] JWT 1h expiration, `JWT_SECRET` from env
+- [ ] PBKDF2 password hashing (not scrypt)
+- [ ] SEO nullable FKs (not polymorphic)
+- [ ] `UNIQUE(slug, locale)` on all content tables
+- [ ] `useStrapi.ts` adapter (not `useStrapiAdapter.ts`)
+- [ ] `password_hash` never in API responses
+- [ ] Soft deletes (`deleted_at`) on all content
