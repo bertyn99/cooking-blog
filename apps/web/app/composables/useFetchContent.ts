@@ -1,5 +1,6 @@
-export const useFetchContent = (url: string) => {
-  const find = <T>(contentName: string): Promise<T> => {
-    return $fetch(`/${contentName}`, { method: "GET" });
+/** @deprecated Use useStrapi().find() instead */
+export const useFetchContent = (_url: string) => {
+  return {
+    find: async <T>(_contentName: string): Promise<T | null> => null,
   };
 };

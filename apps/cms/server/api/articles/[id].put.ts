@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { validateBody } from '../../utils/validate'
 import { updateArticleSchema } from '../../utils/validations/articles'
 

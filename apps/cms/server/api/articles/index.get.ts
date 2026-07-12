@@ -19,15 +19,17 @@ export default defineEventHandler(async (event) => {
   const where = buildArticlesWhere({ include, filters, isAuthenticated })
   const withObj = buildArticlesWith(include)
 
-  const [{ count: total }] = await db.select({ count: sql<number>`count(*)` }).from(schema.articles).where(where).all()
+  const countResult = await db.select({ count: sql<number>`count(*)` }).from(schema.articles).where(where).all()
+  const total = countResult[0]?.count ?? 0
   const { offset, limit, page, pageSize } = parsePagination(query as Record<string, string>)
 
-  let dbQuery = db.select().from(schema.articles)
-  if (where) dbQuery = dbQuery.where(where)
-
-  const rows = await dbQuery
-    .orderBy(desc(schema.articles.publishedAt))
-    .limit(limit).offset(offset).all()
+  const rows = await db.query.articles.findMany({
+    where,
+    with: withObj,
+    orderBy: [desc(schema.articles.publishedAt)],
+    limit,
+    offset,
+  })
 
   return paginateResult(rows, total, page, pageSize)
 })

@@ -1,20 +1,11 @@
 <script lang="ts" setup>
-const { list, showDetails, full } = defineProps({
-  list: {
-    type: Array,
-    required: true,
-  },
-  showDetails: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  full: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-});
+import type { Recipe } from "~/types/strapiMeta";
+
+const { list, showDetails, full } = defineProps<{
+  list: Recipe[];
+  showDetails?: boolean;
+  full?: boolean;
+}>();
 </script>
 
 <template>

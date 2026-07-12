@@ -43,7 +43,7 @@
           cols="45"
           rows="8"
           maxlength="65525"
-          required="required"
+          required
           class="inline-block relative py-4 px-6 mx-0 mt-0 mb-5 w-full text-base leading-6 align-top whitespace-pre-wrap break-words bg-transparent rounded-none border border-solid appearance-none cursor-text border-zinc-300 text-stone-500 focus:border-black focus:bg-transparent focus:text-black"
           data-last-active-input=""
           style="
@@ -62,7 +62,7 @@
           value=""
           size="30"
           maxlength="245"
-          required="required"
+          required
           class="inline-block relative py-4 px-6 mx-0 mt-0 mb-5 w-full text-base leading-6 align-top bg-transparent rounded-none border border-solid appearance-none cursor-text border-zinc-300 text-stone-500 focus:border-black focus:bg-transparent focus:text-black"
           data-last-active-input=""
           style="
@@ -79,7 +79,7 @@
           size="30"
           maxlength="100"
           aria-describedby="email-notes"
-          required="required"
+          required
           class="inline-block relative py-4 px-6 mx-0 mt-0 mb-5 w-full text-base leading-6 align-top bg-transparent rounded-none border border-solid appearance-none cursor-text border-zinc-300 text-stone-500 focus:border-black focus:bg-transparent focus:text-black"
           style="
             outline: 0px;

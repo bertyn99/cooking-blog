@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
     await db.delete(schema.ingredients).where(eq(schema.ingredients.recipeId, id))
     if (data.ingredients?.length) {
       await db.insert(schema.ingredients).values(
-        data.ingredients.map((ing: any, i: number) => ({
+        data.ingredients.map((ing, i) => ({
           recipeId: id,
           name: ing.name,
           qty: ing.qty,

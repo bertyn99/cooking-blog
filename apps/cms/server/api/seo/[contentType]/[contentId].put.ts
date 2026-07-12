@@ -22,7 +22,7 @@
  * - 400 if contentType or contentId is invalid, or body validation fails
  */
 import { db, schema } from 'hub:db'
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { createApiError } from '../../../utils/errors'
 import { getSeoFilter } from '../../../utils/seo'
@@ -56,14 +56,6 @@ const VALID_CONTENT_TYPES = new Set(['article', 'recipe', 'page'])
 
 type ContentType = 'article' | 'recipe' | 'page'
 
-function getFkColumn(contentType: ContentType) {
-  switch (contentType) {
-    case 'article': return schema.seo.articleId
-    case 'recipe': return schema.seo.recipeId
-    case 'page': return schema.seo.pageId
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Handler
 // ---------------------------------------------------------------------------
@@ -96,7 +88,6 @@ export default defineEventHandler(async (event) => {
   const body: SeoBody = parseResult.data
 
   const filter = getSeoFilter(contentType, contentId)
-  const fkColumn = getFkColumn(contentType)
 
   // Upsert SEO record + replace socialMeta in a transaction
   const result = await db.transaction(async (tx) => {

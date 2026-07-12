@@ -1,18 +1,16 @@
 <script lang="ts" setup>
 import type { Ingredient } from "~/types/strapiMeta";
 
-//list of ingredients
 const props = defineProps<{
   ingredients: Ingredient[];
 }>();
 const nbPerson = ref(1);
-const schemaRecipeIngredients = props.ingredients.map(
-  (ingredient: Ingredient) => {
-    return `${ingredient.qty > 0 ? ingredient.qty * nbPerson.value : ""} ${
-      ingredient.unit !== "none" ? ingredient.unit : ""
-    } ${ingredient.name} `;
-  }
-);
+const schemaRecipeIngredients = props.ingredients.map((ingredient: Ingredient) => {
+  const qty = ingredient.qty ?? 0;
+  return `${qty > 0 ? qty * nbPerson.value : ""} ${
+    ingredient.unit !== "none" ? ingredient.unit : ""
+  } ${ingredient.name} `;
+});
 </script>
 
 <template>

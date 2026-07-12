@@ -1,4 +1,4 @@
-import { eq, and, isNull, desc, sql } from 'drizzle-orm'
+import { eq, and, isNull } from 'drizzle-orm'
 import { articles } from '../../db/schema/articles'
 
 export const ARTICLES_RELATIONS = ['cover', 'category', 'seo'] as const

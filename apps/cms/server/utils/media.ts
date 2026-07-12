@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 
 export async function uploadMedia(file: File) {
   // Built-in validation: images only, max 5MB
-  ensureBlob(file, { maxSize: '5MB', types: ['image'] })
+  ensureBlob(file, { maxSize: '4MB', types: ['image'] })
 
   const uploaded = await blob.put(file.name, file, {
     addRandomSuffix: true,

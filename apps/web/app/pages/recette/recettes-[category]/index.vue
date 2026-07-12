@@ -1,79 +1,71 @@
-<script lang="ts" setup>
+<script lang="ts">
 definePageMeta({ layout: "content" });
+</script>
 
+<script lang="ts" setup>
 import { useGenerateSchemaArianne } from "~/composables/useGenerateSchemaArianne";
-import type { Article, Category, Cover } from "~/types/strapiMeta";
+import type { Page } from "~/types/strapiMeta";
+
 const {
   params: { category },
 } = useRoute();
-if (category.length === 0 || category === " ") {
+
+const categorySlug = Array.isArray(category) ? category[0] : category;
+
+if (!categorySlug || categorySlug === " ") {
   throw createError({ statusCode: 404, statusMessage: "Category Page Not Found" });
 }
 
-
 const { find } = useStrapi();
-const {
-  data: page,
-  pending,
-  refresh,
-  error,
-} = await useAsyncData<{
-  data: Article[];
-}>(`page-recettes-category-${category.length == 1 ? category[0]:category}`, () =>
-  find(`pages`, {
-    filters: {
-      slug: { $eq: category.length !==0 ? `recettes-${category}`:`recettes-${category[0]}`},
-     
-      parent: {
-        slug: { $eq: "recette" }, // Ensure the parent slug is 'recette'
+const { data: page } = await useAsyncData<Page | null>(
+  `page-recettes-category-${categorySlug}`,
+  async () => {
+    const result = await find<Page>("pages", {
+      filters: {
+        slug: { $eq: `recettes-${categorySlug}` },
+        parent: {
+          slug: { $eq: "recette" },
+        },
       },
-    },
-    populate: ["content", "seoMeta", "parent"],
-    pagination: {
-      page: 0,
-      pageSize: 1,
-    },
-  }),{
-    transform: (data) => data.data[0]
-  }
+      populate: ["content", "seoMeta", "parent"],
+      pagination: {
+        page: 0,
+        pageSize: 1,
+      },
+    });
+    return result.data[0] ?? null;
+  },
 );
 
-console.log(page.value);  
-const ariane = useGenerateSchemaArianne(category);
+const ariane = useGenerateSchemaArianne(categorySlug);
 
 if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
-const displayPage = page.value?.content || [];
-const titleContent = computed(
-  () => page.value?.title || "No title"
-);
-
+const displayPage = page.value.content || [];
+const titleContent = computed(() => page.value?.title || "No title");
 const seo = computed(() => page.value?.seoMeta || {});
-// set the meta
-useSeoMeta(
-  {
+
+useApplySeoMeta({
     title: titleContent.value || "Journal du cuistot",
     description: seo.value?.description || "No description",
-    keywords: seo.value?.keywords || "No keyword",
-
-    url: "https://journalducuistot.fr/recette/recettes-" + category,
-
+    image: "https://journalducuistot.fr/img/logo.webp",
+    url: "https://journalducuistot.fr/recette/recettes-" + categorySlug,
+    keywords: seo.value?.keywords,
     author: "bertyn",
-    datePublished: page.value?.publishedAt,
-    dateModified: page.value?.updatedAt,
-  }
-);
+    articleDatePublished: page.value?.publishedAt,
+    articleDateModified: page.value?.updatedAt,
+});
 useHead({
   link: [
     {
       rel: "canonical",
-      href: "https://journalducuistot.fr/recette/recettes-" + category,
+      href: "https://journalducuistot.fr/recette/recettes-" + categorySlug,
     },
   ],
 });
-defineOgImageComponent('Cooking', {
+defineOgImageComponent("Cooking", {
   headline: titleContent.value || "Journal du cuistot",
   description: seo.value?.description || "No description",
 });

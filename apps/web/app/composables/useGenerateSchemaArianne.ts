@@ -1,23 +1,31 @@
 export const useGenerateSchemaArianne = (slug: string | string[]) => {
-  if (Array.isArray(slug) && slug.length > 1) {
+  const slugArray = Array.isArray(slug) ? slug : [slug];
+  const first = slugArray[0];
+  const second = slugArray[1];
+
+  if (slugArray.length > 1 && first && second) {
     return [
       { name: "Accueil", item: "/" },
       {
-        name: capitalizeFirstLetter(slug[0].replaceAll("-", " ")),
-        path: `/${slug[0]}`,
+        name: capitalizeFirstLetter(first.replaceAll("-", " ")),
+        path: `/${first}`,
       },
       {
-        name: capitalizeFirstLetter(slug[1].replaceAll("-", " ")),
-        path: `/${slug[0]}/${slug[1]}`,
+        name: capitalizeFirstLetter(second.replaceAll("-", " ")),
+        path: `/${first}/${second}`,
       },
     ];
+  }
+
+  if (!first) {
+    return [{ name: "Accueil", item: "/" }];
   }
 
   return [
     { name: "Accueil", item: "/" },
     {
-      name: capitalizeFirstLetter(slug[0].replaceAll("-", " ")),
-      path: `/${slug}`,
+      name: capitalizeFirstLetter(first.replaceAll("-", " ")),
+      path: `/${first}`,
     },
   ];
 };

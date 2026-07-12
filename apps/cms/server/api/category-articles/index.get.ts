@@ -35,21 +35,20 @@ export default defineEventHandler(async (event) => {
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
   // Count total
-  const [{ count: total }] = await db
+  const countResult = await db
     .select({ count: sql<number>`count(*)` })
     .from(schema.categoryArticles)
     .where(where)
     .all()
 
+  const total = countResult[0]?.count ?? 0
+
   // Paginate
   const { offset, limit, page, pageSize } = parsePagination(query as Record<string, string>)
 
-  let dbQuery = db.select().from(schema.categoryArticles)
-  if (where) {
-    dbQuery = dbQuery.where(where)
-  }
-
-  const rows = await dbQuery
+  const rows = await (where
+    ? db.select().from(schema.categoryArticles).where(where)
+    : db.select().from(schema.categoryArticles))
     .orderBy(sql`${schema.categoryArticles.createdAt} DESC`)
     .limit(limit)
     .offset(offset)

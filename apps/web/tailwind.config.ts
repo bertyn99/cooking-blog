@@ -1,5 +1,7 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+import type { Config } from "tailwindcss";
+import typography from "@tailwindcss/typography";
+
+export default {
   content: [
     "./storyblok/**/*.{vue,js}",
     "./components/**/*.{vue,js,ts}",
@@ -15,15 +17,11 @@ module.exports = {
   ],
   theme: {
     extend: {
-      FontFace: {
-        merriweather: {
-          family: "Merriweather, Serif",
-        },
-        catamaran: {
-          family: "Catamaran, Sans-serif",
-        },
+      fontFamily: {
+        merriweather: ["Merriweather", "serif"],
+        catamaran: ["Catamaran", "sans-serif"],
       },
     },
   },
-  plugins: [require("@tailwindcss/typography")],
-};
+  plugins: [typography],
+} satisfies Config;

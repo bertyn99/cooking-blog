@@ -84,7 +84,7 @@ export default defineNuxtConfig({
   },
   components: [{
     path: '~/components',
-    exclude: ['prose/**'],
+    ignore: ['prose/**'],
   }, {
     global: true,
     path: '~/components/prose',
@@ -144,33 +144,36 @@ export default defineNuxtConfig({
 
     sitemaps: {
       pages: {
-        includeGlobalSources: true,
         includeAppSources: true,
-        path: '/sitemap-pages.xml',
-        changefreq: 'daily',
-        priority: 0.8,
+        sitemapName: 'sitemap-pages.xml',
+        defaults: {
+          changefreq: 'daily' as const,
+          priority: 0.8,
+        },
         sources: [
           '/api/__sitemap__/urls',
         ],
         exclude: ['/blog/**', '/recette/**'],
       },
       blog: {
-        includeGlobalSources: true,
         includeAppSources: true,
-        path: '/sitemap-blog.xml',
-        changefreq: 'daily',
-        priority: 0.8,
+        sitemapName: 'sitemap-blog.xml',
+        defaults: {
+          changefreq: 'daily' as const,
+          priority: 0.8,
+        },
         exclude: ['/recette/**', '/'],
         sources: [
           '/api/__sitemap__/urls',
         ],
       },
       recipes: {
-        includeGlobalSources: true,
         includeAppSources: true,
-        path: '/sitemap-recipes.xml',
-        changefreq: 'daily',
-        priority: 0.8,
+        sitemapName: 'sitemap-recipes.xml',
+        defaults: {
+          changefreq: 'daily' as const,
+          priority: 0.8,
+        },
         exclude: ['/blog/**', '/'],
         sources: [
           '/api/__sitemap__/urls',

@@ -1,13 +1,22 @@
-import { defineSitemapEventHandler } from '#imports'
+import { defineSitemapEventHandler } from "#sitemap/server/composables/defineSitemapEventHandler";
+import type { SitemapUrlInput } from "#sitemap/types";
 import { generateSlug } from "~/utils/format";
+import type { Article, Page, Recipe, StrapiResponse } from "~/types/strapiMeta";
 
-export default defineSitemapEventHandler(async () => {
-  // Fetch all documents in parallel
+export default defineSitemapEventHandler(async (): Promise<SitemapUrlInput[]> => {
+  const strapiUrl = process.env.STRAPI_URL || process.env.NUXT_PUBLIC_CMS_BASE_URL || "http://localhost:3001";
+
   const [pagesResponse, articlesResponse, recipesResponse] = await Promise.all([
-    $fetch("https://admin.journalducuistot.fr/api/pages?populate[parent][populate][0]=parent&pagination[pageSize]=100&status=published&sort[0]=publishedAt:desc"),
-    $fetch("https://admin.journalducuistot.fr/api/articles?pagination[pageSize]=100&populate=category&sort[0]=firstPublishedAt:desc"),
-    $fetch("https://admin.journalducuistot.fr/api/recipes?pagination[pageSize]=100&status=published&sort[0]=firstPublishedAt:desc")
-  ]) as any[];
+    $fetch<StrapiResponse<Page>>(
+      `${strapiUrl}/api/pages?populate[parent][populate][0]=parent&pagination[pageSize]=100&status=published&sort[0]=publishedAt:desc`,
+    ),
+    $fetch<StrapiResponse<Article>>(
+      `${strapiUrl}/api/articles?pagination[pageSize]=100&populate=category&sort[0]=firstPublishedAt:desc`,
+    ),
+    $fetch<StrapiResponse<Recipe>>(
+      `${strapiUrl}/api/recipes?pagination[pageSize]=100&status=published&sort[0]=firstPublishedAt:desc`,
+    ),
+  ]);
 
   const pages = pagesResponse.data;
   const articles = articlesResponse.data;
@@ -15,66 +24,41 @@ export default defineSitemapEventHandler(async () => {
 
   const urls = [];
 
-  // Add homepage
   urls.push({
     loc: "/",
     changefreq: "daily",
     priority: 1,
   });
 
-  // Add pages
   for (const doc of pages) {
     urls.push({
-      loc: generateSlug(doc.slug, doc.parent),
+      loc: generateSlug(doc.slug ?? "", doc.parent),
       lastmod: doc.updatedAt,
       priority: 0.8,
       changefreq: "daily",
-      _sitemap: 'pages',
-      /* img: [
-        {
-          url: doc.image,
-          caption: doc.description,
-          title: doc.title,
-        },
-      ], */
+      _sitemap: "pages",
     });
   }
 
-  // Add articles
   for (const doc of articles) {
     urls.push({
-      loc: `/blog/${doc.category?.slug || 'uncategorized'}/${doc.slug}`,
+      loc: `/blog/${doc.category?.slug || "uncategorized"}/${doc.slug}`,
       lastmod: doc.updatedAt,
       priority: 0.6,
       changefreq: "daily",
-      _sitemap: 'blog',
-      /* img: [
-        {
-          url: doc.image,
-          caption: doc.description,
-          title: doc.title,
-        },
-      ], */
+      _sitemap: "blog",
     });
   }
 
-  // Add recipes
   for (const doc of recipes) {
     urls.push({
       loc: `/recette/${doc.slug}`,
       lastmod: doc.updatedAt,
       priority: 0.7,
       changefreq: "daily",
-      _sitemap: 'recipes',
-      /* img: [
-        {
-          url: doc.image,
-          caption: doc.description,
-          title: doc.title,
-        },
-      ], */
+      _sitemap: "recipes",
     });
   }
 
-  return urls;
+  return urls as SitemapUrlInput[];
 });

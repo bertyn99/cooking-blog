@@ -24,7 +24,7 @@ export function validateBody<T>(schema: ZodSchema<T>, data: unknown): T {
  * Returns sanitized values.
  */
 export function validateQuery(
-  params: Record<string, any>,
+  params: Record<string, unknown>,
   allowedIncludes: string[],
 ): { include: string[]; page: number; pageSize: number } {
   const includeList = parseInclude(params)

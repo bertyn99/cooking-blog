@@ -8,16 +8,27 @@
  */
 import { useRuntimeConfig } from '#imports'
 
+import type { StrapiResponse } from '~/types/strapiMeta'
+
+export type { StrapiResponse }
+
+type FilterValue =
+  | string
+  | { $eq?: string; $contains?: string; $in?: string[] }
+  | { slug?: { $eq?: string }; name?: { $in?: string[] } }
+
+export type StrapiFilters = Record<string, FilterValue>
+
 interface FindOptions {
-  populate?: string | string[] | Record<string, any>
-  filters?: Record<string, any>
+  populate?: string | string[] | Record<string, unknown>
+  filters?: Record<string, FilterValue>
   sort?: string[]
   pagination?: { page?: number; pageSize?: number }
 }
 
-interface StrapiResponse<T> {
-  data: T[]
-  meta: { pagination: { page: number; pageSize: number; pageCount: number; total: number } }
+interface CmsListResponse<T> {
+  data?: T[]
+  meta?: StrapiResponse<T>['meta']
 }
 
 export function useStrapi() {
@@ -42,7 +53,7 @@ export function useStrapi() {
    * Translates Strapi-style filters to query params.
    * Handles {$eq}, nested filters, and simple values.
    */
-  function translateFilters(filters: Record<string, any>): Record<string, string> {
+  function translateFilters(filters: Record<string, FilterValue>): Record<string, string> {
     const params: Record<string, string> = {}
     for (const [key, value] of Object.entries(filters)) {
       if (value && typeof value === 'object' && '$eq' in value) {
@@ -59,34 +70,34 @@ export function useStrapi() {
   async function find<T>(contentType: string, opts: FindOptions = {}): Promise<StrapiResponse<T>> {
     const params = new URLSearchParams()
 
-    // Populate
     const include = translatePopulate(opts.populate)
     if (include) params.set('include', include)
 
-    // Filters
     const filterParams = translateFilters(opts.filters || {})
     for (const [key, value] of Object.entries(filterParams)) {
       params.set(key, value)
     }
 
-    // Sort
     if (opts.sort?.length) {
       params.set('sort', opts.sort[0]!.replace(':desc', ''))
     }
 
-    // Pagination — always pass status=published for public queries
     params.set('status', 'published')
     if (opts.pagination?.page) params.set('page', String(opts.pagination.page))
     if (opts.pagination?.pageSize) params.set('pageSize', String(opts.pagination.pageSize))
 
     const url = `${baseUrl}/api/${contentType}?${params.toString()}`
-    const response = await $fetch<any>(url)
+    const response = await $fetch<CmsListResponse<T> | T[]>(url)
 
-    // Normalize to Strapi format: { data: [...], meta: { pagination } }
-    if (response.data && response.meta) return response as StrapiResponse<T>
+    if (!Array.isArray(response) && response.data && response.meta) {
+      return response as StrapiResponse<T>
+    }
+
     return {
-      data: Array.isArray(response) ? response : (response.data || [response]),
-      meta: response.meta || { pagination: { page: 1, pageSize: 10, pageCount: 1, total: 1 } },
+      data: Array.isArray(response) ? response : (response.data || []),
+      meta: (!Array.isArray(response) && response.meta) || {
+        pagination: { page: 1, pageSize: 10, pageCount: 1, total: 1 },
+      },
     }
   }
 

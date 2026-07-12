@@ -1,90 +1,69 @@
-<script lang="ts" setup>
+<script lang="ts">
 definePageMeta({ layout: "content" });
+</script>
 
-
+<script lang="ts" setup>
 import type { Article, Category, Cover } from "~/types/strapiMeta";
-// get current route slug and category
+
 const {
   params: { category, slug },
 } = useRoute();
 
-if (slug.length === 0 || slug === " " || category.length === 0 || category === " ") {
+const categorySlug = Array.isArray(category) ? category[0] : category;
+const articleSlug = Array.isArray(slug) ? slug[0] : slug;
+
+if (!articleSlug || articleSlug === " " || !categorySlug || categorySlug === " ") {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
 const config = useRuntimeConfig();
-const strapiUrl = config.public.strapi?.url || config.strapi?.url || "http://localhost:1337";
+const strapiUrl = config.public.cmsBaseUrl;
 
-const {
-  data: article,
-  pending,
-  refresh,
-  error,
-} = await useAsyncData<Article>("article", async () => {
-  const url = `${strapiUrl}/api/articles?filters[slug][$eq]=${slug}&populate=*&pagination[page]=1&pagination[pageSize]=1`;
-  const response = await $fetch(url);
-  return (response as any).data[0] as Article;
+const { data: article } = await useAsyncData<Article | null>("article", async () => {
+  const url = `${strapiUrl}/api/articles?filters[slug][$eq]=${articleSlug}&populate=*&pagination[page]=1&pagination[pageSize]=1`;
+  const response = await $fetch<{ data: Article[] }>(url);
+  return response.data[0] ?? null;
 });
 
-if (!article) {
+if (!article.value) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
 const content = computed(() => article.value?.content || "No content");
-const titleContent = computed(
-  () => article.value?.title || "No title"
-);
-const categoriesContent = computed(
-  () =>
-      article.value?.categories || ([] as Category[])
-);
-const cover = computed(
-  () => article.value?.cover || ({} as Cover)
-);
+const titleContent = computed(() => article.value?.title || "No title");
+const categoriesContent = computed(() => article.value?.categories || ([] as Category[]));
+const cover = computed(() => article.value?.cover || ({} as Cover));
 
 const link = computed(
-  () =>
-    "https://journalducuistot.fr/blog/" + category + "/" + (article.value?.slug || "")
+  () => "https://journalducuistot.fr/blog/" + categorySlug + "/" + (article.value?.slug || ""),
 );
-const date = computed(
-  () => article.value?.publishedAt || ""
-);
-const modifiedAt = computed(
-  () => article.value?.updatedAt || ""
-);
+const date = computed(() => article.value?.publishedAt || "");
+const modifiedAt = computed(() => article.value?.updatedAt || "");
 const urlCover = useFormatUrlCover(cover.value);
 
-const categoryRecipe = computed(
-  () =>
-        article.value?.category ||
-    ({} as Category)
-);
-const { minutes } = useReadingTime(
-  article.value?.content || ""
-);
+const categoryRecipe = computed(() => article.value?.category || ({} as Category));
+const { minutes } = useReadingTime(article.value?.content || "");
 
-/* const { prev, next } = article.value; */
+const seo = computed(() => {
+  const seoValue = article.value?.seo;
+  return Array.isArray(seoValue) ? seoValue[0] || {} : seoValue || {};
+});
 
-const seo = computed(() => article.value?.seo || {});
-// set the meta
-useSeoMeta(
-{
+useApplySeoMeta({
     title: titleContent.value || "Journal du cuistot",
-    description:
-      "Journal du cuistot | " + seo.value?.description || "No description",
-    keywords: seo.value?.keywords || "No keyword",
+    description: "Journal du cuistot | " + (seo.value?.description || "No description"),
+    keywords: seo.value?.keywords,
     image: urlCover || "",
-    url: "https://journalducuistot.fr/blog/" + category + "/" + slug,
+    url: "https://journalducuistot.fr/blog/" + categorySlug + "/" + articleSlug,
     author: "magius",
-    datePublished: article.value?.publishedAt,
-    dateModified: article.value?.updatedAt,
-  }
-);
+    articleDatePublished: article.value?.publishedAt,
+    articleDateModified: article.value?.updatedAt,
+});
 useHead({
   link: [
     {
       rel: "canonical",
-      href: "https://journalducuistot.fr/blog/" + category + "/" + slug,
+      href: "https://journalducuistot.fr/blog/" + categorySlug + "/" + articleSlug,
     },
   ],
 });
@@ -98,13 +77,13 @@ useHead({
         name: 'Blog',
         item: '/blog',
       },
-      { 
-        name: category, 
-        item: `/blog/${category}` 
+      {
+        name: categorySlug,
+        item: `/blog/${categorySlug}`,
       },
-      { 
-        name: titleContent, 
-        item: `/blog/${category}/${slug}` 
+      {
+        name: titleContent,
+        item: `/blog/${categorySlug}/${articleSlug}`,
       },
     ]"
   />
@@ -129,7 +108,7 @@ useHead({
 
   <SectionHeroArticle
     :url="urlCover"
-    :alt="cover.attributes?.alternativeText"
+    :alt="cover.alternativeText || cover.attributes?.alternativeText"
   >
     <template #info>
       <p
@@ -146,19 +125,19 @@ useHead({
           itemprop="url"
           class="p-0 m-0 leading-6 uppercase align-baseline cursor-pointer hover:text-stone-500"
           style="transition: color 0.2s ease-out 0s"
-          v-for="category in categoriesContent"
+          v-for="cat in categoriesContent"
+          :key="cat.id"
         >
           <Icon name="ion:ios-pricetag-outline" />
-          {{ category.name }}
+          {{ cat.name }}
         </span>
       </div>
     </template>
   </SectionHeroArticle>
   <MDC class="w-full prose md:prose-lg lg:prose-xl max-w-4xl" :value="content" tag="article"></MDC>
   <LazyCta />
-<!--   <LazyPrevAndNext :prev="prev?.slug" :next="next?.slug" /> -->
   <LazySectionYouMayAlsoLike
-    :category="categoryRecipe.id"
+    :category="String(categoryRecipe.id ?? '')"
     type-content="articles"
   />
-</template> 
+</template>

@@ -1,8 +1,14 @@
 <script lang="ts" setup>
+import type { Recipe } from "~/types/strapiMeta";
+
 const { find } = useStrapi();
 
 const { data: recipes } = useAsyncData("lates-recipes", () => {
-  return find("recipes?sort[0]=id%3Adesc&pagination[pageSize]=3&populate=*");
+  return find<Recipe>("recipes", {
+    sort: ["id:desc"],
+    pagination: { pageSize: 3 },
+    populate: "*",
+  });
 });
 </script>
 
@@ -28,6 +34,7 @@ const { data: recipes } = useAsyncData("lates-recipes", () => {
         <article
           class="inline-block float-left relative py-0 px-2 mx-0 mt-0 mb-5 w-full align-top"
           v-for="recipe in recipes?.data"
+          :key="recipe.id"
         >
           <div
             class="flex relative justify-center items-center align-baseline border-0"
@@ -43,7 +50,7 @@ const { data: recipes } = useAsyncData("lates-recipes", () => {
                   class="align-baseline border-0 cursor-pointer hover:text-black"
                   style="transition: color 0.2s ease-out 0s"
                 >
-                  <CustomImage :cover="recipe?.cover" />
+                  <CustomImage v-if="recipe?.cover" :cover="recipe.cover" />
                 </NuxtLink>
               </div>
             </div>
@@ -73,51 +80,17 @@ const { data: recipes } = useAsyncData("lates-recipes", () => {
               >
                 <div class="align-baseline border-0">
                   <div class="flex items-center align-baseline border-0">
-                    <div
-                      class="hidden p-0 my-0 mr-4 ml-0 w-12 align-baseline border-0"
-                    >
-                      <nuxt-link
-                        itemprop="url"
-                        to="/a-propos"
-                        class="block align-baseline border-0 cursor-pointer hover:text-black"
-                        style="
-                          outline: 0px;
-                          text-decoration: none;
-                          transition: color 0.2s ease-out 0s;
-                          background-position: 0px center;
-                        "
-                      >
-                        <nuxt-img
-                          data-del="avatar"
-                          src="/img/author.jpg"
-                          class="max-w-full h-auto rounded-full leading-6 text-center text-black align-middle cursor-pointer"
-                          height="138"
-                          width="138"
-                        />
-                      </nuxt-link>
-                    </div>
                     <div class="relative -top-px align-baseline border-0">
-                      <nuxt-link
-                        itemprop="author"
-                        to="/a-propos"
-                        class="hidden relative text-xs font-semibold tracking-widest leading-5 text-black uppercase align-baseline border-0 cursor-pointer hover:text-black"
-                        style="
-                          outline: 0px;
-                          text-decoration: none;
-                          transition: color 0.2s ease-out 0s;
-                          background-position: 0px center;
-                        "
-                      >
-                        Magius
-                      </nuxt-link>
                    <p
                         itemprop="dateCreated"
                         class="relative text-xs leading-4 align-baseline border-0 text-neutral-500"
                       >
                         {{
-                          new Intl.DateTimeFormat("fr-FR", {
-                            dateStyle: "medium",
-                          }).format(new Date(recipe?.firstPublishedAt))
+                          recipe?.firstPublishedAt
+                            ? new Intl.DateTimeFormat("fr-FR", {
+                                dateStyle: "medium",
+                              }).format(new Date(recipe.firstPublishedAt))
+                            : ""
                         }}
                       </p> 
                     </div>

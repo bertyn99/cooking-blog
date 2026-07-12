@@ -47,9 +47,7 @@ const iconClasses = computed(() => {
 
 // Props to pass through to the Icon component
 const iconProps = computed(() => {
-    const passThroughProps: Record<string, any> = {}
-
-    // Pass through any additional props that aren't handled above
-    return passThroughProps
+  const passThroughProps: Record<string, unknown> = {}
+  return passThroughProps
 })
 </script>

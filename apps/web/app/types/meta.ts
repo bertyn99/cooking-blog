@@ -1,23 +1,3 @@
-type MetaKey =
-  | "type"
-  | "title"
-  | "description"
-  | "robots"
-  | "author"
-  | "articleDatePublished"
-  | "ogType"
-  | "ogLocale"
-  | "ogLocaleAlternate"
-  | "ogUrl"
-  | "ogSite_name"
-  | "ogTitle"
-  | "ogDescription"
-  | "ogImage"
-  | "twitterCard"
-  | "twitterUrl"
-  | "twitterTitle"
-  | "twitterDescription"
-  | "twitterImage";
 type Meta = { [key: string]: string | undefined };
 export interface MetaData extends Meta {
   type: string;

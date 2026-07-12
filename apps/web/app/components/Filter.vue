@@ -1,28 +1,32 @@
 <script lang="ts" setup>
-const showMoreCategories = ref(false);
-type formatedData = { name: string; id: number }[];
-const { categories, selected } = defineProps([
-  "categories",
-  "selected",
-  "searchValue",
-]);
+type FormattedCategory = { name: string; id: number };
 
-const emit = defineEmits(["update:selected", "update:searchValue", "filter"]);
-const check = (optionName: string, checked: any) => {
-  // copy the value Array to avoid mutating props
-  let updatedValue = [...selected];
-  // remove name if checked, else add name
+const showMoreCategories = ref(false);
+
+const { categories, selected, searchValue } = defineProps<{
+  categories: FormattedCategory[];
+  selected: string[];
+  searchValue: string;
+}>();
+
+const emit = defineEmits<{
+  "update:selected": [value: string[]];
+  "update:searchValue": [value: string];
+  filter: [];
+}>();
+
+const check = (optionName: string, checked: boolean) => {
+  const updatedValue = [...selected];
 
   if (checked) {
     updatedValue.push(optionName);
   } else {
     updatedValue.splice(updatedValue.indexOf(optionName), 1);
   }
-  // emit the updated value
   emit("update:selected", updatedValue);
 };
-const onInput = (e: any) => {
-  emit("update:searchValue", e.target.value);
+const onInput = (e: Event) => {
+  emit("update:searchValue", (e.target as HTMLInputElement).value);
 };
 </script>
 
@@ -82,24 +86,9 @@ const onInput = (e: any) => {
               v-for="category in categories"
               :key="category?.id"
             >
-              <!-- <input
-                type="checkbox"
-                :id="category?.name"
-                name="category"
-                @input="(e) => check(category?.name, e.target!.checked)"
-                :data-id="category?.name"
-                :checked="selected.includes(category?.name as never)"
-               
-                class="font-sans text-sm text-black cursor-default"
-              />
-              <label
-                for="breakfast-breakfast"
-                class="block p-0 my-0 mr-0 ml-1 align-baseline border-0 cursor-default"
-                >{{ category?.name }}</label
-              > -->
               <BaseInputCheckbox
                 :fieldId="category?.name"
-                :checked="selected.includes(category?.name as never)"
+                :checked="selected.includes(category?.name)"
                 @update:checked="check(category?.name, $event)"
                 :label="category?.name"
               />

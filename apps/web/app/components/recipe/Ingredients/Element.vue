@@ -1,5 +1,10 @@
 <script lang="ts" setup>
-defineProps(["ingredient", "multiplicator"]);
+import type { Ingredient } from '~/types/strapiMeta'
+
+defineProps<{
+  ingredient: Ingredient
+  multiplicator: number
+}>()
 const isChecked = ref(false);
 </script>
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const someErrorLogger = (_error: any) => {
+const someErrorLogger = (_error: unknown) => {
   console.error(_error);
 };
 </script>

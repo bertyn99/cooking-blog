@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import type { Recipe } from "~/types/strapiMeta";
+import type { Category, Recipe, StrapiResponse } from "~/types/strapiMeta";
 
 const { find } = useStrapi();
 const search = ref("");
 const checkedCategories = ref<string[]>([]);
 const currentPage = ref(1);
-const { data: recipes, refresh } = await useAsyncData<Recipe>(
+const { data: recipes, refresh } = await useAsyncData<StrapiResponse<Recipe>>(
   `recipes`,
   () =>
-    find(`recipes`, {
+    find<Recipe>(`recipes`, {
       filters: {
         title: { $contains: search.value },
         category: { name: { $in: checkedCategories.value } },
@@ -20,27 +20,27 @@ const { data: recipes, refresh } = await useAsyncData<Recipe>(
         pageSize: 16,
       },
     }),
-  { watch: [currentPage] }
+  { watch: [currentPage] },
 );
-defineOgImageComponent('Cooking', {
+defineOgImageComponent("Cooking", {
   headline: "Recettes",
-  description: "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.",
-})
-useSeoMeta(
-  {
-    title: "Recettes",
-    description: "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.",
-    keywords: "recettes, cuisine, gastronomie, plats, desserts, entrées",
-
-    url: "https://journalducuistot.fr/recette",
-    author: "bertyn",
-  }
-);
+  description:
+    "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.",
+});
+useApplySeoMeta({
+  title: "Recettes",
+  description:
+    "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.",
+  image: "https://journalducuistot.fr/img/logo.webp",
+  url: "https://journalducuistot.fr/recette",
+  keywords: "recettes, cuisine, gastronomie, plats, desserts, entrées",
+  author: "bertyn",
+});
 useHead({
   link: [
     {
       rel: "canonical",
-      href: "https://journalducuistot.fr/recette/recette"
+      href: "https://journalducuistot.fr/recette/recette",
     },
   ],
 });
@@ -49,17 +49,17 @@ const searchWithFilter = () => {
   refresh();
 };
 const { data: categories } = await useAsyncData(`categories`, () =>
-  find(`categories?fields=name`)
+  find<Category>(`categories?fields=name`),
 );
 
 const formatCategories = computed(() =>
-  categories.value?.data.map((category: any) => {
-    return { name: category.name, id: category.id };
-  })
+  categories.value?.data.map((category) => {
+    return { name: category.name ?? "", id: category.id ?? 0 };
+  }),
 );
 
 const goNext = () => {
-  if (currentPage.value < recipes.value.meta.pagination.pageCount + 1) {
+  if (recipes.value && currentPage.value < recipes.value.meta.pagination.pageCount + 1) {
     currentPage.value += 1;
   }
 };
@@ -82,11 +82,11 @@ const goTo = (id: number) => {
   </div>
   <section aria-labelledby="products-heading" class="mx-auto max-w-7xl px-4 sm:px-6">
     <div class="pb-24 pt-6 grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
-      <Filter :categories="formatCategories" :searchValue="search" @update:search-value="search = $event"
+      <Filter :categories="formatCategories ?? []" :searchValue="search" @update:search-value="search = $event"
         v-model:selected="checkedCategories" @filter="searchWithFilter" />
       <div class="lg:col-span-3">
-        <RecipeList :list="recipes?.data" showDetails />
-        <BasePagination :totalPage="recipes?.meta?.pagination?.pageCount" :currentPage="currentPage" :prev="goPrev"
+        <RecipeList :list="recipes?.data ?? []" showDetails />
+        <BasePagination :totalPage="recipes?.meta?.pagination?.pageCount ?? 1" :currentPage="currentPage" :prev="goPrev"
           :next="goNext" :to="goTo" />
       </div>
     </div>

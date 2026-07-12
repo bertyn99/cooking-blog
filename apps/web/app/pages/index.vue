@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import type { Article, Recipe } from "~/types/strapiMeta";
 
-useSeoMeta(
-  useLoadMeta({
+useApplySeoMeta({
     title: "Accueil",
     description: "Venez rejoindre la communauté des jeunes cuistots !",
     image: "https://journalducuistot.fr/img/logo.png",
     url: "https://journalducuistot.fr",
-  }) as any
-);
+});
 useHead({
   link: [
     {
@@ -21,11 +19,11 @@ useHead({
 const { find } = useStrapi();
 
 interface HomepageData {
-  articles: { data: Article[]; meta: any };
-  recipes: { data: Recipe[]; meta: any };
+  articles: Article[];
+  recipes: Recipe[];
 }
 
-const { data } = await useAsyncData<HomepageData>('homepage-data', async () => {
+const { data } = await useAsyncData<HomepageData>("homepage-data", async () => {
   const [articlesResponse, recipesResponse] = await Promise.all([
     find<Article>("articles", {
       populate: "*",
@@ -42,23 +40,21 @@ const { data } = await useAsyncData<HomepageData>('homepage-data', async () => {
         page: 1,
         pageSize: 4,
       },
-    })
+    }),
   ]);
 
   return {
-    articles: articlesResponse.data??[],
-    recipes: recipesResponse.data??[]
+    articles: articlesResponse.data ?? [],
+    recipes: recipesResponse.data ?? [],
   };
 });
 
 const articles = computed(() => data.value?.articles || []);
 const recipes = computed(() => data.value?.recipes || []);
 
-defineOgImageComponent('Cooking', {
-  headline:"Accueil",
-})
-
-console.log(articles.value);
+defineOgImageComponent("Cooking", {
+  headline: "Accueil",
+});
 </script>
 
 <template>
@@ -66,6 +62,6 @@ console.log(articles.value);
   <SchemaOrgBreadcrumb :itemListElement="[{ name: 'Accueil', item: '/' }]" />
   <SectionHero></SectionHero>
   <SectionNewsletter></SectionNewsletter>
-  <LazyRecipeList :list="recipes" :showDetails="true"></LazyRecipeList> 
- <LazySectionRecentArticles :articles="articles"></LazySectionRecentArticles>
+  <LazyRecipeList :list="recipes" :showDetails="true"></LazyRecipeList>
+  <LazySectionRecentArticles :articles="articles"></LazySectionRecentArticles>
 </template>

@@ -4,13 +4,12 @@ type Formats = {
   large?: sizeImg;
   medium?: sizeImg;
 };
-type SizeKey = keyof typeof Formats;
 
 type SEO = {
   id?: number;
-  description: string;
-  metaRobots: string;
-  keywords: string;
+  description?: string;
+  metaRobots?: string;
+  keywords?: string;
 };
 
 export type sizeImg = {
@@ -22,6 +21,12 @@ export type sizeImg = {
   size: number;
   width: number;
   height: number;
+};
+
+export type CoverAttributes = {
+  alternativeText?: string;
+  caption?: string;
+  url?: string;
 };
 
 export type Cover = {
@@ -42,6 +47,8 @@ export type Cover = {
   provider?: string;
   provider_metadata?: unknown;
   folderPath?: string;
+  /** Strapi v4 nested attributes */
+  attributes?: CoverAttributes;
   /** Format: date-time */
   createdAt?: string;
   /** Format: date-time */
@@ -51,6 +58,7 @@ export type Cover = {
 export type Category = {
   id?: number;
   name?: string;
+  slug?: string;
   desc?: string;
   img?: Cover[];
   /** Format: date-time */
@@ -62,6 +70,9 @@ export type Category = {
   locale?: string;
 };
 
+/** Article/recipe category relation with slug for routing */
+export type CategoryArticle = Category;
+
 export type Ingredient = {
   id?: number;
   name?: string;
@@ -69,13 +80,13 @@ export type Ingredient = {
   qty?: number;
   /** @enum {string} */
   unit?:
-  | "none"
-  | "g"
-  | "kg"
-  | "l"
-  | "cuillère a soupe"
-  | "cuillère à café"
-  | "tasse";
+    | "none"
+    | "g"
+    | "kg"
+    | "l"
+    | "cuillère a soupe"
+    | "cuillère à café"
+    | "tasse";
 };
 
 export type Tag = {
@@ -88,6 +99,36 @@ export type Tag = {
   /** Format: date-time */
   publishedAt?: string;
   locale?: string;
+};
+
+export type NutritionInfo = Record<string, string | number> & {
+  id?: number;
+};
+
+export type NutritionItem = {
+  name: string;
+  value: string | number;
+  unit?: string;
+};
+
+export type StrapiContentBlock = {
+  id?: number | string;
+  __component: string;
+  [key: string]: unknown;
+};
+
+export type StrapiPaginationMeta = {
+  pagination: {
+    page: number;
+    pageSize: number;
+    pageCount: number;
+    total: number;
+  };
+};
+
+export type StrapiResponse<T> = {
+  data: T[];
+  meta: StrapiPaginationMeta;
 };
 
 // Type for nested parent structure
@@ -107,17 +148,40 @@ export type NestedParent = {
   parent?: NestedParent; // Recursive type for nested parents
 };
 
+export type Page = {
+  id?: number;
+  title?: string;
+  slug?: string;
+  content?: StrapiContentBlock[];
+  seoMeta?: SEO;
+  parent?: NestedParent;
+  /** Format: date-time */
+  createdAt?: string;
+  /** Format: date-time */
+  updatedAt?: string;
+  /** Format: date-time */
+  publishedAt?: string;
+  locale?: string;
+};
+
 export type Recipe = {
   id?: number;
   title?: string;
   Intro?: string;
+  /** Lowercase alias used in templates */
+  intro?: string;
   cover?: Cover;
   Ingredient?: Ingredient[];
+  /** Lowercase alias used in templates */
+  ingredients?: Ingredient[];
   categories?: Category[];
-  seo?: SEO[];
+  category?: CategoryArticle;
+  seo?: SEO[] | SEO;
+  seoMeta?: SEO;
   step?: string;
   tags?: Tag[];
   slug?: string;
+  nutrition?: NutritionInfo;
   /** @enum {string} */
   difficulty?: "easy" | "medium" | "hard";
   time?: number;
@@ -127,8 +191,10 @@ export type Recipe = {
   updatedAt?: string;
   /** Format: date-time */
   publishedAt?: string;
+  /** Format: date-time */
+  firstPublishedAt?: string;
   locale?: string;
-  parent?: NestedParent; // Add parent field
+  parent?: NestedParent;
 };
 
 export type Article = {
@@ -137,16 +203,20 @@ export type Article = {
   title?: string;
   cover?: Cover;
   categories?: Category[];
+  category?: CategoryArticle;
   slug?: string;
   /** Format: date-time */
   createdAt?: string;
-  seo?: SEO[];
+  seo?: SEO[] | SEO;
+  seoMeta?: SEO;
   /** Format: date-time */
   updatedAt?: string;
   /** Format: date-time */
   publishedAt?: string;
+  /** Format: date-time */
+  firstPublishedAt?: string;
   locale?: string;
   prev?: Article;
   next?: Article;
-  parent?: NestedParent; // Add parent field
+  parent?: NestedParent;
 };

@@ -1,4 +1,4 @@
-export function parsePagination(query: Record<string, any>) {
+export function parsePagination(query: Record<string, unknown>) {
   const page = Math.max(1, parseInt(query.page as string) || 1)
   const pageSize = Math.min(100, parseInt(query.pageSize as string) || 10) // Cap at 100
   return { offset: (page - 1) * pageSize, limit: pageSize, page, pageSize }

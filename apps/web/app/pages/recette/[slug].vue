@@ -7,122 +7,79 @@ const {
   params: { slug },
 } = useRoute();
 
-const config = useRuntimeConfig();
-const strapiUrl = config.public.strapi?.url || config.strapi?.url || "http://localhost:1337";
+const recipeSlug = Array.isArray(slug) ? slug[0] : slug;
 
-const {
-  data: recipe,
-  pending,
-  refresh,
-  error,
-} = await useAsyncData<Recipe>(`recipe-${slug}`, async () => {
-  const url = `${strapiUrl}/api/recipes?filters[slug][$eq]=${slug}&populate=*&pagination[page]=1&pagination[pageSize]=1`;
-  const response = await $fetch(url);
-  return (response as any).data[0];
+const config = useRuntimeConfig();
+const strapiUrl = config.public.cmsBaseUrl;
+
+const { data: recipe } = await useAsyncData<Recipe | null>(`recipe-${recipeSlug}`, async () => {
+  const url = `${strapiUrl}/api/recipes?filters[slug][$eq]=${recipeSlug}&populate=*&pagination[page]=1&pagination[pageSize]=1`;
+  const response = await $fetch<{ data: Recipe[] }>(url);
+  return response.data[0] ?? null;
 });
 
-if (!recipe) {
+if (!recipe.value) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
-console.log(recipe.value);
-const titleContent = computed(
-  () => recipe.value?.title || "No title"
-);
-
+const titleContent = computed(() => recipe.value?.title || "No title");
 const time = computed(() => recipe.value?.time || "10");
-const difficulty = computed(
-  () => recipe.value?.difficulty || "easy"
-);
-const categoryRecipe = computed(
-  () => recipe.value?.category || ({} as Category)
-);
-const intro = computed(
-  () => recipe.value?.intro || "No intro"
-);
+const difficulty = computed(() => recipe.value?.difficulty || "easy");
+const categoryRecipe = computed(() => recipe.value?.category || ({} as Category));
+const intro = computed(() => recipe.value?.intro || recipe.value?.Intro || "No intro");
 
 const ingredients = computed(
-  () => recipe.value?.ingredients || ([] as Ingredient[])
+  () => recipe.value?.ingredients || recipe.value?.Ingredient || ([] as Ingredient[]),
 );
 
-const cover = computed(
-  () => recipe.value?.cover || ({} as Cover)
-);
-
+const cover = computed(() => recipe.value?.cover || ({} as Cover));
 const urlCover = useFormatUrlCover(cover.value);
-// set the meta
 
-const recipeNote = computed(
-  () => recipe.value?.step?.split("\n\n")[1] || []
-);
-const steps = computed(
-  () =>
-    recipe.value?.step?.split("\n\n")[0].split("\n") || []
-);
-
-/* const tags = computed(
-  () =>
-    recipe.value?.tags.map(
-      (elm: any) => elm.name
-    ) || []
-);  */
+const steps = computed(() => recipe.value?.step?.split("\n\n")[0]?.split("\n") || []);
 
 const link = computed(
-  () =>
-    "https://journalducuistot.fr/recette/" +
-    recipe.value?.slug || ""
+  () => "https://journalducuistot.fr/recette/" + (recipe.value?.slug || ""),
 );
-const date = computed(
-  () => recipe.value?.publishedAt || ""
-);
-const dateModified = computed(
-  () => recipe.value?.updatedAt || ""
-);
+const date = computed(() => recipe.value?.publishedAt || "");
+const dateModified = computed(() => recipe.value?.updatedAt || "");
 
-const dateFormattedDisplay = useDateFormat(
-  date.value.toString(),
-  "YYYY-MM-DD",
-  {
-    locales: "en-US",
-  }
-);
+const dateFormattedDisplay = useDateFormat(date.value.toString(), "YYYY-MM-DD", {
+  locales: "en-US",
+});
 const dateModifiedFormatted = useDateFormat(dateModified.value, "YYYY-MM-DD", {
   locales: "en-US",
 });
 
-const nutrition = computed(
-  () => recipe.value?.nutrition || ({} as any)
-);
+const nutrition = computed(() => recipe.value?.nutrition || {});
 
 const formated = computed(() =>
   Object.keys(nutrition.value)
     .filter((elm) => elm !== "id")
     .map((key) => {
-      return { name: key, value: nutrition.value[key] };
-    })
-);
-const seo = computed(
-  () => recipe.value?.seo[0] || ({} as SEO)
+      return { name: key, value: nutrition.value[key] ?? "" };
+    }),
 );
 
-useSeoMeta(
-  {
-    title: titleContent.value || "Journal du cuistot",
-    description:
-      "Journal du cuistot | " + seo.value?.description || "No description",
-    keywords: seo.value?.keywords || "No keyword",
-    image: urlCover || "",
-    url: "https://journalducuistot.fr/recette/" + slug,
-    author: "magius",
-    datePublished: recipe.value?.publishedAt,
-    dateModified: recipe.value?.updatedAt,
-  }
-);
+const seo = computed(() => {
+  const seoValue = recipe.value?.seo;
+  return Array.isArray(seoValue) ? seoValue[0] || ({} as SEO) : seoValue || ({} as SEO);
+});
+
+useApplySeoMeta({
+  title: titleContent.value || "Journal du cuistot",
+  description: "Journal du cuistot | " + (seo.value?.description || "No description"),
+  keywords: seo.value?.keywords,
+  image: urlCover || "",
+  url: "https://journalducuistot.fr/recette/" + recipeSlug,
+  author: "magius",
+  articleDatePublished: recipe.value?.publishedAt,
+  articleDateModified: recipe.value?.updatedAt,
+});
 useHead({
   link: [
     {
       rel: "canonical",
-      href: "https://journalducuistot.fr/recette/" + slug,
+      href: "https://journalducuistot.fr/recette/" + recipeSlug,
     },
   ],
 });
@@ -135,10 +92,10 @@ useHead({
       name: 'Recettes',
       item: '/recette',
     },
-    { name: titleContent, item: `/recette/${slug}` },
+    { name: titleContent, item: `/recette/${recipeSlug}` },
   ]" />
   <SchemaOrgRecipe :name="titleContent" :totalTime="`PT${time}M`" :datePublished="dateFormattedDisplay"
-    :dateModified="dateModifiedFormatted" author="bertyn boulikou" :keywords="seo.value?.keywords"
+    :dateModified="dateModifiedFormatted" author="bertyn boulikou" :keywords="seo?.keywords"
     :recipeCategory="categoryRecipe.name" />
   <div>
     <h1 itemprop="name" class="block mb-4 font-serif text-5xl font-normal text-black align-baseline">
@@ -181,6 +138,6 @@ useHead({
   <LazyRecipeSteps :steps="steps" />
   <LazyCta />
   <LazyPrevAndNext class="print:hidden" />
-  <LazySectionYouMayAlsoLike :category="categoryRecipe.id || 'cuisine-africaine'" type-content="recipes"
+  <LazySectionYouMayAlsoLike :category="String(categoryRecipe.id ?? 'cuisine-africaine')" type-content="recipes"
     class="print:hidden" />
 </template>

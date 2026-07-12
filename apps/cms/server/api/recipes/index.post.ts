@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
   // Handle nested ingredients
   if (data.ingredients?.length) {
     await db.insert(schema.ingredients).values(
-      data.ingredients.map((ing: any, i: number) => ({
+      data.ingredients.map((ing, i) => ({
         recipeId: result.id,
         name: ing.name,
         qty: ing.qty,

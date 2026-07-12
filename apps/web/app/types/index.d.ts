@@ -1,5 +1,4 @@
-import mermaid from 'mermaid'
-
+import type mermaid from 'mermaid'
 
 declare module '#app' {
     interface NuxtApp {

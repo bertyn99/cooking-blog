@@ -6,10 +6,10 @@ const { steps } = defineProps<{
 }>();
 
 const formatedSteps = steps.map((step) =>
-  marked(step.slice(3, -1), { mangle: false })
+  marked.parse(step.slice(3, -1), { async: false }) as string,
 );
 
-const schemaRecipeSteps = formatedSteps.map((step, index) => ({
+const schemaRecipeSteps = formatedSteps.map((step) => ({
   "@type": "HowToStep",
   text: step.slice(3, -5),
 }));

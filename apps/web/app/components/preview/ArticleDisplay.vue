@@ -68,5 +68,5 @@ const seo = computed(() => article?.seo || {});
 
     <MDC class="prose md:prose-lg lg:prose-xl" :value="content" tag="article"></MDC>
     <LazyCta />
-    <LazySectionYouMayAlsoLike :category="categoryRecipe.id" type-content="articles" />
+    <LazySectionYouMayAlsoLike :category="String(categoryRecipe.id ?? '')" type-content="articles" />
 </template>

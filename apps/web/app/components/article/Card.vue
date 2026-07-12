@@ -1,42 +1,35 @@
 <script lang="ts" setup>
 import { useReadingTime } from "~/composables/useReadingTime";
-import type { Recipe, Article, Category } from "~/types/strapiMeta";
-import readingTime from "reading-time";
-const { post } = defineProps({
-  post: {
-    type: Object as PropType<Article>,
-    required: true,
-  },
-});
-const category = computed(() => {
-  return (post.category) as Category;
-});
+import type { Article, Category, Cover } from "~/types/strapiMeta";
+
+const { post } = defineProps<{
+  post: Article;
+}>();
+
+const category = computed(() => post.category as Category);
 const cover = useFormatUrlCover(post.cover, "");
 
 const description = computed(() => {
-  return post.seo?.length !== 0 &&
-    post.seo !== undefined
-    ? post.seo[0]?.description
-    : "";
+  const seoValue = post.seo;
+  const seoItem = Array.isArray(seoValue) ? seoValue[0] : seoValue;
+  return seoItem?.description ?? "";
 });
 
-const fallbackDescription = computed(() => {
-  return useMarked(post.content?.substring(0, 200));
-});
+const checkIfExist = (img: Cover | undefined, size: string, sizeView: string) => {
+  if (!img) return "";
+  const exist = useFormatUrlCover(img, size);
+  if (exist) {
+    return `${exist} ${sizeView}`;
+  }
+  return "";
+};
+
 const responsiveCover = computed(() => {
-  const checkIfExist = (img: any, size: string, sizeView: string) => {
-    const exist = useFormatUrlCover(img, size);
-    if (exist) {
-      return `${exist} ${sizeView}`;
-    }
-    return "";
-  };
-
   return ` ${checkIfExist(post.cover, "thumbnail", "130w")}
                 ${checkIfExist(post.cover, "small", "300w")}
                 ${checkIfExist(post.cover, "large", "1024w")}
                 ${checkIfExist(post.cover, "medium", "768w")}
-                ${checkIfExist(post.cover, "meidum", "600w")}
+                ${checkIfExist(post.cover, "medium", "600w")}
               `;
 });
 const { minutes } = useReadingTime(post.content || "");
@@ -89,13 +82,6 @@ const { minutes } = useReadingTime(post.content || "");
         <p itemprop="description" class="py-0 pl-0 pr-[16%] my-2 mx-0 align-baseline border-0">
           {{ description }}
         </p>
-        <!--  <template
-          itemprop="description"
-          class="py-0 pl-0 pr-[16%] my-2 mx-0 align-baseline border-0"
-          v-else
-          v-html="fallbackDescription"
-        >
-        </template> -->
       </div>
     </div>
   </article>

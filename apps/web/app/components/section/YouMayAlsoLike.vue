@@ -1,29 +1,19 @@
 <script lang="ts" setup>
-import type { Category } from "~/types/strapiMeta";
+import type { Recipe, StrapiResponse } from "~/types/strapiMeta";
 
-const { category, typeContent } = defineProps({
-  category: {
-    type: String,
-    required: true,
-  },
-  typeContent: {
-    type: String,
-    required: true,
-  },
-});
+const { category, typeContent } = defineProps<{
+  category: string;
+  typeContent: string;
+}>();
+
 const { find } = useStrapi();
-const {
-  data: content,
-  pending,
-  refresh,
-  error,
-} = await useAsyncData<Category>(`recipe-you-may-like-${category}`, () =>
-  find(
-    `${typeContent}?filters[category][$eq]=${category}&populate=*&pagination[pageSize]=3`
-  )
+const { data: content } = await useAsyncData<StrapiResponse<Recipe>>(
+  `recipe-you-may-like-${category}`,
+  () =>
+    find<Recipe>(
+      `${typeContent}?filters[category][$eq]=${category}&populate=*&pagination[pageSize]=3`,
+    ),
 );
-
-console.log(category,content.value);
 </script>
 
 <template>
@@ -46,6 +36,6 @@ console.log(category,content.value);
         ></span>
       </h4>
     </div>
-    <RecipeList :list="content?.data" />
+    <RecipeList :list="content?.data ?? []" />
   </section>
 </template>

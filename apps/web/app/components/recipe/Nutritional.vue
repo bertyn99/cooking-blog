@@ -1,14 +1,13 @@
 <script lang="ts" setup>
-const { data } = defineProps({
-  data: {
-    type: Array,
-    required: true,
-    default: () => [],
-  },
-});
-const schemaRecipeNutrition = data?.map((nutri: any) => ({
+import type { NutritionItem } from "~/types/strapiMeta";
+
+const { data } = defineProps<{
+  data: NutritionItem[];
+}>();
+
+const schemaRecipeNutrition = data?.map((nutri) => ({
   "@type": "NutritionInformation",
-  [`${nutri?.name}`]: `${nutri?.value}`,
+  [`${nutri.name}`]: `${nutri.value}`,
 }));
 </script>
 
@@ -22,11 +21,11 @@ const schemaRecipeNutrition = data?.map((nutri: any) => ({
 
     <div class="flex-1 flex flex-wrap justify-center md:justify-around py-2 lg:py-0 mx-auto">
       <div v-for="nutri in data" class="flex flex-col items-center px-2 leading-6 text-center border-0 text-stone-500"
-        :key="nutri?.name">
-        <span class="block font-[merriweather] text-lg font-normal text-black align-baseline border-0">{{ nutri?.value
-          }}{{ nutri?.unit }}</span>
+        :key="nutri.name">
+        <span class="block font-[merriweather] text-lg font-normal text-black align-baseline border-0">{{ nutri.value
+          }}{{ nutri.unit }}</span>
         <span class="text-sm text-black align-baseline border-0">{{
-          nutri?.name
+          nutri.name
           }}</span>
       </div>
     </div>

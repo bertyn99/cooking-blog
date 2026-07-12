@@ -19,16 +19,17 @@ export default defineEventHandler(async (event) => {
   const where = buildRecipesWhere({ include, filters, isAuthenticated })
   const withObj = buildRecipesWith(include)
 
-  const [{ count: total }] = await db.select({ count: sql<number>`count(*)` }).from(schema.recipes).where(where).all()
+  const countResult = await db.select({ count: sql<number>`count(*)` }).from(schema.recipes).where(where).all()
+  const total = countResult[0]?.count ?? 0
   const { offset, limit, page, pageSize } = parsePagination(query as Record<string, string>)
 
-  let dbQuery = db.select().from(schema.recipes)
-  if (where) dbQuery = dbQuery.where(where)
-  if (withObj) dbQuery = dbQuery.with(withObj as Record<string, any>)
-
-  const rows = await dbQuery
-    .orderBy(desc(schema.recipes.publishedAt))
-    .limit(limit).offset(offset).all()
+  const rows = await db.query.recipes.findMany({
+    where,
+    with: withObj,
+    orderBy: [desc(schema.recipes.publishedAt)],
+    limit,
+    offset,
+  })
 
   return paginateResult(rows, total, page, pageSize)
 })

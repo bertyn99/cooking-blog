@@ -41,7 +41,7 @@ const links = [
       <ul
         class="flex gap-3 text-xs text-center align-top border-0 text-zinc-700 font-semibold tracking-widest uppercase"
       >
-        <li class v-for="item in links" :key="item.id">
+        <li v-for="item in links" :key="item.id">
           <NuxtLink :to="item.url">
             {{ item.name }}
           </NuxtLink>

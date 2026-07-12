@@ -10,7 +10,7 @@
  * Returns 404 if the category does not exist or is already soft-deleted.
  */
 import { db, schema } from 'hub:db'
-import { eq, isNull } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { createApiError } from '../../utils/errors'
 
 export default defineEventHandler(async (event) => {

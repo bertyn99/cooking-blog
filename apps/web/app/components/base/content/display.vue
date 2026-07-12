@@ -12,6 +12,8 @@ import UiGrid from '@/components/strapi/ui/grid.vue'
 import UiCard from '@/components/strapi/ui/card.vue'
 import UiBanner from '@/components/strapi/ui/banner.vue'
 
+import type { StrapiContentBlock } from '~/types/strapiMeta'
+
 const componentsMap = {
   'ui.text': UiText,
   'ui.image': UiImage,
@@ -24,24 +26,30 @@ const componentsMap = {
   'ui.grid': UiGrid,
   'ui.card': UiCard,
   'ui.banner': UiBanner,
-}
+} as const
 
-const { content } = defineProps<{ content: any[] }>()
+type ComponentKey = keyof typeof componentsMap
+
+const { content } = defineProps<{ content: StrapiContentBlock[] }>()
 
 const formattedContent = computed(() =>
   content.map((item) => {
-    if (item["__component"] === "ui.text") {
-      return { ...item, content: item?.content || "" }
+    if (item.__component === "ui.text") {
+      return { ...item, content: item.content || "" }
     }
     return item
   })
 )
+
+const resolveComponent = (componentName: string) => {
+  return componentsMap[componentName as ComponentKey]
+}
 </script>
 
 <template>
   <component
     v-for="item in formattedContent"
-    :is="componentsMap[item['__component']]"
+    :is="resolveComponent(item.__component)"
     v-bind="item"
     :key="item.id"
   />

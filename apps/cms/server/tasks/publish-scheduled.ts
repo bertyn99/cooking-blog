@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, lte, sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 export default defineTask({
   meta: {
@@ -8,31 +8,42 @@ export default defineTask({
   },
   async run() {
     const now = new Date().toISOString()
-    const tables = [
-      schema.articles,
-      schema.recipes,
-      schema.pages,
-    ]
-
     let count = 0
-    for (const table of tables) {
+
+    for (const table of [schema.articles, schema.recipes]) {
       const items = await db.select({ id: table.id, firstPublishedAt: table.firstPublishedAt })
         .from(table)
         .where(eq(table.status, 'scheduled'))
         .all()
 
       for (const item of items) {
-        if (item.firstPublishedAt) continue // paranoia check — scheduled shouldn't have been published before
+        if (item.firstPublishedAt) continue
         await db.update(table)
           .set({
             status: 'published',
             publishedAt: now,
-            firstPublishedAt: item.firstPublishedAt ?? now,
+            firstPublishedAt: now,
             scheduledAt: null,
           })
           .where(eq(table.id, item.id))
         count++
       }
+    }
+
+    const pages = await db.select({ id: schema.pages.id })
+      .from(schema.pages)
+      .where(eq(schema.pages.status, 'scheduled'))
+      .all()
+
+    for (const page of pages) {
+      await db.update(schema.pages)
+        .set({
+          status: 'published',
+          publishedAt: now,
+          scheduledAt: null,
+        })
+        .where(eq(schema.pages.id, page.id))
+      count++
     }
 
     return { result: { published: count } }

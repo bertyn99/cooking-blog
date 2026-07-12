@@ -1,15 +1,15 @@
 <script lang="ts" setup>
-import type { Recipe } from "~/types/strapiMeta";
+import type { Article, Category, StrapiResponse } from "~/types/strapiMeta";
 
 const search = ref("");
-const checkedCategories = ref([]);
+const checkedCategories = ref<string[]>([]);
 const currentPage = ref(1);
 const { find } = useStrapi();
 
-const { data: articles, refresh } = await useAsyncData<Recipe>(
+const { data: articles, refresh } = await useAsyncData<StrapiResponse<Article>>(
   `articles`,
   () =>
-    find(`articles`, {
+    find<Article>(`articles`, {
       filters: {
         title: { $contains: search.value },
         category: { name: { $in: checkedCategories.value } },
@@ -21,18 +21,17 @@ const { data: articles, refresh } = await useAsyncData<Recipe>(
         pageSize: 7,
       },
     }),
-  { watch: [currentPage] }
+  { watch: [currentPage] },
 );
 
-  console.log(articles.value.data[1]);
 const { data: categories } = await useAsyncData(`categories`, () =>
-  find(`category-articles?fields=name`)
+  find<Category>(`category-articles?fields=name`),
 );
 
 const formatCategories = computed(() =>
-  categories.value?.data.map((category: any) => {
-    return { name: category.name, id: category.id };
-  })
+  categories.value?.data.map((category) => {
+    return { name: category.name ?? "", id: category.id ?? 0 };
+  }),
 );
 
 const searchWithFilter = () => {
@@ -40,7 +39,7 @@ const searchWithFilter = () => {
 };
 
 const goNext = () => {
-  if (currentPage.value < articles.value.meta.pagination.pageCount + 1) {
+  if (articles.value && currentPage.value < articles.value.meta.pagination.pageCount + 1) {
     currentPage.value += 1;
   }
 };
@@ -69,16 +68,16 @@ const goTo = (id: number) => {
   >
     <div class="pb-24 pt-6 grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
       <Filter
-        :categories="formatCategories"
+        :categories="formatCategories ?? []"
         :searchValue="search"
         @update:search-value="search = $event"
         v-model:selected="checkedCategories"
         @filter="searchWithFilter"
       />
       <div class="lg:col-span-3">
-        <ArticleList :articles="articles.data"></ArticleList>
+        <ArticleList :articles="articles?.data ?? []"></ArticleList>
         <BasePagination
-          :totalPage="articles.meta.pagination.pageCount"
+          :totalPage="articles?.meta.pagination.pageCount ?? 1"
           :currentPage="currentPage"
           :prev="goPrev"
           :next="goNext"

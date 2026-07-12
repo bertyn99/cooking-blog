@@ -2,7 +2,7 @@
  * Converts include query param to array of relation names.
  * Example: "cover,category,seo" -> ["cover", "category", "seo"]
  */
-export function parseInclude(query: Record<string, any>): string[] {
+export function parseInclude(query: Record<string, unknown>): string[] {
   const include = query.include as string
   if (!include) return []
   if (include === '*') return ['*']
