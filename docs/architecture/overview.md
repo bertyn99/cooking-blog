@@ -44,7 +44,7 @@ Legacy root-level `app/`, `server/`, and `layers/` directories may still exist d
 | Rendering | Nuxt SSR, ISR route rules, French UI |
 | Content fetch | `useStrapi()` adapter → HTTP to CMS (`runtimeConfig.public.cmsBaseUrl`) |
 | SEO | `@nuxtjs/seo`, sitemap, OG images, schema.org |
-| Markdown (current) | `@nuxtjs/mdc` — planned replacement with Comark |
+| Markdown | `@nuxtjs/mdc` today; **Comark** planned. Articles + pages store **markdown strings** in CMS — no Strapi dynamic zones in DB ([ADR-005](./adr-005-page-content-markdown-not-dynamic-zones.md)) |
 | Server routes | Sitemap sources, RSS, legacy `/blog/:slug` redirects |
 | Database | **None** — consumes JSON over HTTP only |
 
@@ -55,7 +55,7 @@ Default CMS URL: `http://localhost:3001` (override via `NUXT_PUBLIC_CMS_BASE_URL
 | Concern | Implementation |
 |---------|----------------|
 | API | Nitro REST under `/api/*` (articles, recipes, pages, categories, media, auth, SEO) |
-| Persistence | Drizzle ORM + SQLite (local dev via NuxtHub; **planned:** Cloudflare D1 via Alchemy v2) |
+| Persistence | Drizzle ORM v1 + SQLite (local dev via NuxtHub; **planned:** Cloudflare D1 via Alchemy v2). Schema parity vs Strapi: [audit](./cms-strapi-schema-audit.md) |
 | Auth | JWT + RBAC middleware on write routes |
 | Media | Blob storage (R2 planned) |
 | Tasks | Nitro scheduled tasks (e.g. `publish-scheduled` cron) |
@@ -107,8 +107,8 @@ Documented in [`IMPLEMENTATION_PLAN.md`](../../IMPLEMENTATION_PLAN.md):
 | Area | Current (T0) | Target |
 |------|--------------|--------|
 | Infrastructure | NuxtHub (`hub:db`, blob, kv) on CMS | **Alchemy v2** — D1, R2, KV, Cron as code |
-| Markdown | `@nuxtjs/mdc` on web | **@comark/nuxt** |
-| Migration | External Strapi v5 | **Strapi extract** Nitro task + per-entity services |
-| Strapi module | Removed from web; adapter in `useStrapi.ts` | Full parity for `populate: "*"` and filters |
+| Markdown | `@nuxtjs/mdc` on web | **@comark/nuxt**; pages still on legacy `BaseContentDisplay` until migrated ([ADR-005](./adr-005-page-content-markdown-not-dynamic-zones.md)) |
+| Migration | External Strapi v5 | **Strapi extract** — zones → markdown for pages; `legacy_strapi_map` for IDs |
+| Strapi module | Removed from web; adapter in `useStrapi.ts` | Response serializers + filter parity; fix `articles` → `category_articles` FK ([audit](./cms-strapi-schema-audit.md)) |
 
 These are intentional next phases; T0 establishes the monorepo boundary and HTTP contract between web and CMS.

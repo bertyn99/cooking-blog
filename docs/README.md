@@ -11,6 +11,8 @@ Architecture and decision records for the **journalducuistot** pnpm monorepo (Fr
 | [ADR-002: Schemas in CMS](./architecture/adr-002-schemas-in-cms-not-shared-package.md) | Drizzle schemas colocated in `apps/cms`, no `packages/db` |
 | [ADR-003: Oxlint + Oxfmt](./architecture/adr-003-oxlint-oxfmt-tooling.md) | Lint and format tooling across the monorepo |
 | [ADR-004: TypeScript 6](./architecture/adr-004-typescript-6.md) | TypeScript 6 baseline and rollout |
+| [ADR-005: Page content as markdown](./architecture/adr-005-page-content-markdown-not-dynamic-zones.md) | No Strapi dynamic zones in DB; MDC/Comark markdown for pages |
+| [CMS ↔ Strapi schema audit](./architecture/cms-strapi-schema-audit.md) | Field-level parity check vs live Strapi and web expectations |
 | [Oxlint migration report](./architecture/oxlint-migration-report.md) | `@oxlint/migrate` results from Nuxt ESLint configs |
 
 ## Related planning

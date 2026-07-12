@@ -8,8 +8,12 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxthub/core',
+    '@nuxt/ui',
+    '@vueuse/nuxt',
     'evlog'
   ],
+
+  css: ['~/assets/css/main.css'],
 
   devtools: {
     enabled: true

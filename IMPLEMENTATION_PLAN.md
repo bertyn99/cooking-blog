@@ -31,7 +31,7 @@ Migrate from Strapi v5 CMS to a custom Nuxt layer. Focus first on building the l
 - **Nuxt version**: Nuxt 4 (^4.4.5 via pnpm catalog) on both apps
 - **Infrastructure**: [Alchemy v2](https://v2.alchemy.run/) — D1, R2, KV, Cron (NOT NuxtHub)
 - **Media Storage**: Cloudflare R2 via Alchemy `Cloudflare.R2.Bucket` binding
-- **Page/Article content**: Comark markdown strings in D1 (migrated from Strapi dynamic zones → markdown)
+- **Page/Article content**: Comark markdown strings in D1 (migrated from Strapi dynamic zones → markdown). **Pages do not store dynamic-zone JSON** — see [ADR-005](docs/architecture/adr-005-page-content-markdown-not-dynamic-zones.md) and [CMS ↔ Strapi schema audit](docs/architecture/cms-strapi-schema-audit.md).
 - **Markdown rendering**: [@comark/nuxt](https://comark.dev/rendering/nuxt) — auto-imported `<Comark>`, streaming support, `~/components/prose` overrides
 - **Content store**: D1 for all CMS entities (articles, recipes, pages, categories) — NOT Nuxt Content
 - **Auth**: Multi-user JWT + RBAC on CMS API (admin UI deferred)
