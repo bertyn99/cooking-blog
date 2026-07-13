@@ -1,16 +1,22 @@
-import { db, schema } from 'hub:db'
-import { eq, and, isNull } from 'drizzle-orm'
+import { createArticleQueries } from '../../db/queries/articles'
+import { parseInclude } from '../../utils/populate'
+import { createApiError } from '../../utils/errors'
+import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
-  const id = parseInt(getRouterParam(event, 'id') || '')
-  if (isNaN(id)) throw createError({ statusCode: 404 })
+  const id = Number.parseInt(getRouterParam(event, 'id') || '', 10)
+  if (Number.isNaN(id)) {
+    throw createApiError('NOT_FOUND', 'Article not found')
+  }
 
-  const isAuthenticated = !!event.context?.user
-  const conditions = [eq(schema.articles.id, id)]
-  if (!isAuthenticated) conditions.push(eq(schema.articles.status, 'published'), isNull(schema.articles.deletedAt))
+  const query = getQuery(event)
+  const include = parseInclude(query as Record<string, unknown>)
+  const db = useDb(event)
+  const article = await createArticleQueries(db).findById(id, include, 'public')
 
-  const article = await db.select().from(schema.articles).where(and(...conditions)).get()
-  if (!article) throw createError({ statusCode: 404 })
+  if (!article) {
+    throw createApiError('NOT_FOUND', 'Article not found')
+  }
 
   return article
 })

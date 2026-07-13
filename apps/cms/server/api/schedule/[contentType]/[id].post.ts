@@ -1,44 +1,19 @@
-import { db, schema } from 'hub:db'
-import { eq } from 'drizzle-orm'
+import { createPublishingService } from '../../../services/publishing-service'
+import { useDb } from '../../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const contentType = getRouterParam(event, 'contentType') || ''
-  const id = parseInt(getRouterParam(event, 'id') || '')
-  if (isNaN(id)) throw createError({ statusCode: 404 })
-
-  const body = await readBody(event)
-  const date = body.date
-  if (!date) throw createError({ statusCode: 400, statusMessage: 'date is required' })
-
-  switch (contentType) {
-    case 'articles':
-      await db.update(schema.articles)
-        .set({ status: 'scheduled', scheduledAt: date })
-        .where(eq(schema.articles.id, id))
-      break
-    case 'recipes':
-      await db.update(schema.recipes)
-        .set({ status: 'scheduled', scheduledAt: date })
-        .where(eq(schema.recipes.id, id))
-      break
-    case 'pages':
-      await db.update(schema.pages)
-        .set({ status: 'scheduled', scheduledAt: date })
-        .where(eq(schema.pages.id, id))
-      break
-    case 'categories':
-      await db.update(schema.categories)
-        .set({ status: 'scheduled' })
-        .where(eq(schema.categories.id, id))
-      break
-    case 'category-articles':
-      await db.update(schema.categoryArticles)
-        .set({ status: 'scheduled' })
-        .where(eq(schema.categoryArticles.id, id))
-      break
-    default:
-      throw createError({ statusCode: 400, statusMessage: `Unknown content type: ${contentType}` })
+  const id = Number.parseInt(getRouterParam(event, 'id') || '', 10)
+  if (Number.isNaN(id)) {
+    throw createError({ statusCode: 404 })
   }
 
-  return { status: 'scheduled', scheduledAt: date }
+  const body = await readBody<{ date?: string, scheduledAt?: string }>(event)
+  const scheduledAt = body?.scheduledAt ?? body?.date
+  if (!scheduledAt) {
+    throw createError({ statusCode: 400, statusMessage: 'scheduledAt is required' })
+  }
+
+  const db = useDb(event)
+  return createPublishingService(db).schedule(contentType, id, scheduledAt)
 })

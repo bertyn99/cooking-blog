@@ -9,15 +9,18 @@
  *
  * Returns 404 if the category does not exist or is already soft-deleted.
  */
-import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { schema } from '../../db/create-db'
 import { createApiError } from '../../utils/errors'
+import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
   if (!Number.isFinite(id) || id < 1) {
     throw createApiError('VALIDATION_ERROR', 'Invalid category ID')
   }
+
+  const db = useDb(event)
 
   // Check category exists and is not already deleted
   const existing = await db

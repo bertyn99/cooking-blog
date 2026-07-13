@@ -5,6 +5,7 @@ node_modules
 .nitro
 .cache
 .output
+.wrangler
 .env
 dist
 coverage
@@ -12,3 +13,4 @@ coverage
 
 .data
 apps/cms/.data
+.alchemy

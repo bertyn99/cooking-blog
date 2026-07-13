@@ -9,13 +9,14 @@
  * Response: { user: SafeUser }
  */
 import { eq } from 'drizzle-orm'
-import { db, schema } from 'hub:db'
+import { schema } from '../../db/create-db'
 import {
   extractBearerToken,
   sanitizeUser,
   verifyJwt
 } from '../../utils/auth'
 import { createApiError } from '../../utils/errors'
+import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const authHeader = getRequestHeader(event, 'authorization')
@@ -30,8 +31,7 @@ export default defineEventHandler(async (event) => {
     throw createApiError('UNAUTHORIZED', 'Invalid or expired token')
   }
 
-  // Re-fetch the user from DB to ensure they still exist and to read the
-  // freshest row (role may have changed since token issuance).
+  const db = useDb(event)
   const rows = await db
     .select()
     .from(schema.users)

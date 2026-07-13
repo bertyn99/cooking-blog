@@ -14,15 +14,17 @@
  * The slug is auto-generated from name via slugifyString().
  * Checks for slug uniqueness within the same locale.
  */
-import { db, schema } from 'hub:db'
 import { eq, and } from 'drizzle-orm'
+import { schema } from '../../db/create-db'
 import { createRecipeCategorySchema } from '../../utils/validations/categories'
 import { validateBody } from '../../utils/validate'
 import { createApiError } from '../../utils/errors'
 import { slugifyString } from '../../utils/slug'
+import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const body = validateBody(createRecipeCategorySchema, await readBody(event))
+  const db = useDb(event)
 
   // Generate slug from name
   const baseSlug = slugifyString(body.name)

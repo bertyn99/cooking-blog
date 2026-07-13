@@ -21,11 +21,12 @@
  * - 200 { data: { seo } } (with nested socialMeta)
  * - 400 if contentType or contentId is invalid, or body validation fails
  */
-import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { schema } from '../../../db/create-db'
 import { z } from 'zod'
 import { createApiError } from '../../../utils/errors'
 import { getSeoFilter } from '../../../utils/seo'
+import { useDb } from '../../../utils/db'
 
 // ---------------------------------------------------------------------------
 // Validation schemas
@@ -87,6 +88,7 @@ export default defineEventHandler(async (event) => {
   }
   const body: SeoBody = parseResult.data
 
+  const db = useDb(event)
   const filter = getSeoFilter(contentType, contentId)
 
   // Upsert SEO record + replace socialMeta in a transaction

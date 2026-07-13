@@ -1,8 +1,8 @@
 /**
  * Rate-limiting primitives — pure functions that accept a KV-like store.
  *
- * Kept separate from `hub:kv` import so the logic can be unit-tested with
- * an in-memory mock store. The login handler wires `hub:kv` in at call time.
+ * Kept separate from Cloudflare KV so the logic can be unit-tested with
+ * an in-memory mock store. Login wires `useKvStore(event)` at call time.
  *
  * Strategy: token-bucket-style counter keyed by IP. After MAX_FAILURES failed
  * attempts within WINDOW_SECONDS, the IP is blocked until the TTL expires.
@@ -34,16 +34,11 @@ export interface RateLimitResult {
  *
  * @example
  * ```ts
- * import { kv } from 'hub:kv'
- * const limiter = createRateLimiter(kv, {
+ * const limiter = createRateLimiter(useKvStore(event), {
  *   prefix: 'login:fail',
  *   maxFailures: 5,
  *   windowSeconds: 15 * 60,
  * })
- *
- * const { blocked } = await limiter.check('1.2.3.4')
- * if (blocked) throw new Error('Too many attempts')
- * await limiter.increment('1.2.3.4')
  * ```
  */
 export function createRateLimiter(store: RateLimitStore, config: RateLimitConfig) {

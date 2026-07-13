@@ -3,17 +3,13 @@ import typography from "@tailwindcss/typography";
 
 export default {
   content: [
-    "./storyblok/**/*.{vue,js}",
+    "./app/**/*.{vue,js,ts}",
     "./components/**/*.{vue,js,ts}",
-    `./layouts/**/*.vue`,
+    "./layouts/**/*.vue",
     "./pages/**/*.vue",
-    `./composables/**/*.{js,ts}`,
-    `./plugins/**/*.{js,ts}`,
-    `./utils/**/*.{js,ts}`,
-    `./App.{js,ts,vue}`,
-    "./app.{js,ts,vue}",
-    `./Error.{js,ts,vue}`,
-    `./error.{js,ts,vue}`,
+    "./composables/**/*.{js,ts}",
+    "./plugins/**/*.{js,ts}",
+    "./utils/**/*.{js,ts}",
   ],
   theme: {
     extend: {

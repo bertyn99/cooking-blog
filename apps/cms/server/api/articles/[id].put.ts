@@ -1,12 +1,14 @@
-import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { schema } from '../../db/create-db'
 import { validateBody } from '../../utils/validate'
 import { updateArticleSchema } from '../../utils/validations/articles'
+import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const id = parseInt(getRouterParam(event, 'id') || '')
   if (isNaN(id)) throw createError({ statusCode: 404 })
 
+  const db = useDb(event)
   const existing = await db.select().from(schema.articles).where(eq(schema.articles.id, id)).get()
   if (!existing) throw createError({ statusCode: 404 })
 

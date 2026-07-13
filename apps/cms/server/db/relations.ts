@@ -1,11 +1,11 @@
 import { defineRelations } from 'drizzle-orm'
-import * as schema from 'hub:db:schema'
+import * as schema from './schema'
 
 export const relations = defineRelations(schema, (r) => ({
   articles: {
-    category: r.one.categories({
+    category: r.one.categoryArticles({
       from: r.articles.categoryId,
-      to: r.categories.id,
+      to: r.categoryArticles.id,
     }),
     cover: r.one.blobs({
       from: r.articles.coverBlobPathname,
@@ -16,16 +16,30 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.seo.articleId,
     }),
   },
+  categoryArticles: {
+    articles: r.many.articles({
+      from: r.categoryArticles.id,
+      to: r.articles.categoryId,
+    }),
+  },
   categories: {
     categoryBlobs: r.many.categoryBlobs({
       from: r.categories.id,
       to: r.categoryBlobs.categoryId,
+    }),
+    recipes: r.many.recipes({
+      from: r.categories.id,
+      to: r.recipes.categoryId,
     }),
   },
   categoryBlobs: {
     category: r.one.categories({
       from: r.categoryBlobs.categoryId,
       to: r.categories.id,
+    }),
+    blob: r.one.blobs({
+      from: r.categoryBlobs.blobPathname,
+      to: r.blobs.pathname,
     }),
   },
   recipes: {
@@ -92,6 +106,16 @@ export const relations = defineRelations(schema, (r) => ({
     seo: r.one.seo({
       from: r.socialMeta.seoId,
       to: r.seo.id,
+    }),
+    image: r.one.blobs({
+      from: r.socialMeta.imageBlobPathname,
+      to: r.blobs.pathname,
+    }),
+  },
+  sessions: {
+    user: r.one.users({
+      from: r.sessions.userId,
+      to: r.users.id,
     }),
   },
 }))

@@ -1,7 +1,5 @@
 import { join } from 'node:path'
-import { drizzle } from 'drizzle-orm/libsql'
-import * as schema from 'hub:db:schema'
-import { relations } from './relations'
+import { createLibsqlDb, type AppDb } from './create-db'
 
 function resolveLibsqlConnection() {
   const url = process.env.TURSO_DATABASE_URL
@@ -18,6 +16,19 @@ function resolveLibsqlConnection() {
   return { url: `file:${join(process.cwd(), '.data/db/sqlite.db')}` }
 }
 
-const db = drizzle({ connection: resolveLibsqlConnection(), relations })
+let localDb: AppDb | undefined
 
-export { db, schema }
+/** Singleton libSQL client for local development. */
+export function getLocalDb(): AppDb {
+  if (!localDb) {
+    localDb = createLibsqlDb(resolveLibsqlConnection())
+  }
+  return localDb
+}
+
+/**
+ * @deprecated Use `useDb(event)` for request-scoped D1/libSQL selection.
+ */
+export const db = getLocalDb()
+
+export { schema } from './create-db'

@@ -1,6 +1,7 @@
 {
   "name": "journalducuistot",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev:web": "pnpm --filter web dev",
     "dev:cms": "pnpm --filter cms dev",
@@ -10,15 +11,33 @@
     "build:cms": "pnpm --filter cms build",
     "test": "pnpm --filter cms test",
     "typecheck": "pnpm -r typecheck",
+    "typecheck:alchemy": "tsc -p tsconfig.alchemy.json",
     "lint": "pnpm -r lint",
     "lint:fix": "pnpm -r lint:fix",
     "fmt": "pnpm -r fmt",
     "fmt:check": "pnpm -r fmt:check",
-    "postinstall": "pnpm -r postinstall"
+    "postinstall": "pnpm -r postinstall",
+    "alchemy": "alchemy",
+    "deploy": "pnpm alchemy deploy",
+    "deploy:plan": "pnpm alchemy plan",
+    "dev:infra": "pnpm alchemy dev",
+    "login:alchemy": "pnpm alchemy login",
+    "bootstrap:alchemy": "pnpm alchemy cloudflare bootstrap",
+    "state:alchemy:logs": "pnpm alchemy cloudflare state logs"
   },
   "engines": {
-    "node": ">=20",
+    "node": ">=22",
     "pnpm": ">=9"
   },
-  "packageManager": "pnpm@10.33.4"
+  "packageManager": "pnpm@10.33.4",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260712.1",
+    "@effect/platform-node": "4.0.0-beta.94",
+    "@effect/sql-pg": "4.0.0-beta.94",
+    "alchemy": "2.0.0-beta.61",
+    "drizzle-kit": "catalog:",
+    "drizzle-orm": "catalog:",
+    "effect": "4.0.0-beta.94",
+    "typescript": "catalog:"
+  }
 }

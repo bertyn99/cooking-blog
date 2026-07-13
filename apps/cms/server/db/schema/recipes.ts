@@ -1,13 +1,15 @@
 import { sql } from 'drizzle-orm'
 import { sqliteTable, text, integer, uniqueIndex, index } from 'drizzle-orm/sqlite-core'
+import { blobs } from './blobs'
+import { categories } from './categories'
 
 export const recipes = sqliteTable('recipes', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   title: text('title').notNull(),
   intro: text('intro'),
   slug: text('slug').notNull(),
-  coverBlobPathname: text('cover_blob_pathname'),
-  categoryId: integer('category_id'),
+  coverBlobPathname: text('cover_blob_pathname').references(() => blobs.pathname),
+  categoryId: integer('category_id').references(() => categories.id),
   step: text('step'),
   difficulty: text('difficulty', { enum: ['easy', 'medium', 'hard'] }).default('easy'),
   time: integer('time'),
@@ -17,6 +19,7 @@ export const recipes = sqliteTable('recipes', {
   scheduledAt: text('scheduled_at'),
   locale: text('locale').default('fr').notNull(),
   localeGroupId: text('locale_group_id'),
+  version: integer('version').default(1).notNull(),
   deletedAt: text('deleted_at'),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),

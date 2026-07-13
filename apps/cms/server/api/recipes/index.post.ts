@@ -1,12 +1,14 @@
-import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { schema } from '../../db/create-db'
 import { validateBody } from '../../utils/validate'
 import { createRecipeSchema } from '../../utils/validations/recipes'
 import { slugifyString, generateUniqueSlug } from '../../utils/slug'
+import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const data = validateBody(createRecipeSchema, body)
+  const db = useDb(event)
 
   const baseSlug = data.slug || slugifyString(data.title)
   const existing = await db.select({ slug: schema.recipes.slug })

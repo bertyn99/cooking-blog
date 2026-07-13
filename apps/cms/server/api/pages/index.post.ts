@@ -14,16 +14,17 @@
  * The slug is auto-generated from name.
  * Checks for slug uniqueness within the same locale.
  */
-import { db } from 'hub:db'
 import { eq, and } from 'drizzle-orm'
 import { pages } from '../../db/schema/pages'
 import { createPageSchema } from '../../utils/validations/pages'
 import { validateBody } from '../../utils/validate'
 import { createApiError } from '../../utils/errors'
 import { slugifyString } from '../../utils/slug'
+import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const body = validateBody(createPageSchema, await readBody(event))
+  const db = useDb(event)
 
   // Generate slug from name
   const baseSlug = slugifyString(body.name)

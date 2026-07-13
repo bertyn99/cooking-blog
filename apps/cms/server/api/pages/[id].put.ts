@@ -14,12 +14,13 @@
  * If name is updated, the slug is NOT automatically regenerated — the
  * existing slug is preserved. Use a dedicated slug-update endpoint if needed.
  */
-import { db } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import type { AppDb } from '../../db/create-db'
 import { pages } from '../../db/schema/pages'
 import { updatePageSchema } from '../../utils/validations/pages'
 import { validateBody } from '../../utils/validate'
 import { createApiError } from '../../utils/errors'
+import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
@@ -27,6 +28,7 @@ export default defineEventHandler(async (event) => {
     throw createApiError('VALIDATION_ERROR', 'Invalid page ID')
   }
 
+  const db = useDb(event)
   const body = validateBody(updatePageSchema, await readBody(event))
 
   // Check page exists
@@ -42,7 +44,7 @@ export default defineEventHandler(async (event) => {
 
   // Circular reference detection when parentId is being changed
   if (body.parentId !== undefined && body.parentId !== existing[0]!.parentId) {
-    const cycleDetected = await checkCircularRef(id, body.parentId)
+    const cycleDetected = await checkCircularRef(db, id, body.parentId)
     if (cycleDetected) {
       throw createApiError(
         'VALIDATION_ERROR',
@@ -91,6 +93,7 @@ export default defineEventHandler(async (event) => {
  * @returns true if a cycle is detected, false otherwise
  */
 async function checkCircularRef(
+  db: AppDb,
   pageId: number,
   newParentId: number | null,
 ): Promise<boolean> {

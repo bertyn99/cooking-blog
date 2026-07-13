@@ -1,3 +1,15 @@
-// Schema files in server/db/schema/ are auto-discovered by NuxtHub v0.10
-// This barrel file is intentionally empty — schemas added in T3/T4
-export {}
+export * from './schema/articles'
+export * from './schema/audit-events'
+export * from './schema/blobs'
+export * from './schema/categories'
+export * from './schema/content-revisions'
+export * from './schema/ingredients'
+export * from './schema/legacy-strapi-map'
+export * from './schema/nutrition'
+export * from './schema/pages'
+export * from './schema/recipes'
+export * from './schema/reviews'
+export * from './schema/seo'
+export * from './schema/sessions'
+export * from './schema/social-meta'
+export * from './schema/users'

@@ -9,11 +9,12 @@
  * If name is updated, the slug is NOT automatically regenerated —
  * use a dedicated slug-update endpoint or pass slug explicitly.
  */
-import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { schema } from '../../db/create-db'
 import { updateArticleCategorySchema } from '../../utils/validations/categories'
 import { validateBody } from '../../utils/validate'
 import { createApiError } from '../../utils/errors'
+import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
@@ -21,6 +22,7 @@ export default defineEventHandler(async (event) => {
     throw createApiError('VALIDATION_ERROR', 'Invalid category ID')
   }
 
+  const db = useDb(event)
   const body = validateBody(updateArticleCategorySchema, await readBody(event))
 
   // Check category exists

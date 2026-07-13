@@ -1,22 +1,19 @@
-import { db } from 'hub:db'
-import { buildRecipeDetailQueryWhere } from '../../utils/queries/recipes'
+import { createRecipeQueries } from '../../db/queries/recipes'
+import { createApiError } from '../../utils/errors'
+import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
-  const id = parseInt(getRouterParam(event, 'id') || '')
-  if (isNaN(id)) throw createError({ statusCode: 404 })
+  const id = Number.parseInt(getRouterParam(event, 'id') || '', 10)
+  if (Number.isNaN(id)) {
+    throw createApiError('NOT_FOUND', 'Recipe not found')
+  }
 
-  const isAuthenticated = !!event.context?.user
+  const db = useDb(event)
+  const recipe = await createRecipeQueries(db).findById(id, 'public')
 
-  const recipe = await db.query.recipes.findFirst({
-    where: buildRecipeDetailQueryWhere(id, isAuthenticated),
-    with: {
-      ingredients: true,
-      nutrition: true,
-      reviews: true,
-      seo: { with: { socialMeta: true } },
-    },
-  })
-  if (!recipe) throw createError({ statusCode: 404 })
+  if (!recipe) {
+    throw createApiError('NOT_FOUND', 'Recipe not found')
+  }
 
   return recipe
 })

@@ -1,6 +1,6 @@
-import type { db } from 'hub:db'
+import type { AppDb } from './create-db'
 
-type HubQuery = NonNullable<typeof db.query>
+type HubQuery = NonNullable<AppDb['query']>
 
 export type ArticlesQueryFilter = NonNullable<Parameters<HubQuery['articles']['findMany']>[0]>['where']
 export type ArticlesWith = NonNullable<Parameters<HubQuery['articles']['findMany']>[0]>['with']

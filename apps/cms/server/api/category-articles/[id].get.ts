@@ -1,13 +1,6 @@
-/**
- * GET /api/category-articles/[id] — Get a single article category.
- *
- * Draft protection: unauthenticated users can only view published +
- * non-deleted categories. Returns 404 if the category is not found
- * or is a draft for unauthenticated users.
- */
-import { db, schema } from 'hub:db'
-import { eq, and, isNull } from 'drizzle-orm'
+import { createCategoryArticleQueries } from '../../db/queries/category-articles'
 import { createApiError } from '../../utils/errors'
+import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
@@ -15,25 +8,9 @@ export default defineEventHandler(async (event) => {
     throw createApiError('VALIDATION_ERROR', 'Invalid category ID')
   }
 
-  const isAuthenticated = !!event.context?.user
+  const db = useDb(event)
+  const category = await createCategoryArticleQueries(db).findById(id, 'public')
 
-  // Build where conditions
-  const conditions = [eq(schema.categoryArticles.id, id)]
-
-  // Draft protection
-  if (!isAuthenticated) {
-    conditions.push(eq(schema.categoryArticles.status, 'published'))
-    conditions.push(isNull(schema.categoryArticles.deletedAt))
-  }
-
-  const rows = await db
-    .select()
-    .from(schema.categoryArticles)
-    .where(and(...conditions))
-    .limit(1)
-    .all()
-
-  const category = rows[0]
   if (!category) {
     throw createApiError('NOT_FOUND', 'Category not found')
   }

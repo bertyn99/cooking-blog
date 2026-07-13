@@ -1,13 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
-import { resolve } from 'node:path'
-
 export default defineNuxtConfig({
   devServer: {
     port: 3001
   },
 
   modules: [
-    '@nuxthub/core',
     '@nuxt/ui',
     '@vueuse/nuxt',
     'evlog'
@@ -23,16 +20,36 @@ export default defineNuxtConfig({
     compatibilityVersion: 5
   },
 
-  hub: {
-    db: 'sqlite',
-    blob: true,
-    kv: true,
-    cache: true
-  },
-
   nitro: {
+    preset: 'cloudflare_module',
+    compatibilityDate: '2026-05-27',
+    cloudflare: {
+      deployConfig: true,
+      wrangler: {
+        d1_databases: [
+          {
+            binding: 'DB',
+            database_name: 'cms-local',
+            database_id: 'cms-local',
+          },
+        ],
+        r2_buckets: [
+          {
+            binding: 'Media',
+            bucket_name: 'cms-media-local',
+          },
+        ],
+        kv_namespaces: [
+          {
+            binding: 'Cache',
+            id: 'cms-cache-local',
+          },
+        ],
+      },
+    },
     experimental: {
-      tasks: true
+      tasks: true,
+      asyncContext: true,
     },
     scheduledTasks: {
       '*/5 * * * *': 'publish-scheduled'
@@ -40,12 +57,4 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: '2025-01-15',
-
-  hooks: {
-    ready(nuxt) {
-      const dbClient = resolve(nuxt.options.rootDir, 'server/db/client')
-      nuxt.options.alias['hub:db'] = dbClient
-      nuxt.options.alias['@nuxthub/db'] = dbClient
-    },
-  },
 })

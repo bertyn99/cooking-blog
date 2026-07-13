@@ -1,27 +1,23 @@
-import { blob, ensureBlob } from 'hub:blob'
-import { db, schema } from 'hub:db'
+import type { H3Event } from 'h3'
 import { eq } from 'drizzle-orm'
+import type { AppDb } from '../db/create-db'
+import { schema } from '../db/create-db'
+import { useMediaStorage } from './media-storage'
 
-export async function uploadMedia(file: File) {
-  // Built-in validation: images only, max 5MB
-  ensureBlob(file, { maxSize: '4MB', types: ['image'] })
+export async function uploadMedia(event: H3Event, file: File, db: AppDb) {
+  const storage = useMediaStorage(event)
+  const uploaded = await storage.put(file)
 
-  const uploaded = await blob.put(file.name, file, {
-    addRandomSuffix: true,
-    prefix: 'uploads/',
-  })
-
-  // Optional: create DB record for metadata tracking
   try {
     await db.insert(schema.blobs).values({
       pathname: uploaded.pathname,
       originalName: file.name,
-      mimeType: uploaded.contentType ?? file.type,
-      size: uploaded.size ?? file.size,
+      mimeType: uploaded.contentType,
+      size: uploaded.size,
     })
   }
   catch {
-    // DB insert is best-effort; blob is already stored
+    // DB insert is best-effort; object is already stored
   }
 
   return uploaded
@@ -31,8 +27,9 @@ export function getMediaUrl(pathname: string): string {
   return `/images/${pathname}`
 }
 
-export async function deleteMedia(pathname: string) {
-  await blob.del(pathname)
+export async function deleteMedia(event: H3Event, pathname: string, db: AppDb) {
+  const storage = useMediaStorage(event)
+  await storage.del(pathname)
   try {
     await db.delete(schema.blobs).where(eq(schema.blobs.pathname, pathname))
   }
@@ -41,10 +38,9 @@ export async function deleteMedia(pathname: string) {
   }
 }
 
-export async function listMedia(opts: { limit?: number; cursor?: string; prefix?: string }) {
-  return blob.list({
-    limit: opts.limit ?? 20,
-    cursor: opts.cursor,
-    prefix: opts.prefix ?? 'uploads/',
-  })
+export async function listMedia(
+  event: H3Event,
+  opts: { limit?: number, cursor?: string, prefix?: string },
+) {
+  return useMediaStorage(event).list(opts)
 }

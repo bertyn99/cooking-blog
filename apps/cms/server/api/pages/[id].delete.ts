@@ -9,16 +9,18 @@
  *
  * Returns 404 if the page does not exist or is already soft-deleted.
  */
-import { db } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { pages } from '../../db/schema/pages'
 import { createApiError } from '../../utils/errors'
+import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
   if (!Number.isFinite(id) || id < 1) {
     throw createApiError('VALIDATION_ERROR', 'Invalid page ID')
   }
+
+  const db = useDb(event)
 
   // Check page exists and is not already deleted
   const existing = await db

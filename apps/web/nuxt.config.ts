@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import listRedirects from "./app/utils/redirect";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
@@ -27,7 +28,6 @@ export default defineNuxtConfig({
   },
 
   modules: [
-    "@nuxtjs/tailwindcss",
     "@nuxt/icon",
     "@nuxtjs/partytown",
     "@nuxt/image",
@@ -49,6 +49,12 @@ export default defineNuxtConfig({
     "nuxt-umami"
   ],
 
+  css: ['~/assets/css/index.css'],
+
+  vite: {
+    plugins: [tailwindcss()],
+  },
+
   routeRules: {
     "/": { isr: 60 * 15 },
     "/blog/**": { isr: 60 * 25 },
@@ -68,7 +74,31 @@ export default defineNuxtConfig({
     },
   },
 
+  ogImage: {
+    compatibility: {
+      runtime: {
+        chromium: false,
+        'css-inline': false,
+        resvg: 'wasm-fs',
+        satori: 'node',
+        sharp: false,
+      },
+    },
+  },
+
   nitro: {
+    preset: 'cloudflare_module',
+    compatibilityDate: '2026-05-27',
+    cloudflare: {
+      deployConfig: true,
+      nodeCompat: true,
+    },
+    unenv: {
+      alias: {
+        'process/': 'node:process',
+        'string_decoder/': 'node:string_decoder',
+      },
+    },
     experimental: {
       tasks: true
     },
@@ -125,11 +155,6 @@ export default defineNuxtConfig({
     ignoreLocalhost: true,
     enabled: true,
 
-  },
-
-  tailwindcss: {
-    cssPath: "~/assets/css/index.css",
-    configPath: "~/tailwind.config.ts",
   },
 
   runtimeConfig: {

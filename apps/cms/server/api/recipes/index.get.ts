@@ -1,36 +1,26 @@
-import { db, schema } from 'hub:db'
-import { sql } from 'drizzle-orm'
-import { parsePagination, paginateResult } from '../../utils/pagination'
-import { buildRecipesWhere, buildRecipesQueryWhere, buildRecipesWith } from '../../utils/queries/recipes'
+import { createRecipeQueries } from '../../db/queries/recipes'
+import { parsePagination } from '../../utils/pagination'
+import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const isAuthenticated = !!event.context?.user
+  const db = useDb(event)
 
   const include = ((query.include as string) || '').split(',').map(s => s.trim()).filter(Boolean)
   const filters = {
     slug: query.slug as string | undefined,
-    categoryId: query.categoryId ? parseInt(query.categoryId as string) : undefined,
+    categoryId: query.categoryId ? Number.parseInt(query.categoryId as string, 10) : undefined,
     locale: query.locale as string | undefined,
   }
   if (!filters.slug) delete filters.slug
-  if (isNaN(filters.categoryId as number)) delete filters.categoryId
+  if (Number.isNaN(filters.categoryId as number)) delete filters.categoryId
 
-  const where = buildRecipesWhere({ include, filters, isAuthenticated })
-  const queryWhere = buildRecipesQueryWhere({ include, filters, isAuthenticated })
-  const withObj = buildRecipesWith(include)
+  const pagination = parsePagination(query as Record<string, string>)
 
-  const countResult = await db.select({ count: sql<number>`count(*)` }).from(schema.recipes).where(where).all()
-  const total = countResult[0]?.count ?? 0
-  const { offset, limit, page, pageSize } = parsePagination(query as Record<string, string>)
-
-  const rows = await db.query.recipes.findMany({
-    where: queryWhere,
-    with: withObj,
-    orderBy: { publishedAt: 'desc' },
-    limit,
-    offset,
+  return createRecipeQueries(db).listPage({
+    include,
+    filters,
+    isAuthenticated: false,
+    pagination,
   })
-
-  return paginateResult(rows, total, page, pageSize)
 })

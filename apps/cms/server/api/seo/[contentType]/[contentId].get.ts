@@ -1,18 +1,6 @@
-/**
- * GET /api/seo/:contentType/:contentId
- *
- * Returns the SEO metadata (with nested socialMeta) for a content item.
- *
- * - contentType: 'article' | 'recipe' | 'page'
- * - contentId: the numeric ID of the content item
- *
- * Response:
- * - 200 { data: { seo } }
- * - 404 if no SEO record exists for this content
- * - 400 if contentType is invalid
- */
 import { createApiError } from '../../../utils/errors'
 import { getSeoForContent } from '../../../utils/seo'
+import { useDb } from '../../../utils/db'
 
 const VALID_CONTENT_TYPES = new Set(['article', 'recipe', 'page'])
 
@@ -23,7 +11,7 @@ export default defineEventHandler(async (event) => {
   if (!contentType || !VALID_CONTENT_TYPES.has(contentType)) {
     throw createApiError(
       'VALIDATION_ERROR',
-      `Invalid contentType. Must be one of: ${[...VALID_CONTENT_TYPES].join(', ')}`
+      `Invalid contentType. Must be one of: ${[...VALID_CONTENT_TYPES].join(', ')}`,
     )
   }
 
@@ -31,7 +19,8 @@ export default defineEventHandler(async (event) => {
     throw createApiError('VALIDATION_ERROR', 'Invalid contentId')
   }
 
-  const seo = await getSeoForContent(contentType, contentId)
+  const db = useDb(event)
+  const seo = await getSeoForContent(db, contentType, contentId)
 
   if (!seo) {
     throw createApiError('NOT_FOUND', 'No SEO metadata found for this content')

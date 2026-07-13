@@ -18,8 +18,8 @@
     "test:unit": "vitest --project unit",
     "test:nuxt": "vitest --project nuxt",
     "test:e2e": "vitest --project e2e",
-    "db:generate": "nuxt db generate",
-    "db:migrate": "nuxt db migrate"
+    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
+    "db:migrate": "drizzle-kit migrate --config drizzle.config.ts"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.116",
@@ -27,7 +27,6 @@
     "@libsql/client": "latest",
     "@nuxt/test-utils": "4.0.3",
     "@nuxt/ui": "^4.9.0",
-    "@nuxthub/core": "0.10.7",
     "@tanstack/table-core": "^8.21.3",
     "@vueuse/core": "^13.9.0",
     "@vueuse/nuxt": "^13.9.0",
@@ -39,6 +38,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260712.1",
     "@nuxt/eslint-plugin": "catalog:",
     "@vitest/browser-playwright": "^4.1.6",
     "@vitest/coverage-v8": "^4.1.6",

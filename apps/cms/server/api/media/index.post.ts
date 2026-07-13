@@ -1,4 +1,5 @@
 import { uploadMedia } from '../../utils/media'
+import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const form = await readFormData(event)
@@ -7,7 +8,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'No file provided' })
   }
 
-  const uploaded = await uploadMedia(file)
+  const uploaded = await uploadMedia(event, file, useDb(event))
   setResponseStatus(event, 201)
   return uploaded
 })

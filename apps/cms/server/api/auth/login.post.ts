@@ -1,17 +1,12 @@
 /**
  * POST /api/auth/login
  *
- * Authenticates a user with email + password and returns a JWT plus the
- * sanitized user object. Implements IP-based rate limiting via NuxtHub KV:
- * after 5 failed attempts within 15 minutes, the IP is blocked.
- *
- * Body: { email: string, password: string }
- * Response: { token: string, user: SafeUser }
+ * IP-based rate limiting via Cloudflare KV (Cache binding).
+ * Falls back to in-memory store in local dev without bindings.
  */
 import { z } from 'zod'
 import { eq } from 'drizzle-orm'
-import { db, schema } from 'hub:db'
-import { kv } from 'hub:kv'
+import { schema } from '../../db/create-db'
 import type { H3Event } from 'h3'
 import {
   sanitizeUser,
@@ -19,15 +14,19 @@ import {
   verifyPassword
 } from '../../utils/auth'
 import { createRateLimiter } from '../../utils/rate-limit'
-import type { RateLimiter } from '../../utils/rate-limit'
 import { createApiError } from '../../utils/errors'
+import { useDb } from '../../utils/db'
+import { useKvStore } from '../../utils/kv'
 
-/** Singleton rate-limiter bound to the production KV store. */
-const limiter: RateLimiter = createRateLimiter(kv, {
+const LOGIN_LIMIT = {
   prefix: 'login:fail',
   maxFailures: 5,
-  windowSeconds: 15 * 60 // 15 minutes
-})
+  windowSeconds: 15 * 60,
+} as const
+
+function getLoginLimiter(event: H3Event) {
+  return createRateLimiter(useKvStore(event), LOGIN_LIMIT)
+}
 
 const loginSchema = z.object({
   email: z.string().email().max(255),
@@ -58,6 +57,8 @@ export default defineEventHandler(async (event) => {
   const { email, password } = parsed.data
 
   const ip = getClientIp(event)
+  const db = useDb(event)
+  const limiter = getLoginLimiter(event)
 
   // Pre-check: if IP is already over the limit, refuse without touching the
   // database to prevent password-guessing attacks.
