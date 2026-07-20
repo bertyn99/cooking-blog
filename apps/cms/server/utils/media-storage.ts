@@ -22,6 +22,7 @@ export interface MediaListResult {
 
 export interface MediaStorage {
   put(file: File): Promise<MediaObject>
+  putBuffer(pathname: string, data: ArrayBuffer | Buffer, contentType: string): Promise<MediaObject>
   head(pathname: string): Promise<MediaObject | null>
   get(pathname: string): Promise<{ body: ReadableStream, object: MediaObject } | null>
   del(pathname: string): Promise<void>
@@ -49,6 +50,22 @@ function buildPathname(filename: string) {
   return `${UPLOAD_PREFIX}${randomUUID()}-${sanitizeFilename(filename)}`
 }
 
+function assertSafePathname(pathname: string) {
+  if (!pathname.startsWith(UPLOAD_PREFIX) || pathname.includes('..')) {
+    throw createError({ statusCode: 400, statusMessage: 'Invalid media path' })
+  }
+}
+
+function toBuffer(data: ArrayBuffer | Buffer): Buffer {
+  return data instanceof Buffer ? data : Buffer.from(new Uint8Array(data))
+}
+
+function strapiUrlToPathname(url: string) {
+  const normalized = url.startsWith('/') ? url.slice(1) : url
+  assertSafePathname(normalized)
+  return normalized
+}
+
 function createR2Storage(bucket: R2Bucket): MediaStorage {
   return {
     async put(file) {
@@ -61,6 +78,20 @@ function createR2Storage(bucket: R2Bucket): MediaStorage {
         pathname,
         contentType: file.type,
         size: file.size,
+        etag: uploaded?.etag,
+      }
+    },
+
+    async putBuffer(pathname, data, contentType) {
+      assertSafePathname(pathname)
+      const body = toBuffer(data)
+      const uploaded = await bucket.put(pathname, body, {
+        httpMetadata: { contentType },
+      })
+      return {
+        pathname,
+        contentType,
+        size: body.byteLength,
         etag: uploaded?.etag,
       }
     },
@@ -143,6 +174,21 @@ function createLocalStorage(): MediaStorage {
       }
     },
 
+    async putBuffer(pathname, data, contentType) {
+      assertSafePathname(pathname)
+      const full = await resolvePath(pathname)
+      await mkdir(dirname(full), { recursive: true })
+      const buffer = toBuffer(data)
+      await writeFile(full, buffer)
+      const hash = createHash('sha256').update(buffer).digest('hex')
+      return {
+        pathname,
+        contentType,
+        size: buffer.byteLength,
+        etag: hash,
+      }
+    },
+
     async head(pathname) {
       try {
         const full = await resolvePath(pathname)
@@ -221,4 +267,9 @@ function createLocalStorage(): MediaStorage {
 export function useMediaStorage(event?: H3Event): MediaStorage {
   const bucket = useR2(event)
   return bucket ? createR2Storage(bucket) : createLocalStorage()
+}
+
+/** Map Strapi `/uploads/...` URL to CMS media pathname (`uploads/...`). */
+export function strapiMediaPathnameFromUrl(url: string) {
+  return strapiUrlToPathname(url)
 }

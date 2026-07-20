@@ -19,9 +19,13 @@ import { createArticleCategorySchema } from '../../utils/validations/categories'
 import { validateBody } from '../../utils/validate'
 import { createApiError } from '../../utils/errors'
 import { slugifyString } from '../../utils/slug'
+import { canEditContent } from '../../../shared/abilities'
 import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
+  await requireUserSession(event)
+  await authorize(event, canEditContent)
+
   const body = validateBody(createArticleCategorySchema, await readBody(event))
   const db = useDb(event)
 

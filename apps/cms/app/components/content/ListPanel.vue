@@ -18,7 +18,13 @@ const props = defineProps<{
   panelId: string
   endpoint: string
   createLabel?: string
+  /** Base path for create/edit routes, e.g. `/articles` */
+  contentBasePath?: string
 }>()
+
+const router = useRouter()
+
+const basePath = computed(() => props.contentBasePath ?? props.endpoint.replace(/^\/api/, ''))
 
 const UBadge = resolveComponent('UBadge')
 const UButton = resolveComponent('UButton')
@@ -89,8 +95,7 @@ const columns: TableColumn<ContentRow>[] = [
       color: 'neutral',
       variant: 'ghost',
       size: 'sm',
-      disabled: true,
-      title: 'Édition à venir'
+      onClick: () => router.push(`${basePath.value}/${row.original.id}`),
     })
   }
 ]
@@ -112,8 +117,7 @@ watch([search, statusFilter], () => {
           <UButton
             :label="createLabel ?? 'Nouveau'"
             icon="i-lucide-plus"
-            disabled
-            title="Création à venir"
+            :to="`${basePath}/new`"
           />
         </template>
       </UDashboardNavbar>

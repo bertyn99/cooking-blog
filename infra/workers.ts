@@ -5,7 +5,7 @@ import * as Effect from 'effect/Effect'
 
 const NODE_COMPAT = {
   date: '2025-01-15',
-  flags: ['nodejs_compat'] as const,
+  flags: ['nodejs_compat'],
 }
 
 const PUBLISH_CRON = '*/5 * * * *'
@@ -32,6 +32,7 @@ export const workers = Effect.fn(function* (input: {
       DB: input.DB,
       Media: input.Media,
       Cache: input.Cache,
+      NUXT_SESSION_PASSWORD: Config.string('NUXT_SESSION_PASSWORD'),
     },
     crons: [PUBLISH_CRON],
     compatibility: NODE_COMPAT,

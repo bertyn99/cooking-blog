@@ -7,7 +7,7 @@ defineProps<{
 
 const colorMode = useColorMode()
 const appConfig = useAppConfig()
-const { user, logout } = useAuth()
+const { user, clear } = useUserSession()
 const router = useRouter()
 
 const colors = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose']
@@ -75,9 +75,9 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
 }], [{
   label: 'Se déconnecter',
   icon: 'i-lucide-log-out',
-  onSelect: () => {
-    logout()
-    router.push('/login')
+  onSelect: async () => {
+    await clear()
+    await router.push('/login')
   }
 }]]))
 </script>

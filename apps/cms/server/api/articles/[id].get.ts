@@ -12,7 +12,9 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const include = parseInclude(query as Record<string, unknown>)
   const db = useDb(event)
-  const article = await createArticleQueries(db).findById(id, include, 'public')
+  const session = await getUserSession(event)
+  const scope = session.user ? 'admin' : 'public'
+  const article = await createArticleQueries(db).findById(id, include, scope)
 
   if (!article) {
     throw createApiError('NOT_FOUND', 'Article not found')

@@ -1,14 +1,5 @@
 export type ContentStatus = 'draft' | 'published' | 'scheduled'
 
-export interface SafeUser {
-  id: number
-  email: string
-  username: string | null
-  role: 'admin' | 'editor'
-  createdAt: string
-  updatedAt: string
-}
-
 export interface PaginationMeta {
   page: number
   pageSize: number

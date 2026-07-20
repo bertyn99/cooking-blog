@@ -1,28 +1,18 @@
 /**
  * POST /api/auth/register
+ *
+ * The first user (bootstrap mode) is created without authentication and
+ * becomes admin. Every subsequent registration requires an authenticated
+ * admin (`canManageUsers`).
  */
-import { z } from 'zod'
 import { count, eq } from 'drizzle-orm'
 import type { AppDb } from '../../db/create-db'
 import { schema } from '../../db/create-db'
-import type { H3Event } from 'h3'
-import {
-  extractBearerToken,
-  hashPassword,
-  sanitizeUser,
-  signJwt,
-  verifyJwt,
-  type UserRole
-} from '../../utils/auth'
+import { registerSchema } from '../../../shared/validators/auth'
+import { toSessionUser } from '../../utils/auth/user'
+import { canManageUsers } from '../../../shared/abilities'
 import { createApiError } from '../../utils/errors'
 import { useDb } from '../../utils/db'
-
-const registerSchema = z.object({
-  email: z.string().email().max(255).toLowerCase(),
-  username: z.string().min(1).max(100).optional(),
-  password: z.string().min(8).max(512),
-  role: z.enum(['admin', 'editor']).optional()
-})
 
 export async function isBootstrapMode(db: AppDb): Promise<boolean> {
   const [row] = await db
@@ -32,13 +22,6 @@ export async function isBootstrapMode(db: AppDb): Promise<boolean> {
   return total === 0
 }
 
-async function getAuthenticatedUser(event: H3Event) {
-  const auth = getRequestHeader(event, 'authorization')
-  const token = extractBearerToken(auth)
-  if (!token) return null
-  return verifyJwt(token)
-}
-
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const parsed = registerSchema.safeParse(body)
@@ -46,7 +29,7 @@ export default defineEventHandler(async (event) => {
     throw createApiError(
       'VALIDATION_ERROR',
       'Invalid registration payload',
-      parsed.error.flatten()
+      parsed.error.flatten(),
     )
   }
   const { email, username, password, role } = parsed.data
@@ -55,17 +38,8 @@ export default defineEventHandler(async (event) => {
   const bootstrap = await isBootstrapMode(db)
 
   if (!bootstrap) {
-    const payload = await getAuthenticatedUser(event)
-    if (!payload) {
-      throw createApiError('UNAUTHORIZED', 'Valid authentication required')
-    }
-    if (payload.role !== 'admin') {
-      throw createApiError(
-        'FORBIDDEN',
-        'Only admins can register new users',
-        { requiredRole: 'admin', actualRole: payload.role }
-      )
-    }
+    await requireUserSession(event)
+    await authorize(event, canManageUsers)
   }
 
   const existing = await db
@@ -77,9 +51,7 @@ export default defineEventHandler(async (event) => {
     throw createApiError('VALIDATION_ERROR', 'Email is already registered')
   }
 
-  const resolvedRole: UserRole = bootstrap
-    ? 'admin'
-    : (role ?? 'editor')
+  const resolvedRole: 'admin' | 'editor' = bootstrap ? 'admin' : (role ?? 'editor')
 
   const passwordHash = await hashPassword(password)
 
@@ -89,7 +61,7 @@ export default defineEventHandler(async (event) => {
       email,
       username: username ?? null,
       passwordHash,
-      role: resolvedRole
+      role: resolvedRole,
     })
     .returning()
 
@@ -98,15 +70,17 @@ export default defineEventHandler(async (event) => {
     throw createApiError('INTERNAL_ERROR', 'Failed to create user')
   }
 
-  const token = await signJwt({
-    sub: newUser.id,
-    email: newUser.email,
-    role: newUser.role
-  })
+  const safeUser = toSessionUser(newUser)
+
+  if (bootstrap) {
+    await setUserSession(event, {
+      user: safeUser,
+      loggedInAt: Date.now(),
+    })
+  }
 
   return {
-    token,
-    user: sanitizeUser(newUser),
-    bootstrap
+    user: safeUser,
+    bootstrap,
   }
 })

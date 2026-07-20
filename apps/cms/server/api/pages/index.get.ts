@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const db = useDb(event)
 
-  const { include, page, pageSize } = validateQuery(
+  const { include } = validateQuery(
     query as Record<string, string>,
     [...PAGES_RELATIONS],
   )

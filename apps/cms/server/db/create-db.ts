@@ -16,4 +16,4 @@ export function createLibsqlDb(connection: {
   return drizzleLibsql({ connection, relations })
 }
 
-export type AppDb = ReturnType<typeof createLibsqlDb>
+export type AppDb = ReturnType<typeof createD1Db> | ReturnType<typeof createLibsqlDb>

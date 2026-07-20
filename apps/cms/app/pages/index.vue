@@ -1,22 +1,22 @@
 <script setup lang="ts">
 import type { PaginatedResponse } from '~/types/cms'
 
-const { $api } = useNuxtApp()
+const requestFetch = useRequestFetch()
 
 const { data: articles } = await useAsyncData('dashboard-articles', () =>
-  $api<PaginatedResponse<{ id: number }>>('/api/articles', { query: { pageSize: 1 } })
+  requestFetch<PaginatedResponse<{ id: number }>>('/api/articles', { query: { pageSize: 1 } })
 )
 
 const { data: recipes } = await useAsyncData('dashboard-recipes', () =>
-  $api<PaginatedResponse<{ id: number }>>('/api/recipes', { query: { pageSize: 1 } })
+  requestFetch<PaginatedResponse<{ id: number }>>('/api/recipes', { query: { pageSize: 1 } })
 )
 
 const { data: pages } = await useAsyncData('dashboard-pages', () =>
-  $api<PaginatedResponse<{ id: number }>>('/api/pages', { query: { pageSize: 1 } })
+  requestFetch<PaginatedResponse<{ id: number }>>('/api/pages', { query: { pageSize: 1 } })
 )
 
 const { data: categories } = await useAsyncData('dashboard-categories', () =>
-  $api<PaginatedResponse<{ id: number }>>('/api/categories', { query: { pageSize: 1 } })
+  requestFetch<PaginatedResponse<{ id: number }>>('/api/categories', { query: { pageSize: 1 } })
 )
 
 const stats = computed(() => [

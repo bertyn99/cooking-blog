@@ -2,9 +2,13 @@ import { eq } from 'drizzle-orm'
 import { schema } from '../../db/create-db'
 import { validateBody } from '../../utils/validate'
 import { updateRecipeSchema } from '../../utils/validations/recipes'
+import { canEditContent } from '../../../shared/abilities'
 import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
+  await requireUserSession(event)
+  await authorize(event, canEditContent)
+
   const id = parseInt(getRouterParam(event, 'id') || '')
   if (isNaN(id)) throw createError({ statusCode: 404 })
 

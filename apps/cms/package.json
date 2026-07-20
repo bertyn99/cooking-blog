@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev": "node --import tsx scripts/migrate-local.ts && nuxt dev",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "oxlint .",
@@ -18,8 +18,10 @@
     "test:unit": "vitest --project unit",
     "test:nuxt": "vitest --project nuxt",
     "test:e2e": "vitest --project e2e",
-    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
-    "db:migrate": "drizzle-kit migrate --config drizzle.config.ts"
+    "db:migrate:local": "node --import tsx scripts/migrate-local.ts",
+    "db:seed:admin": "node --import tsx scripts/seed-admin.ts",
+    "task:seed:admin": "nitro task run seed-admin",
+    "task:strapi-extract": "nitro task run strapi-extract"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.116",
@@ -33,6 +35,8 @@
     "drizzle-orm": "catalog:",
     "evlog": "2.17.0",
     "nuxt": "catalog:",
+    "nuxt-auth-utils": "^0.5.29",
+    "nuxt-authorization": "^0.3.5",
     "scule": "^1.3.0",
     "tailwindcss": "^4.3.2",
     "zod": "catalog:"

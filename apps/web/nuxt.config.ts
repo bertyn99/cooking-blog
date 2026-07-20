@@ -3,7 +3,7 @@ import listRedirects from "./app/utils/redirect";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
-  compatibilityDate: '2025-01-01',
+  compatibilityDate: '2026-07-20',
 
   future: {
     compatibilityVersion: 5

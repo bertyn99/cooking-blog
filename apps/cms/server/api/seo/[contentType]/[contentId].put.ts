@@ -25,6 +25,7 @@ import { eq } from 'drizzle-orm'
 import { schema } from '../../../db/create-db'
 import { z } from 'zod'
 import { createApiError } from '../../../utils/errors'
+import { canEditContent } from '../../../../shared/abilities'
 import { getSeoFilter } from '../../../utils/seo'
 import { useDb } from '../../../utils/db'
 
@@ -62,6 +63,9 @@ type ContentType = 'article' | 'recipe' | 'page'
 // ---------------------------------------------------------------------------
 
 export default defineEventHandler(async (event) => {
+  await requireUserSession(event)
+  await authorize(event, canEditContent)
+
   const contentType = getRouterParam(event, 'contentType') as ContentType
   const contentId = Number(getRouterParam(event, 'contentId'))
 

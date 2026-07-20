@@ -1,13 +1,13 @@
 import { eq, sql } from 'drizzle-orm'
 import type { AppDb } from '../create-db'
 import { schema } from '../create-db'
-import { parsePagination, paginateResult } from '../../utils/pagination'
+import { paginateResult } from '../../utils/pagination'
 import { buildArticlesQueryWhere, buildArticlesWith, type ArticlesQueryOptions } from '../../utils/queries/articles'
 import { mergeConditions, applyPublishedScope, localeFilter, searchFilter, statusFilter } from './_shared/filters'
 import { articles } from '../schema/articles'
 
 export interface ArticleListOptions extends ArticlesQueryOptions {
-  pagination: ReturnType<typeof parsePagination>
+  pagination: { offset: number, limit: number, page: number, pageSize: number }
 }
 
 export function createArticleQueries(db: AppDb) {

@@ -9,7 +9,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = useDb(event)
-  const recipe = await createRecipeQueries(db).findById(id, 'public')
+  const session = await getUserSession(event)
+  const scope = session.user ? 'admin' : 'public'
+  const recipe = await createRecipeQueries(db).findById(id, scope)
 
   if (!recipe) {
     throw createApiError('NOT_FOUND', 'Recipe not found')

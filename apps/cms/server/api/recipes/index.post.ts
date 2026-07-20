@@ -3,9 +3,13 @@ import { schema } from '../../db/create-db'
 import { validateBody } from '../../utils/validate'
 import { createRecipeSchema } from '../../utils/validations/recipes'
 import { slugifyString, generateUniqueSlug } from '../../utils/slug'
+import { canEditContent } from '../../../shared/abilities'
 import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
+  await requireUserSession(event)
+  await authorize(event, canEditContent)
+
   const body = await readBody(event)
   const data = validateBody(createRecipeSchema, body)
   const db = useDb(event)

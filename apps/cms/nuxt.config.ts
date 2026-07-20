@@ -5,15 +5,34 @@ export default defineNuxtConfig({
   },
 
   modules: [
+    'nuxt-auth-utils',
+    'nuxt-authorization',
     '@nuxt/ui',
     '@vueuse/nuxt',
-    'evlog'
+    'evlog',
   ],
+
+  runtimeConfig: {
+    session: {
+      maxAge: 60 * 60 * 8,
+    },
+    strapiUrl: process.env.STRAPI_URL || 'https://admin.journalducuistot.fr',
+    strapiApiToken: process.env.STRAPI_API_TOKEN || '',
+  },
 
   css: ['~/assets/css/main.css'],
 
   devtools: {
     enabled: true
+  },
+
+  vite: {
+    optimizeDeps: {
+      include: [
+        '@vue/devtools-core',
+        '@vue/devtools-kit',
+      ],
+    },
   },
 
   future: {
@@ -26,6 +45,7 @@ export default defineNuxtConfig({
     cloudflare: {
       deployConfig: true,
       wrangler: {
+        compatibility_flags: ['nodejs_compat'],
         d1_databases: [
           {
             binding: 'DB',

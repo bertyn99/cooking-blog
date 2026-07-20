@@ -10,7 +10,8 @@ const _useDashboard = () => {
     'g-r': () => router.push('/recipes'),
     'g-p': () => router.push('/pages'),
     'g-c': () => router.push('/categories'),
-    'g-m': () => router.push('/media')
+    'g-m': () => router.push('/media'),
+    'g-i': () => router.push('/import')
   })
 
   watch(() => route.fullPath, () => {

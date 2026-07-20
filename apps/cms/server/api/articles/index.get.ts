@@ -7,6 +7,8 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const db = useDb(event)
   const articles = createArticleQueries(db)
+  const session = await getUserSession(event)
+  const isAuthenticated = !!session.user
 
   const include = parseInclude(query as Record<string, unknown>)
   const filters = {
@@ -21,7 +23,7 @@ export default defineEventHandler(async (event) => {
   return articles.listPage({
     include,
     filters,
-    isAuthenticated: false,
+    isAuthenticated,
     pagination: parsePagination(query as Record<string, string>),
   })
 })

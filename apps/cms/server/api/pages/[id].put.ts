@@ -20,9 +20,13 @@ import { pages } from '../../db/schema/pages'
 import { updatePageSchema } from '../../utils/validations/pages'
 import { validateBody } from '../../utils/validate'
 import { createApiError } from '../../utils/errors'
+import { canEditContent } from '../../../shared/abilities'
 import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
+  await requireUserSession(event)
+  await authorize(event, canEditContent)
+
   const id = Number(getRouterParam(event, 'id'))
   if (!Number.isFinite(id) || id < 1) {
     throw createApiError('VALIDATION_ERROR', 'Invalid page ID')

@@ -7,7 +7,12 @@
     "skipLibCheck": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
-    "types": ["@cloudflare/workers-types"]
+    "types": [
+      "@cloudflare/workers-types"
+    ]
   },
-  "include": ["alchemy.run.ts", "infra/**/*.ts"]
+  "include": [
+    "alchemy.run.ts",
+    "infra/**/*.ts"
+  ]
 }

@@ -1,7 +1,11 @@
 import { uploadMedia } from '../../utils/media'
+import { canEditContent } from '../../../shared/abilities'
 import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
+  await requireUserSession(event)
+  await authorize(event, canEditContent)
+
   const form = await readFormData(event)
   const file = form.get('file') as File | null
   if (!file || !file.size) {

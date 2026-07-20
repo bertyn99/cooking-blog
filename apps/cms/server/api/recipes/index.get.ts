@@ -5,6 +5,8 @@ import { useDb } from '../../utils/db'
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const db = useDb(event)
+  const session = await getUserSession(event)
+  const isAuthenticated = !!session.user
 
   const include = ((query.include as string) || '').split(',').map(s => s.trim()).filter(Boolean)
   const filters = {
@@ -20,7 +22,7 @@ export default defineEventHandler(async (event) => {
   return createRecipeQueries(db).listPage({
     include,
     filters,
-    isAuthenticated: false,
+    isAuthenticated,
     pagination,
   })
 })

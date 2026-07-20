@@ -48,6 +48,11 @@ const links = [[{
   icon: 'i-lucide-image',
   to: '/media',
   onSelect: () => { open.value = false }
+}, {
+  label: 'Import Strapi',
+  icon: 'i-lucide-download',
+  to: '/import',
+  onSelect: () => { open.value = false }
 }], [{
   label: 'Site public',
   icon: 'i-lucide-external-link',
