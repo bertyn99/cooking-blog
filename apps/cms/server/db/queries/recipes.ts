@@ -46,16 +46,18 @@ export function createRecipeQueries(db: AppDb) {
     },
 
     findById(id: number, scope: 'public' | 'admin' = 'public', include: string[] = []) {
+      const defaultWith = {
+        ingredients: true,
+        nutrition: true,
+        reviews: true,
+        seo: { with: { socialMeta: true } },
+      } as const
+
       return db.query.recipes.findFirst({
         where: buildRecipeDetailQueryWhere(id, scope === 'admin'),
         with: include.length > 0
           ? buildRecipesWith(include)
-          : {
-              ingredients: true,
-              nutrition: true,
-              reviews: true,
-              seo: { with: { socialMeta: true } },
-            },
+          : defaultWith,
       })
     },
   }

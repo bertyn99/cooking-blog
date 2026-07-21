@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { readApiErrorMessage, mediaPublicUrl } from '~/utils/media'
+import { prepareImageForUpload } from '~/utils/prepare-image-upload.client'
 import {
   formatMediaByteSize,
   isWithinImageUploadLimit,
@@ -163,8 +164,9 @@ async function uploadFile(file: File) {
 
   uploading.value = true
   try {
+    const prepared = await prepareImageForUpload(file)
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append('file', prepared)
     const uploaded = await $api<{ pathname: string }>('/api/media', {
       method: 'POST',
       body: formData,
@@ -298,7 +300,7 @@ function displayName(blob: MediaBlob) {
             {{ uploading ? 'Import en cours…' : 'Glissez une image ici ou cliquez pour parcourir' }}
           </span>
           <span class="text-xs text-muted">
-            JPEG, PNG, WebP, GIF — max. {{ maxImageUploadSizeLabel() }} — stocké dans la médiathèque (R2)
+            JPEG, PNG, WebP, GIF — max. {{ maxImageUploadSizeLabel() }} avant compression WebP
           </span>
           <input
             ref="fileInput"

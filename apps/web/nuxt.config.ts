@@ -58,7 +58,12 @@ export default defineNuxtConfig({
   routeRules: {
     "/": { isr: 60 * 15 },
     "/blog/**": { isr: 60 * 25 },
-    "/images/**": { isr: 60 * 60 * 24 * 5 },
+    "/images/**": {
+      isr: 60 * 60 * 24 * 30,
+      headers: {
+        'Cache-Control': 'public, max-age=31536000, stale-while-revalidate=604800',
+      },
+    },
     "/sitemap.xml": { isr: 60 * 60 * 24 },
     "/rss.xml": { isr: 60 * 60 * 24 * 3 },
     ...listRedirects,
@@ -91,6 +96,11 @@ export default defineNuxtConfig({
     compatibilityDate: '2026-05-27',
     cloudflare: {
       deployConfig: true,
+      wrangler: {
+        images: {
+          binding: 'IMAGES',
+        },
+      },
       nodeCompat: true,
     },
     unenv: {

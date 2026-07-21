@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { mediaPublicUrl, readApiErrorMessage } from '~/utils/media'
+import { prepareImageForUpload } from '~/utils/prepare-image-upload.client'
 import { formatMediaByteSize, isWithinImageUploadLimit, maxImageUploadSizeLabel } from '#shared/media'
 
 const model = defineModel<string | null>({ required: true })
@@ -55,8 +56,9 @@ async function onFileChange(event: Event) {
 
   uploading.value = true
   try {
+    const prepared = await prepareImageForUpload(file)
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append('file', prepared)
     const uploaded = await $api<{ pathname: string }>('/api/media', {
       method: 'POST',
       body: formData,

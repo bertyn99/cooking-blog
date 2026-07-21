@@ -28,13 +28,13 @@ async function persistImportedBlob(
     hadLegacyMap: boolean
   },
 ): Promise<string> {
-  const { pathname, buffer, contentType, sourceId, stats, meta, hadLegacyMap } = opts
+  const { buffer, contentType, sourceId, stats, meta, hadLegacyMap } = opts
   const storage = useMediaStorage(ctx.event)
   const uploaded = await storage.putBuffer(pathname, buffer, contentType)
 
   await ctx.db.insert(schema.blobs).values({
     pathname: uploaded.pathname,
-    originalName: meta?.name ?? pathname.split('/').pop() ?? pathname,
+    originalName: meta?.name ?? uploaded.pathname.split('/').pop() ?? uploaded.pathname,
     mimeType: uploaded.contentType,
     size: uploaded.size,
     width: meta?.width,
@@ -43,7 +43,7 @@ async function persistImportedBlob(
   }).onConflictDoUpdate({
     target: schema.blobs.pathname,
     set: {
-      originalName: meta?.name ?? pathname.split('/').pop() ?? pathname,
+      originalName: meta?.name ?? uploaded.pathname.split('/').pop() ?? uploaded.pathname,
       mimeType: uploaded.contentType,
       size: uploaded.size,
       width: meta?.width,
@@ -56,20 +56,20 @@ async function persistImportedBlob(
     sourceType: 'media',
     sourceId,
     destTable: 'blobs',
-    destId: pathname,
+    destId: uploaded.pathname,
   }, false)
 
   await upsertLegacyMap(ctx.db, {
     sourceType: 'media',
-    sourceId: `path:${pathname}`,
+    sourceId: `path:${uploaded.pathname}`,
     destTable: 'blobs',
-    destId: pathname,
+    destId: uploaded.pathname,
   }, false)
 
   if (hadLegacyMap) stats.updated += 1
   else stats.created += 1
 
-  return pathname
+  return uploaded.pathname
 }
 
 /** Import a file referenced by `/uploads/…` in markdown (no Strapi media entity). */

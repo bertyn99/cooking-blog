@@ -4,19 +4,47 @@ const { $api } = useNuxtApp()
 
 const id = computed(() => Number.parseInt(route.params.id as string, 10))
 
+interface RecipeIngredient {
+  id?: number
+  name: string
+  qty?: number | null
+  unit?: string | null
+  sortOrder?: number | null
+}
+
+interface RecipeDetail {
+  id: number
+  title: string
+  slug: string
+  intro: string | null
+  step: string | null
+  difficulty: 'easy' | 'medium' | 'hard' | null
+  time: number | null
+  categoryId: number | null
+  status: string
+  coverBlobPathname: string | null
+  cover?: { pathname: string, originalName: string | null } | null
+  ingredients?: RecipeIngredient[] | null
+  nutrition?: {
+    lipides: string | null
+    proteine: string | null
+    sucre: string | null
+    calories: string | null
+    glucides: string | null
+    sodium: string | null
+  } | null
+  seo?: {
+    description: string | null
+    keywords: string | null
+    metaRobots: string | null
+  } | null
+}
+
 const { data: recipe, status } = await useAsyncData(
   () => `recipe-${id.value}`,
-  () => $api<{
-    id: number
-    title: string
-    slug: string
-    intro: string | null
-    step: string | null
-    difficulty: 'easy' | 'medium' | 'hard' | null
-    time: number | null
-    categoryId: number | null
-    status: string
-  }>(`/api/recipes/${id.value}`),
+  () => $api<RecipeDetail>(`/api/recipes/${id.value}`, {
+    query: { include: 'cover,category,seo,ingredients,nutrition' },
+  }),
   { watch: [id] },
 )
 </script>
@@ -48,6 +76,11 @@ const { data: recipe, status } = await useAsyncData(
           time: recipe.time ?? undefined,
           categoryId: recipe.categoryId ?? undefined,
           status: recipe.status,
+          coverBlobPathname: recipe.coverBlobPathname,
+          coverDisplayName: recipe.cover?.originalName ?? recipe.cover?.pathname ?? null,
+          ingredients: recipe.ingredients ?? undefined,
+          nutrition: recipe.nutrition ?? undefined,
+          seo: recipe.seo,
         }"
       />
 

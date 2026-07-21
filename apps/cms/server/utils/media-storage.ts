@@ -3,6 +3,7 @@ import { mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import type { H3Event } from 'h3'
 import { MAX_IMAGE_UPLOAD_BYTES, maxImageUploadSizeLabel } from '../../shared/media'
+import { optimizeImageBuffer } from '../../shared/image-optimize-pipeline'
 import { useR2 } from './r2'
 
 const UPLOAD_PREFIX = 'uploads/'
@@ -49,6 +50,40 @@ export function validateImageFile(file: File) {
   }
 }
 
+function validateImagePayload(size: number, contentType: string) {
+  if (!contentType.startsWith('image/')) {
+    throw createError({ statusCode: 400, statusMessage: 'Only image files are allowed' })
+  }
+  if (size > MAX_IMAGE_UPLOAD_BYTES) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: `Image must be ${maxImageUploadSizeLabel()} or smaller`,
+    })
+  }
+}
+
+async function normalizeImagePayload(
+  data: ArrayBuffer,
+  contentType: string,
+  opts?: { pathname?: string, filename?: string },
+) {
+  const optimized = await optimizeImageBuffer(data, contentType, opts)
+  if (!optimized) {
+    return {
+      buffer: data,
+      contentType,
+      pathname: opts?.pathname,
+      filename: opts?.filename,
+    }
+  }
+  return {
+    buffer: optimized.buffer,
+    contentType: optimized.contentType,
+    pathname: optimized.pathname ?? opts?.pathname,
+    filename: optimized.filename ?? opts?.filename,
+  }
+}
+
 function buildPathname(filename: string) {
   return `${UPLOAD_PREFIX}${randomUUID()}-${sanitizeFilename(filename)}`
 }
@@ -72,28 +107,37 @@ function strapiUrlToPathname(url: string) {
 function createR2Storage(bucket: R2Bucket): MediaStorage {
   return {
     async put(file) {
-      validateImageFile(file)
-      const pathname = buildPathname(file.name)
-      const uploaded = await bucket.put(pathname, file.stream(), {
-        httpMetadata: { contentType: file.type },
+      const normalized = await normalizeImagePayload(
+        await file.arrayBuffer(),
+        file.type || 'image/jpeg',
+        { filename: file.name },
+      )
+      validateImagePayload(normalized.buffer.byteLength, normalized.contentType)
+      const pathname = buildPathname(normalized.filename ?? file.name)
+      const body = toBuffer(normalized.buffer)
+      const uploaded = await bucket.put(pathname, body, {
+        httpMetadata: { contentType: normalized.contentType },
       })
       return {
         pathname,
-        contentType: file.type,
-        size: file.size,
+        contentType: normalized.contentType,
+        size: body.byteLength,
         etag: uploaded?.etag,
       }
     },
 
     async putBuffer(pathname, data, contentType) {
-      assertSafePathname(pathname)
-      const body = toBuffer(data)
-      const uploaded = await bucket.put(pathname, body, {
-        httpMetadata: { contentType },
+      const normalized = await normalizeImagePayload(toBuffer(data).buffer as ArrayBuffer, contentType, { pathname })
+      const outPath = normalized.pathname ?? pathname
+      assertSafePathname(outPath)
+      const body = toBuffer(normalized.buffer)
+      validateImagePayload(body.byteLength, normalized.contentType)
+      const uploaded = await bucket.put(outPath, body, {
+        httpMetadata: { contentType: normalized.contentType },
       })
       return {
-        pathname,
-        contentType,
+        pathname: outPath,
+        contentType: normalized.contentType,
         size: body.byteLength,
         etag: uploaded?.etag,
       }
@@ -162,31 +206,39 @@ function createLocalStorage(): MediaStorage {
 
   return {
     async put(file) {
-      validateImageFile(file)
-      const pathname = buildPathname(file.name)
+      const normalized = await normalizeImagePayload(
+        await file.arrayBuffer(),
+        file.type || 'image/jpeg',
+        { filename: file.name },
+      )
+      validateImagePayload(normalized.buffer.byteLength, normalized.contentType)
+      const pathname = buildPathname(normalized.filename ?? file.name)
       const full = await resolvePath(pathname)
       await mkdir(dirname(full), { recursive: true })
-      const buffer = Buffer.from(await file.arrayBuffer())
+      const buffer = toBuffer(normalized.buffer)
       await writeFile(full, buffer)
       const hash = createHash('sha256').update(buffer).digest('hex')
       return {
         pathname,
-        contentType: file.type,
-        size: file.size,
+        contentType: normalized.contentType,
+        size: buffer.byteLength,
         etag: hash,
       }
     },
 
     async putBuffer(pathname, data, contentType) {
-      assertSafePathname(pathname)
-      const full = await resolvePath(pathname)
+      const normalized = await normalizeImagePayload(toBuffer(data).buffer as ArrayBuffer, contentType, { pathname })
+      const outPath = normalized.pathname ?? pathname
+      assertSafePathname(outPath)
+      const full = await resolvePath(outPath)
       await mkdir(dirname(full), { recursive: true })
-      const buffer = toBuffer(data)
+      const buffer = toBuffer(normalized.buffer)
+      validateImagePayload(buffer.byteLength, normalized.contentType)
       await writeFile(full, buffer)
       const hash = createHash('sha256').update(buffer).digest('hex')
       return {
-        pathname,
-        contentType,
+        pathname: outPath,
+        contentType: normalized.contentType,
         size: buffer.byteLength,
         etag: hash,
       }

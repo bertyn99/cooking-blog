@@ -78,7 +78,15 @@ export default defineNuxtConfig({
     },
     scheduledTasks: {
       '*/5 * * * *': 'publish-scheduled'
-    }
+    },
+    externals: {
+      inline: [
+        '@jsquash/jpeg',
+        '@jsquash/png',
+        '@jsquash/webp',
+        '@jsquash/resize',
+      ],
+    },
   },
 
   compatibilityDate: '2025-01-15',
