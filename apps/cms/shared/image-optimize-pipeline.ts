@@ -10,6 +10,13 @@ import {
   type RasterImage,
 } from './image-optimize'
 
+function rasterToImageData(raster: RasterImage): ImageData {
+  const clamped = raster.data instanceof Uint8ClampedArray
+    ? raster.data
+    : new Uint8ClampedArray(raster.data)
+  return new ImageData(clamped, raster.width, raster.height)
+}
+
 export interface OptimizedImageResult {
   buffer: ArrayBuffer
   contentType: string
@@ -32,11 +39,14 @@ async function decodeImage(buffer: ArrayBuffer, mime: string): Promise<RasterIma
   if (!decoded) {
     return null
   }
-  return {
-    data: new Uint8Array(decoded.data),
+  const raster: RasterImage = {
+    data: decoded.data instanceof Uint8ClampedArray
+      ? new Uint8Array(decoded.data)
+      : new Uint8Array(decoded.data),
     width: decoded.width,
     height: decoded.height,
   }
+  return raster
 }
 
 /** Resize + WebP encode for R2 storage (Workers + browser). */
@@ -57,7 +67,7 @@ export async function optimizeImageBuffer(
   const target = scaleToMaxEdge(decoded.width, decoded.height, IMAGE_OPTIMIZE.maxEdgePx)
   let image: RasterImage = decoded
   if (target.width !== decoded.width || target.height !== decoded.height) {
-    const resized = await resize(decoded as ImageData, {
+    const resized = await resize(rasterToImageData(decoded), {
       width: target.width,
       height: target.height,
     })
@@ -71,7 +81,7 @@ export async function optimizeImageBuffer(
     }
   }
 
-  const webpBuffer = await encodeWebp(image as ImageData, {
+  const webpBuffer = await encodeWebp(rasterToImageData(image), {
     quality: IMAGE_OPTIMIZE.webpQuality,
   })
   if (!webpBuffer) {

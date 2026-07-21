@@ -4,18 +4,28 @@ type CloudflareExecutionContext = {
   waitUntil?: (promise: Promise<unknown>) => void
 }
 
-function getWaitUntil(event: H3Event) {
-  const cloudflare = event.context.cloudflare as {
+function getCloudflareContext(event: H3Event) {
+  return (event.context.cloudflare as {
     context?: CloudflareExecutionContext
     waitUntil?: (promise: Promise<unknown>) => void
-  } | undefined
+  } | undefined)?.context
+}
 
-  return cloudflare?.context?.waitUntil ?? cloudflare?.waitUntil
+/**
+ * True when the import can safely continue after the HTTP response (Workers production).
+ * Wrangler dev exposes `waitUntil` but calling it unbound throws — we run inline in dev.
+ */
+export function shouldDeferWorkToBackground(event: H3Event): boolean {
+  if (import.meta.dev) {
+    return false
+  }
+  const ctx = getCloudflareContext(event)
+  return typeof ctx?.waitUntil === 'function'
 }
 
 /**
  * Runs work after the HTTP response on Workers (`waitUntil`).
- * In local dev (no `waitUntil`), awaits the work so imports actually finish.
+ * In local dev, awaits the work so imports actually finish.
  */
 export async function runInBackground(event: H3Event, work: () => Promise<void>) {
   const promise = work().catch((error: unknown) => {
@@ -23,9 +33,9 @@ export async function runInBackground(event: H3Event, work: () => Promise<void>)
     console.error(`[background-task] ${message}`)
   })
 
-  const waitUntil = getWaitUntil(event)
-  if (waitUntil) {
-    waitUntil(promise)
+  const ctx = getCloudflareContext(event)
+  if (ctx?.waitUntil) {
+    ctx.waitUntil(promise)
     return
   }
 

@@ -1,5 +1,6 @@
 import { join } from 'node:path'
 import { createLibsqlDb, type AppDb } from './create-db'
+import { ensureLocalSqlitePragmas } from './local-sqlite-pragmas'
 
 function resolveLibsqlConnection() {
   const url = process.env.TURSO_DATABASE_URL
@@ -22,6 +23,7 @@ let localDb: AppDb | undefined
 export function getLocalDb(): AppDb {
   if (!localDb) {
     localDb = createLibsqlDb(resolveLibsqlConnection())
+    void ensureLocalSqlitePragmas(localDb)
   }
   return localDb
 }

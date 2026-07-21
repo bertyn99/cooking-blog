@@ -18,6 +18,8 @@ export default defineNuxtConfig({
     },
     strapiUrl: process.env.STRAPI_URL || 'https://admin.journalducuistot.fr',
     strapiApiToken: process.env.STRAPI_API_TOKEN || '',
+    /** Optional origin for Strapi `/uploads` files (e.g. public site CDN). */
+    strapiUploadsOrigin: process.env.STRAPI_UPLOADS_ORIGIN || '',
   },
 
   css: ['~/assets/css/main.css'],
@@ -76,9 +78,13 @@ export default defineNuxtConfig({
       tasks: true,
       asyncContext: true,
     },
-    scheduledTasks: {
-      '*/5 * * * *': 'publish-scheduled'
-    },
+    ...(process.env.NODE_ENV === 'production'
+      ? {
+          scheduledTasks: {
+            '*/5 * * * *': 'publish-scheduled',
+          },
+        }
+      : {}),
     externals: {
       inline: [
         '@jsquash/jpeg',

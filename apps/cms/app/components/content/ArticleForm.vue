@@ -3,6 +3,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { z } from 'zod'
 import { slugifyString } from '#shared/slug'
 import type { ContentStatus, PaginatedResponse } from '~/types/cms'
+import { provideDeferredArticleMedia } from '~/composables/useDeferredArticleMedia'
 
 const schema = z.object({
   title: z.string().min(1, 'Titre requis'),
@@ -34,6 +35,8 @@ const toast = useToast()
 const router = useRouter()
 const saving = ref(false)
 const publishing = ref(false)
+
+const deferredMedia = !props.articleId ? provideDeferredArticleMedia() : null
 
 const state = reactive<Schema>({
   title: props.initial?.title ?? '',
@@ -94,12 +97,26 @@ async function saveSeo(articleId: number) {
 }
 
 async function saveArticle(): Promise<number | undefined> {
+  let content = state.content || undefined
+  let coverBlobPathname = state.coverBlobPathname
+
+  if (!props.articleId && deferredMedia) {
+    const prepared = await deferredMedia.prepareArticlePayloadForSave(
+      state.content ?? '',
+      state.coverBlobPathname,
+    )
+    content = prepared.content || undefined
+    coverBlobPathname = prepared.coverBlobPathname
+    state.content = prepared.content
+    state.coverBlobPathname = prepared.coverBlobPathname
+  }
+
   const body = {
     title: state.title,
     slug: state.slug || undefined,
-    content: state.content || undefined,
+    content,
     categoryId: state.categoryId,
-    coverBlobPathname: state.coverBlobPathname,
+    coverBlobPathname,
   }
 
   if (props.articleId) {
@@ -110,6 +127,7 @@ async function saveArticle(): Promise<number | undefined> {
 
   const created = await $api<{ id: number }>('/api/articles', { method: 'POST', body })
   await saveSeo(created.id)
+  deferredMedia?.dispose()
   await router.replace(`/articles/${created.id}`)
   return created.id
 }
@@ -193,6 +211,7 @@ async function publishArticle() {
       <ContentCoverField
         v-model="state.coverBlobPathname"
         :display-name="initial?.coverDisplayName"
+        :defer-upload="!articleId"
       />
     </div>
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { readApiErrorMessage, mediaPublicUrl } from '~/utils/media'
 import { prepareImageForUpload } from '~/utils/prepare-image-upload.client'
+import { uploadMediaFile } from '~/utils/upload-media.client'
 import {
   formatMediaByteSize,
   isWithinImageUploadLimit,
@@ -14,14 +15,18 @@ const props = withDefaults(defineProps<{
   selectedPathname?: string | null
   /** Upload then auto-select and close */
   selectOnUpload?: boolean
+  /** Compress only; emit `selectLocal` instead of uploading (new article draft). */
+  deferUpload?: boolean
 }>(), {
   title: 'Bibliothèque médias',
   selectedPathname: null,
   selectOnUpload: true,
+  deferUpload: false,
 })
 
 const emit = defineEmits<{
   select: [pathname: string]
+  selectLocal: [payload: { previewUrl: string, file: File }]
 }>()
 
 const { $api } = useNuxtApp()
@@ -31,6 +36,7 @@ const uploading = ref(false)
 const search = ref('')
 const dragOver = ref(false)
 const pendingPathname = ref<string | null>(null)
+const pendingLocal = ref<{ previewUrl: string, file: File, name: string } | null>(null)
 
 const IMAGE_EXT = /\.(jpe?g|png|gif|webp|avif|svg)$/i
 
@@ -115,14 +121,23 @@ async function refreshGallery() {
   await fetchPage(false)
 }
 
+function revokePendingLocal() {
+  if (pendingLocal.value) {
+    URL.revokeObjectURL(pendingLocal.value.previewUrl)
+    pendingLocal.value = null
+  }
+}
+
 watch(open, (isOpen) => {
   if (isOpen) {
     search.value = ''
     pendingPathname.value = props.selectedPathname
+    revokePendingLocal()
     refreshGallery()
   }
   else {
     dragOver.value = false
+    revokePendingLocal()
   }
 })
 
@@ -149,7 +164,7 @@ function openFilePicker() {
   fileInput.value?.click()
 }
 
-async function uploadFile(file: File) {
+async function stageLocalFile(file: File) {
   if (!isImageFile(file)) {
     toast.add({ title: 'Fichier non supporté', description: 'Choisissez une image.', color: 'warning' })
     return
@@ -167,14 +182,49 @@ async function uploadFile(file: File) {
   uploading.value = true
   try {
     const prepared = await prepareImageForUpload(file)
-    const formData = new FormData()
-    formData.append('file', prepared)
-    const uploaded = await $api<{ pathname: string }>('/api/media', {
-      method: 'POST',
-      body: formData,
+    const previewUrl = URL.createObjectURL(prepared)
+    pendingLocal.value = { previewUrl, file: prepared, name: prepared.name }
+    pendingPathname.value = null
+    toast.add({
+      title: 'Image compressée',
+      description: 'Elle sera envoyée lors de l’enregistrement de l’article.',
+      color: 'neutral',
     })
+
+    if (props.selectOnUpload) {
+      confirmSelection()
+    }
+  }
+  finally {
+    uploading.value = false
+  }
+}
+
+async function uploadFile(file: File) {
+  if (props.deferUpload) {
+    await stageLocalFile(file)
+    return
+  }
+  if (!isImageFile(file)) {
+    toast.add({ title: 'Fichier non supporté', description: 'Choisissez une image.', color: 'warning' })
+    return
+  }
+
+  if (!isWithinImageUploadLimit(file.size)) {
+    toast.add({
+      title: 'Fichier trop volumineux',
+      description: `Taille max. ${maxImageUploadSizeLabel()} (fichier : ${formatMediaByteSize(file.size)}).`,
+      color: 'warning',
+    })
+    return
+  }
+
+  uploading.value = true
+  try {
+    const prepared = await prepareImageForUpload(file)
+    const pathname = await uploadMediaFile(prepared)
     await refreshGallery()
-    pendingPathname.value = uploaded.pathname
+    pendingPathname.value = pathname
     toast.add({ title: 'Image importée', color: 'success' })
 
     if (props.selectOnUpload) {
@@ -242,9 +292,19 @@ function onDrop(event: DragEvent) {
 
 function selectPending(pathname: string) {
   pendingPathname.value = pathname
+  pendingLocal.value = null
 }
 
 function confirmSelection() {
+  if (pendingLocal.value) {
+    emit('selectLocal', {
+      previewUrl: pendingLocal.value.previewUrl,
+      file: pendingLocal.value.file,
+    })
+    open.value = false
+    pendingLocal.value = null
+    return
+  }
   if (!pendingPathname.value) {
     return
   }
@@ -299,10 +359,15 @@ function displayName(blob: MediaBlob) {
             :class="uploading ? 'animate-spin text-muted' : 'text-primary'"
           />
           <span class="text-sm font-medium text-highlighted">
-            {{ uploading ? 'Import en cours…' : 'Glissez une image ici ou cliquez pour parcourir' }}
+            {{ uploading ? 'Compression…' : 'Glissez une image ici ou cliquez pour parcourir' }}
           </span>
           <span class="text-xs text-muted">
-            JPEG, PNG, WebP, GIF — max. {{ maxImageUploadSizeLabel() }} avant compression WebP
+            <template v-if="deferUpload">
+              Compression WebP locale — envoi à l’enregistrement de l’article
+            </template>
+            <template v-else>
+              JPEG, PNG, WebP, GIF — max. {{ maxImageUploadSizeLabel() }} avant compression WebP
+            </template>
           </span>
           <input
             ref="fileInput"
@@ -410,7 +475,11 @@ function displayName(blob: MediaBlob) {
     <template #footer>
       <div class="flex w-full flex-wrap items-center justify-between gap-2">
         <p class="text-xs text-muted">
-          <template v-if="pendingPathname">
+          <template v-if="pendingLocal">
+            Sélection : <span class="font-medium text-highlighted">{{ pendingLocal.name }}</span>
+            <span class="text-muted"> (brouillon)</span>
+          </template>
+          <template v-else-if="pendingPathname">
             Sélection : <span class="font-medium text-highlighted">{{ pendingPathname.split('/').pop() }}</span>
           </template>
           <template v-else>
@@ -427,7 +496,7 @@ function displayName(blob: MediaBlob) {
           <UButton
             label="Utiliser cette image"
             icon="i-lucide-check"
-            :disabled="!pendingPathname"
+            :disabled="!pendingPathname && !pendingLocal"
             @click="confirmSelection"
           />
         </div>

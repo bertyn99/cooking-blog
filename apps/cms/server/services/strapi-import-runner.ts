@@ -24,6 +24,7 @@ export async function executeStrapiImportJob(
       db,
       strapiUrl: config.strapiUrl,
       strapiApiToken: config.strapiApiToken || undefined,
+      strapiUploadsOrigin: config.strapiUploadsOrigin || undefined,
       dryRun: input.dryRun,
       steps: input.steps,
       slugFilter: input.slugFilter,

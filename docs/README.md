@@ -15,6 +15,17 @@ Architecture and decision records for the **journalducuistot** pnpm monorepo (Fr
 | [CMS ↔ Strapi schema audit](./architecture/cms-strapi-schema-audit.md) | Field-level parity check vs live Strapi and web expectations |
 | [Oxlint migration report](./architecture/oxlint-migration-report.md) | `@oxlint/migrate` results from Nuxt ESLint configs |
 
+## SEO strategy
+
+| Document | Description |
+|----------|-------------|
+| [SEO strategy (index)](./seo-strategy/README.md) | Post-migration SEO direction, silos, and maintenance |
+| [Content inventory](./seo-strategy/content-inventory.md) | CMS pages and blog themes from Strapi / live sitemap |
+| [Keyword validation](./seo-strategy/keyword-validation.md) | Nuxt SEO Pro workflow, SERP notes, tracked keywords |
+| [Priorities & silos](./seo-strategy/priorities-and-silos.md) | Phased execution and on-page checklist |
+| [Product ↔ SEO](./seo-strategy/product-features-seo.md) | Glossary, allergens, game, AI — search impact |
+| [Monetization](./seo-strategy/monetization.md) | Revenue: affiliation ustensiles-first, ads, sponsors, disclosure |
+
 ## Related planning
 
 Implementation milestones and future work (Alchemy v2, Comark, Strapi extract) are tracked in [`IMPLEMENTATION_PLAN.md`](../IMPLEMENTATION_PLAN.md) at the repository root.

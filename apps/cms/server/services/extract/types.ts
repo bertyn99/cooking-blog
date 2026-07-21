@@ -28,6 +28,7 @@ export interface ExtractContext {
   db: AppDb
   strapiUrl: string
   strapiApiToken?: string
+  strapiUploadsOrigin?: string
   dryRun: boolean
   steps: StrapiImportStep[]
   slugFilter?: StrapiImportSlugFilter

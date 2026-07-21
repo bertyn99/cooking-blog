@@ -6,7 +6,7 @@ import {
   acquireStrapiImportLock,
   getStrapiImportStatus,
 } from '../../../services/strapi-import-status'
-import { runInBackground } from '../../../utils/background-task'
+import { runInBackground, shouldDeferWorkToBackground } from '../../../utils/background-task'
 import { createApiError } from '../../../utils/errors'
 import { validateBody } from '../../../utils/validate'
 
@@ -53,11 +53,8 @@ export default defineEventHandler(async (event) => {
     omitDependencies: body.omitDependencies,
   }
 
-  const waitUntil = event.context.cloudflare as { context?: { waitUntil?: (p: Promise<unknown>) => void } } | undefined
-  const runsInBackground = Boolean(waitUntil?.context?.waitUntil)
-
-  if (runsInBackground) {
-    runInBackground(event, async () => {
+  if (shouldDeferWorkToBackground(event)) {
+    await runInBackground(event, async () => {
       await executeStrapiImportJob(event, jobInput, lockId)
     })
     setResponseStatus(event, 202)

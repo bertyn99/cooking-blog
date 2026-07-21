@@ -1,34 +1,81 @@
 <script setup lang="ts">
 import { mediaPublicUrl, readApiErrorMessage } from '~/utils/media'
 import { prepareImageForUpload } from '~/utils/prepare-image-upload.client'
+import { uploadMediaFile } from '~/utils/upload-media.client'
 import { formatMediaByteSize, isWithinImageUploadLimit, maxImageUploadSizeLabel } from '#shared/media'
+import { useDeferredArticleMedia } from '~/composables/useDeferredArticleMedia'
 
 const model = defineModel<string | null>({ required: true })
 
 const props = defineProps<{
   displayName?: string | null
+  deferUpload?: boolean
 }>()
+
+const deferredMedia = useDeferredArticleMedia()
+const deferUpload = computed(() => props.deferUpload ?? Boolean(deferredMedia))
 
 const toast = useToast()
 const pickerOpen = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
-const { $api } = useNuxtApp()
 const uploading = ref(false)
 
-const previewUrl = computed(() =>
-  model.value ? mediaPublicUrl(model.value) : null,
-)
+const previewUrl = computed(() => {
+  if (deferredMedia?.pendingCoverPreviewUrl.value) {
+    return deferredMedia.pendingCoverPreviewUrl.value
+  }
+  return model.value ? mediaPublicUrl(model.value) : null
+})
 
-const fileLabel = computed(() =>
-  props.displayName || model.value?.split('/').pop() || 'Aucun fichier',
-)
+const fileLabel = computed(() => {
+  if (deferredMedia?.pendingCoverPreviewUrl.value && !model.value) {
+    return 'Couverture (brouillon)'
+  }
+  return props.displayName || model.value?.split('/').pop() || 'Aucun fichier'
+})
 
 function onPicked(pathname: string) {
+  deferredMedia?.clearPendingCover()
   model.value = pathname
+}
+
+function onPickedLocal(payload: { previewUrl: string, file: File }) {
+  deferredMedia?.setPendingCover(payload)
+  model.value = null
 }
 
 function openFilePicker() {
   fileInput.value?.click()
+}
+
+async function applyPreparedCover(prepared: File) {
+  if (deferUpload.value && deferredMedia) {
+    const previewUrl = URL.createObjectURL(prepared)
+    deferredMedia.setPendingCover({ previewUrl, file: prepared })
+    model.value = null
+    toast.add({
+      title: 'Couverture prête',
+      description: 'Envoi à l’enregistrement de l’article.',
+      color: 'neutral',
+    })
+    return
+  }
+
+  uploading.value = true
+  try {
+    model.value = await uploadMediaFile(prepared)
+    toast.add({ title: 'Image importée', color: 'success' })
+  }
+  catch (error: unknown) {
+    toast.add({
+      title: 'Échec de l\'import',
+      description: readApiErrorMessage(error, 'Réessayez ou choisissez un fichier plus léger.'),
+      color: 'error',
+    })
+  }
+  finally {
+    uploading.value = false
+  }
 }
 
 async function onFileChange(event: Event) {
@@ -54,32 +101,17 @@ async function onFileChange(event: Event) {
     return
   }
 
-  uploading.value = true
   try {
     const prepared = await prepareImageForUpload(file)
-    const formData = new FormData()
-    formData.append('file', prepared)
-    const uploaded = await $api<{ pathname: string }>('/api/media', {
-      method: 'POST',
-      body: formData,
-    })
-    model.value = uploaded.pathname
-    toast.add({ title: 'Image importée', color: 'success' })
-  }
-  catch (error: unknown) {
-    toast.add({
-      title: 'Échec de l\'import',
-      description: readApiErrorMessage(error, 'Réessayez ou choisissez un fichier plus léger.'),
-      color: 'error',
-    })
+    await applyPreparedCover(prepared)
   }
   finally {
-    uploading.value = false
     input.value = ''
   }
 }
 
 function clearCover() {
+  deferredMedia?.clearPendingCover()
   model.value = null
 }
 
@@ -146,7 +178,7 @@ function copyPath() {
         size="xs"
         color="neutral"
         variant="ghost"
-        :disabled="!model"
+        :disabled="!model && !deferredMedia?.pendingCoverPreviewUrl.value"
         aria-label="Copier le lien"
         @click="copyPath"
       />
@@ -155,7 +187,7 @@ function copyPath() {
         size="xs"
         color="neutral"
         variant="ghost"
-        :disabled="!model"
+        :disabled="!model && !deferredMedia?.pendingCoverPreviewUrl.value"
         aria-label="Supprimer"
         @click="clearCover"
       />
@@ -173,7 +205,9 @@ function copyPath() {
       v-model:open="pickerOpen"
       title="Image de couverture"
       :selected-pathname="model"
+      :defer-upload="deferUpload"
       @select="onPicked"
+      @select-local="onPickedLocal"
     />
   </div>
 </template>

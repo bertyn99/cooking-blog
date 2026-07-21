@@ -2,8 +2,12 @@
 import type { Editor } from '@tiptap/vue-3'
 import type { EditorToolbarItem } from '@nuxt/ui'
 import { mediaAltFromPathname, mediaPublicUrl } from '~/utils/media'
+import { useDeferredArticleMedia } from '~/composables/useDeferredArticleMedia'
 
 const model = defineModel<string>({ required: true })
+
+const deferredMedia = useDeferredArticleMedia()
+const deferUpload = computed(() => Boolean(deferredMedia))
 
 const preview = ref(false)
 const mediaPickerOpen = ref(false)
@@ -17,13 +21,19 @@ function openMediaPicker(mode: 'insert' | 'replace', editor: Editor) {
 }
 
 function applyMediaToEditor(pathname: string) {
+  applyImageToEditor(mediaPublicUrl(pathname), mediaAltFromPathname(pathname))
+}
+
+function applyLocalMediaToEditor(payload: { previewUrl: string, file: File }) {
+  deferredMedia?.registerLocal(payload)
+  applyImageToEditor(payload.previewUrl, mediaAltFromPathname(payload.file.name))
+}
+
+function applyImageToEditor(src: string, alt: string) {
   const editor = activeEditor.value
   if (!editor) {
     return
   }
-
-  const src = mediaPublicUrl(pathname)
-  const alt = mediaAltFromPathname(pathname)
 
   if (pickerMode.value === 'replace' && editor.isActive('image')) {
     editor.chain().focus().updateAttributes('image', { src, alt }).run()
@@ -163,7 +173,9 @@ function imageBubbleShouldShow({ editor }: { editor: Editor }) {
       <ContentMediaPickerModal
         v-model:open="mediaPickerOpen"
         :title="pickerMode === 'replace' ? 'Remplacer l\'image' : 'Insérer une image'"
+        :defer-upload="deferUpload"
         @select="applyMediaToEditor"
+        @select-local="applyLocalMediaToEditor"
       />
 
       <template #fallback>

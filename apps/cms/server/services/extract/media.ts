@@ -30,7 +30,7 @@ async function persistImportedBlob(
     hadLegacyMap: boolean
   },
 ): Promise<string> {
-  const { buffer, contentType, sourceId, stats, meta, hadLegacyMap } = opts
+  const { pathname, buffer, contentType, sourceId, stats, meta, hadLegacyMap } = opts
   const storage = useMediaStorage(ctx.event)
   const extracted = await extractImageFileMetadata(buffer, contentType)
   const fileMetadata: MediaFileMetadata | undefined = {
@@ -135,6 +135,7 @@ export async function importStrapiMediaByUploadPath(
     const client = createStrapiClient({
       baseUrl: ctx.strapiUrl,
       token: ctx.strapiApiToken,
+      uploadsOrigin: ctx.strapiUploadsOrigin,
     })
     const relative = canonicalUploadPath.startsWith('/') ? canonicalUploadPath : `/${canonicalUploadPath}`
     const buffer = await client.downloadFile(relative)
@@ -221,6 +222,7 @@ export async function importStrapiMedia(
     const client = createStrapiClient({
       baseUrl: ctx.strapiUrl,
       token: ctx.strapiApiToken,
+      uploadsOrigin: ctx.strapiUploadsOrigin,
     })
     const downloadPath = canonicalStrapiUploadPath(file.url)
     const buffer = await client.downloadFile(downloadPath)

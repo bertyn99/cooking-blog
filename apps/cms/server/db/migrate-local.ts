@@ -146,6 +146,14 @@ export async function migrateLocalDb(
       }
     }
 
+    try {
+      await client.execute('PRAGMA journal_mode = WAL')
+      await client.execute('PRAGMA busy_timeout = 10000')
+    }
+    catch {
+      // best-effort for local file DB
+    }
+
     if (!options.silent) {
       if (applied.length === 0) {
         console.log(`[db:migrate:local] up to date (${databaseUrl})`)

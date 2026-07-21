@@ -1,3 +1,9 @@
+import {
+  fetchStrapiUploadBinary,
+  normalizeStrapiApiBase,
+  strapiUploadOrigins,
+} from '../../../shared/strapi-url'
+
 export interface StrapiListResponse<T> {
   data: T[]
   meta: {
@@ -13,10 +19,13 @@ export interface StrapiListResponse<T> {
 export interface StrapiClientOptions {
   baseUrl: string
   token?: string
+  /** Optional CDN / public site origin for `/uploads` (defaults to admin + journalducuistot.fr). */
+  uploadsOrigin?: string
 }
 
 export function createStrapiClient(opts: StrapiClientOptions) {
-  const base = opts.baseUrl.replace(/\/$/, '')
+  const base = normalizeStrapiApiBase(opts.baseUrl)
+  const uploadOrigins = strapiUploadOrigins(base, opts.uploadsOrigin)
 
   async function fetchPage<T>(
     collection: string,
@@ -67,10 +76,9 @@ export function createStrapiClient(opts: StrapiClientOptions) {
   }
 
   async function downloadFile(relativeUrl: string): Promise<ArrayBuffer> {
-    const path = relativeUrl.startsWith('/') ? relativeUrl : `/${relativeUrl}`
-    return $fetch<ArrayBuffer>(`${base}${path}`, {
-      responseType: 'arrayBuffer',
-      headers: opts.token ? { Authorization: `Bearer ${opts.token}` } : undefined,
+    return fetchStrapiUploadBinary(relativeUrl, {
+      origins: uploadOrigins,
+      token: opts.token,
     })
   }
 

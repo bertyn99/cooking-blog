@@ -1,5 +1,6 @@
 import { useDb } from '../utils/db'
 import { createPublishingService } from '../services/publishing-service'
+import { isSqliteBusyError } from '../utils/sqlite-busy'
 
 export default defineTask({
   meta: {
@@ -7,9 +8,18 @@ export default defineTask({
     description: 'Publish content whose scheduledAt has passed',
   },
   async run() {
-    const db = useDb()
-    const publishing = createPublishingService(db)
-    const result = await publishing.publishDueScheduled()
-    return { result }
+    try {
+      const db = useDb()
+      const publishing = createPublishingService(db)
+      const result = await publishing.publishDueScheduled()
+      return { result }
+    }
+    catch (error) {
+      if (isSqliteBusyError(error)) {
+        console.warn('[publish-scheduled] skipped — database busy')
+        return { result: { published: 0, skipped: true as const } }
+      }
+      throw error
+    }
   },
 })

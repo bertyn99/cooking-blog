@@ -21,6 +21,7 @@ export interface RunStrapiImportOptions {
   db: AppDb
   strapiUrl: string
   strapiApiToken?: string
+  strapiUploadsOrigin?: string
   dryRun?: boolean
   steps?: StrapiImportStep[]
   slugFilter?: StrapiImportSlugFilter
@@ -49,6 +50,7 @@ export async function runStrapiImport(opts: RunStrapiImportOptions): Promise<Str
   const client = createStrapiClient({
     baseUrl: opts.strapiUrl,
     token: opts.strapiApiToken,
+    uploadsOrigin: opts.strapiUploadsOrigin,
   })
 
   await log(`Connexion à Strapi (${opts.strapiUrl})…`)
@@ -59,6 +61,7 @@ export async function runStrapiImport(opts: RunStrapiImportOptions): Promise<Str
     db: opts.db,
     strapiUrl: opts.strapiUrl,
     strapiApiToken: opts.strapiApiToken,
+    strapiUploadsOrigin: opts.strapiUploadsOrigin,
     dryRun: opts.dryRun ?? false,
     steps: ordered,
     slugFilter: opts.slugFilter,

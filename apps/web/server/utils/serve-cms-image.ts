@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import { getRequestURL } from 'h3'
 import { hasImageTransformOps, parseCmsImagePath } from './parse-cms-image-path'
 
 const LONG_CACHE = 'public, max-age=31536000, stale-while-revalidate=604800'
@@ -58,7 +59,7 @@ export async function serveOptimizedCmsImage(event: H3Event, fullPath: string) {
   const originUrl = `${config.public.cmsBaseUrl.replace(/\/$/, '')}/images/${assetPath}`
 
   const cache = typeof caches !== 'undefined' ? caches.default : undefined
-  const cacheKey = new Request(new URL(event.path, 'https://cache.local').toString())
+  const cacheKey = new Request(getRequestURL(event).href)
 
   if (cache) {
     const hit = await cache.match(cacheKey)
@@ -67,7 +68,7 @@ export async function serveOptimizedCmsImage(event: H3Event, fullPath: string) {
     }
   }
 
-  const origin = await fetch(originUrl)
+  let origin = await fetch(originUrl)
   if (!origin.ok) {
     throw createError({ statusCode: origin.status === 404 ? 404 : 502, statusMessage: 'Media origin error' })
   }
@@ -85,7 +86,9 @@ export async function serveOptimizedCmsImage(event: H3Event, fullPath: string) {
       contentType = transformed.headers.get('content-type') ?? contentType
     }
     catch {
-      // Fallback to origin bytes if Images binding fails (e.g. local dev).
+      origin = await fetch(originUrl)
+      body = origin.body
+      contentType = origin.headers.get('content-type') ?? contentType
     }
   }
 
