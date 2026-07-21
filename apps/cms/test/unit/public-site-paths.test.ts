@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { articlePublicPath, pagePublicPath, recipePublicPath } from '#shared/public-site-paths'
+import { articlePublicPath, pagePublicPath, recipePublicPath } from '../../shared/public-site-paths'
 
 describe('public-site-paths', () => {
   it('builds nested page paths', () => {
