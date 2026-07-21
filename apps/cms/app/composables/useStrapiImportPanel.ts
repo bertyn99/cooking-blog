@@ -5,8 +5,13 @@ import type {
   StrapiImportConfigResponse,
   StrapiImportProgress,
   StrapiImportStep,
+  StrapiImportTestTarget,
 } from '#shared/strapi-import'
-import { formatStepCoverageHint, isImportResultFullyUnchanged } from '#shared/strapi-import'
+import {
+  formatStepCoverageHint,
+  isImportResultFullyUnchanged,
+  STRAPI_IMPORT_TEST_TARGET_STEP,
+} from '#shared/strapi-import'
 
 export function formatStepCoverageHintForItem(step: StrapiImportStep, config: StrapiImportConfigResponse | null) {
   const coverage = config?.stepCoverage?.[step]
@@ -43,6 +48,7 @@ export function formatImportError(error: unknown): string {
 export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) {
   const { $api } = useNuxtApp()
   const toast = useToast()
+  const { loggedIn } = useUserSession()
 
   const selectedSteps = options.selectedSteps ?? ref<StrapiImportStep[]>([...DEFAULT_STEPS])
   const dryRun = options.dryRun ?? ref(true)
@@ -50,15 +56,25 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
   const confirmOpen = ref(false)
   const lastNotifiedStatus = ref<StrapiImportProgress['status']>('idle')
 
-  const { data: config, refresh } = useAsyncData('strapi-import-config', () =>
-    $api<StrapiImportConfigResponse>('/api/admin/strapi-import'),
+  const {
+    data: config,
+    refresh,
+    error: configError,
+  } = useAsyncData(
+    'strapi-import-config',
+    () => $api<StrapiImportConfigResponse>('/api/admin/strapi-import'),
+    { server: false },
   )
 
+  watch(loggedIn, (value) => {
+    if (value) void refresh()
+  }, { immediate: true })
+
   const importStatus = computed(() => config.value?.status)
-  /** HTTP request in flight or server-reported import still running (launch button only). */
-  const isLaunching = computed(
-    () => running.value || importStatus.value?.status === 'running',
-  )
+  const isSubmitting = computed(() => running.value)
+  const isRemoteImportRunning = computed(() => importStatus.value?.status === 'running')
+  /** Spinner on launch while POST runs or server reports import in progress. */
+  const isLaunchBusy = computed(() => isSubmitting.value || isRemoteImportRunning.value)
 
   const { pause: stopPolling, resume: startPolling } = useIntervalFn(
     () => { void refresh() },
@@ -66,7 +82,7 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
     { immediate: false },
   )
 
-  watch(isLaunching, (busy) => {
+  watch(isRemoteImportRunning, (busy) => {
     if (busy) startPolling()
     else stopPolling()
   }, { immediate: true })
@@ -132,16 +148,22 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
     toast.add({ title: 'État d’import réinitialisé', color: 'neutral' })
   }
 
-  async function executeImport() {
-    const steps = selectedSteps.value.length > 0
+  async function executeImport(overrides?: {
+    steps?: StrapiImportStep[]
+    dryRun?: boolean
+    slugFilter?: { slug: string, locale?: string }
+    omitDependencies?: boolean
+  }) {
+    const steps = overrides?.steps ?? (selectedSteps.value.length > 0
       ? selectedSteps.value
-      : [...DEFAULT_STEPS]
+      : [...DEFAULT_STEPS])
 
     if (!steps.length) {
       toast.add({ title: 'Sélectionnez au moins une étape', color: 'warning' })
       return
     }
 
+    const runDryRun = overrides?.dryRun ?? dryRun.value
     running.value = true
 
     try {
@@ -153,8 +175,10 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
       }>('/api/admin/strapi-import/run', {
         method: 'POST',
         body: {
-          dryRun: dryRun.value,
+          dryRun: runDryRun,
           steps,
+          slugFilter: overrides?.slugFilter,
+          omitDependencies: overrides?.omitDependencies,
         },
       })
 
@@ -184,7 +208,57 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
     }
   }
 
+  function requestTargetedImport(
+    target: StrapiImportTestTarget,
+    slug: string,
+    locale?: string,
+    options?: { dryRun?: boolean },
+  ) {
+    const trimmed = slug.trim()
+    if (!trimmed) {
+      toast.add({ title: 'Indiquez un slug Strapi', color: 'warning' })
+      return
+    }
+    const step = STRAPI_IMPORT_TEST_TARGET_STEP[target]
+    const runDryRun = options?.dryRun ?? dryRun.value
+    if (runDryRun) {
+      void executeImport({
+        steps: [step],
+        dryRun: true,
+        slugFilter: { slug: trimmed, locale: locale?.trim() || undefined },
+        omitDependencies: true,
+      })
+      return
+    }
+    confirmOpen.value = true
+    pendingTargetedImport.value = {
+      steps: [step],
+      slugFilter: { slug: trimmed, locale: locale?.trim() || undefined },
+    }
+  }
+
+  const pendingTargetedImport = ref<{
+    steps: StrapiImportStep[]
+    slugFilter: { slug: string, locale?: string }
+  } | null>(null)
+
+  async function executeImportConfirmed() {
+    if (pendingTargetedImport.value) {
+      const pending = pendingTargetedImport.value
+      pendingTargetedImport.value = null
+      await executeImport({
+        steps: pending.steps,
+        dryRun: false,
+        slugFilter: pending.slugFilter,
+        omitDependencies: true,
+      })
+      return
+    }
+    await executeImport()
+  }
+
   function requestImport() {
+    pendingTargetedImport.value = null
     const steps = selectedSteps.value.length > 0
       ? selectedSteps.value
       : [...DEFAULT_STEPS]
@@ -202,6 +276,7 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
 
   return {
     config,
+    configError,
     refresh,
     refreshConnection,
     resetImportState,
@@ -210,10 +285,14 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
     running,
     confirmOpen,
     importStatus,
-    isLaunching,
+    isSubmitting,
+    isRemoteImportRunning,
+    isLaunchBusy,
     reachabilityBadge,
     statusBadgeColor,
     requestImport,
-    executeImport,
+    requestTargetedImport,
+    executeImport: executeImportConfirmed,
+    executeImportFull: executeImport,
   }
 }

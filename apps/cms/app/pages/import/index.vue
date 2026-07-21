@@ -6,24 +6,38 @@ import {
   useStrapiImportPanel,
 } from '~/composables/useStrapiImportPanel'
 
-const selectedSteps = ref<StrapiImportStep[]>(
-  STRAPI_IMPORT_STEP_ITEMS.map(item => item.value as StrapiImportStep),
-)
+const selectedSteps = ref<StrapiImportStep[]>(['category-articles'])
 const dryRun = ref(true)
 
 const {
   config,
+  configError,
   refresh,
   refreshConnection,
   resetImportState,
   confirmOpen,
   importStatus,
-  isLaunching,
+  isSubmitting,
+  isRemoteImportRunning,
+  isLaunchBusy,
   reachabilityBadge,
   statusBadgeColor,
   requestImport,
+  requestTargetedImport,
   executeImport,
 } = useStrapiImportPanel({ selectedSteps, dryRun })
+
+const testTarget = ref<'article' | 'recipe' | 'page'>('article')
+const testSlug = ref('')
+const testLocale = ref('fr')
+
+const testTargetItems = [
+  { value: 'article', label: 'Article (blog)' },
+  { value: 'recipe', label: 'Recette' },
+  { value: 'page', label: 'Page CMS' },
+] as const
+
+const configLoadFailed = computed(() => Boolean(configError.value))
 
 const lastResult = computed(() => importStatus.value?.result)
 
@@ -62,6 +76,23 @@ function coverageBadgeColor(state: string | undefined) {
     </template>
 
     <template #body>
+      <UAlert
+        v-if="configLoadFailed"
+        color="error"
+        variant="subtle"
+        title="Impossible de charger la configuration d’import"
+        description="Connectez-vous avec un compte administrateur, puis rechargez la page."
+        class="mb-4"
+      />
+      <UAlert
+        v-else-if="isRemoteImportRunning"
+        color="warning"
+        variant="subtle"
+        title="Import en cours"
+        description="Un import est déjà en cours côté serveur. Suivez le journal ci-dessous ou utilisez « Réinitialiser l’état » s’il est bloqué."
+        class="mb-4"
+      />
+
       <div class="grid gap-6 lg:grid-cols-2">
         <UPageCard title="Source Strapi">
           <dl class="space-y-3 text-sm">
@@ -104,7 +135,7 @@ function coverageBadgeColor(state: string | undefined) {
               variant="outline"
               icon="i-lucide-plug"
               label="Tester Strapi"
-              :disabled="isLaunching"
+              :disabled="isSubmitting"
               @click="refreshConnection()"
             />
             <UButton
@@ -165,8 +196,8 @@ function coverageBadgeColor(state: string | undefined) {
             <UButton
               icon="i-lucide-download"
               :label="dryRun ? 'Lancer la simulation' : 'Importer depuis Strapi'"
-              :loading="isLaunching"
-              :disabled="isLaunching"
+              :loading="isLaunchBusy"
+              :disabled="isSubmitting"
               @click="requestImport"
             />
             <UButton
@@ -183,6 +214,38 @@ function coverageBadgeColor(state: string | undefined) {
           </p>
         </UPageCard>
       </div>
+
+      <UPageCard title="Import ciblé (test)" class="mt-6">
+        <p class="mb-4 text-sm text-muted">
+          Importe un seul contenu Strapi par <strong>slug</strong> (sans ré-importer toutes les catégories).
+          Les taxonomies doivent déjà être en base si le contenu y fait référence.
+        </p>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <UFormField label="Type">
+            <USelect
+              v-model="testTarget"
+              :items="[...testTargetItems]"
+              class="w-full"
+            />
+          </UFormField>
+          <UFormField label="Slug Strapi" class="sm:col-span-2">
+            <UInput v-model="testSlug" placeholder="mon-article" />
+          </UFormField>
+          <UFormField label="Locale">
+            <UInput v-model="testLocale" placeholder="fr" />
+          </UFormField>
+        </div>
+        <div class="mt-4 flex flex-wrap gap-3">
+          <UButton
+            variant="outline"
+            icon="i-lucide-crosshair"
+            :label="dryRun ? 'Tester ce slug (simulation)' : 'Importer ce slug'"
+            :loading="isLaunchBusy"
+            :disabled="isSubmitting"
+            @click="requestTargetedImport(testTarget, testSlug, testLocale)"
+          />
+        </div>
+      </UPageCard>
 
       <UPageCard v-if="lastResult" title="Dernier résultat" class="mt-6">
         <p class="mb-3 text-xs text-muted">
@@ -262,7 +325,8 @@ function coverageBadgeColor(state: string | undefined) {
             color="warning"
             icon="i-lucide-download"
             label="Importer"
-            :loading="isLaunching"
+            :loading="isLaunchBusy"
+            :disabled="isSubmitting"
             @click="executeImport"
           />
         </template>

@@ -3,7 +3,9 @@ import type { ExtractContext, StrapiEntityStats, StrapiSeoFields } from './types
 import { strapiSourceId } from './types'
 import { findLegacyDestId, upsertLegacyMap } from './legacy-map'
 import { createStrapiClient } from './strapi-client'
+import { iterateStrapiRows } from './strapi-iterate'
 import { strapiZonesToMarkdown } from './zones-to-markdown'
+import { rewriteStrapiUploadsInText } from './content-media'
 import { upsertContentSeo } from './seo'
 import { bumpImportStats, dryRunOutcome, shallowFieldsEqual } from './import-row'
 import { schema } from '../../db/create-db'
@@ -31,21 +33,27 @@ function seoEqual(a: StrapiSeoFields | null, existing: { description: string | n
     && (a.metaRobots ?? 'index, follow') === (existing.metaRobots ?? 'index, follow')
 }
 
-export async function extractPages(ctx: ExtractContext): Promise<StrapiEntityStats> {
+export async function extractPages(ctx: ExtractContext, mediaStats: StrapiEntityStats): Promise<StrapiEntityStats> {
   const stats = { created: 0, updated: 0, skipped: 0, errors: 0 }
   const client = createStrapiClient({ baseUrl: ctx.strapiUrl, token: ctx.strapiApiToken })
   const pendingParents: Array<{ pageId: number, parentSourceId: string }> = []
 
   ctx.log('Import des pages…')
 
-  for await (const row of client.listAll<StrapiPage>('pages')) {
+  for await (const row of iterateStrapiRows<StrapiPage>(ctx, client, 'pages')) {
     const sourceId = strapiSourceId(row)
     if (!sourceId) continue
 
     try {
       const existingId = await findLegacyDestId(ctx.db, 'pages', sourceId)
       const locale = row.locale || 'fr'
-      const content = strapiZonesToMarkdown(row.content)
+      const rawContent = strapiZonesToMarkdown(row.content)
+      const content = await rewriteStrapiUploadsInText(
+        ctx,
+        rawContent,
+        mediaStats,
+        ctx.strapiUrl,
+      ) ?? rawContent
       const values = {
         name: row.name,
         title: row.title ?? row.name,

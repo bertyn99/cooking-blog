@@ -4,16 +4,27 @@ const { $api } = useNuxtApp()
 
 const id = computed(() => Number.parseInt(route.params.id as string, 10))
 
+interface ArticleDetail {
+  id: number
+  title: string
+  slug: string
+  content: string | null
+  categoryId: number | null
+  status: string
+  coverBlobPathname: string | null
+  cover?: { pathname: string, originalName: string | null } | null
+  seo?: {
+    description: string | null
+    keywords: string | null
+    metaRobots: string | null
+  } | null
+}
+
 const { data: article, status } = await useAsyncData(
   () => `article-${id.value}`,
-  () => $api<{
-    id: number
-    title: string
-    slug: string
-    content: string | null
-    categoryId: number | null
-    status: string
-  }>(`/api/articles/${id.value}`),
+  () => $api<ArticleDetail>(`/api/articles/${id.value}`, {
+    query: { include: 'cover,category,seo' },
+  }),
   { watch: [id] },
 )
 </script>
@@ -42,6 +53,9 @@ const { data: article, status } = await useAsyncData(
           content: article.content ?? undefined,
           categoryId: article.categoryId ?? undefined,
           status: article.status,
+          coverBlobPathname: article.coverBlobPathname,
+          coverDisplayName: article.cover?.originalName ?? article.cover?.pathname ?? null,
+          seo: article.seo,
         }"
       />
 

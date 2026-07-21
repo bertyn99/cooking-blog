@@ -23,4 +23,8 @@ describe('resolveImportSteps', () => {
       'pages',
     ])
   })
+
+  it('skips dependencies when omitDependencies is true', () => {
+    expect(resolveImportSteps(['articles'], { omitDependencies: true })).toEqual(['articles'])
+  })
 })

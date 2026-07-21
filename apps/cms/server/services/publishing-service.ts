@@ -87,13 +87,24 @@ export function createPublishingService(db: AppDb) {
     async schedule(contentType: string, id: number, scheduledAt: string) {
       const config = getContentConfig(contentType)
       const existing = await db
-        .select({ id: config.table.id })
+        .select({
+          id: config.table.id,
+          status: config.table.status,
+          deletedAt: config.table.deletedAt,
+        })
         .from(config.table)
         .where(eq(config.table.id, id))
         .get()
 
-      if (!existing) {
+      if (!existing || existing.deletedAt) {
         throw createApiError('NOT_FOUND', `${contentType} not found`)
+      }
+
+      if (existing.status === 'published') {
+        throw createApiError(
+          'CONFLICT',
+          'Published content cannot be rescheduled from the calendar',
+        )
       }
 
       const now = new Date().toISOString()

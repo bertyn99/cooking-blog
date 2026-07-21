@@ -26,6 +26,8 @@ export async function executeStrapiImportJob(
       strapiApiToken: config.strapiApiToken || undefined,
       dryRun: input.dryRun,
       steps: input.steps,
+      slugFilter: input.slugFilter,
+      omitDependencies: input.omitDependencies,
       event,
       onStepStart: async (step) => {
         await appendStrapiImportLog(event, `Démarrage : ${step}`, {

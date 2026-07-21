@@ -27,19 +27,35 @@ export function createStrapiClient(opts: StrapiClientOptions) {
     const params = new URLSearchParams({
       'pagination[page]': String(page),
       'pagination[pageSize]': String(pageSize),
-      'populate': '*',
-      ...extraQuery,
     })
+
+    const hasExplicitPopulate = extraQuery
+      ? Object.keys(extraQuery).some(key => key === 'populate' || key.startsWith('populate['))
+      : false
+
+    if (!hasExplicitPopulate) {
+      params.set('populate', '*')
+    }
+
+    if (extraQuery) {
+      for (const [key, value] of Object.entries(extraQuery)) {
+        params.set(key, value)
+      }
+    }
 
     return $fetch<StrapiListResponse<T>>(`${base}/api/${collection}?${params.toString()}`, {
       headers: opts.token ? { Authorization: `Bearer ${opts.token}` } : undefined,
     })
   }
 
-  async function* listAll<T>(collection: string, pageSize = 100): AsyncGenerator<T> {
+  async function* listAll<T>(
+    collection: string,
+    pageSize = 100,
+    extraQuery?: Record<string, string>,
+  ): AsyncGenerator<T> {
     let page = 1
     while (true) {
-      const res = await fetchPage<T>(collection, page, pageSize)
+      const res = await fetchPage<T>(collection, page, pageSize, extraQuery)
       for (const item of res.data ?? []) {
         yield item
       }
@@ -68,5 +84,19 @@ export function createStrapiClient(opts: StrapiClientOptions) {
     return res.meta?.pagination?.total ?? 0
   }
 
-  return { listAll, downloadFile, ping, countCollection }
+  async function findBySlug<T>(
+    collection: string,
+    slug: string,
+    locale: string,
+    extraQuery?: Record<string, string>,
+  ): Promise<T | null> {
+    const res = await fetchPage<T>(collection, 1, 1, {
+      'filters[slug][$eq]': slug,
+      'filters[locale][$eq]': locale,
+      ...extraQuery,
+    })
+    return res.data?.[0] ?? null
+  }
+
+  return { listAll, downloadFile, ping, countCollection, findBySlug }
 }

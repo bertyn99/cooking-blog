@@ -3,7 +3,9 @@ import type { ExtractContext, StrapiEntityStats, StrapiMediaFile, StrapiSeoField
 import { strapiSourceId } from './types'
 import { findLegacyDestId, upsertLegacyMap } from './legacy-map'
 import { createStrapiClient } from './strapi-client'
+import { iterateStrapiRows } from './strapi-iterate'
 import { importStrapiMedia } from './media'
+import { rewriteStrapiUploadsInText } from './content-media'
 import { upsertContentSeo } from './seo'
 import { bumpImportStats, dryRunOutcome, shallowFieldsEqual, stableJson } from './import-row'
 import { schema } from '../../db/create-db'
@@ -159,7 +161,7 @@ export async function extractRecipes(ctx: ExtractContext, mediaStats: StrapiEnti
 
   ctx.log('Import des recettes…')
 
-  for await (const row of client.listAll<StrapiRecipe>('recipes')) {
+  for await (const row of iterateStrapiRows<StrapiRecipe>(ctx, client, 'recipes')) {
     const sourceId = strapiSourceId(row)
     if (!sourceId) continue
 
@@ -167,6 +169,8 @@ export async function extractRecipes(ctx: ExtractContext, mediaStats: StrapiEnti
       const existingId = await findLegacyDestId(ctx.db, 'recipes', sourceId)
       const locale = row.locale || 'fr'
       const coverPath = await importStrapiMedia(ctx, row.cover ?? undefined, mediaStats)
+      const intro = await rewriteStrapiUploadsInText(ctx, row.intro, mediaStats, ctx.strapiUrl)
+      const step = await rewriteStrapiUploadsInText(ctx, row.step, mediaStats, ctx.strapiUrl)
 
       let categoryId: number | null = null
       if (row.category) {
@@ -177,8 +181,8 @@ export async function extractRecipes(ctx: ExtractContext, mediaStats: StrapiEnti
 
       const values = {
         title: row.title,
-        intro: row.intro ?? null,
-        step: row.step ?? null,
+        intro,
+        step,
         slug: row.slug,
         difficulty: row.difficulty ?? 'easy',
         time: row.time ?? null,

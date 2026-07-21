@@ -5,7 +5,7 @@ import { createError as h3CreateError } from 'h3'
  * Named createApiError to avoid shadowing H3's built-in.
  */
 export function createApiError(
-  code: 'NOT_FOUND' | 'VALIDATION_ERROR' | 'UNAUTHORIZED' | 'FORBIDDEN' | 'INTERNAL_ERROR',
+  code: 'NOT_FOUND' | 'VALIDATION_ERROR' | 'UNAUTHORIZED' | 'FORBIDDEN' | 'CONFLICT' | 'INTERNAL_ERROR',
   message: string,
   details?: unknown,
 ) {
@@ -14,6 +14,7 @@ export function createApiError(
     VALIDATION_ERROR: 400,
     UNAUTHORIZED: 401,
     FORBIDDEN: 403,
+    CONFLICT: 409,
     INTERNAL_ERROR: 500,
   }
   return h3CreateError({

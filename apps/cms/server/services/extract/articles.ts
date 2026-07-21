@@ -3,7 +3,9 @@ import type { ExtractContext, StrapiEntityStats, StrapiMediaFile, StrapiSeoField
 import { strapiSourceId } from './types'
 import { findLegacyDestId, upsertLegacyMap } from './legacy-map'
 import { createStrapiClient } from './strapi-client'
+import { iterateStrapiRows } from './strapi-iterate'
 import { importStrapiMedia } from './media'
+import { rewriteStrapiUploadsInText } from './content-media'
 import { upsertContentSeo } from './seo'
 import { bumpImportStats, dryRunOutcome, shallowFieldsEqual } from './import-row'
 import { schema } from '../../db/create-db'
@@ -54,7 +56,7 @@ export async function extractArticles(ctx: ExtractContext, mediaStats: StrapiEnt
 
   ctx.log('Import des articles…')
 
-  for await (const row of client.listAll<StrapiArticle>('articles')) {
+  for await (const row of iterateStrapiRows<StrapiArticle>(ctx, client, 'articles')) {
     const sourceId = strapiSourceId(row)
     if (!sourceId) continue
 
@@ -62,6 +64,12 @@ export async function extractArticles(ctx: ExtractContext, mediaStats: StrapiEnt
       const existingId = await findLegacyDestId(ctx.db, 'articles', sourceId)
       const locale = row.locale || 'fr'
       const coverPath = await importStrapiMedia(ctx, row.cover ?? undefined, mediaStats)
+      const content = await rewriteStrapiUploadsInText(
+        ctx,
+        row.content,
+        mediaStats,
+        ctx.strapiUrl,
+      )
 
       let categoryId: number | null = null
       if (row.category) {
@@ -81,7 +89,7 @@ export async function extractArticles(ctx: ExtractContext, mediaStats: StrapiEnt
 
       const values = {
         title: row.title,
-        content: row.content ?? null,
+        content,
         slug: row.slug,
         coverBlobPathname: coverPath,
         categoryId,

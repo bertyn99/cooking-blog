@@ -17,7 +17,13 @@ export const STRAPI_IMPORT_STEP_DEPS: Record<StrapiImportStep, readonly StrapiIm
   'pages': [],
 }
 
-export function resolveImportSteps(requested: readonly StrapiImportStep[]): StrapiImportStep[] {
+export function resolveImportSteps(
+  requested: readonly StrapiImportStep[],
+  options?: { omitDependencies?: boolean },
+): StrapiImportStep[] {
+  if (options?.omitDependencies) {
+    return STRAPI_IMPORT_STEPS.filter(step => (requested as readonly string[]).includes(step))
+  }
   const needed = new Set<StrapiImportStep>()
   for (const step of requested) {
     for (const dep of STRAPI_IMPORT_STEP_DEPS[step]) {
@@ -26,6 +32,20 @@ export function resolveImportSteps(requested: readonly StrapiImportStep[]): Stra
     needed.add(step)
   }
   return STRAPI_IMPORT_STEPS.filter(step => needed.has(step))
+}
+
+export const STRAPI_IMPORT_TEST_TARGETS = ['article', 'recipe', 'page'] as const
+export type StrapiImportTestTarget = typeof STRAPI_IMPORT_TEST_TARGETS[number]
+
+export const STRAPI_IMPORT_TEST_TARGET_STEP: Record<StrapiImportTestTarget, StrapiImportStep> = {
+  article: 'articles',
+  recipe: 'recipes',
+  page: 'pages',
+}
+
+export interface StrapiImportSlugFilter {
+  slug: string
+  locale?: string
 }
 
 export interface StrapiEntityStats {
@@ -116,6 +136,10 @@ export interface StrapiReachabilityCache {
 export interface StrapiImportRunBody {
   dryRun?: boolean
   steps?: StrapiImportStep[]
+  /** Import only this slug (articles, recipes, or pages). */
+  slugFilter?: StrapiImportSlugFilter
+  /** When slugFilter is set, do not auto-run prerequisite import steps. */
+  omitDependencies?: boolean
 }
 
 export interface StrapiImportConfigResponse {

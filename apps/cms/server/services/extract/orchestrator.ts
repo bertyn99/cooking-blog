@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import type { StrapiImportSlugFilter } from '../../../shared/strapi-import'
 import type { AppDb } from '../../db/create-db'
 import { extractArticles } from './articles'
 import { extractCategories } from './categories'
@@ -22,6 +23,8 @@ export interface RunStrapiImportOptions {
   strapiApiToken?: string
   dryRun?: boolean
   steps?: StrapiImportStep[]
+  slugFilter?: StrapiImportSlugFilter
+  omitDependencies?: boolean
   event?: H3Event
   onLog?: (message: string) => void | Promise<void>
   onStepStart?: (step: StrapiImportStep) => void | Promise<void>
@@ -35,9 +38,12 @@ export async function runStrapiImport(opts: RunStrapiImportOptions): Promise<Str
   }
 
   const steps = opts.steps?.length ? opts.steps : [...STRAPI_IMPORT_STEPS]
-  const ordered = resolveImportSteps(steps)
-  if (ordered.length > steps.length) {
+  const ordered = resolveImportSteps(steps, { omitDependencies: opts.omitDependencies })
+  if (!opts.omitDependencies && ordered.length > steps.length) {
     await log(`Étapes requises ajoutées automatiquement : ${ordered.join(', ')}`)
+  }
+  if (opts.slugFilter?.slug) {
+    await log(`Import ciblé : slug « ${opts.slugFilter.slug} »${opts.slugFilter.locale ? ` (${opts.slugFilter.locale})` : ''}.`)
   }
 
   const client = createStrapiClient({
@@ -55,6 +61,7 @@ export async function runStrapiImport(opts: RunStrapiImportOptions): Promise<Str
     strapiApiToken: opts.strapiApiToken,
     dryRun: opts.dryRun ?? false,
     steps: ordered,
+    slugFilter: opts.slugFilter,
     event: opts.event,
     log: (message) => {
       messages.push(message)
@@ -89,7 +96,7 @@ export async function runStrapiImport(opts: RunStrapiImportOptions): Promise<Str
         result.steps[step] = await extractRecipes(ctx, media)
         break
       case 'pages':
-        result.steps[step] = await extractPages(ctx)
+        result.steps[step] = await extractPages(ctx, media)
         break
       default: {
         const _exhaustive: never = step

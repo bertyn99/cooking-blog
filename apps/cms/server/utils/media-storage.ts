@@ -269,7 +269,23 @@ export function useMediaStorage(event?: H3Event): MediaStorage {
   return bucket ? createR2Storage(bucket) : createLocalStorage()
 }
 
+/**
+ * Strapi image transforms embed the original under a second `/uploads/` segment, e.g.
+ * `/uploads/width_410,height_287,fit_cover/uploads/foo.webp` → `/uploads/foo.webp`.
+ */
+export function canonicalStrapiUploadPath(uploadPath: string): string {
+  let path = uploadPath
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    path = new URL(path).pathname
+  }
+  const withSlash = path.startsWith('/') ? path : `/${path}`
+  if (!withSlash.startsWith('/uploads/')) return withSlash
+  const segments = withSlash.split('/uploads/').filter(Boolean)
+  const filePart = segments[segments.length - 1] ?? ''
+  return `/uploads/${filePart}`
+}
+
 /** Map Strapi `/uploads/...` URL to CMS media pathname (`uploads/...`). */
 export function strapiMediaPathnameFromUrl(url: string) {
-  return strapiUrlToPathname(url)
+  return strapiUrlToPathname(canonicalStrapiUploadPath(url))
 }

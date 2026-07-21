@@ -13,6 +13,11 @@ import { validateBody } from '../../../utils/validate'
 const bodySchema = z.object({
   dryRun: z.boolean().optional().default(false),
   steps: z.array(z.enum(STRAPI_IMPORT_STEPS)).optional(),
+  slugFilter: z.object({
+    slug: z.string().min(1),
+    locale: z.string().min(1).optional(),
+  }).optional(),
+  omitDependencies: z.boolean().optional(),
 }) satisfies z.ZodType<StrapiImportRunBody, z.ZodTypeDef, unknown>
 
 export default defineEventHandler(async (event) => {
@@ -44,6 +49,8 @@ export default defineEventHandler(async (event) => {
   const jobInput = {
     dryRun: body.dryRun,
     steps: body.steps,
+    slugFilter: body.slugFilter,
+    omitDependencies: body.omitDependencies,
   }
 
   const waitUntil = event.context.cloudflare as { context?: { waitUntil?: (p: Promise<unknown>) => void } } | undefined

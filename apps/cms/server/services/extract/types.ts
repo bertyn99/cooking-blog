@@ -4,6 +4,7 @@ import type {
   StrapiEntityStats,
   StrapiImportProgress,
   StrapiImportResult,
+  StrapiImportSlugFilter,
   StrapiImportStep,
 } from '../../../shared/strapi-import'
 
@@ -29,6 +30,7 @@ export interface ExtractContext {
   strapiApiToken?: string
   dryRun: boolean
   steps: StrapiImportStep[]
+  slugFilter?: StrapiImportSlugFilter
   event?: H3Event
   log: (message: string) => void
   onStepStart?: (step: StrapiImportStep) => void | Promise<void>

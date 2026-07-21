@@ -31,6 +31,11 @@ const links = [[{
     icon: 'i-lucide-file-text',
     to: '/pages',
     onSelect: () => { open.value = false }
+  }, {
+    label: 'Planning',
+    icon: 'i-lucide-calendar-days',
+    to: '/planning',
+    onSelect: () => { open.value = false }
   }]
 }, {
   label: 'Taxonomie',
@@ -52,6 +57,11 @@ const links = [[{
   label: 'Import Strapi',
   icon: 'i-lucide-download',
   to: '/import',
+  onSelect: () => { open.value = false }
+}, {
+  label: 'Maintenance',
+  icon: 'i-lucide-wrench',
+  to: '/maintenance',
   onSelect: () => { open.value = false }
 }], [{
   label: 'Site public',

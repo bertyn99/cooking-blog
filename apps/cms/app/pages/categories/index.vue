@@ -3,6 +3,7 @@ import type { TableColumn } from '@nuxt/ui'
 import type { PaginatedResponse } from '~/types/cms'
 
 interface CategoryRow {
+  rowId: string
   id: number
   name: string
   slug: string
@@ -27,12 +28,14 @@ const { data: articleCategories, status: articleStatus } = await useAsyncData(
 
 const rows = computed<CategoryRow[]>(() => [
   ...(articleCategories.value?.data ?? []).map(row => ({
+    rowId: `blog-${row.id}`,
     id: row.id,
     name: row.name,
     slug: row.slug,
     type: 'Blog' as const,
   })),
   ...(recipeCategories.value?.data ?? []).map(row => ({
+    rowId: `recipe-${row.id}`,
     id: row.id,
     name: row.name,
     slug: row.slug,
@@ -77,6 +80,7 @@ const columns: TableColumn<CategoryRow>[] = [
         :data="rows"
         :columns="columns"
         :loading="loading"
+        :get-row-id="row => row.rowId"
         :ui="{
           base: 'table-fixed border-separate border-spacing-0',
           thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',

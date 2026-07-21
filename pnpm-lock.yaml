@@ -107,8 +107,8 @@ importers:
         specifier: 'catalog:'
         version: 1.0.0-rc.4(@cloudflare/workers-types@5.20260712.1)(@effect/sql-pg@4.0.0-beta.94(effect@4.0.0-beta.94))(@libsql/client@0.17.4)(@upstash/redis@1.35.5)(effect@4.0.0-beta.94)(mysql2@3.22.6(@types/node@22.18.10))(pg@8.22.0)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3)
       evlog:
-        specifier: 2.17.0
-        version: 2.17.0(@nuxt/kit@4.5.0(magic-string@1.0.0)(magicast@0.5.3)(oxc-parser@0.140.0)(rolldown@1.2.0)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.0)(rollup@4.60.4)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))))(h3@1.15.11)(nitropack@2.13.4(@libsql/client@0.17.4)(@upstash/redis@1.35.5)(@vercel/kv@3.0.0)(aws4fetch@1.0.20)(drizzle-orm@1.0.0-rc.4(@cloudflare/workers-types@5.20260712.1)(@effect/sql-pg@4.0.0-beta.94(effect@4.0.0-beta.94))(@libsql/client@0.17.4)(@upstash/redis@1.35.5)(effect@4.0.0-beta.94)(mysql2@3.22.6(@types/node@22.18.10))(pg@8.22.0)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3))(mysql2@3.22.6(@types/node@22.18.10))(oxc-parser@0.140.0)(rolldown@1.2.0)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0)))(ofetch@1.5.1)(react@19.2.7)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))
+        specifier: ^2.22.0
+        version: 2.22.0(@nuxt/kit@4.5.0(magic-string@1.0.0)(magicast@0.5.3)(oxc-parser@0.140.0)(rolldown@1.2.0)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.0)(rollup@4.60.4)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))))(h3@1.15.11)(nitropack@2.13.4(@libsql/client@0.17.4)(@upstash/redis@1.35.5)(@vercel/kv@3.0.0)(aws4fetch@1.0.20)(drizzle-orm@1.0.0-rc.4(@cloudflare/workers-types@5.20260712.1)(@effect/sql-pg@4.0.0-beta.94(effect@4.0.0-beta.94))(@libsql/client@0.17.4)(@upstash/redis@1.35.5)(effect@4.0.0-beta.94)(mysql2@3.22.6(@types/node@22.18.10))(pg@8.22.0)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3))(mysql2@3.22.6(@types/node@22.18.10))(oxc-parser@0.140.0)(rolldown@1.2.0)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0)))(ofetch@1.5.1)(react@19.2.7)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))
       nuxt:
         specifier: 'catalog:'
         version: 4.5.0(90f2472ca8e209e556bf16990f573fe0)
@@ -5552,35 +5552,42 @@ packages:
     resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
     engines: {node: '>=0.8.x'}
 
-  evlog@2.17.0:
-    resolution: {integrity: sha512-v6PWFV0SAEB04l70vENByG6o4r2v8KXIUNroeqYQ6uXb2xEzRRgRCxiAsAntb+Tqd4xPKenX+X67v/KyM6ar5g==}
+  evlog@2.22.0:
+    resolution: {integrity: sha512-xWLQIf93SPldkAuIKQPbeUlqfPrsurBOJIqbKu3KB+a5TQVqUp3qE3edvbKKmdZDmcB2v+w9pIt/RWknV9pQTw==}
+    engines: {node: '>=18.0.0'}
     peerDependencies:
-      '@nestjs/common': '>=11.1.19'
+      '@nestjs/common': '>=11.1.28'
       '@nuxt/kit': ^4.4.2
-      '@tanstack/start-client-core': ^1.167.20
-      ai: '>=6.0.168'
-      elysia: '>=1.4.28'
+      '@orpc/server': '>=1.14.8'
+      '@tanstack/start-client-core': ^1.170.14
+      ai: '>=6.0.168 <8.0.0'
+      elysia: '>=1.4.29'
+      eve: '>=0.24.3'
       express: '>=5.2.1'
-      fastify: '>=5.8.5'
+      fastify: '>=5.10.0'
       h3: ^1.15.11
-      hono: ''
-      next: '>=16.2.4'
+      hono: '>=4.12.30'
+      next: '>=16.2.10'
       nitro: ^3.0.260311-beta
-      nitropack: ^2.13.3
+      nitropack: ^2.13.4
       ofetch: ^1.5.1
-      react: '>=19.2.5'
-      react-router: '>=7.14.2'
+      react: '>=19.2.7'
+      react-router: '>=7.18.1'
       vite: ^7.0.0 || ^8.0.0
     peerDependenciesMeta:
       '@nestjs/common':
         optional: true
       '@nuxt/kit':
         optional: true
+      '@orpc/server':
+        optional: true
       '@tanstack/start-client-core':
         optional: true
       ai:
         optional: true
       elysia:
+        optional: true
+      eve:
         optional: true
       express:
         optional: true
@@ -14777,7 +14784,7 @@ snapshots:
 
   events@3.3.0: {}
 
-  evlog@2.17.0(@nuxt/kit@4.5.0(magic-string@1.0.0)(magicast@0.5.3)(oxc-parser@0.140.0)(rolldown@1.2.0)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.0)(rollup@4.60.4)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))))(h3@1.15.11)(nitropack@2.13.4(@libsql/client@0.17.4)(@upstash/redis@1.35.5)(@vercel/kv@3.0.0)(aws4fetch@1.0.20)(drizzle-orm@1.0.0-rc.4(@cloudflare/workers-types@5.20260712.1)(@effect/sql-pg@4.0.0-beta.94(effect@4.0.0-beta.94))(@libsql/client@0.17.4)(@upstash/redis@1.35.5)(effect@4.0.0-beta.94)(mysql2@3.22.6(@types/node@22.18.10))(pg@8.22.0)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3))(mysql2@3.22.6(@types/node@22.18.10))(oxc-parser@0.140.0)(rolldown@1.2.0)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0)))(ofetch@1.5.1)(react@19.2.7)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0)):
+  evlog@2.22.0(@nuxt/kit@4.5.0(magic-string@1.0.0)(magicast@0.5.3)(oxc-parser@0.140.0)(rolldown@1.2.0)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.0)(rollup@4.60.4)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))))(h3@1.15.11)(nitropack@2.13.4(@libsql/client@0.17.4)(@upstash/redis@1.35.5)(@vercel/kv@3.0.0)(aws4fetch@1.0.20)(drizzle-orm@1.0.0-rc.4(@cloudflare/workers-types@5.20260712.1)(@effect/sql-pg@4.0.0-beta.94(effect@4.0.0-beta.94))(@libsql/client@0.17.4)(@upstash/redis@1.35.5)(effect@4.0.0-beta.94)(mysql2@3.22.6(@types/node@22.18.10))(pg@8.22.0)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3))(mysql2@3.22.6(@types/node@22.18.10))(oxc-parser@0.140.0)(rolldown@1.2.0)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0)))(ofetch@1.5.1)(react@19.2.7)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0)):
     optionalDependencies:
       '@nuxt/kit': 4.5.0(magic-string@1.0.0)(magicast@0.5.3)(oxc-parser@0.140.0)(rolldown@1.2.0)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.0)(rollup@4.60.4)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0)))
       h3: 1.15.11

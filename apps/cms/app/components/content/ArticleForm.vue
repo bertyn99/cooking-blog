@@ -1,20 +1,32 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { z } from 'zod'
-import type { PaginatedResponse } from '~/types/cms'
+import { slugifyString } from '#shared/slug'
+import type { ContentStatus, PaginatedResponse } from '~/types/cms'
 
 const schema = z.object({
   title: z.string().min(1, 'Titre requis'),
   slug: z.string().optional(),
   content: z.string().optional(),
   categoryId: z.number().optional(),
+  coverBlobPathname: z.string().nullable().optional(),
 })
 
 type Schema = z.output<typeof schema>
 
+interface ArticleSeoInitial {
+  description?: string | null
+  keywords?: string | null
+  metaRobots?: string | null
+}
+
 const props = defineProps<{
   articleId?: number
-  initial?: Partial<Schema> & { status?: string }
+  initial?: Partial<Schema> & {
+    status?: string
+    coverDisplayName?: string | null
+    seo?: ArticleSeoInitial | null
+  }
 }>()
 
 const { $api } = useNuxtApp()
@@ -28,22 +40,58 @@ const state = reactive<Schema>({
   slug: props.initial?.slug ?? '',
   content: props.initial?.content ?? '',
   categoryId: props.initial?.categoryId,
+  coverBlobPathname: props.initial?.coverBlobPathname ?? null,
 })
+
+const seoState = reactive({
+  description: props.initial?.seo?.description ?? '',
+  keywords: props.initial?.seo?.keywords ?? '',
+  metaRobots: props.initial?.seo?.metaRobots ?? 'index, follow',
+})
+
+const hasSeoEntry = computed(() =>
+  Boolean(
+    props.initial?.seo
+    || seoState.description.trim()
+    || seoState.keywords.trim(),
+  ),
+)
 
 const status = computed(() => props.initial?.status ?? 'draft')
 
 const { data: categories } = await useAsyncData('article-category-options', () =>
-  $api<PaginatedResponse<{ id: number, name: string }>>('/api/category-articles', {
+  $api<PaginatedResponse<{ id: number, name: string, status: ContentStatus }>>('/api/category-articles', {
     query: { pageSize: 100 },
   }),
 )
 
-const categoryOptions = computed(() =>
-  (categories.value?.data ?? []).map(category => ({
-    label: category.name,
-    value: category.id,
-  })),
-)
+const categoryRows = computed(() => categories.value?.data ?? [])
+
+function regenerateSlug() {
+  if (!state.title.trim()) {
+    toast.add({ title: 'Saisissez un titre d\'abord', color: 'warning' })
+    return
+  }
+  state.slug = slugifyString(state.title)
+}
+
+async function saveSeo(articleId: number) {
+  const body = {
+    description: seoState.description || undefined,
+    keywords: seoState.keywords || undefined,
+    metaRobots: seoState.metaRobots || undefined,
+  }
+
+  const hasContent = body.description || body.keywords || body.metaRobots
+  if (!hasContent && !props.initial?.seo) {
+    return
+  }
+
+  await $api(`/api/seo/article/${articleId}`, {
+    method: 'PUT',
+    body,
+  })
+}
 
 async function saveArticle(): Promise<number | undefined> {
   const body = {
@@ -51,14 +99,17 @@ async function saveArticle(): Promise<number | undefined> {
     slug: state.slug || undefined,
     content: state.content || undefined,
     categoryId: state.categoryId,
+    coverBlobPathname: state.coverBlobPathname,
   }
 
   if (props.articleId) {
     await $api(`/api/articles/${props.articleId}`, { method: 'PUT', body })
+    await saveSeo(props.articleId)
     return props.articleId
   }
 
   const created = await $api<{ id: number }>('/api/articles', { method: 'POST', body })
+  await saveSeo(created.id)
   await router.replace(`/articles/${created.id}`)
   return created.id
 }
@@ -97,29 +148,66 @@ async function publishArticle() {
 </script>
 
 <template>
-  <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
-    <UFormField label="Titre" name="title" required>
-      <UInput v-model="state.title" placeholder="Titre de l'article" />
-    </UFormField>
+  <UForm :schema="schema" :state="state" class="space-y-6" @submit="onSubmit">
+    <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)] lg:items-start">
+      <div class="space-y-4">
+        <div>
+          <ContentFieldLabel label="title" />
+          <UFormField name="title" :ui="{ label: 'hidden' }">
+            <UInput
+              v-model="state.title"
+              size="xl"
+              variant="outline"
+              placeholder="Titre de l'article"
+              class="w-full"
+            />
+          </UFormField>
+        </div>
 
-    <UFormField label="Slug" name="slug" hint="Généré automatiquement si vide">
-      <UInput v-model="state.slug" placeholder="mon-article" />
-    </UFormField>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <ContentFieldLabel label="slug" />
+            <UFormField name="slug" :ui="{ label: 'hidden' }">
+              <UInput v-model="state.slug" placeholder="mon-article">
+                <template #trailing>
+                  <UButton
+                    icon="i-lucide-refresh-cw"
+                    color="neutral"
+                    variant="ghost"
+                    size="xs"
+                    aria-label="Générer le slug depuis le titre"
+                    @click="regenerateSlug"
+                  />
+                </template>
+              </UInput>
+            </UFormField>
+          </div>
 
-    <UFormField label="Catégorie blog" name="categoryId">
-      <USelect
-        v-model="state.categoryId"
-        :items="categoryOptions"
-        placeholder="Choisir une catégorie"
-        class="w-full"
+          <ContentCategoryRelationField
+            v-model="state.categoryId"
+            :categories="categoryRows"
+          />
+        </div>
+      </div>
+
+      <ContentCoverField
+        v-model="state.coverBlobPathname"
+        :display-name="initial?.coverDisplayName"
       />
+    </div>
+
+    <ContentSeoPanel
+      v-model:description="seoState.description"
+      v-model:keywords="seoState.keywords"
+      v-model:meta-robots="seoState.metaRobots"
+      :has-entry="hasSeoEntry"
+    />
+
+    <UFormField name="content" :ui="{ label: 'hidden' }">
+      <ContentMarkdownEditor v-model="state.content" />
     </UFormField>
 
-    <UFormField label="Contenu (Markdown)" name="content">
-      <UTextarea v-model="state.content" :rows="16" placeholder="Rédigez le contenu…" />
-    </UFormField>
-
-    <div class="flex flex-wrap items-center gap-2 border-t border-default pt-4">
+    <div class="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 border-t border-default bg-default/90 py-4 backdrop-blur">
       <UBadge v-if="articleId" variant="subtle" class="capitalize">
         {{ status }}
       </UBadge>
