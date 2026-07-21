@@ -1,38 +1,99 @@
 <script setup lang="ts">
+import type { Editor } from '@tiptap/vue-3'
 import type { EditorToolbarItem } from '@nuxt/ui'
+import { mediaAltFromPathname, mediaPublicUrl } from '~/utils/media'
 
 const model = defineModel<string>({ required: true })
 
 const preview = ref(false)
+const mediaPickerOpen = ref(false)
+const pickerMode = ref<'insert' | 'replace'>('insert')
+const activeEditor = shallowRef<Editor | null>(null)
 
-const toolbarItems = computed<EditorToolbarItem[][]>(() => [
-  [
-    {
-      label: 'Titres',
-      icon: 'i-lucide-heading',
-      items: [
-        { kind: 'paragraph', label: 'Paragraphe' },
-        { kind: 'heading', level: 2, label: 'Titre 2' },
-        { kind: 'heading', level: 3, label: 'Titre 3' },
-        { kind: 'heading', level: 4, label: 'Titre 4' },
-      ],
+function openMediaPicker(mode: 'insert' | 'replace', editor: Editor) {
+  activeEditor.value = editor
+  pickerMode.value = mode
+  mediaPickerOpen.value = true
+}
+
+function applyMediaToEditor(pathname: string) {
+  const editor = activeEditor.value
+  if (!editor) {
+    return
+  }
+
+  const src = mediaPublicUrl(pathname)
+  const alt = mediaAltFromPathname(pathname)
+
+  if (pickerMode.value === 'replace' && editor.isActive('image')) {
+    editor.chain().focus().updateAttributes('image', { src, alt }).run()
+  }
+  else {
+    editor.chain().focus().setImage({ src, alt }).run()
+  }
+
+  activeEditor.value = null
+}
+
+function buildToolbarItems(editor: Editor): EditorToolbarItem[][] {
+  return [
+    [
+      {
+        label: 'Titres',
+        icon: 'i-lucide-heading',
+        items: [
+          { kind: 'paragraph', label: 'Paragraphe' },
+          { kind: 'heading', level: 2, label: 'Titre 2' },
+          { kind: 'heading', level: 3, label: 'Titre 3' },
+          { kind: 'heading', level: 4, label: 'Titre 4' },
+        ],
+      },
+    ],
+    [
+      { kind: 'mark', mark: 'bold', icon: 'i-lucide-bold', tooltip: { text: 'Gras' } },
+      { kind: 'mark', mark: 'italic', icon: 'i-lucide-italic', tooltip: { text: 'Italique' } },
+      { kind: 'mark', mark: 'underline', icon: 'i-lucide-underline', tooltip: { text: 'Souligné' } },
+      { kind: 'mark', mark: 'strike', icon: 'i-lucide-strikethrough', tooltip: { text: 'Barré' } },
+    ],
+    [
+      { kind: 'bulletList', icon: 'i-lucide-list', tooltip: { text: 'Liste à puces' } },
+      { kind: 'orderedList', icon: 'i-lucide-list-ordered', tooltip: { text: 'Liste numérotée' } },
+      { kind: 'codeBlock', icon: 'i-lucide-code', tooltip: { text: 'Bloc de code' } },
+      {
+        icon: 'i-lucide-image',
+        tooltip: { text: 'Insérer une image (médiathèque)' },
+        onClick: () => openMediaPicker('insert', editor),
+      },
+      { kind: 'link', icon: 'i-lucide-link', tooltip: { text: 'Lien' } },
+      { kind: 'blockquote', icon: 'i-lucide-quote', tooltip: { text: 'Citation' } },
+    ],
+  ]
+}
+
+const imageBubbleItems = (editor: Editor): EditorToolbarItem[] => [
+  {
+    icon: 'i-lucide-image-plus',
+    label: 'Remplacer',
+    onClick: () => openMediaPicker('replace', editor),
+  },
+  {
+    icon: 'i-lucide-trash-2',
+    label: 'Supprimer',
+    color: 'error',
+    onClick: () => {
+      if (editor.isActive('image')) {
+        editor.chain().focus().deleteNode('image').run()
+      }
+      else {
+        editor.chain().focus().deleteSelection().run()
+      }
     },
-  ],
-  [
-    { kind: 'mark', mark: 'bold', icon: 'i-lucide-bold', tooltip: { text: 'Gras' } },
-    { kind: 'mark', mark: 'italic', icon: 'i-lucide-italic', tooltip: { text: 'Italique' } },
-    { kind: 'mark', mark: 'underline', icon: 'i-lucide-underline', tooltip: { text: 'Souligné' } },
-    { kind: 'mark', mark: 'strike', icon: 'i-lucide-strikethrough', tooltip: { text: 'Barré' } },
-  ],
-  [
-    { kind: 'bulletList', icon: 'i-lucide-list', tooltip: { text: 'Liste à puces' } },
-    { kind: 'orderedList', icon: 'i-lucide-list-ordered', tooltip: { text: 'Liste numérotée' } },
-    { kind: 'codeBlock', icon: 'i-lucide-code', tooltip: { text: 'Bloc de code' } },
-    { kind: 'image', icon: 'i-lucide-image', tooltip: { text: 'Image' } },
-    { kind: 'link', icon: 'i-lucide-link', tooltip: { text: 'Lien' } },
-    { kind: 'blockquote', icon: 'i-lucide-quote', tooltip: { text: 'Citation' } },
-  ],
-])
+  },
+]
+
+function imageBubbleShouldShow({ editor }: { editor: Editor }) {
+  return editor.isActive('image')
+}
 </script>
 
 <template>
@@ -65,7 +126,7 @@ const toolbarItems = computed<EditorToolbarItem[][]>(() => [
           <UEditorToolbar
             v-if="!preview"
             :editor="editor"
-            :items="toolbarItems"
+            :items="buildToolbarItems(editor)"
             layout="fixed"
             class="flex-1"
           />
@@ -73,8 +134,8 @@ const toolbarItems = computed<EditorToolbarItem[][]>(() => [
             v-if="!preview"
             class="ml-auto"
             size="xs"
-            :color="preview ? 'primary' : 'neutral'"
-            :variant="preview ? 'soft' : 'ghost'"
+            color="neutral"
+            variant="ghost"
             icon="i-lucide-eye"
             label="Preview mode"
             @click="preview = true"
@@ -89,7 +150,21 @@ const toolbarItems = computed<EditorToolbarItem[][]>(() => [
             @click="preview = false"
           />
         </div>
+
+        <UEditorToolbar
+          v-if="!preview"
+          :editor="editor"
+          :items="imageBubbleItems(editor)"
+          layout="bubble"
+          :should-show="imageBubbleShouldShow"
+        />
       </UEditor>
+
+      <ContentMediaPickerModal
+        v-model:open="mediaPickerOpen"
+        :title="pickerMode === 'replace' ? 'Remplacer l\'image' : 'Insérer une image'"
+        @select="applyMediaToEditor"
+      />
 
       <template #fallback>
         <UTextarea

@@ -1,4 +1,5 @@
 import { count, eq, inArray, isNotNull } from 'drizzle-orm'
+import type { H3Event } from 'h3'
 import type { SQLiteTable } from 'drizzle-orm/sqlite-core'
 import type { AppDb } from '../db/create-db'
 import { schema } from '../db/create-db'
@@ -8,8 +9,9 @@ import type {
   MaintenancePurgeTarget,
 } from '../../shared/maintenance'
 import { MAINTENANCE_PURGE_TARGETS } from '../../shared/maintenance'
+import { useMediaStorage } from '../utils/media-storage'
 
-const REVISION_TYPES_BY_TARGET: Record<MaintenancePurgeTarget, string[] | null> = {
+const REVISION_TYPES_BY_TARGET: Record<Exclude<MaintenancePurgeTarget, 'media'>, string[] | null> = {
   articles: ['articles'],
   recipes: ['recipes'],
   pages: ['pages'],
@@ -37,6 +39,7 @@ export async function getMaintenanceCounts(db: AppDb): Promise<MaintenanceCounts
     categoryArticles: await countTable(db, schema.categoryArticles),
     categories: await countTable(db, schema.categories),
     legacyMediaMap: Number(legacyMedia?.value ?? 0),
+    media: await countTable(db, schema.blobs),
   }
 }
 
@@ -120,7 +123,22 @@ async function purgeLegacyMediaMap(db: AppDb): Promise<number> {
   return n
 }
 
-const PURGE_HANDLERS: Record<MaintenancePurgeTarget, (db: AppDb) => Promise<number>> = {
+/** Removes gallery catalog, Strapi media map, and detaches blob FKs (files deleted after commit). */
+async function purgeMediaCatalog(db: AppDb): Promise<{ count: number, pathnames: string[] }> {
+  const rows = await db.select({ pathname: schema.blobs.pathname }).from(schema.blobs).all()
+  const pathnames = rows.map(row => row.pathname)
+
+  await db.update(schema.articles).set({ coverBlobPathname: null })
+  await db.update(schema.recipes).set({ coverBlobPathname: null })
+  await db.update(schema.socialMeta).set({ imageBlobPathname: null })
+  await db.delete(schema.categoryBlobs)
+  await db.delete(schema.legacyStrapiMap).where(eq(schema.legacyStrapiMap.sourceType, 'media'))
+  await db.delete(schema.blobs)
+
+  return { count: pathnames.length, pathnames }
+}
+
+const PURGE_HANDLERS: Record<Exclude<MaintenancePurgeTarget, 'media'>, (db: AppDb) => Promise<number>> = {
   articles: purgeArticles,
   recipes: purgeRecipes,
   pages: purgePages,
@@ -135,16 +153,36 @@ const PURGE_ORDER = MAINTENANCE_PURGE_TARGETS
 export async function runMaintenancePurge(
   db: AppDb,
   targets: MaintenancePurgeTarget[],
+  event?: H3Event,
 ): Promise<MaintenancePurgeResult> {
   const unique = [...new Set(targets)]
   const ordered = PURGE_ORDER.filter(t => unique.includes(t))
   const deleted: MaintenancePurgeResult['deleted'] = {}
+  let mediaPathnames: string[] = []
 
   await db.transaction(async (tx) => {
     for (const target of ordered) {
+      if (target === 'media') {
+        const result = await purgeMediaCatalog(tx as AppDb)
+        deleted.media = result.count
+        mediaPathnames = result.pathnames
+        continue
+      }
       deleted[target] = await PURGE_HANDLERS[target](tx as AppDb)
     }
   })
+
+  if (mediaPathnames.length && event) {
+    const storage = useMediaStorage(event)
+    for (const pathname of mediaPathnames) {
+      try {
+        await storage.del(pathname)
+      }
+      catch {
+        // Object may already be missing from R2/local disk
+      }
+    }
+  }
 
   return { deleted }
 }
@@ -161,6 +199,7 @@ export async function countRowsForTargets(
     'category-articles': counts.categoryArticles,
     categories: counts.categories,
     'legacy-media-map': counts.legacyMediaMap,
+    media: counts.media,
   }
   return targets.reduce((sum, t) => sum + (map[t] ?? 0), 0)
 }

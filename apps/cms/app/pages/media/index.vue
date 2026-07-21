@@ -16,8 +16,9 @@ interface MediaListResponse {
 
 const { $api } = useNuxtApp()
 
-const { data, status } = await useAsyncData('media-list', () =>
-  $api<MediaListResponse>('/api/media', { query: { limit: 50 } })
+const { data, status, refresh } = await useAsyncData('media-list', () =>
+  $api<MediaListResponse>('/api/media', { query: { limit: 50 } }),
+  { server: false },
 )
 
 const columns: TableColumn<BlobItem>[] = [
@@ -57,6 +58,7 @@ const columns: TableColumn<BlobItem>[] = [
         </template>
 
         <template #right>
+          <UButton icon="i-lucide-refresh-cw" variant="outline" label="Actualiser" @click="refresh()" />
           <UButton icon="i-lucide-upload" label="Importer" disabled />
         </template>
       </UDashboardNavbar>

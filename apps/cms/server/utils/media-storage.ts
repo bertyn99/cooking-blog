@@ -2,10 +2,10 @@ import { createHash, randomUUID } from 'node:crypto'
 import { mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import type { H3Event } from 'h3'
+import { MAX_IMAGE_UPLOAD_BYTES, maxImageUploadSizeLabel } from '../../shared/media'
 import { useR2 } from './r2'
 
 const UPLOAD_PREFIX = 'uploads/'
-const MAX_IMAGE_BYTES = 4 * 1024 * 1024
 
 export interface MediaObject {
   pathname: string
@@ -41,8 +41,11 @@ export function validateImageFile(file: File) {
   if (!file.type.startsWith('image/')) {
     throw createError({ statusCode: 400, statusMessage: 'Only image files are allowed' })
   }
-  if (file.size > MAX_IMAGE_BYTES) {
-    throw createError({ statusCode: 400, statusMessage: 'Image must be 4MB or smaller' })
+  if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: `Image must be ${maxImageUploadSizeLabel()} or smaller`,
+    })
   }
 }
 

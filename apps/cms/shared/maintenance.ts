@@ -5,6 +5,7 @@ export const MAINTENANCE_PURGE_TARGETS = [
   'category-articles',
   'categories',
   'legacy-media-map',
+  'media',
 ] as const
 
 export type MaintenancePurgeTarget = typeof MAINTENANCE_PURGE_TARGETS[number]
@@ -18,6 +19,7 @@ export interface MaintenanceCounts {
   categoryArticles: number
   categories: number
   legacyMediaMap: number
+  media: number
 }
 
 export interface MaintenancePurgeResult {

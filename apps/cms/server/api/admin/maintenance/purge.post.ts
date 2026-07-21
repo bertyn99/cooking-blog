@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const result = await runMaintenancePurge(db, targets)
+  const result = await runMaintenancePurge(db, targets, event)
 
   return {
     ok: true,

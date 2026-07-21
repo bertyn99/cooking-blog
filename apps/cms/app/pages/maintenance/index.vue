@@ -26,7 +26,12 @@ const purgeItems: CheckboxGroupItem[] = [
   {
     value: 'legacy-media-map',
     label: 'Cartographie médias Strapi',
-    description: 'legacy_strapi_map (fichiers locaux/R2 conservés)',
+    description: 'Liens legacy_strapi_map uniquement (fichiers conservés)',
+  },
+  {
+    value: 'media',
+    label: 'Médiathèque',
+    description: 'Fichiers R2/local + table blobs + cartographie Strapi (couvertures détachées)',
   },
 ]
 
@@ -53,6 +58,7 @@ const countByTarget = computed((): Record<MaintenancePurgeTarget, number> => ({
   'category-articles': counts.value?.categoryArticles ?? 0,
   categories: counts.value?.categories ?? 0,
   'legacy-media-map': counts.value?.legacyMediaMap ?? 0,
+  media: counts.value?.media ?? 0,
 }))
 
 const purgeCheckboxItems = computed(() =>
@@ -151,7 +157,7 @@ async function executePurge() {
         color="warning"
         variant="subtle"
         title="Zone destructive"
-        description="Supprime définitivement les données en base locale ou distante. Les fichiers médias sur disque/R2 ne sont pas effacés automatiquement."
+        description="Supprime définitivement les données sélectionnées. L’option « Médiathèque » efface aussi les fichiers sur R2 ou dans .data/media."
         class="mb-6"
       />
 
@@ -170,7 +176,7 @@ async function executePurge() {
         />
 
         <p class="mb-4 text-sm text-muted">
-          Ordre appliqué côté serveur : articles → recettes → pages → catégories blog → catégories recettes → cartographie médias.
+          Ordre appliqué côté serveur : articles → recettes → pages → catégories blog → catégories recettes → cartographie médias → médiathèque (fichiers).
           <span v-if="selectedTargets.length">
             Sélection : environ <strong>{{ selectedRowTotal }}</strong> entrée(s) concernée(s).
           </span>

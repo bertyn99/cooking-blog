@@ -4,6 +4,7 @@ import { findLegacyDestId, upsertLegacyMap } from './legacy-map'
 import { createStrapiClient } from './strapi-client'
 import { schema } from '../../db/create-db'
 import { canonicalStrapiUploadPath, strapiMediaPathnameFromUrl, useMediaStorage } from '../../utils/media-storage'
+import { ensureBlobCatalogRecord } from '../../utils/media'
 
 function guessMimeFromPathname(pathname: string): string {
   const ext = pathname.split('.').pop()?.toLowerCase()
@@ -83,6 +84,9 @@ export async function importStrapiMediaByUploadPath(
 
   const mapped = await findLegacyDestId(ctx.db, 'media', sourceId)
   if (mapped === pathname) {
+    if (!ctx.dryRun) {
+      await ensureBlobCatalogRecord(ctx.db, ctx.event, pathname)
+    }
     stats.skipped += 1
     return pathname
   }
@@ -97,6 +101,10 @@ export async function importStrapiMediaByUploadPath(
         destTable: 'blobs',
         destId: pathname,
       }, false)
+      await ensureBlobCatalogRecord(ctx.db, ctx.event, pathname, {
+        mimeType: existing.contentType,
+        size: existing.size,
+      })
     }
     stats.skipped += 1
     return pathname
@@ -146,6 +154,15 @@ export async function importStrapiMedia(
   const pathname = strapiMediaPathnameFromUrl(file.url)
   const mapped = await findLegacyDestId(ctx.db, 'media', sourceId)
   if (mapped === pathname) {
+    if (!ctx.dryRun) {
+      await ensureBlobCatalogRecord(ctx.db, ctx.event, pathname, {
+        originalName: file.name,
+        mimeType: file.mime,
+        width: file.width,
+        height: file.height,
+        altText: file.alternativeText,
+      })
+    }
     stats.skipped += 1
     return pathname
   }
@@ -166,6 +183,14 @@ export async function importStrapiMedia(
         destTable: 'blobs',
         destId: pathname,
       }, false)
+      await ensureBlobCatalogRecord(ctx.db, ctx.event, pathname, {
+        originalName: file.name,
+        mimeType: file.mime ?? existing.contentType,
+        size: existing.size,
+        width: file.width,
+        height: file.height,
+        altText: file.alternativeText,
+      })
     }
     stats.skipped += 1
     return pathname

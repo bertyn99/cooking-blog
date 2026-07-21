@@ -1,39 +1,30 @@
 <script setup lang="ts">
+import { mediaPublicUrl, readApiErrorMessage } from '~/utils/media'
+import { formatMediaByteSize, isWithinImageUploadLimit, maxImageUploadSizeLabel } from '#shared/media'
+
 const model = defineModel<string | null>({ required: true })
 
 const props = defineProps<{
   displayName?: string | null
 }>()
 
-const { $api } = useNuxtApp()
 const toast = useToast()
-const fileInput = ref<HTMLInputElement | null>(null)
 const pickerOpen = ref(false)
+const fileInput = ref<HTMLInputElement | null>(null)
+const { $api } = useNuxtApp()
 const uploading = ref(false)
 
 const previewUrl = computed(() =>
-  model.value ? `/images/${model.value}` : null,
+  model.value ? mediaPublicUrl(model.value) : null,
 )
 
 const fileLabel = computed(() =>
   props.displayName || model.value?.split('/').pop() || 'Aucun fichier',
 )
 
-interface MediaListResponse {
-  blobs: { pathname: string, mimeType?: string }[]
+function onPicked(pathname: string) {
+  model.value = pathname
 }
-
-const { data: mediaList, refresh: refreshMedia } = await useAsyncData(
-  'cover-picker-media',
-  () => $api<MediaListResponse>('/api/media', { query: { limit: 48 } }),
-  { immediate: false },
-)
-
-watch(pickerOpen, (open) => {
-  if (open) {
-    refreshMedia()
-  }
-})
 
 function openFilePicker() {
   fileInput.value?.click()
@@ -43,6 +34,22 @@ async function onFileChange(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) {
+    return
+  }
+
+  if (!file.type.startsWith('image/')) {
+    toast.add({ title: 'Fichier non supporté', description: 'Choisissez une image.', color: 'warning' })
+    input.value = ''
+    return
+  }
+
+  if (!isWithinImageUploadLimit(file.size)) {
+    toast.add({
+      title: 'Fichier trop volumineux',
+      description: `Taille max. ${maxImageUploadSizeLabel()} (fichier : ${formatMediaByteSize(file.size)}).`,
+      color: 'warning',
+    })
+    input.value = ''
     return
   }
 
@@ -57,18 +64,17 @@ async function onFileChange(event: Event) {
     model.value = uploaded.pathname
     toast.add({ title: 'Image importée', color: 'success' })
   }
-  catch {
-    toast.add({ title: 'Échec de l\'import', color: 'error' })
+  catch (error: unknown) {
+    toast.add({
+      title: 'Échec de l\'import',
+      description: readApiErrorMessage(error, 'Réessayez ou choisissez un fichier plus léger.'),
+      color: 'error',
+    })
   }
   finally {
     uploading.value = false
     input.value = ''
   }
-}
-
-function selectFromLibrary(pathname: string) {
-  model.value = pathname
-  pickerOpen.value = false
 }
 
 function clearCover() {
@@ -79,7 +85,7 @@ function copyPath() {
   if (!model.value) {
     return
   }
-  navigator.clipboard.writeText(`/images/${model.value}`)
+  navigator.clipboard.writeText(mediaPublicUrl(model.value))
   toast.add({ title: 'Lien copié', color: 'neutral' })
 }
 </script>
@@ -156,34 +162,16 @@ function copyPath() {
         size="xs"
         color="neutral"
         variant="ghost"
-        :disabled="!model"
         aria-label="Remplacer"
-        @click="openFilePicker"
+        @click="pickerOpen = true"
       />
     </div>
 
-    <UModal v-model:open="pickerOpen" title="Choisir une image">
-      <template #body>
-        <div class="grid max-h-80 grid-cols-3 gap-2 overflow-y-auto sm:grid-cols-4">
-          <button
-            v-for="blob in mediaList?.blobs ?? []"
-            :key="blob.pathname"
-            type="button"
-            class="overflow-hidden rounded-md border border-default ring-primary transition hover:ring-2"
-            :class="model === blob.pathname ? 'ring-2 ring-primary' : ''"
-            @click="selectFromLibrary(blob.pathname)"
-          >
-            <img
-              :src="`/images/${blob.pathname}`"
-              :alt="blob.pathname"
-              class="aspect-square w-full object-cover"
-            >
-          </button>
-        </div>
-        <p v-if="!(mediaList?.blobs?.length)" class="py-8 text-center text-sm text-muted">
-          Aucun média. Importez un fichier avec le bouton +.
-        </p>
-      </template>
-    </UModal>
+    <ContentMediaPickerModal
+      v-model:open="pickerOpen"
+      title="Image de couverture"
+      :selected-pathname="model"
+      @select="onPicked"
+    />
   </div>
 </template>
