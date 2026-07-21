@@ -90,12 +90,18 @@ export function createStrapiClient(opts: StrapiClientOptions) {
     locale: string,
     extraQuery?: Record<string, string>,
   ): Promise<T | null> {
-    const res = await fetchPage<T>(collection, 1, 1, {
+    const withLocale = await fetchPage<T>(collection, 1, 1, {
       'filters[slug][$eq]': slug,
       'filters[locale][$eq]': locale,
       ...extraQuery,
     })
-    return res.data?.[0] ?? null
+    if (withLocale.data?.[0]) return withLocale.data[0]
+
+    const withoutLocale = await fetchPage<T>(collection, 1, 1, {
+      'filters[slug][$eq]': slug,
+      ...extraQuery,
+    })
+    return withoutLocale.data?.[0] ?? null
   }
 
   return { listAll, downloadFile, ping, countCollection, findBySlug }
