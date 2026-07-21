@@ -1,15 +1,9 @@
 <template>
-  <UDashboardPanel id="recipe-new">
-    <template #header>
-      <UDashboardNavbar title="Nouvelle recette">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-      </UDashboardNavbar>
-    </template>
-
-    <template #body>
-      <ContentRecipeForm />
-    </template>
-  </UDashboardPanel>
+  <ContentEditorDetailLayout
+    resource-label="Recettes"
+    resource-to="/recipes"
+    title="Nouvelle recette"
+  >
+    <ContentRecipeForm />
+  </ContentEditorDetailLayout>
 </template>

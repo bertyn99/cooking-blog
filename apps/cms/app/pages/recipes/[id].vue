@@ -12,6 +12,14 @@ interface RecipeIngredient {
   sortOrder?: number | null
 }
 
+interface RecipeUtensilRow {
+  id?: number
+  name: string
+  note?: string | null
+  affiliateUrl?: string | null
+  sortOrder?: number | null
+}
+
 interface RecipeDetail {
   id: number
   title: string
@@ -25,6 +33,7 @@ interface RecipeDetail {
   coverBlobPathname: string | null
   cover?: { pathname: string, originalName: string | null } | null
   ingredients?: RecipeIngredient[] | null
+  utensils?: RecipeUtensilRow[] | null
   nutrition?: {
     lipides: string | null
     proteine: string | null
@@ -43,53 +52,47 @@ interface RecipeDetail {
 const { data: recipe, status } = await useAsyncData(
   () => `recipe-${id.value}`,
   () => $api<RecipeDetail>(`/api/recipes/${id.value}`, {
-    query: { include: 'cover,category,seo,ingredients,nutrition' },
+    query: { include: 'cover,category,seo,ingredients,utensils,nutrition' },
   }),
   { watch: [id] },
 )
 </script>
 
 <template>
-  <UDashboardPanel id="recipe-edit">
-    <template #header>
-      <UDashboardNavbar :title="recipe?.title ?? 'Éditer la recette'">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-      </UDashboardNavbar>
-    </template>
+  <ContentEditorDetailLayout
+    resource-label="Recettes"
+    resource-to="/recipes"
+    :title="recipe?.title"
+    :subtitle="recipe?.slug"
+    :loading="status === 'pending'"
+  >
+    <ContentRecipeForm
+      v-if="recipe"
+      :recipe-id="recipe.id"
+      :initial="{
+        title: recipe.title,
+        slug: recipe.slug,
+        intro: recipe.intro ?? undefined,
+        step: recipe.step ?? undefined,
+        difficulty: recipe.difficulty ?? undefined,
+        time: recipe.time ?? undefined,
+        categoryId: recipe.categoryId ?? undefined,
+        status: recipe.status,
+        coverBlobPathname: recipe.coverBlobPathname,
+        coverDisplayName: recipe.cover?.originalName ?? recipe.cover?.pathname ?? null,
+        ingredients: recipe.ingredients ?? undefined,
+        utensils: recipe.utensils ?? undefined,
+        nutrition: recipe.nutrition ?? undefined,
+        seo: recipe.seo,
+      }"
+    />
 
-    <template #body>
-      <div v-if="status === 'pending'" class="text-muted">
-        Chargement…
-      </div>
-
-      <ContentRecipeForm
-        v-else-if="recipe"
-        :recipe-id="recipe.id"
-        :initial="{
-          title: recipe.title,
-          slug: recipe.slug,
-          intro: recipe.intro ?? undefined,
-          step: recipe.step ?? undefined,
-          difficulty: recipe.difficulty ?? undefined,
-          time: recipe.time ?? undefined,
-          categoryId: recipe.categoryId ?? undefined,
-          status: recipe.status,
-          coverBlobPathname: recipe.coverBlobPathname,
-          coverDisplayName: recipe.cover?.originalName ?? recipe.cover?.pathname ?? null,
-          ingredients: recipe.ingredients ?? undefined,
-          nutrition: recipe.nutrition ?? undefined,
-          seo: recipe.seo,
-        }"
-      />
-
-      <UAlert
-        v-else
-        color="error"
-        title="Recette introuvable"
-        description="Cette recette n'existe pas ou a été supprimée."
-      />
-    </template>
-  </UDashboardPanel>
+    <UAlert
+      v-else-if="status !== 'pending'"
+      color="error"
+      title="Recette introuvable"
+      description="Cette recette n'existe pas ou a été supprimée."
+      class="mx-auto max-w-lg"
+    />
+  </ContentEditorDetailLayout>
 </template>

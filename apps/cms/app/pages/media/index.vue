@@ -3,6 +3,7 @@ import type { TableColumn } from '@nuxt/ui'
 import { formatMediaByteSize, isWithinImageUploadLimit, maxImageUploadSizeLabel } from '#shared/media'
 import { MEDIA_UPLOAD_ROOT, mediaKindLabel, type MediaKind } from '#shared/media-paths'
 import { mediaPublicUrl, readApiErrorMessage } from '~/utils/media'
+import { DASHBOARD_TABLE_UI } from '~/utils/dashboard-shell'
 import { prepareImageForUpload } from '~/utils/prepare-image-upload.client'
 
 interface MediaBlob {
@@ -254,10 +255,10 @@ const columns: TableColumn<MediaBlob>[] = [
     }, [
       row.original.kind === 'image'
         ? h('img', {
-            src: mediaPublicUrl(row.original.pathname),
-            class: 'size-10 rounded object-cover',
-            alt: '',
-          })
+          src: mediaPublicUrl(row.original.pathname),
+          class: 'size-10 rounded object-cover',
+          alt: '',
+        })
         : h(resolveComponent('UIcon'), { name: 'i-lucide-file', class: 'size-10 text-muted' }),
       h('span', { class: 'truncate font-medium' }, displayName(row.original)),
     ]),
@@ -291,101 +292,48 @@ const columns: TableColumn<MediaBlob>[] = [
 </script>
 
 <template>
-  <UDashboardPanel id="media">
+  <AppDashboardPanel id="media">
     <template #header>
-      <UDashboardNavbar title="Médias">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-
+      <AppDashboardNavbar title="Médias">
         <template #right>
-          <UButton
-            icon="i-lucide-folder-plus"
-            variant="outline"
-            label="Nouveau dossier"
-            @click="folderModalOpen = true"
-          />
-          <UButton
-            icon="i-lucide-refresh-cw"
-            variant="outline"
-            label="Actualiser"
-            :loading="status === 'pending'"
-            @click="refresh()"
-          />
-          <UButton
-            icon="i-lucide-upload"
-            label="Importer"
-            :loading="uploading"
-            @click="openFilePicker"
-          />
-          <input
-            ref="fileInput"
-            type="file"
-            accept="image/*"
-            class="hidden"
-            @change="onFileChange"
-          >
+          <UButton icon="i-lucide-folder-plus" variant="outline" label="Nouveau dossier"
+            @click="folderModalOpen = true" />
+          <UButton icon="i-lucide-refresh-cw" variant="outline" label="Actualiser" :loading="status === 'pending'"
+            @click="refresh()" />
+          <UButton icon="i-lucide-upload" label="Importer" :loading="uploading" @click="openFilePicker" />
+          <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFileChange">
         </template>
-      </UDashboardNavbar>
+      </AppDashboardNavbar>
     </template>
 
     <template #body>
       <div class="flex flex-col gap-4">
         <nav class="flex flex-wrap items-center gap-1 text-sm text-muted">
           <template v-for="(crumb, index) in breadcrumbs" :key="crumb.prefix">
-            <button
-              v-if="index < breadcrumbs.length - 1"
-              type="button"
-              class="hover:text-primary"
-              @click="navigateToFolder(crumb.prefix)"
-            >
+            <button v-if="index < breadcrumbs.length - 1" type="button" class="hover:text-primary"
+              @click="navigateToFolder(crumb.prefix)">
               {{ crumb.label }}
             </button>
             <span v-else class="font-medium text-highlighted">{{ crumb.label }}</span>
-            <UIcon
-              v-if="index < breadcrumbs.length - 1"
-              name="i-lucide-chevron-right"
-              class="size-3.5"
-            />
+            <UIcon v-if="index < breadcrumbs.length - 1" name="i-lucide-chevron-right" class="size-3.5" />
           </template>
         </nav>
 
         <div class="flex flex-wrap items-center gap-2">
-          <UInput
-            v-model="search"
-            icon="i-lucide-search"
-            placeholder="Rechercher…"
-            class="min-w-[12rem] flex-1"
-          />
+          <UInput v-model="search" icon="i-lucide-search" placeholder="Rechercher…" class="min-w-[12rem] flex-1" />
           <UFieldGroup>
-            <UButton
-              icon="i-lucide-layout-grid"
-              :color="viewMode === 'grid' ? 'primary' : 'neutral'"
-              variant="outline"
-              aria-label="Vue grille"
-              @click="viewMode = 'grid'"
-            />
-            <UButton
-              icon="i-lucide-list"
-              :color="viewMode === 'table' ? 'primary' : 'neutral'"
-              variant="outline"
-              aria-label="Vue tableau"
-              @click="viewMode = 'table'"
-            />
+            <UButton icon="i-lucide-layout-grid" :color="viewMode === 'grid' ? 'primary' : 'neutral'" variant="outline"
+              aria-label="Vue grille" @click="viewMode = 'grid'" />
+            <UButton icon="i-lucide-list" :color="viewMode === 'table' ? 'primary' : 'neutral'" variant="outline"
+              aria-label="Vue tableau" @click="viewMode = 'table'" />
           </UFieldGroup>
         </div>
 
         <div v-if="filteredFolders.length" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div
-            v-for="folder in filteredFolders"
-            :key="folder.prefix"
-            class="group relative flex items-start gap-3 rounded-xl border border-default bg-elevated/30 p-4 transition hover:border-primary/40"
-          >
-            <button
-              type="button"
-              class="flex min-w-0 flex-1 items-start gap-3 text-left"
-              @click="navigateToFolder(folder.prefix)"
-            >
+          <div v-for="folder in filteredFolders" :key="folder.prefix"
+            class="group relative flex items-start gap-3 rounded-xl border border-default bg-elevated/30 p-4 transition hover:border-primary/40">
+            <button type="button" class="flex min-w-0 flex-1 items-start gap-3 text-left"
+              @click="navigateToFolder(folder.prefix)">
               <UIcon name="i-lucide-folder" class="size-10 shrink-0 text-amber-500" />
               <div class="min-w-0">
                 <p class="truncate font-medium text-highlighted">
@@ -396,53 +344,29 @@ const columns: TableColumn<MediaBlob>[] = [
                 </p>
               </div>
             </button>
-            <UDropdownMenu
-              :items="[[
-                { label: 'Ouvrir', icon: 'i-lucide-folder-open', onSelect: () => navigateToFolder(folder.prefix) },
-                { label: 'Supprimer…', icon: 'i-lucide-trash-2', color: 'error', onSelect: () => { folderToDelete = folder } },
-              ]]"
-            >
-              <UButton
-                icon="i-lucide-ellipsis-vertical"
-                color="neutral"
-                variant="ghost"
-                size="xs"
-                class="opacity-0 group-hover:opacity-100"
-              />
+            <UDropdownMenu :items="[[
+              { label: 'Ouvrir', icon: 'i-lucide-folder-open', onSelect: () => navigateToFolder(folder.prefix) },
+              { label: 'Supprimer…', icon: 'i-lucide-trash-2', color: 'error', onSelect: () => { folderToDelete = folder } },
+            ]]">
+              <UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="ghost" size="xs"
+                class="opacity-0 group-hover:opacity-100" />
             </UDropdownMenu>
           </div>
         </div>
 
         <div v-if="viewMode === 'grid'">
-          <div
-            v-if="status === 'pending' && !filteredBlobs.length"
-            class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
-          >
+          <div v-if="status === 'pending' && !filteredBlobs.length"
+            class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             <USkeleton v-for="i in 10" :key="i" class="aspect-square rounded-xl" />
           </div>
 
-          <div
-            v-else-if="filteredBlobs.length"
-            class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
-          >
-            <button
-              v-for="blob in filteredBlobs"
-              :key="blob.pathname"
-              type="button"
+          <div v-else-if="filteredBlobs.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            <button v-for="blob in filteredBlobs" :key="blob.pathname" type="button"
               class="group relative overflow-hidden rounded-xl border border-default bg-elevated/20 text-left transition hover:border-primary/50"
-              @click="openDetail(blob.pathname)"
-            >
-              <img
-                v-if="blob.kind === 'image'"
-                :src="mediaPublicUrl(blob.pathname)"
-                :alt="displayName(blob)"
-                class="aspect-square w-full object-cover"
-                loading="lazy"
-              >
-              <div
-                v-else
-                class="flex aspect-square items-center justify-center bg-elevated/50"
-              >
+              @click="openDetail(blob.pathname)">
+              <img v-if="blob.kind === 'image'" :src="mediaPublicUrl(blob.pathname)" :alt="displayName(blob)"
+                class="aspect-square w-full object-cover" loading="lazy">
+              <div v-else class="flex aspect-square items-center justify-center bg-elevated/50">
                 <UIcon name="i-lucide-file" class="size-12 text-muted" />
               </div>
               <div class="absolute left-2 top-2">
@@ -461,14 +385,8 @@ const columns: TableColumn<MediaBlob>[] = [
             </button>
           </div>
 
-          <UAlert
-            v-else-if="!filteredFolders.length"
-            color="neutral"
-            variant="subtle"
-            icon="i-lucide-images"
-            title="Aucun média ici"
-            description="Importez une image ou créez un dossier."
-          />
+          <UAlert v-else-if="!filteredFolders.length" color="neutral" variant="subtle" icon="i-lucide-images"
+            title="Aucun média ici" description="Importez une image ou créez un dossier." />
         </div>
 
         <UTable
@@ -476,25 +394,14 @@ const columns: TableColumn<MediaBlob>[] = [
           :data="filteredBlobs"
           :columns="columns"
           :loading="status === 'pending'"
-          :ui="{
-            base: 'table-fixed border-separate border-spacing-0',
-            thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
-            tbody: '[&>tr]:last:[&>td]:border-b-0',
-            th: 'py-2 first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
-            td: 'border-b border-default',
-            separator: 'h-0',
-          }"
+          :ui="DASHBOARD_TABLE_UI"
         />
       </div>
 
-      <MediaDetailSlideover
-        v-model:open="detailOpen"
-        :pathname="detailPathname"
-        @updated="refresh()"
-        @deleted="refresh()"
-      />
+      <MediaDetailSlideover v-model:open="detailOpen" :pathname="detailPathname" @updated="refresh()"
+        @deleted="refresh()" />
     </template>
-  </UDashboardPanel>
+  </AppDashboardPanel>
 
   <UModal v-model:open="folderModalOpen" title="Nouveau dossier">
     <template #body>
@@ -511,7 +418,8 @@ const columns: TableColumn<MediaBlob>[] = [
   <UModal v-model:open="folderDeleteOpen" title="Supprimer le dossier ?">
     <template #body>
       <p class="text-sm text-muted">
-        Le dossier <strong>{{ folderToDelete?.name }}</strong> et tout son contenu ({{ folderToDelete?.itemCount }} fichier(s)) seront supprimés définitivement.
+        Le dossier <strong>{{ folderToDelete?.name }}</strong> et tout son contenu ({{ folderToDelete?.itemCount }}
+        fichier(s)) seront supprimés définitivement.
       </p>
     </template>
     <template #footer>

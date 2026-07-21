@@ -2,6 +2,7 @@
 import type { TableColumn } from '@nuxt/ui'
 import { getPaginationRowModel } from '@tanstack/table-core'
 import type { ContentStatus } from '~/types/cms'
+import { DASHBOARD_TABLE_UI } from '~/utils/dashboard-shell'
 
 export interface ContentRow {
   id: number
@@ -106,13 +107,9 @@ watch([search, statusFilter], () => {
 </script>
 
 <template>
-  <UDashboardPanel :id="panelId">
+  <AppDashboardPanel :id="panelId">
     <template #header>
-      <UDashboardNavbar :title="title">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-
+      <AppDashboardNavbar :title="title">
         <template #right>
           <UButton
             :label="createLabel ?? 'Nouveau'"
@@ -120,60 +117,36 @@ watch([search, statusFilter], () => {
             :to="`${basePath}/new`"
           />
         </template>
-      </UDashboardNavbar>
+      </AppDashboardNavbar>
     </template>
 
     <template #body>
       <div class="flex flex-wrap items-center justify-between gap-1.5">
-        <UInput
-          v-model="search"
-          class="max-w-sm"
-          icon="i-lucide-search"
-          placeholder="Rechercher..."
-        />
+        <UInput v-model="search" class="max-w-sm" icon="i-lucide-search" placeholder="Rechercher..." />
 
-        <USelect
-          v-model="statusFilter"
-          :items="[
-            { label: 'Tous', value: 'all' },
-            { label: 'Brouillon', value: 'draft' },
-            { label: 'Publié', value: 'published' },
-            { label: 'Planifié', value: 'scheduled' }
-          ]"
-          class="min-w-36"
-        />
+        <USelect v-model="statusFilter" :items="[
+          { label: 'Tous', value: 'all' },
+          { label: 'Brouillon', value: 'draft' },
+          { label: 'Publié', value: 'published' },
+          { label: 'Planifié', value: 'scheduled' }
+        ]" class="min-w-36" />
       </div>
 
-      <UTable
-        ref="table"
-        v-model:pagination="pagination"
-        :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"
-        class="mt-4 shrink-0"
-        :data="rows"
-        :columns="columns"
-        :loading="status === 'pending'"
-        :ui="{
-          base: 'table-fixed border-separate border-spacing-0',
-          thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
-          tbody: '[&>tr]:last:[&>td]:border-b-0',
-          th: 'py-2 first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
-          td: 'border-b border-default',
-          separator: 'h-0'
-        }"
+      <UTable ref="table" v-model:pagination="pagination"
+        :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }" class="mt-4 shrink-0" :data="rows"
+        :columns="columns"         :loading="status === 'pending'"
+        :ui="DASHBOARD_TABLE_UI"
       />
 
-      <div class="mt-4 flex items-center justify-between gap-3 border-t border-default pt-4">
+      <div class="mt-4 flex items-center justify-between gap-3 pt-2">
         <p class="text-sm text-muted">
           {{ data?.meta.pagination.total ?? 0 }} élément(s) au total
         </p>
 
-        <UPagination
-          :default-page="pagination.pageIndex + 1"
-          :items-per-page="pagination.pageSize"
+        <UPagination :default-page="pagination.pageIndex + 1" :items-per-page="pagination.pageSize"
           :total="data?.meta.pagination.total ?? 0"
-          @update:page="(p: number) => { pagination.pageIndex = p - 1; refresh() }"
-        />
+          @update:page="(p: number) => { pagination.pageIndex = p - 1; refresh() }" />
       </div>
     </template>
-  </UDashboardPanel>
+  </AppDashboardPanel>
 </template>

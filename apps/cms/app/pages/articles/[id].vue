@@ -30,41 +30,34 @@ const { data: article, status } = await useAsyncData(
 </script>
 
 <template>
-  <UDashboardPanel id="article-edit">
-    <template #header>
-      <UDashboardNavbar :title="article?.title ?? 'Éditer l\'article'">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-      </UDashboardNavbar>
-    </template>
+  <ContentEditorDetailLayout
+    resource-label="Articles"
+    resource-to="/articles"
+    :title="article?.title"
+    :subtitle="article?.slug"
+    :loading="status === 'pending'"
+  >
+    <ContentArticleForm
+      v-if="article"
+      :article-id="article.id"
+      :initial="{
+        title: article.title,
+        slug: article.slug,
+        content: article.content ?? undefined,
+        categoryId: article.categoryId ?? undefined,
+        status: article.status,
+        coverBlobPathname: article.coverBlobPathname,
+        coverDisplayName: article.cover?.originalName ?? article.cover?.pathname ?? null,
+        seo: article.seo,
+      }"
+    />
 
-    <template #body>
-      <div v-if="status === 'pending'" class="text-muted">
-        Chargement…
-      </div>
-
-      <ContentArticleForm
-        v-else-if="article"
-        :article-id="article.id"
-        :initial="{
-          title: article.title,
-          slug: article.slug,
-          content: article.content ?? undefined,
-          categoryId: article.categoryId ?? undefined,
-          status: article.status,
-          coverBlobPathname: article.coverBlobPathname,
-          coverDisplayName: article.cover?.originalName ?? article.cover?.pathname ?? null,
-          seo: article.seo,
-        }"
-      />
-
-      <UAlert
-        v-else
-        color="error"
-        title="Article introuvable"
-        description="Cet article n'existe pas ou a été supprimé."
-      />
-    </template>
-  </UDashboardPanel>
+    <UAlert
+      v-else-if="status !== 'pending'"
+      color="error"
+      title="Article introuvable"
+      description="Cet article n'existe pas ou a été supprimé."
+      class="mx-auto max-w-lg"
+    />
+  </ContentEditorDetailLayout>
 </template>

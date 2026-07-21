@@ -20,7 +20,8 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const data = validateBody(updateRecipeSchema, body)
 
-  const updates: Record<string, unknown> = { ...data }
+  const { ingredients, nutrition, utensils, ...recipeFields } = data
+  const updates: Record<string, unknown> = { ...recipeFields }
 
   if (data.status === 'published') {
     updates.publishedAt = new Date().toISOString()
@@ -34,11 +35,11 @@ export default defineEventHandler(async (event) => {
     .get()
 
   // Handle nested ingredients (full replace)
-  if (data.ingredients !== undefined) {
+  if (ingredients !== undefined) {
     await db.delete(schema.ingredients).where(eq(schema.ingredients.recipeId, id))
-    if (data.ingredients?.length) {
+    if (ingredients?.length) {
       await db.insert(schema.ingredients).values(
-        data.ingredients.map((ing, i) => ({
+        ingredients.map((ing, i) => ({
           recipeId: id,
           name: ing.name,
           qty: ing.qty,
@@ -49,11 +50,26 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  if (utensils !== undefined) {
+    await db.delete(schema.recipeUtensils).where(eq(schema.recipeUtensils.recipeId, id))
+    if (utensils?.length) {
+      await db.insert(schema.recipeUtensils).values(
+        utensils.map((row, i) => ({
+          recipeId: id,
+          name: row.name.trim(),
+          note: row.note?.trim() || null,
+          affiliateUrl: row.affiliateUrl?.trim() || null,
+          sortOrder: row.sortOrder ?? i,
+        }))
+      )
+    }
+  }
+
   // Handle nutrition (upsert)
-  if (data.nutrition !== undefined) {
+  if (nutrition !== undefined) {
     await db.delete(schema.nutrition).where(eq(schema.nutrition.recipeId, id))
-    if (Object.keys(data.nutrition).length > 0) {
-      await db.insert(schema.nutrition).values({ recipeId: id, ...data.nutrition })
+    if (Object.keys(nutrition).length > 0) {
+      await db.insert(schema.nutrition).values({ recipeId: id, ...nutrition })
     }
   }
 

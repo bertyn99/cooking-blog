@@ -59,6 +59,10 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.recipes.id,
       to: r.ingredients.recipeId,
     }),
+    utensils: r.many.recipeUtensils({
+      from: r.recipes.id,
+      to: r.recipeUtensils.recipeId,
+    }),
     reviews: r.many.reviews({
       from: r.recipes.id,
       to: r.reviews.recipeId,
@@ -71,6 +75,12 @@ export const relations = defineRelations(schema, (r) => ({
   ingredients: {
     recipe: r.one.recipes({
       from: r.ingredients.recipeId,
+      to: r.recipes.id,
+    }),
+  },
+  recipeUtensils: {
+    recipe: r.one.recipes({
+      from: r.recipeUtensils.recipeId,
       to: r.recipes.id,
     }),
   },

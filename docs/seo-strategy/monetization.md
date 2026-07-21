@@ -73,7 +73,8 @@ Suggested order for current traffic stage (see [SEO baseline](./README.md#contex
 ### Recipe pages
 
 - Default: **no** ingredient-level Amazon links.
-- Optional sidebar or footer: “Matériel pour cette recette” with 1–3 items (poêle, fouet, plat) when relevant.
+- **Ustensiles** block on each recipe (CMS `recipe_utensils`): name, optional note, optional `affiliateUrl` per tool — primary affiliate surface on recettes.
+- Optional sidebar remains deprecated in favor of the structured ustensiles list.
 
 ---
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Category, Cover, Ingredient, Recipe, SEO } from "~/types/strapiMeta";
+import type { Category, Cover, Ingredient, Recipe, RecipeUtensil, SEO } from "~/types/strapiMeta";
 
 definePageMeta({ layout: "content" });
 
@@ -30,6 +30,10 @@ const intro = computed(() => recipe.value?.intro || recipe.value?.Intro || "No i
 
 const ingredients = computed(
   () => recipe.value?.ingredients || recipe.value?.Ingredient || ([] as Ingredient[]),
+);
+
+const utensils = computed(
+  () => recipe.value?.utensils || ([] as RecipeUtensil[]),
 );
 
 const cover = computed(() => recipe.value?.cover || ({} as Cover));
@@ -134,6 +138,7 @@ useHead({
   </div>
   <RecipeReviews />
   <RecipeIngredients :ingredients="ingredients" />
+  <RecipeUstensiles :utensils="utensils" />
   <RecipeNutritional :data="formated" />
   <LazyRecipeSteps :steps="steps" />
   <LazyCta />

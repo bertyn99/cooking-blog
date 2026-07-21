@@ -10,6 +10,7 @@ const model = defineModel<string | null>({ required: true })
 const props = defineProps<{
   displayName?: string | null
   deferUpload?: boolean
+  compact?: boolean
 }>()
 
 const deferredMedia = useDeferredArticleMedia()
@@ -114,91 +115,101 @@ function clearCover() {
   deferredMedia?.clearPendingCover()
   model.value = null
 }
-
-function copyPath() {
-  if (!model.value) {
-    return
-  }
-  navigator.clipboard.writeText(mediaPublicUrl(model.value))
-  toast.add({ title: 'Lien copié', color: 'neutral' })
-}
 </script>
 
 <template>
-  <div class="flex h-full min-h-[12rem] flex-col rounded-lg border border-default bg-elevated/30 p-3">
+  <div
+    class="flex flex-col gap-2 rounded-lg p-3 ring-1 ring-default"
+    :class="compact ? 'h-full' : ''"
+  >
     <ContentFieldLabel label="cover" />
 
     <div
-      class="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-md border border-dashed border-default bg-default/50"
+      class="flex flex-col gap-3"
+      :class="compact ? '' : 'sm:flex-row sm:items-start'"
     >
-      <img
-        v-if="previewUrl"
-        :src="previewUrl"
-        :alt="fileLabel"
-        class="max-h-36 w-full object-cover"
+      <div
+        class="relative flex shrink-0 items-center justify-center overflow-hidden rounded-md border border-dashed border-default bg-elevated/40"
+        :class="compact
+          ? 'mx-auto aspect-square w-full max-w-[11rem]'
+          : previewUrl
+            ? 'size-28'
+            : 'min-h-[5.5rem] w-full sm:size-28'"
       >
-      <div v-else class="flex flex-col items-center gap-2 px-4 py-8 text-center text-sm text-muted">
-        <UIcon name="i-lucide-image-plus" class="size-8 text-dimmed" />
-        <span>Aucune image de couverture</span>
+        <img
+          v-if="previewUrl"
+          :src="previewUrl"
+          :alt="fileLabel"
+          class="size-full object-cover"
+        >
+        <div
+          v-else
+          class="flex flex-col items-center gap-1 px-2 py-3 text-center text-xs text-muted"
+        >
+          <UIcon
+            name="i-lucide-image-plus"
+            class="size-6 text-dimmed"
+          />
+          <span>Aucune image</span>
+        </div>
+
+        <input
+          ref="fileInput"
+          type="file"
+          accept="image/*"
+          class="hidden"
+          @change="onFileChange"
+        >
       </div>
 
-      <input
-        ref="fileInput"
-        type="file"
-        accept="image/*"
-        class="hidden"
-        @change="onFileChange"
+      <div
+        class="min-w-0 space-y-2"
+        :class="compact ? 'text-center' : 'flex-1'"
       >
-    </div>
+        <p
+          class="text-sm leading-snug text-default"
+          :class="compact ? '' : 'truncate'"
+          :title="fileLabel"
+        >
+          {{ previewUrl || deferredMedia?.pendingCoverPreviewUrl.value ? fileLabel : 'Pas de couverture' }}
+        </p>
+        <p class="text-xs text-muted">
+          JPG, PNG ou WebP
+        </p>
 
-    <p class="mt-2 truncate text-xs text-muted" :title="fileLabel">
-      {{ fileLabel }}
-    </p>
-
-    <div class="mt-2 flex flex-wrap gap-1">
-      <UButton
-        icon="i-lucide-plus"
-        size="xs"
-        color="neutral"
-        variant="ghost"
-        :loading="uploading"
-        aria-label="Importer"
-        @click="openFilePicker"
-      />
-      <UButton
-        icon="i-lucide-folder-open"
-        size="xs"
-        color="neutral"
-        variant="ghost"
-        aria-label="Bibliothèque"
-        @click="pickerOpen = true"
-      />
-      <UButton
-        icon="i-lucide-link"
-        size="xs"
-        color="neutral"
-        variant="ghost"
-        :disabled="!model && !deferredMedia?.pendingCoverPreviewUrl.value"
-        aria-label="Copier le lien"
-        @click="copyPath"
-      />
-      <UButton
-        icon="i-lucide-trash-2"
-        size="xs"
-        color="neutral"
-        variant="ghost"
-        :disabled="!model && !deferredMedia?.pendingCoverPreviewUrl.value"
-        aria-label="Supprimer"
-        @click="clearCover"
-      />
-      <UButton
-        icon="i-lucide-pencil"
-        size="xs"
-        color="neutral"
-        variant="ghost"
-        aria-label="Remplacer"
-        @click="pickerOpen = true"
-      />
+        <div
+          class="flex flex-wrap gap-1"
+          :class="compact ? 'justify-center' : ''"
+        >
+          <UButton
+            size="xs"
+            variant="soft"
+            icon="i-lucide-upload"
+            :label="compact ? undefined : 'Importer'"
+            aria-label="Importer une image"
+            :loading="uploading"
+            @click="openFilePicker"
+          />
+          <UButton
+            size="xs"
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-folder-open"
+            :label="compact ? undefined : 'Bibliothèque'"
+            aria-label="Ouvrir la bibliothèque"
+            @click="pickerOpen = true"
+          />
+          <UButton
+            v-if="model || deferredMedia?.pendingCoverPreviewUrl.value"
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-trash-2"
+            aria-label="Supprimer"
+            @click="clearCover"
+          />
+        </div>
+      </div>
     </div>
 
     <ContentMediaPickerModal

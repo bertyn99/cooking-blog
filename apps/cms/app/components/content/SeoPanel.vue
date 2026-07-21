@@ -5,6 +5,7 @@ const metaRobots = defineModel<string>('metaRobots', { default: 'index, follow' 
 
 const props = defineProps<{
   hasEntry: boolean
+  anchor?: string
 }>()
 
 const showForm = ref(props.hasEntry)
@@ -17,22 +18,28 @@ watch(() => props.hasEntry, (value) => {
 </script>
 
 <template>
-  <div class="rounded-lg border border-default bg-elevated/20 p-3">
-    <ContentFieldLabel label="seo" :count="hasEntry ? 1 : 0" />
-
+  <ContentEditorSection
+    label="seo"
+    :count="hasEntry ? 1 : 0"
+    :anchor="anchor"
+    description="Titre et extrait pour Google et les réseaux sociaux."
+  >
     <button
       v-if="!showForm"
       type="button"
-      class="flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-default bg-default/40 px-4 py-10 text-sm text-muted transition hover:border-primary/40 hover:bg-elevated/50"
+      class="flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-default bg-elevated/30 px-4 py-10 text-sm text-muted transition hover:border-primary/40 hover:bg-elevated/60"
       @click="showForm = true"
     >
-      <UIcon name="i-lucide-plus" class="size-5 text-primary" />
-      <span>No entry yet. Click to add one.</span>
+      <UIcon name="i-lucide-search" class="size-5 text-primary" />
+      <span>Ajouter une entrée SEO</span>
     </button>
 
-    <div v-else class="space-y-3">
+    <div
+      v-else
+    >
+      <ContentEditorSurface class="space-y-3">
       <UFormField label="Meta description" name="seoDescription">
-        <UTextarea v-model="description" :rows="3" placeholder="Description pour les moteurs de recherche" />
+        <UTextarea v-model="description" :rows="4" autoresize placeholder="Description pour les moteurs de recherche" />
       </UFormField>
 
       <div class="grid gap-3 sm:grid-cols-2">
@@ -44,6 +51,7 @@ watch(() => props.hasEntry, (value) => {
           <UInput v-model="metaRobots" placeholder="index, follow" />
         </UFormField>
       </div>
+      </ContentEditorSurface>
     </div>
-  </div>
+  </ContentEditorSection>
 </template>

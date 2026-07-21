@@ -9,6 +9,13 @@ export const ingredientSchema = z.object({
   sortOrder: z.number().optional(),
 })
 
+export const recipeUtensilSchema = z.object({
+  name: z.string().min(1),
+  note: z.string().optional(),
+  affiliateUrl: z.string().optional(),
+  sortOrder: z.number().optional(),
+})
+
 export const nutritionSchema = z.object({
   lipides: z.string().optional(),
   proteine: z.string().optional(),
@@ -31,6 +38,7 @@ export const createRecipeSchema = z.object({
   localeGroupId: z.string().optional(),
   status: z.enum(['draft', 'published', 'scheduled']).optional(),
   ingredients: z.array(ingredientSchema).optional(),
+  utensils: z.array(recipeUtensilSchema).optional(),
   nutrition: nutritionSchema.optional(),
 })
 

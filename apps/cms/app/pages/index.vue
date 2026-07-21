@@ -52,23 +52,14 @@ const stats = computed(() => [
 </script>
 
 <template>
-  <UDashboardPanel id="home">
+  <AppDashboardPanel id="home">
     <template #header>
-      <UDashboardNavbar title="Tableau de bord">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-      </UDashboardNavbar>
+      <AppDashboardNavbar title="Tableau de bord" />
     </template>
 
     <template #body>
       <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <UPageCard
-          v-for="stat in stats"
-          :key="stat.label"
-          :to="stat.to"
-          class="transition-colors hover:bg-elevated/50"
-        >
+        <UPageCard v-for="stat in stats" :key="stat.label" :to="stat.to" class="transition-colors hover:bg-elevated/50">
           <div class="flex items-center justify-between gap-3">
             <div>
               <p class="text-sm text-muted">
@@ -90,5 +81,5 @@ const stats = computed(() => [
         </p>
       </UPageCard>
     </template>
-  </UDashboardPanel>
+  </AppDashboardPanel>
 </template>

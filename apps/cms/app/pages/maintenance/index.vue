@@ -134,32 +134,18 @@ async function executePurge() {
 </script>
 
 <template>
-  <UDashboardPanel id="maintenance">
+  <AppDashboardPanel id="maintenance">
     <template #header>
-      <UDashboardNavbar title="Maintenance">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-      </UDashboardNavbar>
+      <AppDashboardNavbar title="Maintenance" />
     </template>
 
     <template #body>
-      <UAlert
-        v-if="loadError"
-        color="error"
-        variant="subtle"
-        title="Impossible de charger les compteurs"
-        description="Connectez-vous avec un compte administrateur."
-        class="mb-4"
-      />
+      <UAlert v-if="loadError" color="error" variant="subtle" title="Impossible de charger les compteurs"
+        description="Connectez-vous avec un compte administrateur." class="mb-4" />
 
-      <UAlert
-        color="warning"
-        variant="subtle"
-        title="Zone destructive"
+      <UAlert color="warning" variant="subtle" title="Zone destructive"
         description="Supprime définitivement les données sélectionnées. L’option « Médiathèque » efface aussi les fichiers sur R2 ou dans .data/media."
-        class="mb-6"
-      />
+        class="mb-6" />
 
       <UPageCard title="Vider des collections">
         <div class="mb-4 flex flex-wrap gap-2">
@@ -167,28 +153,19 @@ async function executePurge() {
           <UButton size="sm" variant="ghost" icon="i-lucide-refresh-cw" label="Actualiser" @click="refresh()" />
         </div>
 
-        <UCheckboxGroup
-          v-model="selectedTargets"
-          legend="Cibles"
-          variant="card"
-          :items="purgeCheckboxItems"
-          class="mb-4"
-        />
+        <UCheckboxGroup v-model="selectedTargets" legend="Cibles" variant="card" :items="purgeCheckboxItems"
+          class="mb-4" />
 
         <p class="mb-4 text-sm text-muted">
-          Ordre appliqué côté serveur : articles → recettes → pages → catégories blog → catégories recettes → cartographie médias → médiathèque (fichiers).
+          Ordre appliqué côté serveur : articles → recettes → pages → catégories blog → catégories recettes →
+          cartographie médias → médiathèque (fichiers).
           <span v-if="selectedTargets.length">
             Sélection : environ <strong>{{ selectedRowTotal }}</strong> entrée(s) concernée(s).
           </span>
         </p>
 
-        <UButton
-          color="error"
-          icon="i-lucide-trash-2"
-          label="Supprimer la sélection…"
-          :disabled="!selectedTargets.length || purging"
-          @click="requestPurge"
-        />
+        <UButton color="error" icon="i-lucide-trash-2" label="Supprimer la sélection…"
+          :disabled="!selectedTargets.length || purging" @click="requestPurge" />
       </UPageCard>
 
       <UModal v-model:open="confirmOpen" title="Confirmer la suppression">
@@ -196,23 +173,15 @@ async function executePurge() {
           <p class="mb-4 text-sm text-muted">
             Cette action est irréversible pour les lignes sélectionnées (~{{ selectedRowTotal }} entrée(s)).
           </p>
-          <UFormField
-            :label="`Saisir ${MAINTENANCE_PURGE_CONFIRM_PHRASE} pour confirmer`"
-          >
+          <UFormField :label="`Saisir ${MAINTENANCE_PURGE_CONFIRM_PHRASE} pour confirmer`">
             <UInput v-model="confirmPhrase" :placeholder="MAINTENANCE_PURGE_CONFIRM_PHRASE" />
           </UFormField>
         </template>
         <template #footer>
           <UButton variant="outline" label="Annuler" @click="confirmOpen = false" />
-          <UButton
-            color="error"
-            icon="i-lucide-trash-2"
-            label="Supprimer"
-            :loading="purging"
-            @click="executePurge"
-          />
+          <UButton color="error" icon="i-lucide-trash-2" label="Supprimer" :loading="purging" @click="executePurge" />
         </template>
       </UModal>
     </template>
-  </UDashboardPanel>
+  </AppDashboardPanel>
 </template>

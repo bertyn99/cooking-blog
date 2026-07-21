@@ -66,6 +66,7 @@ async function purgeRecipes(db: AppDb): Promise<number> {
   if (n === 0) return 0
 
   await db.delete(schema.ingredients)
+  await db.delete(schema.recipeUtensils)
   await db.delete(schema.nutrition)
   await db.delete(schema.reviews)
   await db.delete(schema.seo).where(isNotNull(schema.seo.recipeId))

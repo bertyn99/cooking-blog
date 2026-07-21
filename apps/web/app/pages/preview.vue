@@ -60,7 +60,7 @@ const { data: content, error: fetchError } = await useAsyncData<Page | Recipe | 
       if (contentType === "recipe") {
         const result = await find<Recipe>("recipes", {
           filters: { slug: { $eq: articleSlug } },
-          populate: ["cover", "category", "nutrition", "ingredients", "seo"],
+          populate: ["cover", "category", "nutrition", "ingredients", "utensils", "seo"],
           pagination: { page: 0, pageSize: 1 },
         });
         return result.data?.[0] ?? null;

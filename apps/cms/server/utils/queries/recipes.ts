@@ -2,7 +2,7 @@ import { eq, and, isNull } from 'drizzle-orm'
 import { recipes } from '../../db/schema/recipes'
 import type { RecipesQueryFilter, RecipesWith } from '../../db/query-types'
 
-export const RECIPES_RELATIONS = ['cover', 'category', 'nutrition', 'ingredients', 'reviews', 'seo'] as const
+export const RECIPES_RELATIONS = ['cover', 'category', 'nutrition', 'ingredients', 'utensils', 'reviews', 'seo'] as const
 export type RecipeRelation = (typeof RECIPES_RELATIONS)[number]
 
 export interface RecipesQueryOptions {
@@ -57,6 +57,9 @@ export function buildRecipesWith(include: string[]): RecipesWith | undefined {
         break
       case 'ingredients':
         withObj.ingredients = true
+        break
+      case 'utensils':
+        withObj.utensils = true
         break
       case 'reviews':
         withObj.reviews = true

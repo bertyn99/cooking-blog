@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Category, Cover, Ingredient, NutritionInfo, Recipe } from "~/types/strapiMeta";
+import type { Category, Cover, Ingredient, NutritionInfo, Recipe, RecipeUtensil } from "~/types/strapiMeta";
 
 const { recipe } = defineProps<{
   recipe: Recipe;
@@ -12,6 +12,9 @@ const categoryRecipe = computed(() => recipe?.category || ({} as Category));
 const intro = computed(() => recipe?.intro || recipe?.Intro || "No intro");
 const ingredients = computed(
   () => recipe?.ingredients || recipe?.Ingredient || ([] as Ingredient[]),
+);
+const utensils = computed(
+  () => recipe?.utensils || ([] as RecipeUtensil[]),
 );
 const cover = computed(() => recipe?.cover || ({} as Cover));
 const urlCover = useFormatUrlCover(cover.value);
@@ -99,6 +102,7 @@ const seoKeywords = computed(() => {
 
   <RecipeReviews />
   <RecipeIngredients :ingredients="ingredients" />
+  <RecipeUstensiles :utensils="utensils" />
   <RecipeNutritional :data="formatedNutrition" />
   <LazyRecipeSteps :steps="steps" />
   <LazyCta />

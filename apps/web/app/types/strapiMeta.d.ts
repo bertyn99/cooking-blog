@@ -89,6 +89,14 @@ export type Ingredient = {
     | "tasse";
 };
 
+export type RecipeUtensil = {
+  id?: number;
+  name?: string;
+  note?: string;
+  affiliateUrl?: string;
+  sortOrder?: number;
+};
+
 export type Tag = {
   id?: number;
   name?: string;
@@ -174,6 +182,7 @@ export type Recipe = {
   Ingredient?: Ingredient[];
   /** Lowercase alias used in templates */
   ingredients?: Ingredient[];
+  utensils?: RecipeUtensil[];
   categories?: Category[];
   category?: CategoryArticle;
   seo?: SEO[] | SEO;

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import type { PaginatedResponse } from '~/types/cms'
+import { DASHBOARD_TABLE_UI } from '~/utils/dashboard-shell'
 
 interface CategoryRow {
   rowId: string
@@ -53,13 +54,9 @@ const columns: TableColumn<CategoryRow>[] = [
 </script>
 
 <template>
-  <UDashboardPanel id="categories">
+  <AppDashboardPanel id="categories">
     <template #header>
-      <UDashboardNavbar title="Catégories">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-
+      <AppDashboardNavbar title="Catégories">
         <template #right>
           <UButton
             icon="i-lucide-plus"
@@ -67,7 +64,7 @@ const columns: TableColumn<CategoryRow>[] = [
             to="/categories/new"
           />
         </template>
-      </UDashboardNavbar>
+      </AppDashboardNavbar>
     </template>
 
     <template #body>
@@ -81,15 +78,8 @@ const columns: TableColumn<CategoryRow>[] = [
         :columns="columns"
         :loading="loading"
         :get-row-id="row => row.rowId"
-        :ui="{
-          base: 'table-fixed border-separate border-spacing-0',
-          thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
-          tbody: '[&>tr]:last:[&>td]:border-b-0',
-          th: 'py-2 first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
-          td: 'border-b border-default',
-          separator: 'h-0'
-        }"
+        :ui="DASHBOARD_TABLE_UI"
       />
     </template>
-  </UDashboardPanel>
+  </AppDashboardPanel>
 </template>

@@ -1,15 +1,11 @@
 <template>
-  <UDashboardPanel id="category-new">
+  <AppDashboardPanel id="category-new">
     <template #header>
-      <UDashboardNavbar title="Nouvelle catégorie">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-      </UDashboardNavbar>
+      <AppDashboardNavbar title="Nouvelle catégorie" />
     </template>
 
     <template #body>
       <ContentCategoryForm />
     </template>
-  </UDashboardPanel>
+  </AppDashboardPanel>
 </template>

@@ -13,6 +13,9 @@ export default defineNuxtConfig({
   ],
 
   runtimeConfig: {
+    public: {
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://journalducuistot.fr',
+    },
     session: {
       maxAge: 60 * 60 * 8,
     },

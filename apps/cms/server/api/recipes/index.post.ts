@@ -48,6 +48,18 @@ export default defineEventHandler(async (event) => {
     )
   }
 
+  if (data.utensils?.length) {
+    await db.insert(schema.recipeUtensils).values(
+      data.utensils.map((row, i) => ({
+        recipeId: result.id,
+        name: row.name.trim(),
+        note: row.note?.trim() || null,
+        affiliateUrl: row.affiliateUrl?.trim() || null,
+        sortOrder: row.sortOrder ?? i,
+      }))
+    )
+  }
+
   // Handle nutrition
   if (data.nutrition) {
     await db.insert(schema.nutrition).values({

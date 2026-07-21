@@ -45,54 +45,29 @@ function handleReschedule(payload: { key: string, dayKey: string }) {
 </script>
 
 <template>
-  <UDashboardPanel id="planning">
+  <AppDashboardPanel id="planning">
     <template #header>
-      <UDashboardNavbar title="Planning">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-      </UDashboardNavbar>
+      <AppDashboardNavbar title="Planning" />
     </template>
 
     <template #body>
-      <div
-        class="mb-4 flex flex-wrap items-end gap-3"
-      >
+      <div class="mb-4 flex flex-wrap items-end gap-3">
         <UFormField label="Types de contenu" class="min-w-48">
-          <USelectMenu
-            v-model="selectedTypes"
-            :items="typeFilterOptions"
-            value-key="value"
-            label-key="label"
-            multiple
-            placeholder="Tous les types"
-            class="w-full min-w-56"
-          />
+          <USelectMenu v-model="selectedTypes" :items="typeFilterOptions" value-key="value" label-key="label" multiple
+            placeholder="Tous les types" class="w-full min-w-56" />
         </UFormField>
 
         <UFormField label="Affichage" class="min-w-48">
-          <USwitch
-            v-model="filters.includePublished"
-            label="Inclure les contenus publiés"
-          />
+          <USwitch v-model="filters.includePublished" label="Inclure les contenus publiés" />
         </UFormField>
       </div>
 
       <div class="grid gap-6 xl:grid-cols-[1fr_minmax(16rem,20rem)]">
-        <PlanningPublishingCalendar
-          v-model:placeholder="placeholder"
-          :items-by-day="itemsByDay"
-          :loading="status === 'pending' || rescheduling"
-          @open="openItem"
-          @reschedule="handleReschedule"
-        />
+        <PlanningPublishingCalendar v-model:placeholder="placeholder" :items-by-day="itemsByDay"
+          :loading="status === 'pending' || rescheduling" @open="openItem" @reschedule="handleReschedule" />
 
-        <PlanningCalendarBacklog
-          :items="backlog"
-          :loading="status === 'pending'"
-          @open="openItem"
-        />
+        <PlanningCalendarBacklog :items="backlog" :loading="status === 'pending'" @open="openItem" />
       </div>
     </template>
-  </UDashboardPanel>
+  </AppDashboardPanel>
 </template>

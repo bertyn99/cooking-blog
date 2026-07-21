@@ -11,8 +11,60 @@ const deferUpload = computed(() => Boolean(deferredMedia))
 
 const preview = ref(false)
 const mediaPickerOpen = ref(false)
+const linkPickerOpen = ref(false)
 const pickerMode = ref<'insert' | 'replace'>('insert')
 const activeEditor = shallowRef<Editor | null>(null)
+const linkInitialHref = ref('')
+const linkHasSelection = ref(false)
+
+function openLinkPicker(editor: Editor) {
+  activeEditor.value = editor
+  linkInitialHref.value = (editor.getAttributes('link').href as string) || ''
+  linkHasSelection.value = !editor.state.selection.empty
+  linkPickerOpen.value = true
+}
+
+function applyLinkToEditor(payload: { href: string, title?: string }) {
+  const editor = activeEditor.value
+  if (!editor) {
+    return
+  }
+
+  const href = payload.href.trim()
+  if (!href) {
+    return
+  }
+
+  const chain = editor.chain().focus()
+  const { empty } = editor.state.selection
+  const onLink = editor.isActive('link')
+
+  if (onLink) {
+    chain.extendMarkRange('link').setLink({ href }).run()
+  }
+  else if (!empty) {
+    chain.setLink({ href }).run()
+  }
+  else {
+    const label = payload.title?.trim() || href
+    chain.insertContent({
+      type: 'text',
+      text: label,
+      marks: [{ type: 'link', attrs: { href } }],
+    }).run()
+  }
+
+  activeEditor.value = null
+}
+
+function removeLinkFromEditor() {
+  const editor = activeEditor.value
+  if (!editor) {
+    return
+  }
+  editor.chain().focus().extendMarkRange('link').unsetLink().run()
+  activeEditor.value = null
+}
 
 function openMediaPicker(mode: 'insert' | 'replace', editor: Editor) {
   activeEditor.value = editor
@@ -74,7 +126,12 @@ function buildToolbarItems(editor: Editor): EditorToolbarItem[][] {
         tooltip: { text: 'Insérer une image (médiathèque)' },
         onClick: () => openMediaPicker('insert', editor),
       },
-      { kind: 'link', icon: 'i-lucide-link', tooltip: { text: 'Lien' } },
+      {
+        icon: 'i-lucide-link',
+        tooltip: { text: 'Lien' },
+        active: editor.isActive('link'),
+        onClick: () => openLinkPicker(editor),
+      },
       { kind: 'blockquote', icon: 'i-lucide-quote', tooltip: { text: 'Citation' } },
     ],
   ]
@@ -113,78 +170,43 @@ function imageBubbleShouldShow({ editor }: { editor: Editor }) {
     </div>
 
     <ClientOnly>
-      <UEditor
-        v-slot="{ editor }"
-        v-model="model"
-        content-type="markdown"
-        :editable="!preview"
-        placeholder="Rédigez le contenu…"
-        class="min-h-[22rem] w-full"
-        :starter-kit="{
+      <UEditor v-slot="{ editor }" v-model="model" content-type="markdown" :editable="!preview"
+        placeholder="Rédigez le contenu…" class="min-h-[22rem] w-full" :starter-kit="{
           headings: { levels: [2, 3, 4] },
           link: { openOnClick: false },
-        }"
-        :ui="{
+        }" :ui="{
           root: 'flex flex-col',
           base: preview ? 'pointer-events-none opacity-90' : '',
-        }"
-      >
-        <div
-          class="flex flex-wrap items-center gap-1 border-y border-default bg-elevated/40 px-2 py-1.5"
-          :class="preview ? 'opacity-60' : ''"
-        >
-          <UEditorToolbar
-            v-if="!preview"
-            :editor="editor"
-            :items="buildToolbarItems(editor)"
-            layout="fixed"
-            class="flex-1"
-          />
-          <UButton
-            v-if="!preview"
-            class="ml-auto"
-            size="xs"
-            color="neutral"
-            variant="ghost"
-            icon="i-lucide-eye"
-            label="Preview mode"
-            @click="preview = true"
-          />
-          <UButton
-            v-else
-            size="xs"
-            color="primary"
-            variant="soft"
-            icon="i-lucide-pencil"
-            label="Quitter l’aperçu"
-            @click="preview = false"
-          />
+        }">
+        <div class="flex flex-wrap items-center gap-1 border-y border-default bg-elevated/40 px-2 py-1.5"
+          :class="preview ? 'opacity-60' : ''">
+          <UEditorToolbar v-if="!preview" :editor="editor" :items="buildToolbarItems(editor)" layout="fixed"
+            class="flex-1" />
+          <UButton v-if="!preview" class="ml-auto" size="xs" color="neutral" variant="ghost" icon="i-lucide-eye"
+            label="Preview mode" @click="preview = true" />
+          <UButton v-else size="xs" color="primary" variant="soft" icon="i-lucide-pencil" label="Quitter l’aperçu"
+            @click="preview = false" />
         </div>
 
-        <UEditorToolbar
-          v-if="!preview"
-          :editor="editor"
-          :items="imageBubbleItems(editor)"
-          layout="bubble"
-          :should-show="imageBubbleShouldShow"
-        />
+        <UEditorToolbar v-if="!preview" :editor="editor" :items="imageBubbleItems(editor)" layout="bubble"
+          :should-show="imageBubbleShouldShow" />
       </UEditor>
 
-      <ContentMediaPickerModal
-        v-model:open="mediaPickerOpen"
-        :title="pickerMode === 'replace' ? 'Remplacer l\'image' : 'Insérer une image'"
-        :defer-upload="deferUpload"
-        @select="applyMediaToEditor"
-        @select-local="applyLocalMediaToEditor"
+      <ContentMediaPickerModal v-model:open="mediaPickerOpen"
+        :title="pickerMode === 'replace' ? 'Remplacer l\'image' : 'Insérer une image'" :defer-upload="deferUpload"
+        @select="applyMediaToEditor" @select-local="applyLocalMediaToEditor" />
+
+      <ContentLinkPickerModal
+        v-model:open="linkPickerOpen"
+        :initial-href="linkInitialHref"
+        :has-text-selection="linkHasSelection"
+        @apply="applyLinkToEditor"
+        @remove="removeLinkFromEditor"
       />
 
       <template #fallback>
-        <UTextarea
-          v-model="model"
-          :rows="18"
-          class="min-h-[22rem] w-full font-mono"
-          placeholder="Chargement de l’éditeur…"
-        />
+        <UTextarea v-model="model" :rows="18" class="min-h-[22rem] w-full font-mono"
+          placeholder="Chargement de l’éditeur…" />
       </template>
     </ClientOnly>
   </div>

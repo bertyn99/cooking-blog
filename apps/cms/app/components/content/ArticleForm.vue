@@ -3,6 +3,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { z } from 'zod'
 import { slugifyString } from '#shared/slug'
 import type { ContentStatus, PaginatedResponse } from '~/types/cms'
+import type { EditorNavSection } from '~/types/content-editor'
 import { provideDeferredArticleMedia } from '~/composables/useDeferredArticleMedia'
 
 const schema = z.object({
@@ -35,6 +36,7 @@ const toast = useToast()
 const router = useRouter()
 const saving = ref(false)
 const publishing = ref(false)
+const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 const deferredMedia = !props.articleId ? provideDeferredArticleMedia() : null
 
@@ -69,6 +71,12 @@ const { data: categories } = await useAsyncData('article-category-options', () =
 )
 
 const categoryRows = computed(() => categories.value?.data ?? [])
+
+const editorSections: EditorNavSection[] = [
+  { id: 'editor-general', label: 'Général' },
+  { id: 'editor-seo', label: 'SEO' },
+  { id: 'editor-content', label: 'Contenu' },
+]
 
 function regenerateSlug() {
   if (!state.title.trim()) {
@@ -166,94 +174,130 @@ async function publishArticle() {
 </script>
 
 <template>
-  <UForm :schema="schema" :state="state" class="space-y-6" @submit="onSubmit">
-    <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)] lg:items-start">
-      <div class="space-y-4">
-        <div>
+  <ContentEditorBodyLayout :sections="editorSections">
+    <UForm
+      ref="formRef"
+      :schema="schema"
+      :state="state"
+      class="space-y-6"
+      @submit="onSubmit"
+    >
+      <ContentEditorSurface
+        id="editor-general"
+        class="scroll-mt-[7.25rem]"
+      >
+        <div class="mb-5">
           <ContentFieldLabel label="title" />
           <UFormField name="title" :ui="{ label: 'hidden' }">
             <UInput
               v-model="state.title"
-              size="xl"
+              :size="articleId ? 'lg' : 'xl'"
               variant="outline"
-              placeholder="Titre de l'article"
+              :placeholder="articleId ? 'Titre affiché sur le blog' : 'Titre de l\'article'"
               class="w-full"
             />
           </UFormField>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-2">
-          <div>
-            <ContentFieldLabel label="slug" />
-            <UFormField name="slug" :ui="{ label: 'hidden' }">
-              <UInput v-model="state.slug" placeholder="mon-article">
-                <template #trailing>
-                  <UButton
-                    icon="i-lucide-refresh-cw"
-                    color="neutral"
-                    variant="ghost"
-                    size="xs"
-                    aria-label="Générer le slug depuis le titre"
-                    @click="regenerateSlug"
-                  />
-                </template>
-              </UInput>
-            </UFormField>
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_11rem] lg:items-start">
+          <div class="min-w-0 space-y-4">
+            <div class="grid gap-4 md:grid-cols-2">
+              <div>
+                <ContentFieldLabel label="slug" />
+                <UFormField name="slug" :ui="{ label: 'hidden' }">
+                  <UInput v-model="state.slug" placeholder="mon-article">
+                    <template #trailing>
+                      <UButton
+                        icon="i-lucide-refresh-cw"
+                        color="neutral"
+                        variant="ghost"
+                        size="xs"
+                        aria-label="Générer le slug depuis le titre"
+                        @click="regenerateSlug"
+                      />
+                    </template>
+                  </UInput>
+                </UFormField>
+              </div>
+
+              <ContentCategoryRelationField
+                v-model="state.categoryId"
+                :categories="categoryRows"
+              />
+            </div>
           </div>
 
-          <ContentCategoryRelationField
-            v-model="state.categoryId"
-            :categories="categoryRows"
+          <ContentCoverField
+            v-model="state.coverBlobPathname"
+            :display-name="initial?.coverDisplayName"
+            :defer-upload="!articleId"
+            compact
           />
         </div>
-      </div>
+      </ContentEditorSurface>
 
-      <ContentCoverField
-        v-model="state.coverBlobPathname"
-        :display-name="initial?.coverDisplayName"
-        :defer-upload="!articleId"
-      />
-    </div>
-
-    <ContentSeoPanel
-      v-model:description="seoState.description"
-      v-model:keywords="seoState.keywords"
-      v-model:meta-robots="seoState.metaRobots"
-      :has-entry="hasSeoEntry"
-    />
-
-    <UFormField name="content" :ui="{ label: 'hidden' }">
-      <ContentMarkdownEditor v-model="state.content" />
-    </UFormField>
-
-    <div class="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 border-t border-default bg-default/90 py-4 backdrop-blur">
-      <UBadge v-if="articleId" variant="subtle" class="capitalize">
-        {{ status }}
-      </UBadge>
-
-      <UButton
-        type="submit"
-        icon="i-lucide-save"
-        label="Enregistrer"
-        :loading="saving"
+      <ContentSeoPanel
+        v-model:description="seoState.description"
+        v-model:keywords="seoState.keywords"
+        v-model:meta-robots="seoState.metaRobots"
+        :has-entry="hasSeoEntry"
+        anchor="editor-seo"
       />
 
-      <UButton
-        v-if="articleId && status !== 'published'"
-        icon="i-lucide-send"
-        label="Publier"
-        color="success"
-        variant="soft"
-        :loading="publishing"
-        @click="publishArticle"
-      />
+      <ContentEditorSection
+        label="content"
+        anchor="editor-content"
+        description="Corps de l’article. Markdown et médias intégrés."
+        surface
+      >
+        <UFormField name="content" :ui="{ label: 'hidden' }">
+          <ContentMarkdownEditor v-model="state.content" />
+        </UFormField>
+      </ContentEditorSection>
 
-      <UButton
-        to="/articles"
-        label="Retour"
-        color="neutral"
-        variant="ghost"
-      />
-    </div>
-  </UForm>
+      <ContentEditorFormActions>
+        <ContentStatusBadge
+          v-if="articleId"
+          :status="status"
+          class="max-lg:hidden"
+        />
+
+        <UButton
+          icon="i-lucide-save"
+          label="Enregistrer"
+          class="max-sm:hidden"
+          :loading="saving"
+          @click="formRef?.submit()"
+        />
+        <UButton
+          icon="i-lucide-save"
+          class="sm:hidden"
+          aria-label="Enregistrer"
+          :loading="saving"
+          @click="formRef?.submit()"
+        />
+
+        <UButton
+          v-if="articleId && status !== 'published'"
+          icon="i-lucide-send"
+          label="Publier"
+          color="success"
+          variant="soft"
+          class="max-sm:hidden"
+          :loading="publishing"
+          @click="publishArticle"
+        />
+        <UButton
+          v-if="articleId && status !== 'published'"
+          icon="i-lucide-send"
+          color="success"
+          variant="soft"
+          class="sm:hidden"
+          aria-label="Publier"
+          :loading="publishing"
+          @click="publishArticle"
+        />
+      </ContentEditorFormActions>
+    </UForm>
+  </ContentEditorBodyLayout>
 </template>

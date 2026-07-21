@@ -66,32 +66,18 @@ function coverageBadgeColor(state: string | undefined) {
 </script>
 
 <template>
-  <UDashboardPanel id="strapi-import">
+  <AppDashboardPanel id="strapi-import">
     <template #header>
-      <UDashboardNavbar title="Import Strapi">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-      </UDashboardNavbar>
+      <AppDashboardNavbar title="Import Strapi" />
     </template>
 
     <template #body>
-      <UAlert
-        v-if="configLoadFailed"
-        color="error"
-        variant="subtle"
+      <UAlert v-if="configLoadFailed" color="error" variant="subtle"
         title="Impossible de charger la configuration d’import"
-        description="Connectez-vous avec un compte administrateur, puis rechargez la page."
-        class="mb-4"
-      />
-      <UAlert
-        v-else-if="isRemoteImportRunning"
-        color="warning"
-        variant="subtle"
-        title="Import en cours"
+        description="Connectez-vous avec un compte administrateur, puis rechargez la page." class="mb-4" />
+      <UAlert v-else-if="isRemoteImportRunning" color="warning" variant="subtle" title="Import en cours"
         description="Un import est déjà en cours côté serveur. Suivez le journal ci-dessous ou utilisez « Réinitialiser l’état » s’il est bloqué."
-        class="mb-4"
-      />
+        class="mb-4" />
 
       <div class="grid gap-6 lg:grid-cols-2">
         <UPageCard title="Source Strapi">
@@ -130,22 +116,10 @@ function coverageBadgeColor(state: string | undefined) {
           </dl>
 
           <div class="mt-4 flex flex-wrap gap-2">
-            <UButton
-              size="sm"
-              variant="outline"
-              icon="i-lucide-plug"
-              label="Tester Strapi"
-              :disabled="isSubmitting"
-              @click="refreshConnection()"
-            />
-            <UButton
-              size="sm"
-              variant="ghost"
-              color="warning"
-              icon="i-lucide-rotate-ccw"
-              label="Réinitialiser l’état"
-              @click="resetImportState()"
-            />
+            <UButton size="sm" variant="outline" icon="i-lucide-plug" label="Tester Strapi" :disabled="isSubmitting"
+              @click="refreshConnection()" />
+            <UButton size="sm" variant="ghost" color="warning" icon="i-lucide-rotate-ccw" label="Réinitialiser l’état"
+              @click="resetImportState()" />
           </div>
 
           <p class="mt-4 text-sm text-muted">
@@ -159,12 +133,8 @@ function coverageBadgeColor(state: string | undefined) {
               Déjà en base (liens Strapi)
             </p>
             <div class="flex flex-wrap gap-2">
-              <UBadge
-                v-for="step in STRAPI_IMPORT_STEPS"
-                :key="step"
-                :color="coverageBadgeColor(config.stepCoverage[step]?.state)"
-                variant="subtle"
-              >
+              <UBadge v-for="step in STRAPI_IMPORT_STEPS" :key="step"
+                :color="coverageBadgeColor(config.stepCoverage[step]?.state)" variant="subtle">
                 {{ step }}:
                 {{ config.stepCoverage[step]?.mappedCount ?? 0 }}
                 <template v-if="config.stepCoverage[step]?.strapiTotal != null">
@@ -176,36 +146,17 @@ function coverageBadgeColor(state: string | undefined) {
         </UPageCard>
 
         <UPageCard title="Options d’import">
-          <UCheckboxGroup
-            v-model="selectedSteps"
-            legend="Étapes"
-            variant="card"
-            :items="stepCheckboxItems"
-            class="mb-4"
-          />
+          <UCheckboxGroup v-model="selectedSteps" legend="Étapes" variant="card" :items="stepCheckboxItems"
+            class="mb-4" />
 
-          <UCheckbox
-            v-model="dryRun"
-            variant="list"
-            label="Simulation (dry-run)"
+          <UCheckbox v-model="dryRun" variant="list" label="Simulation (dry-run)"
             description="Interroge Strapi et affiche les statistiques sans écrire en base ni copier les fichiers."
-            class="mb-6"
-          />
+            class="mb-6" />
 
           <div class="flex flex-wrap gap-3">
-            <UButton
-              icon="i-lucide-download"
-              :label="dryRun ? 'Lancer la simulation' : 'Importer depuis Strapi'"
-              :loading="isLaunchBusy"
-              :disabled="isSubmitting"
-              @click="requestImport"
-            />
-            <UButton
-              variant="outline"
-              icon="i-lucide-refresh-cw"
-              label="Journal"
-              @click="refresh()"
-            />
+            <UButton icon="i-lucide-download" :label="dryRun ? 'Lancer la simulation' : 'Importer depuis Strapi'"
+              :loading="isLaunchBusy" :disabled="isSubmitting" @click="requestImport" />
+            <UButton variant="outline" icon="i-lucide-refresh-cw" label="Journal" @click="refresh()" />
           </div>
 
           <p class="mt-4 text-xs text-muted">
@@ -222,11 +173,7 @@ function coverageBadgeColor(state: string | undefined) {
         </p>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <UFormField label="Type">
-            <USelect
-              v-model="testTarget"
-              :items="[...testTargetItems]"
-              class="w-full"
-            />
+            <USelect v-model="testTarget" :items="[...testTargetItems]" class="w-full" />
           </UFormField>
           <UFormField label="Slug Strapi" class="sm:col-span-2">
             <UInput v-model="testSlug" placeholder="mon-article" />
@@ -236,42 +183,34 @@ function coverageBadgeColor(state: string | undefined) {
           </UFormField>
         </div>
         <div class="mt-4 flex flex-wrap gap-3">
-          <UButton
-            variant="outline"
-            icon="i-lucide-crosshair"
-            :label="dryRun ? 'Tester ce slug (simulation)' : 'Importer ce slug'"
-            :loading="isLaunchBusy"
-            :disabled="isSubmitting"
-            @click="requestTargetedImport(testTarget, testSlug, testLocale)"
-          />
+          <UButton variant="outline" icon="i-lucide-crosshair"
+            :label="dryRun ? 'Tester ce slug (simulation)' : 'Importer ce slug'" :loading="isLaunchBusy"
+            :disabled="isSubmitting" @click="requestTargetedImport(testTarget, testSlug, testLocale)" />
         </div>
       </UPageCard>
 
       <UPageCard v-if="lastResult" title="Dernier résultat" class="mt-6">
         <p class="mb-3 text-xs text-muted">
-          « Catégories blog » → menu Taxonomie / Catégories (type Blog). « Catégories recettes » → même page (type Recette).
+          « Catégories blog » → menu Taxonomie / Catégories (type Blog). « Catégories recettes » → même page (type
+          Recette).
           Les articles n’apparaissent qu’après l’étape <strong>Articles</strong>.
         </p>
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div
-            v-for="(stats, step) in lastResult.steps"
-            v-show="stats"
-            :key="step"
-            class="rounded-lg border border-default p-3 text-sm"
-          >
+          <div v-for="(stats, step) in lastResult.steps" v-show="stats" :key="step"
+            class="rounded-lg border border-default p-3 text-sm">
             <template v-if="stats">
-            <p class="font-medium text-highlighted">
-              {{ step }}
-            </p>
-            <p class="mt-1 text-muted">
-              <template v-if="stats.created === 0 && stats.updated === 0 && stats.skipped > 0 && !stats.errors">
-                Déjà synchronisé — {{ stats.skipped }} inchangé(s)
-              </template>
-              <template v-else>
-                +{{ stats.created }} / ~{{ stats.updated }} / ⊘{{ stats.skipped }}
-                <span v-if="stats.errors" class="text-error"> / !{{ stats.errors }}</span>
-              </template>
-            </p>
+              <p class="font-medium text-highlighted">
+                {{ step }}
+              </p>
+              <p class="mt-1 text-muted">
+                <template v-if="stats.created === 0 && stats.updated === 0 && stats.skipped > 0 && !stats.errors">
+                  Déjà synchronisé — {{ stats.skipped }} inchangé(s)
+                </template>
+                <template v-else>
+                  +{{ stats.created }} / ~{{ stats.updated }} / ⊘{{ stats.skipped }}
+                  <span v-if="stats.errors" class="text-error"> / !{{ stats.errors }}</span>
+                </template>
+              </p>
             </template>
           </div>
         </div>
@@ -283,11 +222,7 @@ function coverageBadgeColor(state: string | undefined) {
 
       <UPageCard title="Journal" class="mt-6">
         <div class="mb-3 flex flex-wrap items-center gap-2">
-          <UBadge
-            v-if="importStatus"
-            :color="statusBadgeColor"
-            variant="subtle"
-          >
+          <UBadge v-if="importStatus" :color="statusBadgeColor" variant="subtle">
             {{ importStatus.status }}
           </UBadge>
           <span v-if="importStatus?.currentStep" class="text-xs text-muted">
@@ -298,7 +233,8 @@ function coverageBadgeColor(state: string | undefined) {
           </span>
         </div>
 
-        <ul class="max-h-80 space-y-1 overflow-y-auto rounded-lg border border-default bg-elevated/30 p-3 font-mono text-xs">
+        <ul
+          class="max-h-80 space-y-1 overflow-y-auto rounded-lg border border-default bg-elevated/30 p-3 font-mono text-xs">
           <li v-for="(line, index) in importStatus?.messages ?? []" :key="index" class="text-muted">
             {{ line }}
           </li>
@@ -321,16 +257,10 @@ function coverageBadgeColor(state: string | undefined) {
         </template>
         <template #footer>
           <UButton variant="outline" label="Annuler" @click="confirmOpen = false" />
-          <UButton
-            color="warning"
-            icon="i-lucide-download"
-            label="Importer"
-            :loading="isLaunchBusy"
-            :disabled="isSubmitting"
-            @click="executeImport"
-          />
+          <UButton color="warning" icon="i-lucide-download" label="Importer" :loading="isLaunchBusy"
+            :disabled="isSubmitting" @click="executeImport" />
         </template>
       </UModal>
     </template>
-  </UDashboardPanel>
+  </AppDashboardPanel>
 </template>

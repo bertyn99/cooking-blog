@@ -3,6 +3,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { z } from 'zod'
 import { slugifyString } from '#shared/slug'
 import type { ContentStatus, PaginatedResponse } from '~/types/cms'
+import type { EditorNavSection } from '~/types/content-editor'
 
 const ingredientUnitSchema = z.enum(['none', 'g', 'mg', 'kg', 'l', 'ml', 'cuillere_soupe', 'cuillere_cafe', 'tasse'])
 
@@ -23,6 +24,12 @@ interface RecipeIngredientRow {
   name: string
   qty?: number
   unit: z.infer<typeof ingredientUnitSchema>
+}
+
+interface RecipeUtensilRow {
+  name: string
+  note?: string
+  affiliateUrl?: string
 }
 
 interface RecipeSeoInitial {
@@ -50,6 +57,11 @@ const props = defineProps<{
       qty?: number | null
       unit?: string | null
     }>
+    utensils?: Array<{
+      name: string
+      note?: string | null
+      affiliateUrl?: string | null
+    }>
     nutrition?: RecipeNutritionInitial | null
     seo?: RecipeSeoInitial | null
   }
@@ -60,6 +72,9 @@ const toast = useToast()
 const router = useRouter()
 const saving = ref(false)
 const publishing = ref(false)
+const formRef = ref<{ submit: () => Promise<void> } | null>(null)
+const ingredientListRef = ref<{ addRow: () => void } | null>(null)
+const utensilListRef = ref<{ addRow: () => void } | null>(null)
 
 const state = reactive<Schema>({
   title: props.initial?.title ?? '',
@@ -83,6 +98,14 @@ const ingredients = ref<RecipeIngredientRow[]>(
     name: row.name,
     qty: row.qty ?? undefined,
     unit: (row.unit as RecipeIngredientRow['unit']) || 'none',
+  })),
+)
+
+const utensils = ref<RecipeUtensilRow[]>(
+  (props.initial?.utensils ?? []).map(row => ({
+    name: row.name,
+    note: row.note ?? undefined,
+    affiliateUrl: row.affiliateUrl ?? undefined,
   })),
 )
 
@@ -135,6 +158,16 @@ const { data: categories } = await useAsyncData('recipe-category-options', () =>
 
 const categoryRows = computed(() => categories.value?.data ?? [])
 
+const editorSections: EditorNavSection[] = [
+  { id: 'editor-general', label: 'Général' },
+  { id: 'editor-seo', label: 'SEO' },
+  { id: 'editor-intro', label: 'Introduction' },
+  { id: 'editor-ingredients', label: 'Ingrédients' },
+  { id: 'editor-ustensiles', label: 'Ustensiles' },
+  { id: 'editor-nutrition', label: 'Nutrition' },
+  { id: 'editor-step', label: 'Préparation' },
+]
+
 function regenerateSlug() {
   if (!state.title.trim()) {
     toast.add({ title: 'Saisissez un titre d\'abord', color: 'warning' })
@@ -144,11 +177,11 @@ function regenerateSlug() {
 }
 
 function addIngredient() {
-  ingredients.value.push({ name: '', unit: 'none' })
+  ingredientListRef.value?.addRow()
 }
 
-function removeIngredient(index: number) {
-  ingredients.value.splice(index, 1)
+function addUtensil() {
+  utensilListRef.value?.addRow()
 }
 
 async function saveSeo(recipeId: number) {
@@ -180,6 +213,17 @@ function buildIngredientsPayload() {
     }))
 }
 
+function buildUtensilsPayload() {
+  return utensils.value
+    .filter(row => row.name.trim())
+    .map((row, index) => ({
+      name: row.name.trim(),
+      note: row.note?.trim() || undefined,
+      affiliateUrl: row.affiliateUrl?.trim() || undefined,
+      sortOrder: index,
+    }))
+}
+
 function buildNutritionPayload() {
   const payload = {
     lipides: nutritionState.lipides.trim() || undefined,
@@ -204,6 +248,7 @@ async function saveRecipe(): Promise<number | undefined> {
     categoryId: state.categoryId,
     coverBlobPathname: state.coverBlobPathname ?? undefined,
     ingredients: buildIngredientsPayload(),
+    utensils: buildUtensilsPayload(),
     nutrition: buildNutritionPayload(),
   }
 
@@ -253,127 +298,157 @@ async function publishRecipe() {
 </script>
 
 <template>
-  <UForm :schema="schema" :state="state" class="space-y-6" @submit="onSubmit">
-    <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)] lg:items-start">
-      <div class="space-y-4">
-        <div>
+  <ContentEditorBodyLayout :sections="editorSections">
+    <UForm
+      ref="formRef"
+      :schema="schema"
+      :state="state"
+      class="space-y-6"
+      @submit="onSubmit"
+    >
+      <ContentEditorSurface
+        id="editor-general"
+        class="scroll-mt-[7.25rem]"
+      >
+        <div class="mb-5">
           <ContentFieldLabel label="title" />
           <UFormField name="title" :ui="{ label: 'hidden' }">
             <UInput
               v-model="state.title"
-              size="xl"
+              :size="recipeId ? 'lg' : 'xl'"
               variant="outline"
-              placeholder="Titre de la recette"
+              :placeholder="recipeId ? 'Titre affiché sur le blog' : 'Titre de la recette'"
               class="w-full"
             />
           </UFormField>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-2">
-          <div>
-            <ContentFieldLabel label="slug" />
-            <UFormField name="slug" :ui="{ label: 'hidden' }">
-              <UInput v-model="state.slug" placeholder="ma-recette">
-                <template #trailing>
-                  <UButton
-                    icon="i-lucide-refresh-cw"
-                    color="neutral"
-                    variant="ghost"
-                    size="xs"
-                    aria-label="Générer le slug depuis le titre"
-                    @click="regenerateSlug"
-                  />
-                </template>
-              </UInput>
-            </UFormField>
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_11rem] lg:items-start">
+          <div class="min-w-0 space-y-4">
+            <div class="grid gap-4 md:grid-cols-2">
+              <div>
+                <ContentFieldLabel label="slug" />
+                <UFormField name="slug" :ui="{ label: 'hidden' }">
+                  <UInput v-model="state.slug" placeholder="ma-recette">
+                    <template #trailing>
+                      <UButton
+                        icon="i-lucide-refresh-cw"
+                        color="neutral"
+                        variant="ghost"
+                        size="xs"
+                        aria-label="Générer le slug depuis le titre"
+                        @click="regenerateSlug"
+                      />
+                    </template>
+                  </UInput>
+                </UFormField>
+              </div>
+
+              <ContentCategoryRelationField
+                v-model="state.categoryId"
+                :categories="categoryRows"
+              />
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <ContentFieldLabel label="difficulty" />
+                <UFormField name="difficulty" :ui="{ label: 'hidden' }">
+                  <USelect v-model="state.difficulty" :items="difficultyOptions" class="w-full" />
+                </UFormField>
+              </div>
+
+              <div>
+                <ContentFieldLabel label="time" />
+                <UFormField name="time" :ui="{ label: 'hidden' }">
+                  <UInput v-model.number="state.time" type="number" min="1" placeholder="45" />
+                </UFormField>
+              </div>
+            </div>
           </div>
 
-          <ContentCategoryRelationField
-            v-model="state.categoryId"
-            :categories="categoryRows"
+          <ContentCoverField
+            v-model="state.coverBlobPathname"
+            :display-name="initial?.coverDisplayName"
+            compact
           />
         </div>
+      </ContentEditorSurface>
 
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div>
-            <ContentFieldLabel label="difficulty" />
-            <UFormField name="difficulty" :ui="{ label: 'hidden' }">
-              <USelect v-model="state.difficulty" :items="difficultyOptions" class="w-full" />
-            </UFormField>
-          </div>
-
-          <div>
-            <ContentFieldLabel label="time" />
-            <UFormField name="time" :ui="{ label: 'hidden' }">
-              <UInput v-model.number="state.time" type="number" min="1" placeholder="45" />
-            </UFormField>
-          </div>
-        </div>
-      </div>
-
-      <ContentCoverField
-        v-model="state.coverBlobPathname"
-        :display-name="initial?.coverDisplayName"
+      <ContentSeoPanel
+        v-model:description="seoState.description"
+        v-model:keywords="seoState.keywords"
+        v-model:meta-robots="seoState.metaRobots"
+        :has-entry="hasSeoEntry"
+        anchor="editor-seo"
       />
-    </div>
 
-    <ContentSeoPanel
-      v-model:description="seoState.description"
-      v-model:keywords="seoState.keywords"
-      v-model:meta-robots="seoState.metaRobots"
-      :has-entry="hasSeoEntry"
-    />
+      <ContentEditorSection
+        label="intro"
+        anchor="editor-intro"
+        surface
+      >
+        <UFormField name="intro" :ui="{ label: 'hidden' }">
+          <UTextarea v-model="state.intro" :rows="4" placeholder="Courte introduction pour le blog…" class="w-full" />
+        </UFormField>
+      </ContentEditorSection>
 
-    <div>
-      <ContentFieldLabel label="intro" />
-      <UFormField name="intro" :ui="{ label: 'hidden' }">
-        <UTextarea v-model="state.intro" :rows="4" placeholder="Courte introduction…" class="w-full" />
-      </UFormField>
-    </div>
-
-    <div class="rounded-lg border border-default bg-elevated/20 p-3">
-      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <ContentFieldLabel label="ingredients" :count="ingredients.length" />
+      <ContentEditorSection
+        label="ingredients"
+        anchor="editor-ingredients"
+      :count="ingredients.length"
+      description="Quantités et unités affichées sur le blog. Faites défiler la liste si elle est longue."
+    >
+      <template #actions>
         <UButton
+          v-if="ingredients.length"
           type="button"
-          size="xs"
+          size="sm"
           variant="soft"
           icon="i-lucide-plus"
           label="Ajouter"
           @click="addIngredient"
         />
-      </div>
+      </template>
 
-      <p v-if="!ingredients.length" class="text-sm text-muted">
-        Aucun ingrédient. Cliquez sur Ajouter pour commencer.
-      </p>
+      <ContentIngredientRows
+        ref="ingredientListRef"
+        v-model="ingredients"
+        :unit-options="unitOptions"
+      />
+    </ContentEditorSection>
 
-      <ul v-else class="space-y-2">
-        <li
-          v-for="(row, index) in ingredients"
-          :key="index"
-          class="grid gap-2 rounded-md border border-default bg-default p-2 sm:grid-cols-[1fr_5rem_8rem_auto]"
-        >
-          <UInput v-model="row.name" placeholder="Nom" />
-          <UInput v-model.number="row.qty" type="number" min="0" step="any" placeholder="Qté" />
-          <USelect v-model="row.unit" :items="unitOptions" />
-          <UButton
-            type="button"
-            icon="i-lucide-trash-2"
-            color="error"
-            variant="ghost"
-            aria-label="Supprimer"
-            @click="removeIngredient(index)"
-          />
-        </li>
-      </ul>
-    </div>
+    <ContentEditorSection
+      label="ustensiles"
+      anchor="editor-ustensiles"
+      :count="utensils.length"
+      description="Matériel utile pour la recette. Lien affilié optionnel (Amazon, etc.)."
+    >
+      <template #actions>
+        <UButton
+          v-if="utensils.length"
+          type="button"
+          size="sm"
+          variant="soft"
+          icon="i-lucide-plus"
+          label="Ajouter"
+          @click="addUtensil"
+        />
+      </template>
 
-    <div class="rounded-lg border border-default bg-elevated/20 p-3">
-      <ContentFieldLabel label="nutrition" :count="hasNutritionEntry ? 1 : 0" />
-      <p class="mb-3 text-xs text-muted">
-        Mêmes champs que Strapi (bandeau sur le site) : valeurs libres, ex. 22g, 380 kcal.
-      </p>
+      <ContentUtensilRows
+        ref="utensilListRef"
+        v-model="utensils"
+      />
+    </ContentEditorSection>
+
+    <ContentEditorSection
+      label="nutrition"
+      anchor="editor-nutrition"
+      :count="hasNutritionEntry ? 1 : 0"
+      description="Bandeau nutrition du site : valeurs libres (ex. 22 g, 380 kcal)."
+      surface
+    >
       <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <UFormField label="Glucides">
           <UInput v-model="nutritionState.glucides" placeholder="30g" />
@@ -394,28 +469,39 @@ async function publishRecipe() {
           <UInput v-model="nutritionState.sodium" placeholder="450mg" />
         </UFormField>
       </div>
-    </div>
+    </ContentEditorSection>
 
-    <div>
-      <ContentFieldLabel label="step" />
-      <p class="mb-2 text-xs text-muted">
-        Comme sur journalducuistot.fr : une étape par ligne numérotée (1. …, 2. …). Markdown et images possibles.
-      </p>
+    <ContentEditorSection
+      label="step"
+      anchor="editor-step"
+      description="Une étape par ligne numérotée (1. …, 2. …). Markdown et images possibles."
+      surface
+    >
       <UFormField name="step" :ui="{ label: 'hidden' }">
         <ContentMarkdownEditor v-model="state.step" />
       </UFormField>
-    </div>
+    </ContentEditorSection>
 
-    <div class="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 border-t border-default bg-default/90 py-4 backdrop-blur">
-      <UBadge v-if="recipeId" variant="subtle" class="capitalize">
-        {{ status }}
-      </UBadge>
+    <ContentEditorFormActions>
+      <ContentStatusBadge
+        v-if="recipeId"
+        :status="status"
+        class="max-lg:hidden"
+      />
 
       <UButton
-        type="submit"
         icon="i-lucide-save"
         label="Enregistrer"
+        class="max-sm:hidden"
         :loading="saving"
+        @click="formRef?.submit()"
+      />
+      <UButton
+        icon="i-lucide-save"
+        class="sm:hidden"
+        aria-label="Enregistrer"
+        :loading="saving"
+        @click="formRef?.submit()"
       />
 
       <UButton
@@ -424,16 +510,21 @@ async function publishRecipe() {
         label="Publier"
         color="success"
         variant="soft"
+        class="max-sm:hidden"
         :loading="publishing"
         @click="publishRecipe"
       />
-
       <UButton
-        to="/recipes"
-        label="Retour"
-        color="neutral"
-        variant="ghost"
+        v-if="recipeId && status !== 'published'"
+        icon="i-lucide-send"
+        color="success"
+        variant="soft"
+        class="sm:hidden"
+        aria-label="Publier"
+        :loading="publishing"
+        @click="publishRecipe"
       />
-    </div>
-  </UForm>
+    </ContentEditorFormActions>
+    </UForm>
+  </ContentEditorBodyLayout>
 </template>

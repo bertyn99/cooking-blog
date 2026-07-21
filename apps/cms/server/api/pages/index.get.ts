@@ -14,11 +14,12 @@ export default defineEventHandler(async (event) => {
   )
   const locale = (query.locale as string) || undefined
   const pagination = parsePagination(query as Record<string, string>)
+  const session = await getUserSession(event)
 
   return createPageQueries(db).listPage({
     include,
     locale,
-    isAuthenticated: false,
+    isAuthenticated: !!session.user,
     pagination,
   })
 })

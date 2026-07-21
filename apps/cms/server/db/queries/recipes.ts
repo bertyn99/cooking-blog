@@ -48,6 +48,7 @@ export function createRecipeQueries(db: AppDb) {
     findById(id: number, scope: 'public' | 'admin' = 'public', include: string[] = []) {
       const defaultWith = {
         ingredients: true,
+        utensils: true,
         nutrition: true,
         reviews: true,
         seo: { with: { socialMeta: true } },
