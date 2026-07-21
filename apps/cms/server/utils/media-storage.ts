@@ -22,7 +22,7 @@ export interface MediaListResult {
 }
 
 export interface MediaStorage {
-  put(file: File): Promise<MediaObject>
+  put(file: File, folderPrefix?: string): Promise<MediaObject>
   putBuffer(pathname: string, data: ArrayBuffer | Buffer, contentType: string): Promise<MediaObject>
   head(pathname: string): Promise<MediaObject | null>
   get(pathname: string): Promise<{ body: ReadableStream, object: MediaObject } | null>
@@ -84,8 +84,14 @@ async function normalizeImagePayload(
   }
 }
 
-function buildPathname(filename: string) {
-  return `${UPLOAD_PREFIX}${randomUUID()}-${sanitizeFilename(filename)}`
+function buildPathname(filename: string, folderPrefix?: string) {
+  const base = folderPrefix
+    ? folderPrefix.endsWith('/') ? folderPrefix : `${folderPrefix}/`
+    : UPLOAD_PREFIX
+  if (!base.startsWith(UPLOAD_PREFIX)) {
+    throw createError({ statusCode: 400, statusMessage: 'Invalid media folder' })
+  }
+  return `${base}${randomUUID()}-${sanitizeFilename(filename)}`
 }
 
 function assertSafePathname(pathname: string) {
@@ -106,14 +112,14 @@ function strapiUrlToPathname(url: string) {
 
 function createR2Storage(bucket: R2Bucket): MediaStorage {
   return {
-    async put(file) {
+    async put(file, folderPrefix) {
       const normalized = await normalizeImagePayload(
         await file.arrayBuffer(),
         file.type || 'image/jpeg',
         { filename: file.name },
       )
       validateImagePayload(normalized.buffer.byteLength, normalized.contentType)
-      const pathname = buildPathname(normalized.filename ?? file.name)
+      const pathname = buildPathname(normalized.filename ?? file.name, folderPrefix)
       const body = toBuffer(normalized.buffer)
       const uploaded = await bucket.put(pathname, body, {
         httpMetadata: { contentType: normalized.contentType },
@@ -205,14 +211,14 @@ function createLocalStorage(): MediaStorage {
   }
 
   return {
-    async put(file) {
+    async put(file, folderPrefix) {
       const normalized = await normalizeImagePayload(
         await file.arrayBuffer(),
         file.type || 'image/jpeg',
         { filename: file.name },
       )
       validateImagePayload(normalized.buffer.byteLength, normalized.contentType)
-      const pathname = buildPathname(normalized.filename ?? file.name)
+      const pathname = buildPathname(normalized.filename ?? file.name, folderPrefix)
       const full = await resolvePath(pathname)
       await mkdir(dirname(full), { recursive: true })
       const buffer = toBuffer(normalized.buffer)

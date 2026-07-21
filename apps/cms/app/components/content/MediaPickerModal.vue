@@ -72,6 +72,8 @@ interface MediaBlob {
 
 interface MediaListResponse {
   blobs: MediaBlob[]
+  folders?: { slug: string, name: string, prefix: string, itemCount: number }[]
+  prefix?: string
   hasMore: boolean
   cursor?: string
 }

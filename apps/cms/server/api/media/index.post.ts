@@ -12,7 +12,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'No file provided' })
   }
 
-  const uploaded = await uploadMedia(event, file, useDb(event))
+  const folderPrefix = (form.get('folderPrefix') as string | null) || undefined
+  const uploaded = await uploadMedia(event, file, useDb(event), { folderPrefix })
   setResponseStatus(event, 201)
   return uploaded
 })

@@ -5,6 +5,8 @@ import { createStrapiClient } from './strapi-client'
 import { schema } from '../../db/create-db'
 import { canonicalStrapiUploadPath, strapiMediaPathnameFromUrl, useMediaStorage } from '../../utils/media-storage'
 import { ensureBlobCatalogRecord } from '../../utils/media'
+import { extractImageFileMetadata } from '../../utils/extract-image-metadata'
+import type { MediaFileMetadata } from '../../../shared/media-file-metadata'
 
 function guessMimeFromPathname(pathname: string): string {
   const ext = pathname.split('.').pop()?.toLowerCase()
@@ -24,12 +26,24 @@ async function persistImportedBlob(
     contentType: string
     sourceId: string
     stats: StrapiEntityStats
-    meta?: Pick<StrapiMediaFile, 'name' | 'width' | 'height' | 'alternativeText'>
+    meta?: Pick<StrapiMediaFile, 'name' | 'width' | 'height' | 'alternativeText' | 'caption'>
     hadLegacyMap: boolean
   },
 ): Promise<string> {
   const { buffer, contentType, sourceId, stats, meta, hadLegacyMap } = opts
   const storage = useMediaStorage(ctx.event)
+  const extracted = await extractImageFileMetadata(buffer, contentType)
+  const fileMetadata: MediaFileMetadata | undefined = {
+    ...(extracted ?? {}),
+    ...(meta?.caption ? { caption: meta.caption, description: extracted?.description ?? meta.caption } : {}),
+    ...(meta?.name ? { title: meta.name } : {}),
+  }
+  const hasMeta = Object.values(fileMetadata).some((value) => {
+    if (value === undefined) return false
+    if (typeof value === 'object') return Object.values(value).some(Boolean)
+    return true
+  })
+
   const uploaded = await storage.putBuffer(pathname, buffer, contentType)
 
   await ctx.db.insert(schema.blobs).values({
@@ -40,6 +54,7 @@ async function persistImportedBlob(
     width: meta?.width,
     height: meta?.height,
     altText: meta?.alternativeText,
+    fileMetadata: hasMeta ? fileMetadata : undefined,
   }).onConflictDoUpdate({
     target: schema.blobs.pathname,
     set: {
@@ -49,6 +64,7 @@ async function persistImportedBlob(
       width: meta?.width,
       height: meta?.height,
       altText: meta?.alternativeText,
+      fileMetadata: hasMeta ? fileMetadata : undefined,
     },
   })
 

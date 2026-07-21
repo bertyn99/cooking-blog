@@ -6,11 +6,11 @@ export default defineEventHandler(async (event) => {
   await requireUserSession(event)
   await authorize(event, canEditContent)
 
-  const pathname = getRouterParam(event, 'pathname')
-  if (!pathname) {
-    throw createError({ statusCode: 404 })
+  const body = await readBody<{ pathname?: string }>(event)
+  if (!body?.pathname) {
+    throw createError({ statusCode: 400, statusMessage: 'pathname is required' })
   }
 
-  await deleteMediaBlob(event, pathname, useDb(event))
+  await deleteMediaBlob(event, body.pathname, useDb(event))
   return sendNoContent(event)
 })
