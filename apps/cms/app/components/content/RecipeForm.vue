@@ -476,8 +476,12 @@ async function publishRecipe() {
       anchor="editor-step"
       description="Une étape par ligne numérotée (1. …, 2. …). Markdown et images possibles."
       surface
+      flush-surface
     >
-      <UFormField name="step" :ui="{ label: 'hidden' }">
+      <UFormField
+        name="step"
+        :ui="{ label: 'hidden', wrapper: 'm-0' }"
+      >
         <ContentMarkdownEditor v-model="state.step" />
       </UFormField>
     </ContentEditorSection>

@@ -6,6 +6,8 @@ const props = defineProps<{
   anchor?: string
   /** Wrap fields in the same bordered surface as Général / SEO */
   surface?: boolean
+  /** Surface without padding (markdown editor chrome edge-to-edge). */
+  flushSurface?: boolean
 }>()
 
 const sectionId = computed(() => props.anchor ?? undefined)
@@ -32,7 +34,7 @@ const sectionId = computed(() => props.anchor ?? undefined)
       </div>
       <slot name="actions" />
     </div>
-    <ContentEditorSurface v-if="surface">
+    <ContentEditorSurface v-if="surface" :flush="flushSurface">
       <slot />
     </ContentEditorSurface>
     <slot v-else />

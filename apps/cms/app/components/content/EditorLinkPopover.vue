@@ -18,6 +18,8 @@ const props = defineProps<{
   autoOpen?: boolean
 }>()
 
+const open = defineModel<boolean>('open', { default: false })
+
 type InternalKind = 'articles' | 'pages' | 'recipes'
 type LinkMode = InternalKind | 'external'
 
@@ -33,7 +35,6 @@ interface ListRow {
   name?: string
 }
 
-const popoverOpen = ref(false)
 const mode = ref<LinkMode>('articles')
 const search = ref('')
 const loading = ref(false)
@@ -239,7 +240,7 @@ watch(() => props.editor, (editor, _, onCleanup) => {
   }
 
   const onSelection = () => {
-    if (!popoverOpen.value) {
+    if (!open.value) {
       syncFromEditor()
     }
   }
@@ -250,11 +251,11 @@ watch(() => props.editor, (editor, _, onCleanup) => {
 
 watch(active, (isActive) => {
   if (isActive && props.autoOpen) {
-    popoverOpen.value = true
+    open.value = true
   }
 })
 
-watch(popoverOpen, async (isOpen) => {
+watch(open, async (isOpen) => {
   if (isOpen) {
     syncFromEditor()
     await fetchInternalLists()
@@ -290,7 +291,7 @@ function applyLink() {
       ? undefined
       : (linkText.value.trim() || previewTitle.value || undefined),
   })
-  popoverOpen.value = false
+  open.value = false
 }
 
 function applyAndCloseFromRow(kind: InternalKind, row: ListRow) {
@@ -302,7 +303,7 @@ function removeLink() {
   removeEditorLink(props.editor)
   hrefDraft.value = ''
   externalUrl.value = ''
-  popoverOpen.value = false
+  open.value = false
 }
 
 function openPreviewInNewTab() {
@@ -326,7 +327,7 @@ function onExternalKeydown(event: KeyboardEvent) {
 
 <template>
   <UPopover
-    v-model:open="popoverOpen"
+    v-model:open="open"
     :content="{ side: 'bottom', align: 'start' }"
     :ui="{ content: 'p-0 w-[min(100vw-1.25rem,22rem)] sm:w-[26rem]' }"
   >
@@ -344,13 +345,16 @@ function onExternalKeydown(event: KeyboardEvent) {
     </UTooltip>
 
     <template #content>
-      <div class="flex max-h-[min(32rem,70vh)] flex-col">
-        <div class="flex items-center justify-between gap-2 border-b border-default px-3 py-2">
+      <div
+        class="flex w-full flex-col overflow-hidden bg-default"
+        style="max-height: min(26rem, calc(100vh - 6rem));"
+      >
+        <div class="shrink-0 border-b border-default px-3 py-2">
           <p class="text-sm font-medium text-highlighted">
             Lien
           </p>
           <div
-            class="flex gap-0.5 rounded-lg bg-elevated/80 p-0.5"
+            class="mt-2 flex gap-0.5 rounded-lg bg-elevated/80 p-0.5"
             role="tablist"
             aria-label="Type de lien"
           >
@@ -373,7 +377,7 @@ function onExternalKeydown(event: KeyboardEvent) {
           </div>
         </div>
 
-        <div class="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+        <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-2">
           <template v-if="internalMode">
             <UInput
               v-model="search"
@@ -412,8 +416,7 @@ function onExternalKeydown(event: KeyboardEvent) {
                     : ''"
                   role="option"
                   :aria-selected="hrefDraft === rowHref(internalMode, row)"
-                  @click="setPreviewFromInternal(internalMode, row)"
-                  @dblclick="applyAndCloseFromRow(internalMode, row)"
+                  @click="applyAndCloseFromRow(internalMode, row)"
                 >
                   <div
                     class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-elevated"
@@ -489,9 +492,9 @@ function onExternalKeydown(event: KeyboardEvent) {
 
         <div
           v-if="hrefDraft"
-          class="border-t border-default px-3 py-2"
+          class="shrink-0 border-t border-default bg-default px-3 py-2"
         >
-          <div class="flex items-center gap-2.5 rounded-md bg-elevated/50 px-2 py-2">
+          <div class="flex items-center gap-2 rounded-md bg-elevated/50 px-2 py-2">
             <div
               class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-default"
             >
@@ -516,6 +519,14 @@ function onExternalKeydown(event: KeyboardEvent) {
               </p>
             </div>
             <UButton
+              icon="i-lucide-check"
+              color="primary"
+              variant="soft"
+              size="xs"
+              label="Insérer"
+              @click="applyLink"
+            />
+            <UButton
               icon="i-lucide-external-link"
               color="neutral"
               variant="ghost"
@@ -526,7 +537,7 @@ function onExternalKeydown(event: KeyboardEvent) {
           </div>
         </div>
 
-        <div class="flex items-center justify-between gap-2 border-t border-default px-3 py-2">
+        <div class="flex shrink-0 items-center justify-between gap-2 border-t border-default bg-default px-3 py-2.5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_12px_rgba(0,0,0,0.35)]">
           <UButton
             v-if="active || hrefDraft"
             label="Retirer"
@@ -544,12 +555,13 @@ function onExternalKeydown(event: KeyboardEvent) {
               color="neutral"
               variant="ghost"
               size="xs"
-              @click="popoverOpen = false"
+              @click="open = false"
             />
             <UButton
               label="Appliquer"
               icon="i-lucide-check"
-              size="xs"
+              color="primary"
+              size="sm"
               :disabled="!canApply"
               @click="applyLink"
             />

@@ -6,11 +6,19 @@ import { useDeferredArticleMedia } from '~/composables/useDeferredArticleMedia'
 
 const model = defineModel<string>({ required: true })
 
+const props = withDefaults(defineProps<{
+  /** Inside ContentEditorSection + surface: no extra title or outer card. */
+  embedded?: boolean
+}>(), {
+  embedded: true,
+})
+
 const deferredMedia = useDeferredArticleMedia()
 const deferUpload = computed(() => Boolean(deferredMedia))
 
 const preview = ref(false)
 const mediaPickerOpen = ref(false)
+const linkPickerOpen = ref(false)
 const pickerMode = ref<'insert' | 'replace'>('insert')
 const activeEditor = shallowRef<Editor | null>(null)
 
@@ -122,8 +130,11 @@ const bubbleToolbarItems = [[{
   icon: 'i-lucide-strikethrough',
   tooltip: { text: 'Barré' },
 }], [{
-  slot: 'link' as const,
   icon: 'i-lucide-link',
+  tooltip: { text: 'Lien' },
+  onClick: () => {
+    linkPickerOpen.value = true
+  },
 }]] satisfies EditorToolbarItem[][]
 
 function textBubbleShouldShow({
@@ -169,11 +180,12 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-lg border border-default bg-default">
-    <div class="px-3 pt-3">
-      <ContentFieldLabel label="content" />
-    </div>
-
+  <div
+    class="cms-markdown-editor overflow-hidden"
+    :class="[
+      props.embedded ? 'cms-markdown-editor--embedded' : 'rounded-lg border border-default bg-default',
+    ]"
+  >
     <ClientOnly>
       <UEditor
         v-slot="{ editor }"
@@ -181,19 +193,27 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
         content-type="markdown"
         :editable="!preview"
         placeholder="Rédigez le contenu…"
-        class="min-h-[22rem] w-full"
+        class="w-full"
+        :class="props.embedded ? 'min-h-[20rem]' : 'min-h-[22rem]'"
         :starter-kit="{
           headings: { levels: [2, 3, 4] },
           link: { openOnClick: false },
         }"
         :ui="{
-          root: 'flex flex-col',
-          base: preview ? 'pointer-events-none opacity-90' : '',
+          root: 'flex min-h-0 flex-1 flex-col',
+          content: 'min-h-0 flex-1',
+          base: [
+            preview ? 'pointer-events-none opacity-90' : '',
+            props.embedded ? '!px-4 !pt-4 !pb-6 sm:!px-5' : '',
+          ].filter(Boolean).join(' '),
         }"
       >
         <div
-          class="flex flex-wrap items-center gap-1 border-y border-default bg-elevated/40 px-2 py-1.5"
-          :class="preview ? 'opacity-60' : ''"
+          class="flex flex-wrap items-center gap-1 border-b border-default bg-elevated/55 px-2 py-2 sm:px-3"
+          :class="[
+            preview ? 'opacity-70' : '',
+            props.embedded ? 'sticky top-0 z-[1] backdrop-blur-sm' : '',
+          ]"
         >
           <UEditorToolbar
             v-if="!preview"
@@ -204,6 +224,7 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
           >
             <template #link>
               <ContentEditorLinkPopover
+                v-model:open="linkPickerOpen"
                 :editor="editor"
                 auto-open
               />
@@ -228,9 +249,11 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
             color="neutral"
             variant="ghost"
             icon="i-lucide-eye"
-            label="Preview mode"
+            aria-label="Aperçu"
             @click="preview = true"
-          />
+          >
+            <span class="hidden sm:inline">Aperçu</span>
+          </UButton>
           <UButton
             v-else
             class="ml-auto shrink-0"
@@ -238,9 +261,11 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
             color="primary"
             variant="soft"
             icon="i-lucide-pencil"
-            label="Quitter l’aperçu"
+            aria-label="Modifier"
             @click="preview = false"
-          />
+          >
+            <span class="hidden sm:inline">Modifier</span>
+          </UButton>
         </div>
 
         <UEditorToolbar
@@ -249,11 +274,7 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
           :items="bubbleToolbarItems"
           layout="bubble"
           :should-show="textBubbleShouldShow"
-        >
-          <template #link>
-            <ContentEditorLinkPopover :editor="editor" />
-          </template>
-        </UEditorToolbar>
+        />
 
         <UEditorToolbar
           v-if="!preview"

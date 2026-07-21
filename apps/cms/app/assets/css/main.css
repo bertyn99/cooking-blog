@@ -1,6 +1,16 @@
 @import "tailwindcss" theme(static);
 @import "@nuxt/ui";
 
+@layer components {
+  .cms-markdown-editor--embedded [data-slot="content"] {
+    min-height: 18rem;
+  }
+
+  .cms-markdown-editor--embedded .ProseMirror {
+    min-height: 18rem;
+  }
+}
+
 @theme static {
   --font-sans: 'Public Sans', sans-serif;
 

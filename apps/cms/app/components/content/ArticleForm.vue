@@ -249,8 +249,12 @@ async function publishArticle() {
         anchor="editor-content"
         description="Corps de l’article. Markdown et médias intégrés."
         surface
+        flush-surface
       >
-        <UFormField name="content" :ui="{ label: 'hidden' }">
+        <UFormField
+          name="content"
+          :ui="{ label: 'hidden', wrapper: 'm-0' }"
+        >
           <ContentMarkdownEditor v-model="state.content" />
         </UFormField>
       </ContentEditorSection>
