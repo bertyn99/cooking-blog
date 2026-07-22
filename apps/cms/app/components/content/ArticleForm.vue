@@ -12,6 +12,8 @@ const schema = z.object({
   content: z.string().optional(),
   categoryId: z.number().optional(),
   coverBlobPathname: z.string().nullable().optional(),
+  coverAltText: z.string().nullable().optional(),
+  coverDescription: z.string().nullable().optional(),
 })
 
 type Schema = z.output<typeof schema>
@@ -27,6 +29,8 @@ const props = defineProps<{
   initial?: Partial<Schema> & {
     status?: string
     coverDisplayName?: string | null
+    coverAltText?: string | null
+    coverDescription?: string | null
     seo?: ArticleSeoInitial | null
   }
 }>()
@@ -35,7 +39,6 @@ const { $api } = useNuxtApp()
 const toast = useToast()
 const router = useRouter()
 const saving = ref(false)
-const publishing = ref(false)
 const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 const deferredMedia = !props.articleId ? provideDeferredArticleMedia() : null
@@ -46,6 +49,8 @@ const state = reactive<Schema>({
   content: props.initial?.content ?? '',
   categoryId: props.initial?.categoryId,
   coverBlobPathname: props.initial?.coverBlobPathname ?? null,
+  coverAltText: props.initial?.coverAltText ?? null,
+  coverDescription: props.initial?.coverDescription ?? null,
 })
 
 const seoState = reactive({
@@ -62,7 +67,16 @@ const hasSeoEntry = computed(() =>
   ),
 )
 
-const status = computed(() => props.initial?.status ?? 'draft')
+const contentStatus = ref<ContentStatus>((props.initial?.status as ContentStatus) ?? 'draft')
+
+watch(
+  () => props.initial?.status,
+  (value) => {
+    if (value) {
+      contentStatus.value = value as ContentStatus
+    }
+  },
+)
 
 const { data: categories } = await useAsyncData('article-category-options', () =>
   $api<PaginatedResponse<{ id: number, name: string, status: ContentStatus }>>('/api/category-articles', {
@@ -125,6 +139,8 @@ async function saveArticle(): Promise<number | undefined> {
     content,
     categoryId: state.categoryId,
     coverBlobPathname,
+    coverAltText: state.coverAltText,
+    coverDescription: state.coverDescription,
   }
 
   if (props.articleId) {
@@ -151,24 +167,6 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
   }
   finally {
     saving.value = false
-  }
-}
-
-async function publishArticle() {
-  publishing.value = true
-  try {
-    const id = props.articleId ?? await saveArticle()
-    if (!id) return
-
-    await $api(`/api/admin/articles/${id}/publish`, { method: 'POST' })
-    toast.add({ title: 'Article publié', color: 'success' })
-    await router.push('/articles')
-  }
-  catch {
-    toast.add({ title: 'Erreur', description: 'Impossible de publier l\'article', color: 'error' })
-  }
-  finally {
-    publishing.value = false
   }
 }
 </script>
@@ -233,6 +231,13 @@ async function publishArticle() {
             :defer-upload="!articleId"
             compact
           />
+
+          <ContentCoverAccessibilityFields
+            v-model:cover-blob-pathname="state.coverBlobPathname"
+            v-model:cover-alt-text="state.coverAltText"
+            v-model:cover-description="state.coverDescription"
+            :content-title="state.title"
+          />
         </div>
       </ContentEditorSurface>
 
@@ -262,7 +267,7 @@ async function publishArticle() {
       <ContentEditorFormActions>
         <ContentStatusBadge
           v-if="articleId"
-          :status="status"
+          :status="contentStatus"
           class="max-lg:hidden"
         />
 
@@ -281,25 +286,14 @@ async function publishArticle() {
           @click="formRef?.submit()"
         />
 
-        <UButton
-          v-if="articleId && status !== 'published'"
-          icon="i-lucide-send"
-          label="Publier"
-          color="success"
-          variant="soft"
-          class="max-sm:hidden"
-          :loading="publishing"
-          @click="publishArticle"
-        />
-        <UButton
-          v-if="articleId && status !== 'published'"
-          icon="i-lucide-send"
-          color="success"
-          variant="soft"
-          class="sm:hidden"
-          aria-label="Publier"
-          :loading="publishing"
-          @click="publishArticle"
+        <ContentPublishScheduleActions
+          v-if="articleId"
+          content-type="articles"
+          :content-id="articleId"
+          :status="contentStatus"
+          redirect-after-publish="/articles"
+          :ensure-saved="saveArticle"
+          @update:status="contentStatus = $event"
         />
       </ContentEditorFormActions>
     </UForm>

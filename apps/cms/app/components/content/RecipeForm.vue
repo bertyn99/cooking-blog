@@ -16,6 +16,8 @@ const schema = z.object({
   time: z.number().int().positive().optional(),
   categoryId: z.number().optional(),
   coverBlobPathname: z.string().nullable().optional(),
+  coverAltText: z.string().nullable().optional(),
+  coverDescription: z.string().nullable().optional(),
 })
 
 type Schema = z.output<typeof schema>
@@ -52,6 +54,8 @@ const props = defineProps<{
   initial?: Partial<Schema> & {
     status?: string
     coverDisplayName?: string | null
+    coverAltText?: string | null
+    coverDescription?: string | null
     ingredients?: Array<{
       name: string
       qty?: number | null
@@ -71,7 +75,6 @@ const { $api } = useNuxtApp()
 const toast = useToast()
 const router = useRouter()
 const saving = ref(false)
-const publishing = ref(false)
 const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 const ingredientListRef = ref<{ addRow: () => void } | null>(null)
 const utensilListRef = ref<{ addRow: () => void } | null>(null)
@@ -85,6 +88,8 @@ const state = reactive<Schema>({
   time: props.initial?.time,
   categoryId: props.initial?.categoryId,
   coverBlobPathname: props.initial?.coverBlobPathname ?? null,
+  coverAltText: props.initial?.coverAltText ?? null,
+  coverDescription: props.initial?.coverDescription ?? null,
 })
 
 const seoState = reactive({
@@ -130,7 +135,16 @@ const hasSeoEntry = computed(() =>
   ),
 )
 
-const status = computed(() => props.initial?.status ?? 'draft')
+const contentStatus = ref<ContentStatus>((props.initial?.status as ContentStatus) ?? 'draft')
+
+watch(
+  () => props.initial?.status,
+  (value) => {
+    if (value) {
+      contentStatus.value = value as ContentStatus
+    }
+  },
+)
 
 const difficultyOptions = [
   { label: 'Facile', value: 'easy' },
@@ -247,6 +261,8 @@ async function saveRecipe(): Promise<number | undefined> {
     time: state.time,
     categoryId: state.categoryId,
     coverBlobPathname: state.coverBlobPathname ?? undefined,
+    coverAltText: state.coverAltText,
+    coverDescription: state.coverDescription,
     ingredients: buildIngredientsPayload(),
     utensils: buildUtensilsPayload(),
     nutrition: buildNutritionPayload(),
@@ -278,23 +294,6 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
   }
 }
 
-async function publishRecipe() {
-  publishing.value = true
-  try {
-    const id = props.recipeId ?? await saveRecipe()
-    if (!id) return
-
-    await $api(`/api/admin/recipes/${id}/publish`, { method: 'POST' })
-    toast.add({ title: 'Recette publiée', color: 'success' })
-    await router.push('/recipes')
-  }
-  catch {
-    toast.add({ title: 'Erreur', description: 'Impossible de publier la recette', color: 'error' })
-  }
-  finally {
-    publishing.value = false
-  }
-}
 </script>
 
 <template>
@@ -373,6 +372,13 @@ async function publishRecipe() {
             compact
           />
         </div>
+
+        <ContentCoverAccessibilityFields
+          v-model:cover-blob-pathname="state.coverBlobPathname"
+          v-model:cover-alt-text="state.coverAltText"
+          v-model:cover-description="state.coverDescription"
+          :content-title="state.title"
+        />
       </ContentEditorSurface>
 
       <ContentSeoPanel
@@ -489,7 +495,7 @@ async function publishRecipe() {
     <ContentEditorFormActions>
       <ContentStatusBadge
         v-if="recipeId"
-        :status="status"
+        :status="contentStatus"
         class="max-lg:hidden"
       />
 
@@ -508,26 +514,15 @@ async function publishRecipe() {
         @click="formRef?.submit()"
       />
 
-      <UButton
-        v-if="recipeId && status !== 'published'"
-        icon="i-lucide-send"
-        label="Publier"
-        color="success"
-        variant="soft"
-        class="max-sm:hidden"
-        :loading="publishing"
-        @click="publishRecipe"
-      />
-      <UButton
-        v-if="recipeId && status !== 'published'"
-        icon="i-lucide-send"
-        color="success"
-        variant="soft"
-        class="sm:hidden"
-        aria-label="Publier"
-        :loading="publishing"
-        @click="publishRecipe"
-      />
+        <ContentPublishScheduleActions
+          v-if="recipeId"
+          content-type="recipes"
+          :content-id="recipeId"
+          :status="contentStatus"
+          redirect-after-publish="/recipes"
+          :ensure-saved="saveRecipe"
+          @update:status="contentStatus = $event"
+        />
     </ContentEditorFormActions>
     </UForm>
   </ContentEditorBodyLayout>

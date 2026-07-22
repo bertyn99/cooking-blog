@@ -39,7 +39,6 @@ const { $api } = useNuxtApp()
 const toast = useToast()
 const router = useRouter()
 const saving = ref(false)
-const publishing = ref(false)
 const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 const state = reactive<Schema>({
@@ -75,7 +74,16 @@ const hasSeoEntry = computed(() =>
   ),
 )
 
-const status = computed(() => props.initial?.status ?? 'draft')
+const contentStatus = ref<ContentStatus>((props.initial?.status as ContentStatus) ?? 'draft')
+
+watch(
+  () => props.initial?.status,
+  (value) => {
+    if (value) {
+      contentStatus.value = value as ContentStatus
+    }
+  },
+)
 
 const selectedParentPage = computed(() => {
   if (state.parentId == null) {
@@ -210,23 +218,6 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
   }
 }
 
-async function publishPage() {
-  publishing.value = true
-  try {
-    const id = props.pageId ?? await savePage()
-    if (!id) return
-
-    await $api(`/api/admin/pages/${id}/publish`, { method: 'POST' })
-    toast.add({ title: 'Page publiée', color: 'success' })
-    await router.push('/pages')
-  }
-  catch {
-    toast.add({ title: 'Erreur', description: 'Impossible de publier la page', color: 'error' })
-  }
-  finally {
-    publishing.value = false
-  }
-}
 </script>
 
 <template>
@@ -350,7 +341,7 @@ async function publishPage() {
       <ContentEditorFormActions>
         <ContentStatusBadge
           v-if="pageId"
-          :status="status"
+          :status="contentStatus"
           class="max-lg:hidden"
         />
 
@@ -369,25 +360,14 @@ async function publishPage() {
           @click="formRef?.submit()"
         />
 
-        <UButton
-          v-if="pageId && status !== 'published'"
-          icon="i-lucide-send"
-          label="Publier"
-          color="success"
-          variant="soft"
-          class="max-sm:hidden"
-          :loading="publishing"
-          @click="publishPage"
-        />
-        <UButton
-          v-if="pageId && status !== 'published'"
-          icon="i-lucide-send"
-          color="success"
-          variant="soft"
-          class="sm:hidden"
-          aria-label="Publier"
-          :loading="publishing"
-          @click="publishPage"
+        <ContentPublishScheduleActions
+          v-if="pageId"
+          content-type="pages"
+          :content-id="pageId"
+          :status="contentStatus"
+          redirect-after-publish="/pages"
+          :ensure-saved="savePage"
+          @update:status="contentStatus = $event"
         />
       </ContentEditorFormActions>
     </UForm>
