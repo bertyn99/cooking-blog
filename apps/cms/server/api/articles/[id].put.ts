@@ -1,9 +1,7 @@
-import { eq } from 'drizzle-orm'
-import { schema } from '../../db/create-db'
 import { validateBody } from '../../utils/validate'
 import { updateArticleSchema } from '../../utils/validations/articles'
 import { canEditContent } from '../../../shared/abilities'
-import { useDb } from '../../utils/db'
+import { useQueries } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   await requireUserSession(event)
@@ -12,8 +10,8 @@ export default defineEventHandler(async (event) => {
   const id = parseInt(getRouterParam(event, 'id') || '')
   if (isNaN(id)) throw createError({ statusCode: 404 })
 
-  const db = useDb(event)
-  const existing = await db.select().from(schema.articles).where(eq(schema.articles.id, id)).get()
+  const { articles } = useQueries(event)
+  const existing = await articles.findRowById(id)
   if (!existing) throw createError({ statusCode: 404 })
 
   const body = await readBody(event)
@@ -26,11 +24,5 @@ export default defineEventHandler(async (event) => {
     if (!existing.firstPublishedAt) updates.firstPublishedAt = new Date().toISOString()
   }
 
-  const result = await db.update(schema.articles)
-    .set(updates)
-    .where(eq(schema.articles.id, id))
-    .returning()
-    .get()
-
-  return result
+  return articles.updateById(id, updates)
 })

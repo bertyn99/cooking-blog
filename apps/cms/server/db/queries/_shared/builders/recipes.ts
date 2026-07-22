@@ -1,6 +1,4 @@
-import { eq, and, isNull } from 'drizzle-orm'
-import { recipes } from '../../db/schema/recipes'
-import type { RecipesQueryFilter, RecipesWith } from '../../db/query-types'
+import type { RecipesQueryFilter, RecipesWith } from '../../../query-types'
 
 export const RECIPES_RELATIONS = ['cover', 'category', 'nutrition', 'ingredients', 'utensils', 'reviews', 'seo'] as const
 export type RecipeRelation = (typeof RECIPES_RELATIONS)[number]
@@ -9,18 +7,6 @@ export interface RecipesQueryOptions {
   include: string[]
   filters?: { slug?: string; categoryId?: number; locale?: string }
   isAuthenticated: boolean
-}
-
-export function buildRecipesWhere(opts: RecipesQueryOptions) {
-  const conditions = []
-  if (!opts.isAuthenticated) {
-    conditions.push(eq(recipes.status, 'published'))
-    conditions.push(isNull(recipes.deletedAt))
-  }
-  if (opts.filters?.slug) conditions.push(eq(recipes.slug, opts.filters.slug))
-  if (opts.filters?.categoryId) conditions.push(eq(recipes.categoryId, opts.filters.categoryId))
-  if (opts.filters?.locale) conditions.push(eq(recipes.locale, opts.filters.locale))
-  return conditions.length > 0 ? and(...conditions) : undefined
 }
 
 export function buildRecipesQueryWhere(opts: RecipesQueryOptions): RecipesQueryFilter | undefined {

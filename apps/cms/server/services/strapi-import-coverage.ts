@@ -1,7 +1,5 @@
 import type { H3Event } from 'h3'
-import { eq, sql } from 'drizzle-orm'
-import type { AppDb } from '../db/create-db'
-import { schema } from '../db/create-db'
+import type { DbQueries } from '../db/queries'
 import {
   STRAPI_IMPORT_STEPS,
   type StrapiImportStep,
@@ -29,15 +27,6 @@ const STRAPI_COLLECTION: Record<StrapiImportStep, string> = {
 
 export type StrapiStepCoverageMap = Record<StrapiImportStep, StrapiStepCoverage>
 
-async function countMapped(db: AppDb, step: StrapiImportStep): Promise<number> {
-  const row = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(schema.legacyStrapiMap)
-    .where(eq(schema.legacyStrapiMap.sourceType, step))
-    .get()
-  return row?.count ?? 0
-}
-
 function resolveSyncState(mappedCount: number, strapiTotal: number | null): StrapiStepSyncState {
   if (strapiTotal == null) {
     return mappedCount > 0 ? 'unknown' : 'empty'
@@ -49,13 +38,13 @@ function resolveSyncState(mappedCount: number, strapiTotal: number | null): Stra
 }
 
 export async function buildStrapiStepCoverage(
-  db: AppDb,
+  queries: DbQueries,
   opts: { baseUrl: string, token?: string, strapiReachable: boolean },
 ): Promise<StrapiStepCoverageMap> {
   const mappedCounts = await Promise.all(
     STRAPI_IMPORT_STEPS.map(async step => ({
       step,
-      mappedCount: await countMapped(db, step),
+      mappedCount: await queries.legacyStrapiMap.countBySourceType(step),
     })),
   )
 
@@ -93,7 +82,7 @@ export async function buildStrapiStepCoverage(
 
 export async function getStrapiImportStepCoverage(
   event: H3Event | undefined,
-  db: AppDb,
+  queries: DbQueries,
   opts: { baseUrl: string, token?: string, strapiReachable: boolean, force?: boolean },
 ): Promise<StrapiStepCoverageMap> {
   const store = useKvStore(event)
@@ -105,7 +94,7 @@ export async function getStrapiImportStepCoverage(
     }
   }
 
-  const steps = await buildStrapiStepCoverage(db, opts)
+  const steps = await buildStrapiStepCoverage(queries, opts)
   await store.set(COVERAGE_KEY, { checkedAt: new Date().toISOString(), steps }, { ttl: COVERAGE_TTL })
   return steps
 }

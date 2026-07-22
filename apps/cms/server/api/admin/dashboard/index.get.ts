@@ -1,8 +1,7 @@
 import { z } from 'zod'
 import { canAccessAdminApi } from '../../../../shared/abilities'
-import { buildDashboardSummary } from '../../../services/dashboard-service'
+import { useDashboardService } from '../../../services/dashboard-service'
 import { createApiError } from '../../../utils/errors'
-import { useDb } from '../../../utils/db'
 
 const querySchema = z.object({
   locale: z.string().default('fr'),
@@ -17,6 +16,5 @@ export default defineEventHandler(async (event) => {
     throw createApiError('VALIDATION_ERROR', 'Invalid dashboard query', parsed.error.flatten())
   }
 
-  const db = useDb(event)
-  return buildDashboardSummary(db, event, parsed.data.locale)
+  return useDashboardService(event).buildSummary(event, parsed.data.locale)
 })

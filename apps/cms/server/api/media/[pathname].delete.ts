@@ -1,6 +1,5 @@
 import { deleteMediaBlob } from '../../utils/media'
 import { canEditContent } from '../../../shared/abilities'
-import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   await requireUserSession(event)
@@ -11,6 +10,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404 })
   }
 
-  await deleteMediaBlob(event, pathname, useDb(event))
+  await deleteMediaBlob(event, pathname)
   return sendNoContent(event)
 })

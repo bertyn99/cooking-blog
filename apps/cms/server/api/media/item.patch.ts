@@ -1,6 +1,5 @@
 import { updateMediaAccessibility } from '../../utils/media'
 import { canEditContent } from '../../../shared/abilities'
-import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   await requireUserSession(event)
@@ -24,9 +23,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'No fields to update' })
   }
 
-  const db = useDb(event)
-
-  return updateMediaAccessibility(event, db, body.pathname, {
+  return updateMediaAccessibility(event, body.pathname, {
     originalName: body.originalName,
     altText: body.altText,
     description: body.description,

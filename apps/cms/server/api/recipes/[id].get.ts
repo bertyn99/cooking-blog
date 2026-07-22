@@ -1,7 +1,6 @@
-import { createRecipeQueries } from '../../db/queries/recipes'
 import { parseInclude } from '../../utils/populate'
 import { createApiError } from '../../utils/errors'
-import { useDb } from '../../utils/db'
+import { useQueries } from '../../utils/db'
 import { serializeRecipeForScope } from '../../utils/serialize-content'
 
 export default defineEventHandler(async (event) => {
@@ -12,10 +11,10 @@ export default defineEventHandler(async (event) => {
 
   const query = getQuery(event)
   const include = parseInclude(query as Record<string, unknown>)
-  const db = useDb(event)
   const session = await getUserSession(event)
   const scope = session.user ? 'admin' : 'public'
-  const recipe = await createRecipeQueries(db).findById(id, scope, include)
+  const { recipes } = useQueries(event)
+  const recipe = await recipes.findById(id, scope, include)
 
   if (!recipe) {
     throw createApiError('NOT_FOUND', 'Recipe not found')

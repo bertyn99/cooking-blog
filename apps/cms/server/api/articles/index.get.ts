@@ -1,13 +1,11 @@
-import { createArticleQueries } from '../../db/queries/articles'
 import { parseInclude } from '../../utils/populate'
 import { parsePagination } from '../../utils/pagination'
-import { useDb } from '../../utils/db'
+import { useQueries } from '../../utils/db'
 import { serializeArticleForScope } from '../../utils/serialize-content'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const db = useDb(event)
-  const articles = createArticleQueries(db)
+  const { articles } = useQueries(event)
   const session = await getUserSession(event)
   const isAuthenticated = !!session.user
   const scope = isAuthenticated ? 'admin' : 'public'

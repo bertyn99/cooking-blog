@@ -1,10 +1,8 @@
-import { eq } from 'drizzle-orm'
-import { schema } from '../../db/create-db'
 import { validateBody } from '../../utils/validate'
 import { createRecipeSchema } from '../../utils/validations/recipes'
-import { slugifyString, generateUniqueSlug } from '../../utils/slug'
+import { slugifyString } from '../../utils/slug'
 import { canEditContent } from '../../../shared/abilities'
-import { useDb } from '../../utils/db'
+import { useQueries } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   await requireUserSession(event)
@@ -12,16 +10,12 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event)
   const data = validateBody(createRecipeSchema, body)
-  const db = useDb(event)
+  const { recipes } = useQueries(event)
 
   const baseSlug = data.slug || slugifyString(data.title)
-  const existing = await db.select({ slug: schema.recipes.slug })
-    .from(schema.recipes)
-    .where(eq(schema.recipes.locale, data.locale || 'fr'))
-    .all()
-  const slug = generateUniqueSlug(baseSlug, existing.map(r => r.slug))
+  const slug = await recipes.reserveUniqueSlug(baseSlug, data.locale || 'fr')
 
-  const result = await db.insert(schema.recipes).values({
+  const result = await recipes.insert({
     title: data.title,
     intro: data.intro,
     slug,
@@ -35,39 +29,16 @@ export default defineEventHandler(async (event) => {
     locale: data.locale || 'fr',
     localeGroupId: data.localeGroupId,
     status: 'draft',
-  }).returning().get()
+  })
 
-  // Handle nested ingredients
   if (data.ingredients?.length) {
-    await db.insert(schema.ingredients).values(
-      data.ingredients.map((ing, i) => ({
-        recipeId: result.id,
-        name: ing.name,
-        qty: ing.qty,
-        unit: ing.unit || 'none',
-        sortOrder: ing.sortOrder ?? i,
-      }))
-    )
+    await recipes.replaceIngredients(result.id, data.ingredients)
   }
-
   if (data.utensils?.length) {
-    await db.insert(schema.recipeUtensils).values(
-      data.utensils.map((row, i) => ({
-        recipeId: result.id,
-        name: row.name.trim(),
-        note: row.note?.trim() || null,
-        affiliateUrl: row.affiliateUrl?.trim() || null,
-        sortOrder: row.sortOrder ?? i,
-      }))
-    )
+    await recipes.replaceUtensils(result.id, data.utensils)
   }
-
-  // Handle nutrition
   if (data.nutrition) {
-    await db.insert(schema.nutrition).values({
-      recipeId: result.id,
-      ...data.nutrition,
-    })
+    await recipes.replaceNutrition(result.id, data.nutrition)
   }
 
   setResponseStatus(event, 201)

@@ -1,8 +1,6 @@
 import type { ExtractContext, StrapiEntityStats, StrapiMediaFile } from './types'
 import { strapiSourceId } from './types'
-import { findLegacyDestId, upsertLegacyMap } from './legacy-map'
 import { createStrapiClient } from './strapi-client'
-import { schema } from '../../db/create-db'
 import { canonicalStrapiUploadPath, strapiMediaPathnameFromUrl, useMediaStorage } from '../../utils/media-storage'
 import { ensureBlobCatalogRecord } from '../../utils/media'
 import { extractImageFileMetadata } from '../../utils/extract-image-metadata'
@@ -46,7 +44,7 @@ async function persistImportedBlob(
 
   const uploaded = await storage.putBuffer(pathname, buffer, contentType)
 
-  await ctx.db.insert(schema.blobs).values({
+  const catalogValues = {
     pathname: uploaded.pathname,
     originalName: meta?.name ?? uploaded.pathname.split('/').pop() ?? uploaded.pathname,
     mimeType: uploaded.contentType,
@@ -55,27 +53,26 @@ async function persistImportedBlob(
     height: meta?.height,
     altText: meta?.alternativeText,
     fileMetadata: hasMeta ? fileMetadata : undefined,
-  }).onConflictDoUpdate({
-    target: schema.blobs.pathname,
-    set: {
-      originalName: meta?.name ?? uploaded.pathname.split('/').pop() ?? uploaded.pathname,
-      mimeType: uploaded.contentType,
-      size: uploaded.size,
-      width: meta?.width,
-      height: meta?.height,
-      altText: meta?.alternativeText,
-      fileMetadata: hasMeta ? fileMetadata : undefined,
-    },
+  }
+
+  await ctx.queries.blobs.upsertImportedCatalog(catalogValues, {
+    originalName: catalogValues.originalName,
+    mimeType: catalogValues.mimeType,
+    size: catalogValues.size,
+    width: catalogValues.width,
+    height: catalogValues.height,
+    altText: catalogValues.altText,
+    fileMetadata: catalogValues.fileMetadata,
   })
 
-  await upsertLegacyMap(ctx.db, {
+  await ctx.queries.legacyStrapiMap.upsert({
     sourceType: 'media',
     sourceId,
     destTable: 'blobs',
     destId: uploaded.pathname,
   }, false)
 
-  await upsertLegacyMap(ctx.db, {
+  await ctx.queries.legacyStrapiMap.upsert({
     sourceType: 'media',
     sourceId: `path:${uploaded.pathname}`,
     destTable: 'blobs',
@@ -98,10 +95,10 @@ export async function importStrapiMediaByUploadPath(
   const pathname = strapiMediaPathnameFromUrl(canonicalUploadPath)
   const sourceId = `path:${pathname}`
 
-  const mapped = await findLegacyDestId(ctx.db, 'media', sourceId)
+  const mapped = await ctx.queries.legacyStrapiMap.findDestId('media', sourceId)
   if (mapped === pathname) {
     if (!ctx.dryRun) {
-      await ensureBlobCatalogRecord(ctx.db, ctx.event, pathname)
+      await ensureBlobCatalogRecord(ctx.queries.blobs, ctx.event, pathname)
     }
     stats.skipped += 1
     return pathname
@@ -111,13 +108,13 @@ export async function importStrapiMediaByUploadPath(
   const existing = await storage.head(pathname)
   if (existing) {
     if (!ctx.dryRun) {
-      await upsertLegacyMap(ctx.db, {
+      await ctx.queries.legacyStrapiMap.upsert({
         sourceType: 'media',
         sourceId,
         destTable: 'blobs',
         destId: pathname,
       }, false)
-      await ensureBlobCatalogRecord(ctx.db, ctx.event, pathname, {
+      await ensureBlobCatalogRecord(ctx.queries.blobs, ctx.event, pathname, {
         mimeType: existing.contentType,
         size: existing.size,
       })
@@ -169,10 +166,10 @@ export async function importStrapiMedia(
   if (!sourceId) return null
 
   const pathname = strapiMediaPathnameFromUrl(file.url)
-  const mapped = await findLegacyDestId(ctx.db, 'media', sourceId)
+  const mapped = await ctx.queries.legacyStrapiMap.findDestId('media', sourceId)
   if (mapped === pathname) {
     if (!ctx.dryRun) {
-      await ensureBlobCatalogRecord(ctx.db, ctx.event, pathname, {
+      await ensureBlobCatalogRecord(ctx.queries.blobs, ctx.event, pathname, {
         originalName: file.name,
         mimeType: file.mime,
         width: file.width,
@@ -188,19 +185,19 @@ export async function importStrapiMedia(
   const existing = await storage.head(pathname)
   if (existing) {
     if (!ctx.dryRun) {
-      await upsertLegacyMap(ctx.db, {
+      await ctx.queries.legacyStrapiMap.upsert({
         sourceType: 'media',
         sourceId,
         destTable: 'blobs',
         destId: pathname,
       }, false)
-      await upsertLegacyMap(ctx.db, {
+      await ctx.queries.legacyStrapiMap.upsert({
         sourceType: 'media',
         sourceId: `path:${pathname}`,
         destTable: 'blobs',
         destId: pathname,
       }, false)
-      await ensureBlobCatalogRecord(ctx.db, ctx.event, pathname, {
+      await ensureBlobCatalogRecord(ctx.queries.blobs, ctx.event, pathname, {
         originalName: file.name,
         mimeType: file.mime ?? existing.contentType,
         size: existing.size,

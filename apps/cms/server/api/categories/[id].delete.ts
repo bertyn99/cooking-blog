@@ -1,19 +1,6 @@
-/**
- * DELETE /api/categories/[id] — Soft delete a recipe category.
- *
- * Auth required (enforced by middleware).
- *
- * Sets deletedAt to the current timestamp instead of physically removing
- * the row. The category becomes invisible to unauthenticated users but
- * remains recoverable by admins.
- *
- * Returns 404 if the category does not exist or is already soft-deleted.
- */
-import { eq } from 'drizzle-orm'
-import { schema } from '../../db/create-db'
 import { createApiError } from '../../utils/errors'
 import { canEditContent } from '../../../shared/abilities'
-import { useDb } from '../../utils/db'
+import { useQueries } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   await requireUserSession(event)
@@ -24,34 +11,18 @@ export default defineEventHandler(async (event) => {
     throw createApiError('VALIDATION_ERROR', 'Invalid category ID')
   }
 
-  const db = useDb(event)
+  const { categories } = useQueries(event)
+  const existing = await categories.findRowById(id)
 
-  // Check category exists and is not already deleted
-  const existing = await db
-    .select({ id: schema.categories.id, deletedAt: schema.categories.deletedAt })
-    .from(schema.categories)
-    .where(eq(schema.categories.id, id))
-    .limit(1)
-    .all()
-
-  if (existing.length === 0) {
+  if (!existing) {
     throw createApiError('NOT_FOUND', 'Category not found')
   }
 
-  if (existing[0]!.deletedAt !== null) {
+  if (existing.deletedAt !== null) {
     throw createApiError('VALIDATION_ERROR', 'Category is already deleted')
   }
 
-  const now = new Date().toISOString()
+  const deletedAt = await categories.softDelete(id)
 
-  await db
-    .update(schema.categories)
-    .set({
-      deletedAt: now,
-      updatedAt: now,
-    })
-    .where(eq(schema.categories.id, id))
-    .run()
-
-  return { data: { id, deletedAt: now } }
+  return { data: { id, deletedAt } }
 })

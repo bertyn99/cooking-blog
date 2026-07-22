@@ -1,4 +1,5 @@
 import { createError as h3CreateError } from 'h3'
+import { isQueryError, type QueryErrorCode } from '../db/query-errors'
 
 /**
  * Creates a consistent API error using H3's native createError.
@@ -22,4 +23,19 @@ export function createApiError(
     statusMessage: message,
     data: { error: { code, message, details } },
   })
+}
+
+const queryCodeToApi: Record<QueryErrorCode, Parameters<typeof createApiError>[0]> = {
+  NOT_FOUND: 'NOT_FOUND',
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  CONFLICT: 'CONFLICT',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+}
+
+/** Map query-layer errors to HTTP errors in route handlers. */
+export function fromQueryError(error: unknown): never {
+  if (isQueryError(error)) {
+    throw createApiError(queryCodeToApi[error.code], error.message, error.details)
+  }
+  throw error
 }

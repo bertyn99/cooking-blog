@@ -3,7 +3,7 @@ import type { StrapiImportConfigResponse } from '../../../../shared/strapi-impor
 import { getStrapiImportStatus } from '../../../services/strapi-import-status'
 import { getStrapiReachability } from '../../../services/strapi-reachability'
 import { getStrapiImportStepCoverage } from '../../../services/strapi-import-coverage'
-import { useDb } from '../../../utils/db'
+import { useQueries } from '../../../utils/db'
 
 export default defineEventHandler(async (event) => {
   await requireUserSession(event)
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
   let reachabilityCheckedAt: string | undefined
   let stepCoverage: StrapiImportConfigResponse['stepCoverage']
 
-  const db = useDb(event)
+  const queries = useQueries(event)
 
   if (config.strapiUrl) {
     const reachability = await getStrapiReachability(event, {
@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
     strapiArticleCount = reachability.totalArticles
     reachabilityCheckedAt = reachability.checkedAt
 
-    stepCoverage = await getStrapiImportStepCoverage(event, db, {
+    stepCoverage = await getStrapiImportStepCoverage(event, queries, {
       baseUrl: config.strapiUrl,
       token: config.strapiApiToken || undefined,
       strapiReachable: reachability.reachable,

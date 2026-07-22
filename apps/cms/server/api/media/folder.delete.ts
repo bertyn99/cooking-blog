@@ -1,6 +1,5 @@
 import { deleteMediaFolder } from '../../utils/media'
 import { canEditContent } from '../../../shared/abilities'
-import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   await requireUserSession(event)
@@ -11,6 +10,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'prefix is required' })
   }
 
-  await deleteMediaFolder(event, useDb(event), body.prefix)
+  await deleteMediaFolder(event, body.prefix)
   return sendNoContent(event)
 })

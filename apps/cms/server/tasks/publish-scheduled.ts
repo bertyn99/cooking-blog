@@ -1,5 +1,4 @@
-import { useDb } from '../utils/db'
-import { createPublishingService } from '../services/publishing-service'
+import { usePublishingService } from '../services/publishing-service'
 import { isSqliteBusyError } from '../utils/sqlite-busy'
 
 export default defineTask({
@@ -9,9 +8,7 @@ export default defineTask({
   },
   async run() {
     try {
-      const db = useDb()
-      const publishing = createPublishingService(db)
-      const result = await publishing.publishDueScheduled()
+      const result = await usePublishingService().publishDueScheduled()
       return { result }
     }
     catch (error) {

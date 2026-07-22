@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm'
 import type { ExtractContext, StrapiEntityStats, StrapiMediaFile } from './types'
 import { strapiSourceId } from './types'
-import { findLegacyDestId, upsertLegacyMap } from './legacy-map'
 import { createStrapiClient } from './strapi-client'
 import { importStrapiMedia } from './media'
 import { bumpImportStats, dryRunOutcome, shallowFieldsEqual } from './import-row'
@@ -31,7 +30,7 @@ export async function extractCategories(ctx: ExtractContext, mediaStats: StrapiE
     if (!sourceId) continue
 
     try {
-      const existingId = await findLegacyDestId(ctx.db, 'categories', sourceId)
+      const existingId = await ctx.queries.legacyStrapiMap.findDestId( 'categories', sourceId)
       const locale = row.locale || 'fr'
 
       let existingRow: typeof schema.categories.$inferSelect | undefined
@@ -75,7 +74,7 @@ export async function extractCategories(ctx: ExtractContext, mediaStats: StrapiE
       else {
         const inserted = await ctx.db.insert(schema.categories).values(values).returning().get()
         categoryId = inserted.id
-        await upsertLegacyMap(ctx.db, {
+        await ctx.queries.legacyStrapiMap.upsert( {
           sourceType: 'categories',
           sourceId,
           destTable: 'categories',

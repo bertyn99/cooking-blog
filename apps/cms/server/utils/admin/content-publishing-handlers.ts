@@ -1,9 +1,8 @@
 import type { H3Event } from 'h3'
-import { createPublishingService } from '../../services/publishing-service'
+import { usePublishingService } from '../../services/publishing-service'
 import type { PublishableContentType } from '../content-types'
 import { isPublishableContentType } from '../content-types'
 import { createApiError } from '../errors'
-import { useDb } from '../db'
 import { canAccessAdminApi } from '../../../shared/abilities'
 
 function parseContentId(event: H3Event): number {
@@ -22,26 +21,24 @@ async function requireAdmin(event: H3Event) {
 export async function handleAdminPublish(event: H3Event, contentType: PublishableContentType) {
   await requireAdmin(event)
   const id = parseContentId(event)
-  const db = useDb(event)
-  return createPublishingService(db).publish(contentType, id)
+  return usePublishingService(event).publish(contentType, id)
 }
 
 export async function handleAdminSchedule(event: H3Event, contentType: PublishableContentType) {
   await requireAdmin(event)
   const id = parseContentId(event)
-  const body = await readBody<{ scheduledAt?: string }>(event)
-  if (!body?.scheduledAt) {
+  const body = await readBody<{ scheduledAt?: string, date?: string }>(event)
+  const scheduledAt = body?.scheduledAt ?? body?.date
+  if (!scheduledAt) {
     throw createError({ statusCode: 400, statusMessage: 'scheduledAt is required' })
   }
-  const db = useDb(event)
-  return createPublishingService(db).schedule(contentType, id, body.scheduledAt)
+  return usePublishingService(event).schedule(contentType, id, scheduledAt)
 }
 
 export async function handleAdminUnpublish(event: H3Event, contentType: PublishableContentType) {
   await requireAdmin(event)
   const id = parseContentId(event)
-  const db = useDb(event)
-  return createPublishingService(db).unpublish(contentType, id)
+  return usePublishingService(event).unpublish(contentType, id)
 }
 
 function parseContentTypeParam(event: H3Event): PublishableContentType {

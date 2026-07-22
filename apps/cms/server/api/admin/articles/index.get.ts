@@ -1,12 +1,10 @@
-import { createArticleQueries } from '../../../db/queries/articles'
 import { parseInclude } from '../../../utils/populate'
 import { parsePagination } from '../../../utils/pagination'
-import { useDb } from '../../../utils/db'
+import { useQueries } from '../../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const db = useDb(event)
-  const articles = createArticleQueries(db)
+  const { articles } = useQueries(event)
 
   const include = parseInclude(query as Record<string, unknown>)
   const filters = {

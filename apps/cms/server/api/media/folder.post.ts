@@ -1,6 +1,5 @@
 import { createMediaFolder } from '../../utils/media'
 import { canEditContent } from '../../../shared/abilities'
-import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   await requireUserSession(event)
@@ -11,7 +10,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'name is required' })
   }
 
-  const folder = await createMediaFolder(event, useDb(event), {
+  const folder = await createMediaFolder(event, {
     name: body.name,
     parentPrefix: body.parentPrefix,
   })

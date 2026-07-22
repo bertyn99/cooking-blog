@@ -1,9 +1,8 @@
 import { z } from 'zod'
 import { canAccessAdminApi } from '../../../../shared/abilities'
 import { parseCalendarTypesParam } from '../../../../shared/calendar'
-import { createCalendarService } from '../../../services/calendar-service'
+import { useCalendarService } from '../../../services/calendar-service'
 import { createApiError } from '../../../utils/errors'
-import { useDb } from '../../../utils/db'
 
 const calendarQuerySchema = z.object({
   from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -28,10 +27,9 @@ export default defineEventHandler(async (event) => {
     throw createApiError('VALIDATION_ERROR', '`from` must be on or before `to`')
   }
 
-  const db = useDb(event)
   const includePublished = query.includePublished !== 'false'
 
-  return createCalendarService(db).listForRange({
+  return useCalendarService(event).listForRange({
     from: query.from,
     to: query.to,
     locale: query.locale,

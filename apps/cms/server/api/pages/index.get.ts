@@ -1,12 +1,11 @@
-import { createPageQueries } from '../../db/queries/pages'
 import { validateQuery } from '../../utils/validate'
 import { parsePagination } from '../../utils/pagination'
-import { PAGES_RELATIONS } from '../../utils/queries/pages'
-import { useDb } from '../../utils/db'
+import { PAGES_RELATIONS } from '../../db/queries/_shared/builders/pages'
+import { useQueries } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const db = useDb(event)
+  const { pages } = useQueries(event)
 
   const { include } = validateQuery(
     query as Record<string, string>,
@@ -16,7 +15,7 @@ export default defineEventHandler(async (event) => {
   const pagination = parsePagination(query as Record<string, string>)
   const session = await getUserSession(event)
 
-  return createPageQueries(db).listPage({
+  return pages.listPage({
     include,
     locale,
     isAuthenticated: !!session.user,

@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3'
 import { createD1Db, type AppDb } from '../db/create-db'
+import { createDbQueries } from '../db/queries'
 import { getCloudflareEnv } from './cloudflare-env'
 import { getLocalDb } from '../db/client'
 
@@ -31,4 +32,9 @@ export function useDb(event?: H3Event): AppDb {
     return createD1Db(env.DB) as unknown as AppDb
   }
   return getLocalDb()
+}
+
+/** Typed query layer — prefer over raw `useDb` in handlers and services. */
+export function useQueries(event?: H3Event) {
+  return createDbQueries(useDb(event))
 }

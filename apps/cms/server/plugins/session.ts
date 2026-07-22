@@ -1,8 +1,5 @@
-import { eq } from 'drizzle-orm'
-import { schema } from '../db/create-db'
 import { toSessionUser } from '../utils/auth/user'
-import { useDb } from '../utils/db'
-import { createError } from 'h3'
+import { useQueries } from '../utils/db'
 
 export default defineNitroPlugin(() => {
   sessionHooks.hook('fetch', async (session, event) => {
@@ -11,14 +8,7 @@ export default defineNitroPlugin(() => {
       return
     }
 
-    const db = useDb(event)
-    const rows = await db
-      .select()
-      .from(schema.users)
-      .where(eq(schema.users.id, userId))
-      .limit(1)
-
-    const user = rows[0]
+    const user = await useQueries(event).users.findById(userId)
     if (!user) {
       throw createError({
         statusCode: 401,

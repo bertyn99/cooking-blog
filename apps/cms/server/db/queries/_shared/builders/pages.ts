@@ -1,14 +1,7 @@
 /**
  * Pages query builder — deep parent population, draft protection, locale filtering.
- *
- * ALLOWED_RELATIONS:
- * - `content`  → direct column on pages (always returned; included for allowlist purposes)
- * - `seoMeta`  → one-to-one relation via seo.pageId (with nested socialMeta)
- * - `parent`   → self-referencing FK via pages.parentId (deep populate up to 3 levels)
  */
-import { eq, and, isNull } from 'drizzle-orm'
-import { pages } from '../../db/schema/pages'
-import type { PagesQueryFilter, PagesWith } from '../../db/query-types'
+import type { PagesQueryFilter, PagesWith } from '../../../query-types'
 
 // biome-ignore format: keep relations readable
 export const PAGES_RELATIONS = ['content', 'seoMeta', 'parent'] as const
@@ -22,6 +15,7 @@ export interface PagesQueryOptions {
   locale?: string
   /** When false (unauthenticated), filters to published + non-deleted pages only. */
   isAuthenticated: boolean
+  includeDeleted?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -29,36 +23,16 @@ export interface PagesQueryOptions {
 // ---------------------------------------------------------------------------
 
 /**
- * Builds a Drizzle WHERE clause for pages queries.
- *
- * Draft protection (unauthenticated):
- *   - status = 'published'
- *   - deleted_at IS NULL
- *
- * Authenticated users see all pages (including drafts and soft-deleted).
+ * Builds a Drizzle relational WHERE for pages queries.
  */
-export function buildPagesWhere(options: PagesQueryOptions) {
-  const conditions = []
-
-  // Draft protection: unauthenticated → published + not deleted
-  if (!options.isAuthenticated) {
-    conditions.push(eq(pages.status, 'published'))
-    conditions.push(isNull(pages.deletedAt))
-  }
-
-  // Locale filtering
-  if (options.locale) {
-    conditions.push(eq(pages.locale, options.locale))
-  }
-
-  return conditions.length > 0 ? and(...conditions) : undefined
-}
-
 export function buildPagesQueryWhere(options: PagesQueryOptions): PagesQueryFilter | undefined {
   const filters: NonNullable<PagesQueryFilter>[] = []
 
   if (!options.isAuthenticated) {
     filters.push({ status: 'published' }, { deletedAt: { isNull: true } })
+  }
+  else if (!options.includeDeleted) {
+    filters.push({ deletedAt: { isNull: true } })
   }
 
   if (options.locale) {

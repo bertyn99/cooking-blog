@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm'
 import type { ExtractContext, StrapiEntityStats, StrapiSeoFields } from './types'
 import { strapiSourceId } from './types'
-import { findLegacyDestId, upsertLegacyMap } from './legacy-map'
 import { createStrapiClient } from './strapi-client'
 import { iterateStrapiRows } from './strapi-iterate'
 import { strapiZonesToMarkdown } from './zones-to-markdown'
@@ -45,7 +44,7 @@ export async function extractPages(ctx: ExtractContext, mediaStats: StrapiEntity
     if (!sourceId) continue
 
     try {
-      const existingId = await findLegacyDestId(ctx.db, 'pages', sourceId)
+      const existingId = await ctx.queries.legacyStrapiMap.findDestId( 'pages', sourceId)
       const locale = row.locale || 'fr'
       const rawContent = strapiZonesToMarkdown(row.content)
       const content = await rewriteStrapiUploadsInText(
@@ -115,7 +114,7 @@ export async function extractPages(ctx: ExtractContext, mediaStats: StrapiEntity
       else {
         const inserted = await ctx.db.insert(schema.pages).values(values).returning().get()
         pageId = inserted.id
-        await upsertLegacyMap(ctx.db, {
+        await ctx.queries.legacyStrapiMap.upsert( {
           sourceType: 'pages',
           sourceId,
           destTable: 'pages',
@@ -142,7 +141,7 @@ export async function extractPages(ctx: ExtractContext, mediaStats: StrapiEntity
   }
 
   for (const link of pendingParents) {
-    const parentId = await findLegacyDestId(ctx.db, 'pages', link.parentSourceId)
+    const parentId = await ctx.queries.legacyStrapiMap.findDestId( 'pages', link.parentSourceId)
     if (!parentId) continue
     const desiredParentId = Number.parseInt(parentId, 10)
     const page = await ctx.db.select().from(schema.pages).where(eq(schema.pages.id, link.pageId)).get()

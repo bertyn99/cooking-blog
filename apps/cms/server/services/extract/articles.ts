@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm'
 import type { ExtractContext, StrapiEntityStats, StrapiMediaFile, StrapiSeoFields } from './types'
 import { strapiSourceId } from './types'
-import { findLegacyDestId, upsertLegacyMap } from './legacy-map'
 import { createStrapiClient } from './strapi-client'
 import { iterateStrapiRows } from './strapi-iterate'
 import { importStrapiMedia } from './media'
@@ -61,7 +60,7 @@ export async function extractArticles(ctx: ExtractContext, mediaStats: StrapiEnt
     if (!sourceId) continue
 
     try {
-      const existingId = await findLegacyDestId(ctx.db, 'articles', sourceId)
+      const existingId = await ctx.queries.legacyStrapiMap.findDestId( 'articles', sourceId)
       const locale = row.locale || 'fr'
       const coverPath = await importStrapiMedia(ctx, row.cover ?? undefined, mediaStats)
       const content = await rewriteStrapiUploadsInText(
@@ -74,7 +73,7 @@ export async function extractArticles(ctx: ExtractContext, mediaStats: StrapiEnt
       let categoryId: number | null = null
       if (row.category) {
         const catSource = strapiSourceId(row.category)
-        const mapped = catSource ? await findLegacyDestId(ctx.db, 'category-articles', catSource) : null
+        const mapped = catSource ? await ctx.queries.legacyStrapiMap.findDestId( 'category-articles', catSource) : null
         categoryId = mapped ? Number.parseInt(mapped, 10) : null
       }
 
@@ -135,7 +134,7 @@ export async function extractArticles(ctx: ExtractContext, mediaStats: StrapiEnt
       else {
         const inserted = await ctx.db.insert(schema.articles).values(values).returning().get()
         articleId = inserted.id
-        await upsertLegacyMap(ctx.db, {
+        await ctx.queries.legacyStrapiMap.upsert( {
           sourceType: 'articles',
           sourceId,
           destTable: 'articles',

@@ -1,10 +1,8 @@
-import { eq } from 'drizzle-orm'
-import { schema } from '../../db/create-db'
 import { validateBody } from '../../utils/validate'
 import { createArticleSchema } from '../../utils/validations/articles'
-import { slugifyString, generateUniqueSlug } from '../../utils/slug'
+import { slugifyString } from '../../utils/slug'
 import { canEditContent } from '../../../shared/abilities'
-import { useDb } from '../../utils/db'
+import { useQueries } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   await requireUserSession(event)
@@ -12,16 +10,12 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event)
   const data = validateBody(createArticleSchema, body)
-  const db = useDb(event)
+  const { articles } = useQueries(event)
 
   const baseSlug = data.slug || slugifyString(data.title)
-  const existing = await db.select({ slug: schema.articles.slug })
-    .from(schema.articles)
-    .where(eq(schema.articles.locale, data.locale || 'fr'))
-    .all()
-  const slug = generateUniqueSlug(baseSlug, existing.map(r => r.slug))
+  const slug = await articles.reserveUniqueSlug(baseSlug, data.locale || 'fr')
 
-  const result = await db.insert(schema.articles).values({
+  const result = await articles.insert({
     title: data.title,
     content: data.content,
     slug,
@@ -32,7 +26,7 @@ export default defineEventHandler(async (event) => {
     locale: data.locale || 'fr',
     localeGroupId: data.localeGroupId,
     status: 'draft',
-  }).returning().get()
+  })
 
   setResponseStatus(event, 201)
   return result

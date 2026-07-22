@@ -4,6 +4,9 @@ import { defineVitestProject } from '@nuxt/test-utils/config'
 import { playwright } from '@vitest/browser-playwright'
 
 export default defineConfig({
+  resolve: {
+    tsconfig: fileURLToPath(new URL('./.nuxt/tsconfig.server.json', import.meta.url)),
+  },
   test: {
     projects: [
       {

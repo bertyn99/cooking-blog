@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3'
 import type { AppDb } from '../../db/create-db'
+import type { DbQueries } from '../../db/queries'
 import type {
   StrapiEntityStats,
   StrapiImportProgress,
@@ -26,6 +27,7 @@ export { emptyStats, strapiSourceId } from './types.server'
 
 export interface ExtractContext {
   db: AppDb
+  queries: DbQueries
   strapiUrl: string
   strapiApiToken?: string
   strapiUploadsOrigin?: string

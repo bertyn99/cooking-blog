@@ -40,6 +40,15 @@ export function isCalendarItemDraggable(status: CalendarContentStatus): boolean 
   return status === 'scheduled' || status === 'draft'
 }
 
+export function contentEditPath(contentType: CalendarContentType, id: number): string {
+  const base = contentType === 'articles'
+    ? 'articles'
+    : contentType === 'recipes'
+      ? 'recipes'
+      : 'pages'
+  return `/${base}/${id}`
+}
+
 export function calendarDayKeyFromIso(
   iso: string,
   timeZone: string = CALENDAR_TIME_ZONE,

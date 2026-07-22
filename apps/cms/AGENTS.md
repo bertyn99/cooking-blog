@@ -37,7 +37,7 @@ apps/cms/
 │   ├── db/
 │   │   ├── schema/               # Drizzle tables (exported via schema.ts)
 │   │   ├── migrations/sqlite/  # Shared local + D1 migrations
-│   │   ├── queries/              # Typed list/detail queries
+│   │   ├── queries/              # All Drizzle I/O — useQueries(); see queries/README.md
 │   │   └── seed/                 # Admin seed helpers
 │   ├── plugins/                  # session refresh, authorization resolver
 │   ├── routes/images/            # Public image proxy from blob storage
@@ -304,6 +304,10 @@ pnpm --filter cms db:seed:admin
 
 ## CONVENTIONS
 
+### Database access (query layer)
+
+All Drizzle I/O lives in `server/db/queries/` — see [`server/db/queries/README.md`](server/db/queries/README.md). HTTP handlers use **`useQueries(event)`** for CRUD reads/writes, or domain **`usePublishingService` / `useCalendarService` / `useDashboardService` / `useMaintenanceService`** (each wraps `createDbQueries(useDb(event))`). Avoid `useDb` + raw query factories in routes. **`health`** and **seed/tasks** may call `useDb()` for connectivity or legacy seed helpers.
+
 ### Admin data fetching
 
 - Use `$api` from `plugins/api.ts` (never raw `$fetch` in SSR pages that need auth).
@@ -314,11 +318,11 @@ pnpm --filter cms db:seed:admin
 
 - Zod schemas inline in form components; slug auto from title on create via `#shared/slug`.
 - Save → `PUT` or `POST` collection endpoint; SEO → `PUT /api/seo/...` when panel touched.
-- Publishing actions are separate from save (admin API).
+- Publishing actions are separate from save (admin API). Canonical routes: `/api/admin/.../publish|schedule|unpublish`; legacy `/api/publish|schedule|unpublish` delegate to the same handlers.
 
 ### API errors
 
-Structured via `createApiError` (`server/utils/errors.ts`); login/register use Zod + consistent JSON error shape.
+Structured via `createApiError` (`server/utils/errors.ts`); query modules throw `QueryError` — map with `fromQueryError` in handlers/services. Login/register use Zod + consistent JSON error shape.
 
 ## RELATION TO `apps/web`
 

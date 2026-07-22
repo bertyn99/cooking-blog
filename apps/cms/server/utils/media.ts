@@ -1,7 +1,6 @@
 import type { H3Event } from 'h3'
-import { and, desc, eq, like, not, notLike, sql } from 'drizzle-orm'
-import type { AppDb } from '../db/create-db'
-import { schema } from '../db/create-db'
+import type { DbQueries } from '../db/queries'
+import type { BlobRow } from '../db/queries/blobs'
 import {
   MEDIA_FOLDER_MARKER,
   MEDIA_FOLDER_MARKER_MIME,
@@ -12,7 +11,7 @@ import {
   slugifyFolderSegment,
 } from '../../shared/media-paths'
 import { createApiError } from './errors'
-import { useDb } from './db'
+import { useQueries } from './db'
 import { useMediaStorage } from './media-storage'
 import { extractImageFileMetadata, readStorageBuffer } from './extract-image-metadata'
 import {
@@ -20,6 +19,8 @@ import {
   type MediaDetailSection,
   type MediaFileMetadata,
 } from '../../shared/media-file-metadata'
+
+export type BlobQueries = DbQueries['blobs']
 
 export interface MediaListItem {
   pathname: string
@@ -51,16 +52,16 @@ export interface MediaListResult {
 export async function uploadMedia(
   event: H3Event,
   file: File,
-  db: AppDb,
   opts?: { folderPrefix?: string },
 ) {
   const storage = useMediaStorage(event)
   const sourceBuffer = await file.arrayBuffer()
   const fileMetadata = await extractImageFileMetadata(sourceBuffer, file.type)
   const uploaded = await storage.put(file, opts?.folderPrefix)
+  const blobs = useQueries(event).blobs
 
   try {
-    await db.insert(schema.blobs).values({
+    await blobs.insert({
       pathname: uploaded.pathname,
       originalName: file.name,
       mimeType: uploaded.contentType,
@@ -77,7 +78,7 @@ export async function uploadMedia(
 
 /** Register a stored file in the `blobs` catalog (media gallery). */
 export async function ensureBlobCatalogRecord(
-  db: AppDb,
+  blobs: BlobQueries,
   event: H3Event | undefined,
   pathname: string,
   meta?: {
@@ -90,34 +91,29 @@ export async function ensureBlobCatalogRecord(
     fileMetadata?: MediaFileMetadata | null
   },
 ) {
-  const row = await db
-    .select({ pathname: schema.blobs.pathname })
-    .from(schema.blobs)
-    .where(eq(schema.blobs.pathname, pathname))
-    .get()
+  const row = await blobs.findPathnameOnly(pathname)
   if (row) return
 
   const storage = useMediaStorage(event)
   const head = await storage.head(pathname)
   if (!head) return
 
-  await db.insert(schema.blobs).values({
-    pathname,
-    originalName: meta?.originalName ?? pathname.split('/').pop() ?? pathname,
+  await blobs.upsertCatalogRecord(pathname, {
+    originalName: meta?.originalName,
     mimeType: meta?.mimeType ?? head.contentType,
     size: meta?.size ?? head.size,
     width: meta?.width,
     height: meta?.height,
     altText: meta?.altText,
-    fileMetadata: meta?.fileMetadata ?? undefined,
-  }).onConflictDoNothing()
+    fileMetadata: meta?.fileMetadata,
+  })
 }
 
 export function getMediaUrl(pathname: string): string {
   return `/images/${pathname}`
 }
 
-function rowToListItem(row: typeof schema.blobs.$inferSelect): MediaListItem {
+function rowToListItem(row: BlobRow): MediaListItem {
   const mime = row.mimeType ?? undefined
   return {
     pathname: row.pathname,
@@ -132,28 +128,9 @@ function rowToListItem(row: typeof schema.blobs.$inferSelect): MediaListItem {
   }
 }
 
-async function countItemsUnderPrefix(db: AppDb, prefix: string) {
-  const row = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(schema.blobs)
-    .where(and(
-      like(schema.blobs.pathname, `${prefix}%`),
-      not(eq(schema.blobs.mimeType, MEDIA_FOLDER_MARKER_MIME)),
-    ))
-    .get()
-  return row?.count ?? 0
-}
-
-async function clearBlobReferences(db: AppDb, pathname: string) {
-  await db.update(schema.articles).set({ coverBlobPathname: null }).where(eq(schema.articles.coverBlobPathname, pathname))
-  await db.update(schema.recipes).set({ coverBlobPathname: null }).where(eq(schema.recipes.coverBlobPathname, pathname))
-  await db.delete(schema.categoryBlobs).where(eq(schema.categoryBlobs.blobPathname, pathname))
-  await db.update(schema.socialMeta).set({ imageBlobPathname: null }).where(eq(schema.socialMeta.imageBlobPathname, pathname))
-}
-
 export async function getMediaDetail(event: H3Event, pathname: string) {
-  const db = useDb(event)
-  const row = await db.select().from(schema.blobs).where(eq(schema.blobs.pathname, pathname)).get()
+  const blobs = useQueries(event).blobs
+  const row = await blobs.findByPathname(pathname)
   if (!row) {
     throw createApiError('NOT_FOUND', 'Media not found')
   }
@@ -167,10 +144,10 @@ export async function getMediaDetail(event: H3Event, pathname: string) {
       const extracted = await extractImageFileMetadata(buffer, row.mimeType)
       if (extracted) {
         fileMetadata = extracted
-        await db.update(schema.blobs).set({
+        await blobs.updateByPathname(pathname, {
           fileMetadata: extracted,
-          updatedAt: sql`CURRENT_TIMESTAMP`,
-        }).where(eq(schema.blobs.pathname, pathname))
+          updatedAt: new Date().toISOString(),
+        })
       }
     }
   }
@@ -199,7 +176,6 @@ export async function getMediaDetail(event: H3Event, pathname: string) {
 
 export async function renameMediaFile(
   event: H3Event,
-  db: AppDb,
   pathname: string,
   originalName: string,
 ) {
@@ -207,25 +183,22 @@ export async function renameMediaFile(
   if (!name) {
     throw createApiError('VALIDATION_ERROR', 'Name is required')
   }
-  const row = await db.select().from(schema.blobs).where(eq(schema.blobs.pathname, pathname)).get()
+  const blobs = useQueries(event).blobs
+  const row = await blobs.findByPathname(pathname)
   if (!row) {
     throw createApiError('NOT_FOUND', 'Media not found')
   }
-  if (isMediaFolderMarkerPathname(pathname)) {
-    await db.update(schema.blobs).set({ originalName: name, updatedAt: sql`CURRENT_TIMESTAMP` }).where(eq(schema.blobs.pathname, pathname))
-    return getMediaDetail(event, pathname)
-  }
-  await db.update(schema.blobs).set({ originalName: name, updatedAt: sql`CURRENT_TIMESTAMP` }).where(eq(schema.blobs.pathname, pathname))
+  await blobs.updateByPathname(pathname, { originalName: name, updatedAt: new Date().toISOString() })
   return getMediaDetail(event, pathname)
 }
 
 export async function updateMediaAccessibility(
   event: H3Event,
-  db: AppDb,
   pathname: string,
   patch: { originalName?: string, altText?: string | null, description?: string | null },
 ) {
-  const row = await db.select().from(schema.blobs).where(eq(schema.blobs.pathname, pathname)).get()
+  const blobs = useQueries(event).blobs
+  const row = await blobs.findByPathname(pathname)
   if (!row) {
     throw createApiError('NOT_FOUND', 'Media not found')
   }
@@ -237,9 +210,9 @@ export async function updateMediaAccessibility(
     originalName?: string
     altText?: string | null
     fileMetadata?: MediaFileMetadata | null
-    updatedAt: ReturnType<typeof sql>
+    updatedAt: string
   } = {
-    updatedAt: sql`CURRENT_TIMESTAMP`,
+    updatedAt: new Date().toISOString(),
   }
 
   if (patch.originalName !== undefined) {
@@ -266,13 +239,12 @@ export async function updateMediaAccessibility(
     updates.fileMetadata = Object.keys(meta).length ? meta : null
   }
 
-  await db.update(schema.blobs).set(updates).where(eq(schema.blobs.pathname, pathname))
+  await blobs.updateByPathname(pathname, updates)
   return getMediaDetail(event, pathname)
 }
 
 export async function createMediaFolder(
   event: H3Event,
-  db: AppDb,
   opts: { name: string, parentPrefix?: string },
 ) {
   const parent = normalizeMediaFolderPrefix(opts.parentPrefix)
@@ -281,11 +253,12 @@ export async function createMediaFolder(
     throw createApiError('VALIDATION_ERROR', 'Invalid folder name')
   }
   const markerPath = `${parent}${slug}/${MEDIA_FOLDER_MARKER}`
-  const existing = await db.select({ pathname: schema.blobs.pathname }).from(schema.blobs).where(eq(schema.blobs.pathname, markerPath)).get()
+  const blobs = useQueries(event).blobs
+  const existing = await blobs.findPathnameOnly(markerPath)
   if (existing) {
     throw createApiError('CONFLICT', 'A folder with this name already exists')
   }
-  await db.insert(schema.blobs).values({
+  await blobs.insertFolderMarker({
     pathname: markerPath,
     originalName: opts.name.trim(),
     mimeType: MEDIA_FOLDER_MARKER_MIME,
@@ -299,41 +272,39 @@ export async function createMediaFolder(
   }
 }
 
-export async function deleteMediaFolder(event: H3Event, db: AppDb, folderPrefix: string) {
+export async function deleteMediaFolder(event: H3Event, folderPrefix: string) {
   const prefix = normalizeMediaFolderPrefix(folderPrefix)
-  const rows = await db
-    .select()
-    .from(schema.blobs)
-    .where(like(schema.blobs.pathname, `${prefix}%`))
-    .all()
+  const blobs = useQueries(event).blobs
+  const rows = await blobs.listByPathPrefix(prefix)
 
   for (const row of rows) {
     if (isMediaFolderMarkerPathname(row.pathname)) {
-      await db.delete(schema.blobs).where(eq(schema.blobs.pathname, row.pathname))
+      await blobs.deleteByPathname(row.pathname)
       continue
     }
-    await clearBlobReferences(db, row.pathname)
-    await deleteMedia(event, row.pathname, db)
+    await blobs.clearReferences(row.pathname)
+    await deleteMedia(event, row.pathname)
   }
 }
 
-export async function deleteMediaBlob(event: H3Event, pathname: string, db: AppDb) {
+export async function deleteMediaBlob(event: H3Event, pathname: string) {
   if (isMediaFolderMarkerPathname(pathname)) {
     throw createApiError('VALIDATION_ERROR', 'Use folder delete for folders')
   }
-  const row = await db.select().from(schema.blobs).where(eq(schema.blobs.pathname, pathname)).get()
+  const blobs = useQueries(event).blobs
+  const row = await blobs.findByPathname(pathname)
   if (!row) {
     throw createApiError('NOT_FOUND', 'Media not found')
   }
-  await clearBlobReferences(db, pathname)
-  await deleteMedia(event, pathname, db)
+  await blobs.clearReferences(pathname)
+  await deleteMedia(event, pathname)
 }
 
-export async function deleteMedia(event: H3Event, pathname: string, db: AppDb) {
+export async function deleteMedia(event: H3Event, pathname: string) {
   const storage = useMediaStorage(event)
   await storage.del(pathname)
   try {
-    await db.delete(schema.blobs).where(eq(schema.blobs.pathname, pathname))
+    await useQueries(event).blobs.deleteByPathname(pathname)
   }
   catch {
     // DB cleanup is best-effort
@@ -344,22 +315,13 @@ export async function listMedia(
   event: H3Event,
   opts: { limit?: number, cursor?: string, prefix?: string },
 ): Promise<MediaListResult> {
-  const db = useDb(event)
+  const blobs = useQueries(event).blobs
   const limit = Math.min(Math.max(opts.limit ?? 20, 1), 100)
   const offset = opts.cursor ? Number.parseInt(opts.cursor, 10) : 0
   const safeOffset = Number.isFinite(offset) && offset >= 0 ? offset : 0
   const prefix = normalizeMediaFolderPrefix(opts.prefix || MEDIA_UPLOAD_ROOT)
 
-  const folderRows = await db
-    .select()
-    .from(schema.blobs)
-    .where(and(
-      eq(schema.blobs.mimeType, MEDIA_FOLDER_MARKER_MIME),
-      like(schema.blobs.pathname, `${prefix}%/${MEDIA_FOLDER_MARKER}`),
-      notLike(schema.blobs.pathname, `${prefix}%/%/${MEDIA_FOLDER_MARKER}`),
-    ))
-    .orderBy(desc(schema.blobs.createdAt))
-    .all()
+  const folderRows = await blobs.listFolderMarkers(prefix)
 
   const folders: MediaFolderItem[] = []
   for (const row of folderRows) {
@@ -376,22 +338,11 @@ export async function listMedia(
       slug,
       name: row.originalName ?? slug,
       prefix: folderPrefix,
-      itemCount: await countItemsUnderPrefix(db, folderPrefix),
+      itemCount: await blobs.countUnderPrefix(folderPrefix),
     })
   }
 
-  const fileRows = await db
-    .select()
-    .from(schema.blobs)
-    .where(and(
-      like(schema.blobs.pathname, `${prefix}%`),
-      notLike(schema.blobs.pathname, `${prefix}%/%`),
-      not(eq(schema.blobs.mimeType, MEDIA_FOLDER_MARKER_MIME)),
-    ))
-    .orderBy(desc(schema.blobs.createdAt))
-    .limit(limit + 1)
-    .offset(safeOffset)
-    .all()
+  const fileRows = await blobs.listGalleryFiles(prefix, limit + 1, safeOffset)
 
   const hasMore = fileRows.length > limit
   const page = hasMore ? fileRows.slice(0, limit) : fileRows

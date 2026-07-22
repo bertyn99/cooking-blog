@@ -1,8 +1,7 @@
 import { parseInclude } from '../../utils/populate'
 import { createApiError } from '../../utils/errors'
-import { PAGES_RELATIONS } from '../../utils/queries/pages'
-import { createPageQueries } from '../../db/queries/pages'
-import { useDb } from '../../utils/db'
+import { PAGES_RELATIONS } from '../../db/queries/_shared/builders/pages'
+import { useQueries } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
@@ -22,10 +21,10 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const db = useDb(event)
   const session = await getUserSession(event)
   const scope = session.user ? 'admin' : 'public'
-  const page = await createPageQueries(db).findById(id, includeList, scope)
+  const { pages } = useQueries(event)
+  const page = await pages.findById(id, includeList, scope)
 
   if (!page) {
     throw createApiError('NOT_FOUND', 'Page not found')

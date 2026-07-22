@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm'
 import type { ExtractContext, StrapiEntityStats } from './types'
 import { strapiSourceId } from './types'
-import { findLegacyDestId, upsertLegacyMap } from './legacy-map'
 import { createStrapiClient } from './strapi-client'
 import { bumpImportStats, dryRunOutcome, shallowFieldsEqual } from './import-row'
 import { schema } from '../../db/create-db'
@@ -28,7 +27,7 @@ export async function extractCategoryArticles(ctx: ExtractContext): Promise<Stra
     if (!sourceId) continue
 
     try {
-      const existingId = await findLegacyDestId(ctx.db, 'category-articles', sourceId)
+      const existingId = await ctx.queries.legacyStrapiMap.findDestId( 'category-articles', sourceId)
       const locale = row.locale || 'fr'
 
       let existingRow: typeof schema.categoryArticles.$inferSelect | undefined
@@ -70,7 +69,7 @@ export async function extractCategoryArticles(ctx: ExtractContext): Promise<Stra
       }
 
       const inserted = await ctx.db.insert(schema.categoryArticles).values(values).returning().get()
-      await upsertLegacyMap(ctx.db, {
+      await ctx.queries.legacyStrapiMap.upsert( {
         sourceType: 'category-articles',
         sourceId,
         destTable: 'category_articles',

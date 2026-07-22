@@ -1,6 +1,5 @@
 import { uploadMedia } from '../../utils/media'
 import { canEditContent } from '../../../shared/abilities'
-import { useDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   await requireUserSession(event)
@@ -13,7 +12,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const folderPrefix = (form.get('folderPrefix') as string | null) || undefined
-  const uploaded = await uploadMedia(event, file, useDb(event), { folderPrefix })
+  const uploaded = await uploadMedia(event, file, { folderPrefix })
   setResponseStatus(event, 201)
   return uploaded
 })

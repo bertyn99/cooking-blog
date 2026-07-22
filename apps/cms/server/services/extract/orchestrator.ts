@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3'
 import type { StrapiImportSlugFilter } from '../../../shared/strapi-import'
 import type { AppDb } from '../../db/create-db'
+import { createDbQueries } from '../../db/queries'
 import { extractArticles } from './articles'
 import { extractCategories } from './categories'
 import { extractCategoryArticles } from './category-articles'
@@ -59,6 +60,7 @@ export async function runStrapiImport(opts: RunStrapiImportOptions): Promise<Str
 
   const ctx: ExtractContext = {
     db: opts.db,
+    queries: createDbQueries(opts.db),
     strapiUrl: opts.strapiUrl,
     strapiApiToken: opts.strapiApiToken,
     strapiUploadsOrigin: opts.strapiUploadsOrigin,
