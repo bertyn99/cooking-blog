@@ -12,6 +12,7 @@ const PUBLISH_CRON = '*/5 * * * *'
 
 export const workers = Effect.fn(function* (input: {
   DB: Cloudflare.D1.Database
+  AiReadyDB: Cloudflare.D1.Database
   Media: Cloudflare.R2.Bucket
   Cache: Cloudflare.KV.Namespace
 }) {
@@ -56,11 +57,15 @@ export const workers = Effect.fn(function* (input: {
     },
   })
 
+  const SkewProtection = yield* Cloudflare.KV.Namespace('WebSkewProtection', {})
+
   const Web = yield* Cloudflare.Worker('Web', {
     bundle: false,
     main: 'apps/web/.output/server/index.mjs',
     env: {
       Cache: input.Cache,
+      AI_READY_DB: input.AiReadyDB,
+      SKEW_PROTECTION: SkewProtection,
       CMS_BASE_URL: Config.string('CMS_BASE_URL').pipe(
         Config.withDefault('http://localhost:3001'),
       ),

@@ -20,5 +20,9 @@ export const database = Effect.gen(function* () {
     primaryLocationHint: 'weur',
   })
 
-  return { DB, schema }
+  const AiReadyDB = yield* Cloudflare.D1.Database('AiReadyDB', {
+    primaryLocationHint: 'weur',
+  })
+
+  return { DB, AiReadyDB, schema }
 })

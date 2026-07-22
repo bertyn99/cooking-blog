@@ -28,9 +28,9 @@ export default Alchemy.Stack(
     state: useRemoteState ? Cloudflare.state() : Alchemy.localState(),
   },
   Effect.gen(function* () {
-    const { DB } = yield* database
+    const { DB, AiReadyDB } = yield* database
     const { Media, Cache } = yield* storage
-    const { Cms, Web } = yield* workers({ DB, Media, Cache })
+    const { Cms, Web } = yield* workers({ DB, AiReadyDB, Media, Cache })
 
     return {
       cmsUrl: Cms.url,
