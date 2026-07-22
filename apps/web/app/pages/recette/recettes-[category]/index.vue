@@ -43,7 +43,7 @@ if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
-const displayPage = page.value.content || [];
+const pageContent = computed(() => page.value?.content);
 const titleContent = computed(() => page.value?.title || "No title");
 const seo = computed(() => page.value?.seoMeta || {});
 
@@ -65,7 +65,7 @@ useHead({
     },
   ],
 });
-defineOgImageComponent("Cooking", {
+defineOgImage("Cooking", {
   headline: titleContent.value || "Journal du cuistot",
   description: seo.value?.description || "No description",
 });
@@ -73,5 +73,5 @@ defineOgImageComponent("Cooking", {
 
 <template>
   <SchemaOrgBreadcrumb :itemListElement="ariane" />
-  <BaseContentDisplay :content="displayPage" />
+  <BasePageBody :content="pageContent" />
 </template>

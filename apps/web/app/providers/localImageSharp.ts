@@ -1,5 +1,6 @@
 import { joinURL } from 'ufo'
 import { createOperationsGenerator, defineProvider } from '#image'
+import { toPublicMediaKey } from "#shared/media-public-path";
 
 const operationsGenerator = createOperationsGenerator({
   keyMap: {
@@ -29,18 +30,12 @@ const operationsGenerator = createOperationsGenerator({
 })
 
 export default defineProvider<{ baseURL?: string }>({
-  getImage(src, { modifiers, baseURL = "http://localhost:1337/uploads" }) {
-    const operations = operationsGenerator(modifiers)
-    
-    // Check if src already starts with /uploads to avoid double path
-    let finalSrc = src
-    if (src.startsWith('/uploads/')) {
-      // Remove the /uploads prefix since baseURL already contains it
-      finalSrc = src.replace('/uploads/', '')
-    }
-    
+  getImage(src, { modifiers, baseURL = "/images/" }) {
+    const operations = operationsGenerator(modifiers);
+    const publicKey = toPublicMediaKey(src);
+
     return {
-      url: joinURL(baseURL, operations, finalSrc)
-    }
-  }
-})
+      url: joinURL(baseURL, operations, publicKey),
+    };
+  },
+});

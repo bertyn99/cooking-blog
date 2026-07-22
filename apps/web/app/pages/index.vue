@@ -52,7 +52,7 @@ const { data } = await useAsyncData<HomepageData>("homepage-data", async () => {
 const articles = computed(() => data.value?.articles || []);
 const recipes = computed(() => data.value?.recipes || []);
 
-defineOgImageComponent("Cooking", {
+defineOgImage("Cooking", {
   headline: "Accueil",
 });
 </script>

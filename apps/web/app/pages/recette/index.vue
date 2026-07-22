@@ -22,7 +22,7 @@ const { data: recipes, refresh } = await useAsyncData<StrapiResponse<Recipe>>(
     }),
   { watch: [currentPage] },
 );
-defineOgImageComponent("Cooking", {
+defineOgImage("Cooking", {
   headline: "Recettes",
   description:
     "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.",

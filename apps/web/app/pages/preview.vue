@@ -152,7 +152,7 @@ const ariane = (() => {
   <div class="max-w-7xl mx-auto px-4 py-8">
     <div v-if="contentType === 'page'">
       <SchemaOrgBreadcrumb v-if="ariane" :itemListElement="ariane" />
-      <BaseContentDisplay :content="(content as Page)?.content || []" />
+      <BasePageBody :content="(content as Page)?.content" />
     </div>
 
     <div v-else-if="contentType === 'recipe'">

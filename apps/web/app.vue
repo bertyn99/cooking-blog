@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+const site = useSiteConfig();
+
 useHead({
   meta: [
     {
@@ -10,15 +12,15 @@ useHead({
 useSchemaOrg([
   // @todo Select Identity: https://vue-schema-org.netlify.app/guide/guides/identity
   defineWebSite({
-    "@id": "https://journalducuistot.fr/",
-    name: "journalducuistot",
+    "@id": `${site.url}/`,
+    name: site.name,
   }),
   defineBreadcrumb({}),
   defineOrganization({
-    "@id": "https://journalducuistot.fr/#organization",
-    name: "Journal du cuistot",
-    url: "https://journalducuistot.fr/",
-    logo: "https://journalducuistot/img/logo.webp",
+    "@id": `${site.url}/#organization`,
+    name: site.name,
+    url: `${site.url}/`,
+    logo: `${site.url}/img/logo.webp`,
     /*    sameAs: [
       "https://www.facebook.com/sciredev",
       "https://twitter.com/sciredev",
@@ -28,7 +30,7 @@ useSchemaOrg([
   }),
 ]);
 
-defineOgImageComponent('Cooking', {
+defineOgImage('Cooking', {
   headline: "Journal du cuistot",
   description: "Le journal du cuistot est un blog de cuisine qui propose des recettes, des astuces et des conseils pour les passionnés de cuisine.",
 });

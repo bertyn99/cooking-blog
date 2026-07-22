@@ -1,36 +1,24 @@
-import { defineSitemapEventHandler } from "#sitemap/server/composables/defineSitemapEventHandler";
+import { defineSitemapEventHandler } from "#imports";
 import type { SitemapUrlInput } from "#sitemap/types";
 import { generateSlug } from "~/utils/format";
 import type { Article, Page, Recipe } from "~/types/strapiMeta";
-import { serverCmsFind } from "../../utils/cms-fetch";
+import { serverCmsFindAll } from "../../utils/sitemap-cms";
 
 export default defineSitemapEventHandler(async (): Promise<SitemapUrlInput[]> => {
-  const [pagesResponse, articlesResponse, recipesResponse] = await Promise.all([
-    serverCmsFind<Page>("pages", {
-      populate: ["parent"],
-      pagination: { page: 1, pageSize: 100 },
-    }),
-    serverCmsFind<Article>("articles", {
-      populate: ["category"],
-      pagination: { page: 1, pageSize: 100 },
-    }),
-    serverCmsFind<Recipe>("recipes", {
-      populate: ["cover"],
-      pagination: { page: 1, pageSize: 100 },
-    }),
+  const [pages, articles, recipes] = await Promise.all([
+    serverCmsFindAll<Page>("pages", { populate: ["parent"] }),
+    serverCmsFindAll<Article>("articles", { populate: ["category"] }),
+    serverCmsFindAll<Recipe>("recipes", { populate: ["cover"] }),
   ]);
 
-  const pages = pagesResponse.data;
-  const articles = articlesResponse.data;
-  const recipes = recipesResponse.data;
-
-  const urls = [];
-
-  urls.push({
-    loc: "/",
-    changefreq: "daily",
-    priority: 1,
-  });
+  const urls: SitemapUrlInput[] = [
+    {
+      loc: "/",
+      changefreq: "daily",
+      priority: 1,
+      _sitemap: "pages",
+    },
+  ];
 
   for (const doc of pages) {
     urls.push({
@@ -62,5 +50,5 @@ export default defineSitemapEventHandler(async (): Promise<SitemapUrlInput[]> =>
     });
   }
 
-  return urls as SitemapUrlInput[];
+  return urls;
 });

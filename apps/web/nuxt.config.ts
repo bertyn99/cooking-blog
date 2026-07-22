@@ -1,6 +1,9 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { fileURLToPath } from "node:url";
 import listRedirects from "./app/utils/redirect";
 import tailwindcss from "@tailwindcss/vite";
+
+const webRoot = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-20',
@@ -28,12 +31,15 @@ export default defineNuxtConfig({
   },
 
   modules: [
+    "@nuxtjs/seo",
+    "nuxt-ai-ready",
+    "nuxt-skew-protection",
+    "@nuxt/fonts",
     "@nuxt/icon",
     "@nuxtjs/partytown",
     "@nuxt/image",
-    '@nuxtjs/seo',
     "@vueuse/nuxt",
-    '@nuxtjs/mdc',
+    "@nuxtjs/mdc",
     /*    [
        "@nuxtjs/google-fonts",
        {
@@ -46,7 +52,7 @@ export default defineNuxtConfig({
          },
        }
        ], */
-    "nuxt-umami"
+    "nuxt-umami",
   ],
 
   css: ['~/assets/css/index.css'],
@@ -66,6 +72,8 @@ export default defineNuxtConfig({
     },
     "/sitemap.xml": { isr: 60 * 60 * 24 },
     "/rss.xml": { isr: 60 * 60 * 24 * 3 },
+    "/preview": { robots: false },
+    "/preview/**": { robots: false },
     ...listRedirects,
 
     "/*/**": {
@@ -79,18 +87,6 @@ export default defineNuxtConfig({
     },
   },
 
-  ogImage: {
-    compatibility: {
-      runtime: {
-        chromium: false,
-        'css-inline': false,
-        resvg: 'wasm-fs',
-        satori: 'node',
-        sharp: false,
-      },
-    },
-  },
-
   nitro: {
     preset: 'cloudflare_module',
     compatibilityDate: '2026-05-27',
@@ -100,6 +96,19 @@ export default defineNuxtConfig({
         images: {
           binding: 'IMAGES',
         },
+        d1_databases: [
+          {
+            binding: 'AI_READY_DB',
+            database_name: 'ai-ready-local',
+            database_id: 'ai-ready-local',
+          },
+        ],
+        kv_namespaces: [
+          {
+            binding: 'SKEW_PROTECTION',
+            id: 'skew-protection-local',
+          },
+        ],
       },
       nodeCompat: true,
     },
@@ -134,17 +143,82 @@ export default defineNuxtConfig({
   site: {
     url: process.env.NUXT_PUBLIC_SITE_URL || "https://journalducuistot.fr",
     name: "Journal du cuistot",
+    description:
+      "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
+    defaultLocale: "fr",
   },
 
   seo: {
     meta: {
-      description: "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
-      ogLocale: 'fr_FR',
-      ogType: 'website',
-      ogUrl: "https://journalducuistot.fr",
-      ogTitle: 'JournalduCuistot',
-    }
+      ogLocale: "fr_FR",
+      ogType: "website",
+      twitterCard: "summary_large_image",
+    },
+  },
 
+  aiReady: {
+    database: {
+      type: "d1",
+      bindingName: "AI_READY_DB",
+    },
+    contentSignal: {
+      aiTrain: true,
+      search: true,
+      aiInput: true,
+    },
+    llmsTxt: {
+      sections: [
+        {
+          title: "Contenu",
+          links: [
+            {
+              title: "Blog",
+              href: "/blog",
+              description: "Articles et actualités cuisine",
+            },
+            {
+              title: "Recettes",
+              href: "/recette",
+              description: "Catalogue des recettes",
+            },
+          ],
+        },
+        {
+          title: "Flux et index",
+          links: [
+            {
+              title: "RSS",
+              href: "/rss.xml",
+              description: "Flux RSS du site",
+            },
+            {
+              title: "Index IA",
+              href: "/api/sitemap-ia",
+              description: "Routes groupées pour agents",
+            },
+            {
+              title: "Plan du site",
+              href: "/sitemap.xml",
+              description: "Index XML des sitemaps",
+            },
+          ],
+        },
+      ],
+      notes:
+        "Journal du cuistot — recettes et articles de cuisine en français (fr-FR).",
+    },
+  },
+
+  skewProtection: {
+    updateStrategy: "polling",
+    storage: {
+      driver: "cloudflare-kv-binding",
+      binding: "SKEW_PROTECTION",
+    },
+  },
+
+  experimental: {
+    checkOutdatedBuildInterval: 5 * 60 * 1000,
   },
 
   image: {
@@ -176,45 +250,44 @@ export default defineNuxtConfig({
   },
 
   sitemap: {
-
+    exclude: [
+      "/preview",
+      "/preview/**",
+      "/api/**",
+      "/images/**",
+    ],
     sitemaps: {
       pages: {
         includeAppSources: true,
-        sitemapName: 'sitemap-pages.xml',
+        sitemapName: "sitemap-pages.xml",
+        sources: ["/api/__sitemap__/urls"],
+        exclude: ["/blog", "/blog/**", "/recette", "/recette/**"],
         defaults: {
-          changefreq: 'daily' as const,
+          changefreq: "daily" as const,
           priority: 0.8,
         },
-        sources: [
-          '/api/__sitemap__/urls',
-        ],
-        exclude: ['/blog/**', '/recette/**'],
       },
       blog: {
         includeAppSources: true,
-        sitemapName: 'sitemap-blog.xml',
+        include: ["/blog", "/blog/**"],
+        sitemapName: "sitemap-blog.xml",
+        sources: ["/api/__sitemap__/urls"],
         defaults: {
-          changefreq: 'daily' as const,
+          changefreq: "daily" as const,
           priority: 0.8,
         },
-        exclude: ['/recette/**', '/'],
-        sources: [
-          '/api/__sitemap__/urls',
-        ],
       },
       recipes: {
         includeAppSources: true,
-        sitemapName: 'sitemap-recipes.xml',
+        include: ["/recette", "/recette/**"],
+        sitemapName: "sitemap-recipes.xml",
+        sources: ["/api/__sitemap__/urls"],
         defaults: {
-          changefreq: 'daily' as const,
+          changefreq: "daily" as const,
           priority: 0.8,
         },
-        exclude: ['/blog/**', '/'],
-        sources: [
-          '/api/__sitemap__/urls',
-        ],
       },
-    }
+    },
   },
 
 
