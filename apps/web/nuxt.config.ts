@@ -39,7 +39,6 @@ export default defineNuxtConfig({
     "@nuxtjs/partytown",
     "@nuxt/image",
     "@vueuse/nuxt",
-    "@nuxtjs/mdc",
     /*    [
        "@nuxtjs/google-fonts",
        {
@@ -126,11 +125,6 @@ export default defineNuxtConfig({
     },
   },
 
-  mdc: {
-    components: {
-      prose: true
-    }
-  },
   components: [{
     path: '~/components',
     ignore: ['prose/**'],

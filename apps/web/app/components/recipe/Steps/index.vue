@@ -1,18 +1,15 @@
 <script lang="ts" setup>
+import { markdownToPlainText } from "~/utils/markdown-plain-text";
+
 const { steps } = defineProps<{
   steps: string[];
 }>();
 
-const formatedSteps = await Promise.all(
-  steps.map((step) => useComark(step.slice(3, -1))),
-);
+const stepMarkdowns = steps.map((step) => step.slice(3, -1));
 
-const stripHtml = (html: string) =>
-  html.replace(/<[^>]+>/g, "").trim();
-
-const schemaRecipeSteps = formatedSteps.map((step) => ({
+const schemaRecipeSteps = stepMarkdowns.map((text) => ({
   "@type": "HowToStep",
-  text: stripHtml(step),
+  text: markdownToPlainText(text),
 }));
 </script>
 
@@ -32,10 +29,10 @@ const schemaRecipeSteps = formatedSteps.map((step) => ({
   <div>
     <SchemaOrgRecipe :recipeInstructions="schemaRecipeSteps" />
     <RecipeStepsContent
-      v-for="(step, index) in formatedSteps"
+      v-for="(markdown, index) in stepMarkdowns"
       :index="index + 1"
       :size="steps.length"
-      :step="step"
+      :markdown="markdown"
       :key="index"
     />
   </div>

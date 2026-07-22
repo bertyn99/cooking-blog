@@ -105,7 +105,7 @@ useHead({
     >
       {{ titleContent }}
     </h1>
-    <Share :date="date" :link="link" />
+    <Share :date="date || ''" :link="link || ''" />
   </div>
 
   <SectionHeroArticle
@@ -136,7 +136,7 @@ useHead({
       </div>
     </template>
   </SectionHeroArticle>
-  <MDC class="w-full prose md:prose-lg lg:prose-xl max-w-4xl" :value="content" tag="article"></MDC>
+  <BaseMarkdownContent :markdown="content" tag="article" />
   <LazyCta />
   <LazySectionYouMayAlsoLike
     :category="String(categoryRecipe.id ?? '')"

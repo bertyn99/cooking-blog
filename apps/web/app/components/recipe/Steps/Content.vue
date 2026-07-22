@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-const { index, step } = defineProps<{
+const { index, markdown } = defineProps<{
   index: number;
   size: number;
-  step: string;
+  markdown: string;
 }>();
 </script>
 
@@ -17,9 +17,10 @@ const { index, step } = defineProps<{
       {{ index }}
     </span>
 
-    <div
-      class="pt-0 pr-0 pb-12 pl-16 m-0 text-lg leading-6 prose text-stone-500"
-      v-html="step"
-    ></div>
+    <div class="pt-0 pr-0 pb-12 pl-16 m-0 text-lg leading-6 text-stone-500">
+      <Suspense>
+        <BaseAppComark :markdown="markdown" class="prose prose-stone max-w-none" />
+      </Suspense>
+    </div>
   </div>
 </template>

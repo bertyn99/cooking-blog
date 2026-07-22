@@ -10,11 +10,6 @@ const zones = computed(() => (Array.isArray(content) ? content : []));
 </script>
 
 <template>
-  <MDC
-    v-if="markdown"
-    class="w-full prose md:prose-lg lg:prose-xl max-w-4xl"
-    :value="markdown"
-    tag="article"
-  />
+  <BaseMarkdownContent v-if="markdown" :markdown="markdown" tag="article" />
   <BaseContentDisplay v-else-if="zones.length" :content="zones" />
 </template>

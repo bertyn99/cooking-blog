@@ -37,7 +37,6 @@
   })
   
   const isMermaid = ref<boolean>(props.language === 'mermaid')
-   console.log(isMermaid.value ? props.code : '')
   </script>
   
   <style>

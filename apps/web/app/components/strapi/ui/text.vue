@@ -5,5 +5,5 @@ const { content } = defineProps<{
 </script>
 
 <template>
-  <MDC class="w-full prose md:prose-lg max-w-3xl px-1" :value="content" tag="div"></MDC>
+  <BaseMarkdownContent :markdown="content" class="max-w-3xl px-1" />
 </template>
