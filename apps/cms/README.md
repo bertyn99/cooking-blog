@@ -1,75 +1,58 @@
-# layer-blog-cms — Custom CMS Layer
+# apps/cms — CMS API + Admin UI
 
-API-only Nuxt layer replacing Strapi v5 CMS for Journal du Cuistot.
+Custom CMS for [Journal du Cuistot](https://journalducuistot.fr): **Nuxt admin dashboard** and **REST API** (`/api/*`) backing `apps/web`. Replaces Strapi v5 as the content store; Strapi is still used as a **migration source**.
 
-- **Database**: Cloudflare D1 (Alchemy v2 + `Drizzle.Schema`)
-- **ORM**: Drizzle ORM — 13 tables (articles, recipes, categories, pages, users + components)
-- **Storage**: Cloudflare R2 via Alchemy
-- **Auth**: JWT + RBAC (PBKDF2, 1h tokens, KV rate limiting)
-- **i18n**: Locale-aware schemas with `UNIQUE(slug, locale)` composite constraint
+**Full inventory (routes, components, API, auth, import, tasks):** [`AGENTS.md`](./AGENTS.md).
 
-## Directory Structure
+## Stack
 
-```
-server/
-├── api/              # 38 CRUD routes (auth, articles, recipes, categories, pages, media, seo, publish, schedule, health)
-├── db/schema/        # Drizzle ORM table definitions
-├── db/seed/          # Admin seeder (D1 + Drizzle)
-├── middleware/       # JWT auth middleware
-├── routes/          # Image serving via blob.serve
-├── tasks/           # Scheduled publishing CRON
-└── utils/           # Auth, validations, query builders, pagination, populate, errors, slug, media
-    └── validations/ # Zod schemas per domain
-    └── queries/     # Reusable query builders (articles, recipes, pages)
-```
+| Layer | Choice |
+|-------|--------|
+| Framework | Nuxt 4 (`compatibilityVersion: 5`), Nitro `cloudflare_module` |
+| Admin UI | Nuxt UI 4 dashboard (French) |
+| ORM / DB | Drizzle → SQLite (local libSQL) / Cloudflare D1 (prod) |
+| Media | R2 (+ local binding in dev) |
+| Auth | nuxt-auth-utils sessions + nuxt-authorization (`admin` / `editor`) |
+| Validation | Zod (shared + server/utils/validations) |
+
+## Admin features (current)
+
+- Dashboard with content counts
+- Articles, recipes, hierarchical pages (markdown), dual category types (blog + recipes)
+- Markdown editors, cover picker, SEO panel, publish / schedule / unpublish (admin)
+- Media library (folders, upload, image optimization, accessibility metadata)
+- Publishing calendar and backlog
+- Strapi import wizard (step coverage, dry-run, targeted slug test)
+- Maintenance purge with confirmation phrase
 
 ## Commands
 
 ```bash
-pnpm dev             # Applies local migrations, then starts Nuxt (libSQL `.data/db/sqlite.db`)
-pnpm test            # Vitest tests
-pnpm db:migrate:local # Apply migrations manually
-pnpm db:seed:admin   # Manual admin seed against D1 (see below)
+# From monorepo root
+pnpm dev:cms
+
+# From apps/cms
+pnpm dev                  # migrate local DB, then Nuxt on :3001
+pnpm test
+pnpm db:migrate:local
+pnpm db:seed:admin
+pnpm task:seed:admin
+pnpm task:strapi-extract
 ```
 
-### Local dev vs Alchemy deploy
+## Local vs deploy
 
-| Command | Database | Migrations |
-|---------|----------|------------|
-| `pnpm dev:cms` | libSQL `.data/db/sqlite.db` | `db:migrate:local` runs automatically before Nuxt |
-| `pnpm alchemy deploy` | Cloudflare D1 | `Drizzle.Schema` + `Cloudflare.D1.Database` |
-
-Migrations live in `server/db/migrations/sqlite/` and are shared between both paths.
+| Path | Database | Migrations |
+|------|----------|------------|
+| `pnpm dev:cms` | `.data/db/sqlite.db` (libSQL) | `scripts/migrate-local.ts` before Nuxt |
+| `pnpm alchemy deploy` (repo root) | Cloudflare D1 | Drizzle migrations in `server/db/migrations/sqlite/` |
 
 ## Admin seeder
 
-The initial admin is seeded by Alchemy `Command.Exec` when `ADMIN_PASSWORD` is set in the deploy environment. It runs after D1 migrations and uses Drizzle against Cloudflare D1.
+Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` for deploy-time seed (`server/tasks/seed-admin.ts` / Alchemy). Manual D1 seed: `pnpm --filter cms db:seed:admin` (Cloudflare API env vars). Optional: `ADMIN_USERNAME`, `ADMIN_SEED_FORCE=1`.
 
-```bash
-# Automatic (recommended) — set in your deploy / alchemy env
-ADMIN_EMAIL=admin@journalducuistot.fr
-ADMIN_PASSWORD='your-secure-password'
-pnpm alchemy deploy
-```
+First user can also be created via `POST /api/auth/register` when the `users` table is empty (bootstrap → `admin`).
 
-Manual seed against D1 (requires Cloudflare API credentials):
+## Environment
 
-```bash
-CLOUDFLARE_ACCOUNT_ID=... \
-D1_DATABASE_ID=... \
-CLOUDFLARE_API_TOKEN=... \
-ADMIN_EMAIL=admin@journalducuistot.fr \
-ADMIN_PASSWORD='your-secure-password' \
-pnpm --filter cms db:seed:admin
-```
-
-Optional: `ADMIN_USERNAME`, `ADMIN_SEED_FORCE=1`.
-
-## Key Design Decisions
-
-- **Nullable FKs for SEO** — NOT polymorphic relations (`article_id`, `recipe_id`, `page_id` columns), enabling native Drizzle `with` queries
-- **Soft deletes** on all content tables via `deleted_at`
-- **Draft protection** — unauthenticated GET auto-filters `status='published' AND deleted_at IS NULL`
-- **First-admin bootstrap** — register user when users table is empty (API fallback)
-- **Nitro CRON** for scheduled publishing (`*/5 * * * *`)
-- **Nuxt 5 compat** via `future: { compatibilityVersion: 5 }`
+See [`AGENTS.md` — Environment](./AGENTS.md#commands--env). Typical local: `STRAPI_URL`, `STRAPI_API_TOKEN` for import; `NUXT_PUBLIC_SITE_URL` for public links.

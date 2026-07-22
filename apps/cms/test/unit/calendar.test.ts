@@ -4,6 +4,7 @@ import {
   calendarDayKeyFromParts,
   groupCalendarItemsByDay,
   isCalendarItemDraggable,
+  isoWeekRange,
   monthRangeFromParts,
   parseCalendarTypesParam,
   resolveCalendarAt,
@@ -49,5 +50,13 @@ describe('calendar helpers', () => {
       to: '2026-07-31',
     })
     expect(calendarDayKeyFromParts(2026, 7, 4)).toBe('2026-07-04')
+  })
+
+  it('builds ISO week range from Monday to Sunday', () => {
+    const ref = new Date('2026-07-22T10:00:00.000Z') // Wednesday
+    expect(isoWeekRange(ref)).toEqual({
+      from: '2026-07-20',
+      to: '2026-07-26',
+    })
   })
 })

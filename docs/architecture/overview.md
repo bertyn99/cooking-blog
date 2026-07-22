@@ -14,12 +14,14 @@ journalducuistot/                 # pnpm workspace root
 │   │   ├── app/                  # pages, components, composables
 │   │   ├── server/               # sitemap, RSS, legacy redirects
 │   │   └── nuxt.config.ts
-│   └── cms/                      # API-only backend (port 3001)
+│   └── cms/                      # CMS API + admin UI (port 3001)
+│       ├── app/                  # Nuxt UI dashboard (content, media, planning, import)
 │       ├── server/
 │       │   ├── api/              # REST CRUD, auth, media, publish workflow
 │       │   ├── db/schema/        # Drizzle table definitions (CMS-only)
 │       │   ├── tasks/            # scheduled jobs (e.g. publish-scheduled)
 │       │   └── utils/
+│       ├── AGENTS.md             # Full admin + API inventory
 │       └── nuxt.config.ts
 ├── docs/                         # architecture docs and ADRs
 ├── .oxlintrc.json                # shared lint rules (root)
@@ -50,14 +52,15 @@ Legacy root-level `app/`, `server/`, and `layers/` directories may still exist d
 
 Default CMS URL: `http://localhost:3001` (override via `NUXT_PUBLIC_CMS_BASE_URL`).
 
-### `apps/cms` — API backend
+### `apps/cms` — API + admin
 
 | Concern | Implementation |
 |---------|----------------|
-| API | Nitro REST under `/api/*` (articles, recipes, pages, categories, media, auth, SEO) |
-| Persistence | Drizzle ORM v1 + SQLite (local dev via NuxtHub; **planned:** Cloudflare D1 via Alchemy v2). Schema parity vs Strapi: [audit](./cms-strapi-schema-audit.md) |
-| Auth | JWT + RBAC middleware on write routes |
-| Media | Blob storage (R2 planned) |
+| Admin UI | French Nuxt UI dashboard (`app/pages/*`) — articles, recipes, pages, categories, media, planning, Strapi import, maintenance. See [apps/cms/AGENTS.md](../../apps/cms/AGENTS.md) |
+| API | Nitro REST under `/api/*` (articles, recipes, pages, categories, media, auth, SEO, publish) |
+| Persistence | Drizzle ORM + SQLite (local libSQL) / Cloudflare D1 (Alchemy deploy). Schema parity vs Strapi: [audit](./cms-strapi-schema-audit.md) |
+| Auth | nuxt-auth-utils sessions + `nuxt-authorization` (`admin` / `editor`) on write and admin routes |
+| Media | R2 (and local bucket binding in dev); image optimize pipeline |
 | Tasks | Nitro scheduled tasks (e.g. `publish-scheduled` cron) |
 | UI | Minimal — API-only; admin UI deferred |
 

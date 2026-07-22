@@ -112,3 +112,42 @@ export function calendarRangeBounds(from: string, to: string): { fromIso: string
     toIso: `${to}T23:59:59.999Z`,
   }
 }
+
+/** Add calendar days to a `YYYY-MM-DD` key (civil date arithmetic). */
+export function dateKeyAddDays(dayKey: string, days: number): string {
+  const parts = dayKey.split('-').map(part => Number.parseInt(part, 10))
+  const year = parts[0]
+  const month = parts[1]
+  const day = parts[2]
+  if (year === undefined || month === undefined || day === undefined || Number.isNaN(year + month + day)) {
+    return dayKey
+  }
+  const utc = new Date(Date.UTC(year, month - 1, day + days))
+  return calendarDayKeyFromParts(
+    utc.getUTCFullYear(),
+    utc.getUTCMonth() + 1,
+    utc.getUTCDate(),
+  )
+}
+
+/** Monday–Sunday week containing `reference` in `timeZone`. */
+export function isoWeekRange(
+  reference: Date = new Date(),
+  timeZone: string = CALENDAR_TIME_ZONE,
+): { from: string, to: string } {
+  const todayKey = calendarDayKeyFromIso(reference.toISOString(), timeZone)
+  const weekday = new Intl.DateTimeFormat('en-US', { timeZone, weekday: 'short' }).format(reference)
+  const mondayOffset: Record<string, number> = {
+    Mon: 0,
+    Tue: 1,
+    Wed: 2,
+    Thu: 3,
+    Fri: 4,
+    Sat: 5,
+    Sun: 6,
+  }
+  const offset = mondayOffset[weekday] ?? 0
+  const from = dateKeyAddDays(todayKey, -offset)
+  const to = dateKeyAddDays(from, 6)
+  return { from, to }
+}
