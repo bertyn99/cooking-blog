@@ -1,5 +1,5 @@
 import type { H3Event } from 'h3'
-import { useQueries } from '../utils/db'
+import { useQueries } from '../db'
 
 export async function isBootstrapMode(event?: H3Event): Promise<boolean> {
   const total = await useQueries(event).users.countAll()
