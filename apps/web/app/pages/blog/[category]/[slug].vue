@@ -36,12 +36,23 @@ const titleContent = computed(() => article.value?.title || "No title");
 const categoriesContent = computed(() => article.value?.categories || ([] as Category[]));
 const cover = computed(() => article.value?.cover || ({} as Cover));
 
+const urlCover = computed(() => {
+  const source = {
+    cover: article.value?.cover,
+    coverBlobPathname: article.value?.coverBlobPathname,
+    slug: article.value?.slug,
+    title: article.value?.title,
+  };
+  const url = formatCoverUrlFromSource(source);
+  logCoverResolution(`article/${categorySlug}/${articleSlug}`, source);
+  return url;
+});
+
 const link = computed(
   () => "https://journalducuistot.fr/blog/" + categorySlug + "/" + (article.value?.slug || ""),
 );
 const date = computed(() => article.value?.publishedAt || "");
 const modifiedAt = computed(() => article.value?.updatedAt || "");
-const urlCover = useFormatUrlCover(cover.value);
 
 const categoryRecipe = computed(() => article.value?.category || ({} as Category));
 const { minutes } = useReadingTime(article.value?.content || "");

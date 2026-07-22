@@ -39,7 +39,17 @@ const utensils = computed(
 );
 
 const cover = computed(() => recipe.value?.cover || ({} as Cover));
-const urlCover = useFormatUrlCover(cover.value);
+const urlCover = computed(() => {
+  const source = {
+    cover: recipe.value?.cover,
+    coverBlobPathname: recipe.value?.coverBlobPathname,
+    slug: recipe.value?.slug,
+    title: recipe.value?.title,
+  };
+  const url = formatCoverUrlFromSource(source);
+  logCoverResolution(`recipe/${recipeSlug}`, source);
+  return url;
+});
 
 const steps = computed(() => recipe.value?.step?.split("\n\n")[0]?.split("\n") || []);
 
@@ -75,7 +85,7 @@ useApplySeoMeta({
   title: titleContent.value || "Journal du cuistot",
   description: "Journal du cuistot | " + (seo.value?.description || "No description"),
   keywords: seo.value?.keywords,
-  image: urlCover || "",
+  image: urlCover.value || "",
   url: "https://journalducuistot.fr/recette/" + recipeSlug,
   author: "magius",
   articleDatePublished: recipe.value?.publishedAt,
@@ -109,7 +119,7 @@ useHead({
     </h1>
     <Share :date="date" :link="link" />
   </div>
-  <SectionHeroArticle :url="urlCover" :alt="cover.alternativeText">
+  <SectionHeroArticle :url="urlCover" :alt="cover.alternativeText || titleContent">
     <template #info>
       <p
         class="items-center mx-2 h-6 text-xs leading-6 font-semibold tracking-widest text-black uppercase align-baseline border-0">

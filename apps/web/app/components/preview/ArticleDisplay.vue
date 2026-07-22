@@ -9,7 +9,14 @@ const content = computed(() => article?.content || "No content");
 const titleContent = computed(() => article?.title || "No title");
 const categoriesContent = computed(() => article?.categories || ([] as Category[]));
 const cover = computed(() => article?.cover || ({} as Cover));
-const urlCover = useFormatUrlCover(cover.value);
+const urlCover = computed(() =>
+  formatCoverUrlFromSource({
+    cover: article?.cover,
+    coverBlobPathname: article?.coverBlobPathname,
+    slug: article?.slug,
+    title: article?.title,
+  }),
+);
 
 const link = computed(() => "https://journalducuistot.fr/blog/" + (article?.category?.slug || 'uncategorized') + "/" + (article?.slug || ""));
 const date = computed(() => article?.publishedAt || "");

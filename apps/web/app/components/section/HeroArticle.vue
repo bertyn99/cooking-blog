@@ -15,6 +15,7 @@ defineProps<{
 <template>
   <div class="w-full print:hidden">
     <nuxt-img
+      v-if="url"
       provider="localImageSharp"
       width="900"
       height="600"

@@ -14,6 +14,7 @@ type CoverBlob = {
 
 type ArticleLike = {
   title: string
+  coverBlobPathname?: string | null
   coverAltText?: string | null
   coverDescription?: string | null
   cover?: CoverBlob | null
@@ -21,14 +22,24 @@ type ArticleLike = {
 
 type RecipeLike = ArticleLike
 
+function coverBlobFromPathname(pathname: string): CoverBlob {
+  const fileName = pathname.split('/').pop() ?? 'image'
+  return {
+    pathname: pathname.startsWith('uploads/') ? pathname : `uploads/${pathname}`,
+    originalName: fileName,
+  }
+}
+
 function serializeCover<T extends ArticleLike | RecipeLike>(
   row: T,
 ): Omit<T, 'cover' | 'coverAltText' | 'coverDescription'> & { cover: StrapiLikeCover | null } {
-  const { coverAltText, coverDescription, cover, ...rest } = row
+  const { coverAltText, coverDescription, cover, coverBlobPathname, ...rest } = row
+  const resolvedCover =
+    cover ?? (coverBlobPathname ? coverBlobFromPathname(coverBlobPathname) : null)
   return {
     ...rest,
-    cover: cover
-      ? blobToStrapiCover(cover, {
+    cover: resolvedCover
+      ? blobToStrapiCover(resolvedCover, {
           altOverride: coverAltText,
           descriptionOverride: coverDescription,
           titleFallback: row.title,

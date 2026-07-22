@@ -17,7 +17,14 @@ const utensils = computed(
   () => recipe?.utensils || ([] as RecipeUtensil[]),
 );
 const cover = computed(() => recipe?.cover || ({} as Cover));
-const urlCover = useFormatUrlCover(cover.value);
+const urlCover = computed(() =>
+  formatCoverUrlFromSource({
+    cover: recipe?.cover,
+    coverBlobPathname: recipe?.coverBlobPathname,
+    slug: recipe?.slug,
+    title: recipe?.title,
+  }),
+);
 
 const steps = computed(() => recipe?.step?.split("\n\n")[0]?.split("\n") || []);
 

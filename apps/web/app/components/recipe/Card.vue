@@ -11,7 +11,14 @@ const { recipe, details } = defineProps({
   },
 });
 
-const cover = useFormatUrlCover(recipe.cover);
+const cover = computed(() =>
+  formatCoverUrlFromSource({
+    cover: recipe.cover,
+    coverBlobPathname: recipe.coverBlobPathname,
+    slug: recipe.slug,
+    title: recipe.title,
+  }),
+);
 </script>
 
 <template>

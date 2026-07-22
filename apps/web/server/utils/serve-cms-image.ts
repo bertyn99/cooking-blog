@@ -70,6 +70,15 @@ export async function serveOptimizedCmsImage(event: H3Event, fullPath: string) {
 
   let origin = await fetch(originUrl)
   if (!origin.ok) {
+    if (import.meta.dev) {
+      console.error('[cms-image] origin fetch failed', {
+        originUrl,
+        assetPath,
+        operations,
+        status: origin.status,
+        statusText: origin.statusText,
+      })
+    }
     throw createError({ statusCode: origin.status === 404 ? 404 : 502, statusMessage: 'Media origin error' })
   }
 

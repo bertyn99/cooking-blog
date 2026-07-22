@@ -179,6 +179,7 @@ export type Recipe = {
   /** Lowercase alias used in templates */
   intro?: string;
   cover?: Cover;
+  coverBlobPathname?: string | null;
   Ingredient?: Ingredient[];
   /** Lowercase alias used in templates */
   ingredients?: Ingredient[];
@@ -211,6 +212,7 @@ export type Article = {
   content?: string;
   title?: string;
   cover?: Cover;
+  coverBlobPathname?: string | null;
   categories?: Category[];
   category?: CategoryArticle;
   slug?: string;
