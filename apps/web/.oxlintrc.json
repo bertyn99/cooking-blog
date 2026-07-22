@@ -266,7 +266,7 @@
     "useFormatUrlCover": "readonly",
     "useGenerateSchemaArianne": "readonly",
     "useLoadMeta": "readonly",
-    "useMarked": "readonly",
+    "useComark": "readonly",
     "useReadingTime": "readonly",
     "useStrapi": "readonly",
     "capitalizeFirstLetter": "readonly",

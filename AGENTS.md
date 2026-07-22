@@ -17,7 +17,7 @@ cooking-blog/
 │   │   ├── base/           #   Shared UI (Pagination, checkbox, content/display zone dispatcher)
 │   │   ├── comment/        #   Comment form (no backend wired)
 │   │   └── OgImage/        #   OG image generation template (Cooking.vue)
-│   ├── composables/        # 6 auto-imported (useLoadMeta, useReadingTime, useFormatCover, useMarked, useGenerateSchemaArianne, useFetchContent[DEAD])
+│   ├── composables/        # 6 auto-imported (useLoadMeta, useReadingTime, useFormatCover, useComark, useGenerateSchemaArianne, useFetchContent[DEAD])
 │   ├── pages/              # File-based routing — 8 routes, 3 content silos
 │   ├── layouts/            # default.vue (list pages), content.vue (detail w/ sidebar + comments)
 │   ├── plugins/            # mermaid.client.ts ($mermaid provide), strapi.client.ts (error toast)
@@ -48,7 +48,7 @@ cooking-blog/
 | Add a prose override | `app/components/prose/Prose*.vue` | Global components (excluded from auto-import pathPrefix) |
 | Change SEO defaults | `app/composables/useLoadMeta.ts` | All pages call `useSeoMeta(useLoadMeta({...}))` |
 | Change reading time calc | `app/composables/useReadingTime.ts` | 265 WPM French text |
-| Modify markdown rendering | `app/composables/useMarked.ts` | Wraps `marked` lib |
+| Modify markdown rendering | `app/composables/useComark.ts` | Wraps `@comark/html` |
 | Add a 301 redirect | `app/utils/redirect.ts` → routeRules in nuxt.config.ts | Object of `{path: {redirect: {to, statusCode}}}` |
 | Change cache/ISR timing | `nuxt.config.ts` routeRules | Per-route ISR in seconds (homepage=15m, blog=25m, uploads=5d, sitemap=1d, rss=3d) |
 | Add server API endpoint | `server/api/` or `server/routes/` | Nitro auto-imports |

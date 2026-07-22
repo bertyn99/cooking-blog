@@ -65,7 +65,7 @@ The dispatcher is `base/content/display.vue` — it reads `__component` and rend
 - **Legacy Storyblok components** (no module installed, will crash if rendered): `Page.vue`, `Teaser.vue`, `Feature.vue`, `AllArticles.vue`, `df.vue`, `section/Grid.vue`, `section/PopularRecipes.vue`. These use `v-editable`, `blok` props, `StoryblokComponent`. **Do not wire into active routes.**
 - **`PreCarrousel.vue`** is an empty placeholder — do not assume it renders anything.
 - **`comment/Form.vue`** has no backend wired — form submission is a no-op.
-- **Some files manually import auto-imported composables** (`useReadingTime`, `useMarked`, `useFormatUrlCover`) — inconsistent but harmless.
+- **Some files manually import auto-imported composables** (`useReadingTime`, `useComark`, `useFormatUrlCover`) — inconsistent but harmless.
 - **`"meidum"` typo** in `CustomImage.vue:23` and `article/Card.vue:39` — uses `"meidum"` instead of `"medium"`. Medium-size image lookups silently fail.
 - **Object-based `defineProps({...})`** in legacy components (`df.vue`, `Filter.vue`, `CustomImage.vue`, `article/Card.vue`) — new components must use type-based `defineProps<{...}>()`.
 

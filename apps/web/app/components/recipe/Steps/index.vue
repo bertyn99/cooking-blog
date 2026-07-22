@@ -1,17 +1,18 @@
 <script lang="ts" setup>
-import { marked } from "marked";
-
 const { steps } = defineProps<{
   steps: string[];
 }>();
 
-const formatedSteps = steps.map((step) =>
-  marked.parse(step.slice(3, -1), { async: false }) as string,
+const formatedSteps = await Promise.all(
+  steps.map((step) => useComark(step.slice(3, -1))),
 );
+
+const stripHtml = (html: string) =>
+  html.replace(/<[^>]+>/g, "").trim();
 
 const schemaRecipeSteps = formatedSteps.map((step) => ({
   "@type": "HowToStep",
-  text: step.slice(3, -5),
+  text: stripHtml(step),
 }));
 </script>
 
