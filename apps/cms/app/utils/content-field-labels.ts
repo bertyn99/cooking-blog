@@ -1,7 +1,10 @@
 /** French labels for Strapi-style field keys used in the CMS editor. */
 export const CONTENT_FIELD_LABELS: Record<string, string> = {
+  name: 'Nom interne',
   title: 'Titre',
   slug: 'Permalien',
+  parent: 'Page parente',
+  locale: 'Langue',
   category: 'Catégorie',
   difficulty: 'Difficulté',
   time: 'Durée (minutes)',

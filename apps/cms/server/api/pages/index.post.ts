@@ -12,6 +12,7 @@
  * - localeGroupId (string, optional)
  *
  * The slug is auto-generated from name.
+ * New pages are created as draft (publish via admin endpoint).
  * Checks for slug uniqueness within the same locale.
  */
 import { eq, and } from 'drizzle-orm'
@@ -63,10 +64,10 @@ export default defineEventHandler(async (event) => {
       slug,
       content: body.content ?? null,
       parentId: body.parentId ?? null,
-      status: 'published',
+      status: 'draft',
       locale: body.locale,
       localeGroupId: body.localeGroupId ?? null,
-      publishedAt: now,
+      publishedAt: null,
       createdAt: now,
       updatedAt: now,
     })

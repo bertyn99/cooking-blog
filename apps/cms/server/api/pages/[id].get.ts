@@ -23,7 +23,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = useDb(event)
-  const page = await createPageQueries(db).findById(id, includeList, 'public')
+  const session = await getUserSession(event)
+  const scope = session.user ? 'admin' : 'public'
+  const page = await createPageQueries(db).findById(id, includeList, scope)
 
   if (!page) {
     throw createApiError('NOT_FOUND', 'Page not found')
