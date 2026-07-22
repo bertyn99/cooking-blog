@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
+import { passwordSchema } from '#shared/validators/auth'
 import { getApiErrorMessage } from '#shared/api-error'
 import type { StaffUserPublic } from '~/types/staff'
 import { DASHBOARD_TABLE_UI } from '~/utils/dashboard-shell'
@@ -35,11 +36,25 @@ const total = computed(() => data.value?.meta.pagination.total ?? 0)
 
 const createOpen = ref(false)
 const createLoading = ref(false)
+const confirmOpen = ref(false)
+const pendingAction = ref<{
+  label: string
+  description: string
+  run: () => Promise<void>
+} | null>(null)
+
 const createForm = reactive({
   email: '',
   username: '',
   password: '',
   role: 'editor' as 'admin' | 'editor',
+})
+
+const passwordMinLength = 8
+const createPasswordError = computed(() => {
+  if (!createForm.password) return undefined
+  const parsed = passwordSchema.safeParse(createForm.password)
+  return parsed.success ? undefined : 'Au moins 8 caractères.'
 })
 
 const roleItems = [
@@ -74,6 +89,10 @@ const columns: TableColumn<StaffUserPublic>[] = [
 ]
 
 async function createUser() {
+  if (createPasswordError.value) {
+    toast.add({ title: 'Mot de passe invalide', description: createPasswordError.value, color: 'warning' })
+    return
+  }
   createLoading.value = true
   try {
     await $api('/api/admin/users', {
@@ -120,13 +139,35 @@ async function patchUser(id: number, body: Record<string, unknown>) {
   }
 }
 
+function requestConfirm(label: string, description: string, run: () => Promise<void>) {
+  pendingAction.value = { label, description, run }
+  confirmOpen.value = true
+}
+
+async function executePendingAction() {
+  const action = pendingAction.value
+  if (!action) return
+  confirmOpen.value = false
+  pendingAction.value = null
+  await action.run()
+}
+
 function toggleActive(row: StaffUserPublic) {
-  void patchUser(row.id, { isActive: !row.isActive })
+  const nextActive = !row.isActive
+  requestConfirm(
+    nextActive ? 'Réactiver le compte' : 'Désactiver le compte',
+    `${row.email} — la session en cours sera invalidée au prochain appel API.`,
+    () => patchUser(row.id, { isActive: nextActive }),
+  )
 }
 
 function cycleRole(row: StaffUserPublic) {
   const next = row.role === 'admin' ? 'editor' : 'admin'
-  void patchUser(row.id, { role: next })
+  requestConfirm(
+    'Changer le rôle',
+    `${row.email} → ${next === 'admin' ? 'administrateur' : 'éditeur'}. La session en cours sera invalidée.`,
+    () => patchUser(row.id, { role: next }),
+  )
 }
 
 function isSelf(row: StaffUserPublic) {
@@ -207,8 +248,14 @@ function isSelf(row: StaffUserPublic) {
           <UFormField label="Nom affiché">
             <UInput v-model="createForm.username" autocomplete="off" class="w-full" />
           </UFormField>
-          <UFormField label="Mot de passe" required>
-            <UInput v-model="createForm.password" type="password" autocomplete="new-password" class="w-full" />
+          <UFormField label="Mot de passe" required :error="createPasswordError">
+            <UInput
+              v-model="createForm.password"
+              type="password"
+              autocomplete="new-password"
+              class="w-full"
+              :minlength="passwordMinLength"
+            />
           </UFormField>
           <UFormField label="Rôle" required>
             <USelect v-model="createForm.role" :items="roleItems" class="w-full" />
@@ -218,6 +265,18 @@ function isSelf(row: StaffUserPublic) {
             <UButton type="submit" label="Créer" :loading="createLoading" />
           </div>
         </form>
+      </template>
+    </UModal>
+
+    <UModal v-model:open="confirmOpen" :title="pendingAction?.label ?? 'Confirmer'">
+      <template #body>
+        <p class="text-sm text-muted">
+          {{ pendingAction?.description }}
+        </p>
+        <div class="mt-4 flex justify-end gap-2">
+          <UButton variant="ghost" label="Annuler" @click="confirmOpen = false" />
+          <UButton color="primary" label="Confirmer" @click="executePendingAction" />
+        </div>
       </template>
     </UModal>
   </AppDashboardPanel>

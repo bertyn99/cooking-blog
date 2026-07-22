@@ -5,6 +5,7 @@ import {
   canManageStaff,
 } from '../../shared/abilities'
 import { createApiError } from './errors'
+import { resolveDbBackedUser } from './session-user'
 
 /** Attach session user to the evlog wide event for this request. */
 export function attachRequestUser(event: H3Event, user: User | null | undefined) {
@@ -20,9 +21,13 @@ export function attachRequestUser(event: H3Event, user: User | null | undefined)
 }
 
 export async function requireAuthenticatedSession(event: H3Event) {
-  const session = await requireUserSession(event)
-  attachRequestUser(event, session.user)
-  return session
+  const user = await resolveDbBackedUser(event)
+  if (!user) {
+    throw createApiError('UNAUTHORIZED', 'Authentification requise.')
+  }
+  attachRequestUser(event, user)
+  const session = await getUserSession(event)
+  return { ...session, user }
 }
 
 type AbilityLike = Parameters<typeof authorize>[1]

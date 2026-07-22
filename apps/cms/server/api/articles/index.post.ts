@@ -1,20 +1,26 @@
 import { validateBody } from '../../utils/validate'
 import { createArticleSchema } from '../../utils/validations/articles'
 import { slugifyString } from '../../utils/slug'
-import { canEditContent } from '../../../shared/abilities'
 import { useQueries } from '../../utils/db'
+import { requireEditor } from '../../utils/http-auth'
+import { applyInitialContentStatusPolicy } from '../../utils/content-status-policy'
 
 export default defineEventHandler(async (event) => {
-  await requireUserSession(event)
-  await authorize(event, canEditContent)
+  const session = await requireEditor(event)
 
   const body = await readBody(event)
   const data = validateBody(createArticleSchema, body)
   const { articles } = useQueries(event)
 
+  const statusPatch = applyInitialContentStatusPolicy(session.user, {
+    status: data.status,
+  })
+  const status = statusPatch.status ?? 'draft'
+
   const baseSlug = data.slug || slugifyString(data.title)
   const slug = await articles.reserveUniqueSlug(baseSlug, data.locale || 'fr')
 
+  const now = new Date().toISOString()
   const result = await articles.insert({
     title: data.title,
     content: data.content,
@@ -25,7 +31,9 @@ export default defineEventHandler(async (event) => {
     coverDescription: data.coverDescription,
     locale: data.locale || 'fr',
     localeGroupId: data.localeGroupId,
-    status: 'draft',
+    status,
+    publishedAt: status === 'published' ? (statusPatch.publishedAt ?? now) : null,
+    scheduledAt: status === 'scheduled' ? statusPatch.scheduledAt ?? null : null,
   })
 
   setResponseStatus(event, 201)

@@ -1,6 +1,4 @@
-import { toSessionUser } from '../utils/auth/user'
-import { useQueries } from '../utils/db'
-import { createApiError } from '../utils/errors'
+import { resolveDbBackedUser } from '../utils/session-user'
 
 export default defineNitroPlugin(() => {
   sessionHooks.hook('fetch', async (session, event) => {
@@ -9,21 +7,6 @@ export default defineNitroPlugin(() => {
       return
     }
 
-    const user = await useQueries(event).users.findById(userId)
-    if (!user) {
-      throw createApiError('UNAUTHORIZED', 'Ce compte n’existe plus.')
-    }
-
-    if (!user.isActive) {
-      throw createApiError(
-        'FORBIDDEN',
-        'Ce compte a été désactivé.',
-        undefined,
-        { fix: 'Contactez un administrateur.' },
-      )
-    }
-
-    session.user = toSessionUser(user)
-    attachRequestUser(event, session.user)
+    session.user = (await resolveDbBackedUser(event)) ?? undefined
   })
 })

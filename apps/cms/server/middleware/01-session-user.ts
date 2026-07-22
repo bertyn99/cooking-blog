@@ -1,6 +1,4 @@
-import { toSessionUser } from '../utils/auth/user'
-import { useQueries } from '../utils/db'
-import { createApiError } from '../utils/errors'
+import { syncSessionUserFromDb } from '../utils/session-user'
 
 const PUBLIC_API_PATHS = new Set([
   '/api/auth/login',
@@ -13,23 +11,7 @@ export default defineEventHandler(async (event) => {
   if (PUBLIC_API_PATHS.has(path)) return
 
   const session = await getUserSession(event)
-  const userId = session.user?.id
-  if (!userId) return
+  if (!session.user?.id) return
 
-  const row = await useQueries(event).users.findById(userId)
-  if (!row) {
-    throw createApiError('UNAUTHORIZED', 'Session invalide.')
-  }
-
-  if (!row.isActive) {
-    throw createApiError(
-      'FORBIDDEN',
-      'Ce compte a été désactivé.',
-      undefined,
-      { fix: 'Contactez un administrateur.' },
-    )
-  }
-
-  const freshUser = toSessionUser(row)
-  session.user = freshUser
+  await syncSessionUserFromDb(event)
 })

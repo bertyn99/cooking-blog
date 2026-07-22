@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { applyContentStatusPolicy } from '../../server/utils/content-status-policy'
+import {
+  applyContentStatusPolicy,
+  applyInitialContentStatusPolicy,
+} from '../../server/utils/content-status-policy'
 
 const editor = {
   id: 2,
@@ -48,5 +51,9 @@ describe('applyContentStatusPolicy', () => {
     expect(updates.publishedAt).toBeTruthy()
     expect(updates.firstPublishedAt).toBeTruthy()
     expect(updates.scheduledAt).toBeNull()
+  })
+
+  it('blocks editors from creating published content', () => {
+    expect(() => applyInitialContentStatusPolicy(editor, { status: 'published' })).toThrow()
   })
 })

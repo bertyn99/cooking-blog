@@ -5,8 +5,9 @@ import { useDb } from '../utils/db'
 import { createUserQueries } from '../db/queries/users'
 import type { CreateStaffUserInput, UpdateStaffUserInput } from '../../shared/validators/staff'
 import { toSessionUser } from '../utils/auth/user'
+import { bumpUserAuthRevocation } from '../utils/session-user'
 
-export function createStaffService(db: AppDb) {
+export function createStaffService(db: AppDb, event: H3Event) {
   const users = createUserQueries(db)
 
   return {
@@ -89,11 +90,17 @@ export function createStaffService(db: AppDb) {
         throw createApiError('NOT_FOUND', 'Utilisateur introuvable.')
       }
 
+      const roleChanged = input.role !== undefined && input.role !== existing.role
+      const activeChanged = input.isActive !== undefined && input.isActive !== existing.isActive
+      if (roleChanged || activeChanged) {
+        await bumpUserAuthRevocation(event, targetId)
+      }
+
       return updated
     },
   }
 }
 
-export function useStaffService(event?: H3Event) {
-  return createStaffService(useDb(event))
+export function useStaffService(event: H3Event) {
+  return createStaffService(useDb(event), event)
 }

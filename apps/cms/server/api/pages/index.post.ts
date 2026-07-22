@@ -2,15 +2,21 @@ import { createPageSchema } from '../../utils/validations/pages'
 import { validateBody } from '../../utils/validate'
 import { createApiError } from '../../utils/errors'
 import { slugifyString } from '../../utils/slug'
-import { canEditContent } from '../../../shared/abilities'
 import { useQueries } from '../../utils/db'
+import { requireEditor } from '../../utils/http-auth'
+import { applyInitialContentStatusPolicy } from '../../utils/content-status-policy'
 
 export default defineEventHandler(async (event) => {
-  await requireUserSession(event)
-  await authorize(event, canEditContent)
+  const session = await requireEditor(event)
 
   const body = validateBody(createPageSchema, await readBody(event))
   const { pages } = useQueries(event)
+
+  const statusPatch = applyInitialContentStatusPolicy(session.user, {
+    status: body.status,
+    scheduledAt: body.scheduledAt,
+  })
+  const status = statusPatch.status ?? 'draft'
 
   const baseSlug = slugifyString(body.name)
   const slug = await pages.reserveUniqueSlug(baseSlug, body.locale)
@@ -22,10 +28,11 @@ export default defineEventHandler(async (event) => {
     slug,
     content: body.content ?? null,
     parentId: body.parentId ?? null,
-    status: 'draft',
+    status,
     locale: body.locale,
     localeGroupId: body.localeGroupId ?? null,
-    publishedAt: null,
+    publishedAt: status === 'published' ? (statusPatch.publishedAt ?? now) : null,
+    scheduledAt: status === 'scheduled' ? (statusPatch.scheduledAt ?? null) : null,
     createdAt: now,
     updatedAt: now,
   })

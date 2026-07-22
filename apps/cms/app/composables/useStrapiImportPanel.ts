@@ -1,12 +1,12 @@
 import type { Ref } from 'vue'
 import type { CheckboxGroupItem } from '@nuxt/ui'
-import { FetchError } from 'ofetch'
 import type {
   StrapiImportConfigResponse,
   StrapiImportProgress,
   StrapiImportStep,
   StrapiImportTestTarget,
 } from '#shared/strapi-import'
+import { getApiErrorMessage } from '#shared/api-error'
 import {
   formatStepCoverageHint,
   isImportResultFullyUnchanged,
@@ -35,14 +35,7 @@ export interface UseStrapiImportPanelOptions {
 }
 
 export function formatImportError(error: unknown): string {
-  if (error instanceof FetchError) {
-    const data = error.data as { error?: { message?: string }, message?: string } | undefined
-    return data?.error?.message ?? data?.message ?? error.statusMessage ?? error.message
-  }
-  if (error instanceof Error) {
-    return error.message
-  }
-  return 'Échec de l’import'
+  return getApiErrorMessage(error, 'Échec de l’import')
 }
 
 export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) {
