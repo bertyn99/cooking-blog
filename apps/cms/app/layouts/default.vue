@@ -1,84 +1,105 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
 
-const route = useRoute()
 const open = ref(false)
+const { user } = useUserSession()
 
 useDashboard()
 
-const links = [[{
-  label: 'Tableau de bord',
-  icon: 'i-lucide-layout-dashboard',
-  to: '/',
-  onSelect: () => { open.value = false }
-}, {
-  label: 'Contenu',
-  icon: 'i-lucide-files',
-  defaultOpen: true,
-  type: 'trigger',
-  children: [{
-    label: 'Articles',
-    icon: 'i-lucide-newspaper',
-    to: '/articles',
-    onSelect: () => { open.value = false }
+const isAdmin = computed(() => user.value?.role === 'admin')
+
+const links = computed(() => {
+  const primary: NavigationMenuItem[] = [{
+    label: 'Tableau de bord',
+    icon: 'i-lucide-layout-dashboard',
+    to: '/',
+    onSelect: () => { open.value = false },
   }, {
-    label: 'Recettes',
-    icon: 'i-lucide-utensils',
-    to: '/recipes',
-    onSelect: () => { open.value = false }
+    label: 'Contenu',
+    icon: 'i-lucide-files',
+    defaultOpen: true,
+    type: 'trigger',
+    children: [{
+      label: 'Articles',
+      icon: 'i-lucide-newspaper',
+      to: '/articles',
+      onSelect: () => { open.value = false },
+    }, {
+      label: 'Recettes',
+      icon: 'i-lucide-utensils',
+      to: '/recipes',
+      onSelect: () => { open.value = false },
+    }, {
+      label: 'Pages',
+      icon: 'i-lucide-file-text',
+      to: '/pages',
+      onSelect: () => { open.value = false },
+    }, {
+      label: 'Planning',
+      icon: 'i-lucide-calendar-days',
+      to: '/planning',
+      onSelect: () => { open.value = false },
+    }],
   }, {
-    label: 'Pages',
-    icon: 'i-lucide-file-text',
-    to: '/pages',
-    onSelect: () => { open.value = false }
+    label: 'Taxonomie',
+    icon: 'i-lucide-tags',
+    defaultOpen: true,
+    type: 'trigger',
+    children: [{
+      label: 'Catégories',
+      icon: 'i-lucide-folder',
+      to: '/categories',
+      onSelect: () => { open.value = false },
+    }],
   }, {
-    label: 'Planning',
-    icon: 'i-lucide-calendar-days',
-    to: '/planning',
-    onSelect: () => { open.value = false }
+    label: 'Médias',
+    icon: 'i-lucide-image',
+    to: '/media',
+    onSelect: () => { open.value = false },
   }]
-}, {
-  label: 'Taxonomie',
-  icon: 'i-lucide-tags',
-  defaultOpen: true,
-  type: 'trigger',
-  children: [{
-    label: 'Catégories',
-    icon: 'i-lucide-folder',
-    to: '/categories',
-    onSelect: () => { open.value = false }
+
+  if (isAdmin.value) {
+    primary.push(
+      {
+        label: 'Équipe',
+        icon: 'i-lucide-users',
+        to: '/staff',
+        onSelect: () => { open.value = false },
+      },
+      {
+        label: 'Import Strapi',
+        icon: 'i-lucide-download',
+        to: '/import',
+        onSelect: () => { open.value = false },
+      },
+      {
+        label: 'Maintenance',
+        icon: 'i-lucide-wrench',
+        to: '/maintenance',
+        onSelect: () => { open.value = false },
+      },
+    )
+  }
+
+  const secondary: NavigationMenuItem[] = [{
+    label: 'Site public',
+    icon: 'i-lucide-external-link',
+    to: 'https://journalducuistot.fr',
+    target: '_blank',
+  }, {
+    label: 'Documentation Nuxt UI',
+    icon: 'i-lucide-book-open',
+    to: 'https://ui.nuxt.com',
+    target: '_blank',
   }]
-}, {
-  label: 'Médias',
-  icon: 'i-lucide-image',
-  to: '/media',
-  onSelect: () => { open.value = false }
-}, {
-  label: 'Import Strapi',
-  icon: 'i-lucide-download',
-  to: '/import',
-  onSelect: () => { open.value = false }
-}, {
-  label: 'Maintenance',
-  icon: 'i-lucide-wrench',
-  to: '/maintenance',
-  onSelect: () => { open.value = false }
-}], [{
-  label: 'Site public',
-  icon: 'i-lucide-external-link',
-  to: 'https://journalducuistot.fr',
-  target: '_blank'
-}, {
-  label: 'Documentation Nuxt UI',
-  icon: 'i-lucide-book-open',
-  to: 'https://ui.nuxt.com',
-  target: '_blank'
-}]] satisfies NavigationMenuItem[][]
+
+  return [primary, secondary] satisfies NavigationMenuItem[][]
+})
 
 const groups = computed(() => [{
   id: 'links',
   label: 'Navigation',
-  items: links.flat()
+  items: links.value.flat(),
 }])
 </script>
 

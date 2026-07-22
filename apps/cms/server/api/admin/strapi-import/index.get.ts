@@ -1,13 +1,13 @@
-import { canAccessAdminApi } from '../../../../shared/abilities'
+import { canAccessImport } from '../../../../shared/abilities'
 import type { StrapiImportConfigResponse } from '../../../../shared/strapi-import'
 import { getStrapiImportStatus } from '../../../services/strapi-import-status'
 import { getStrapiReachability } from '../../../services/strapi-reachability'
 import { getStrapiImportStepCoverage } from '../../../services/strapi-import-coverage'
 import { useQueries } from '../../../utils/db'
+import { requireAbility } from '../../../utils/http-auth'
 
 export default defineEventHandler(async (event) => {
-  await requireUserSession(event)
-  await authorize(event, canAccessAdminApi)
+  await requireAbility(event, canAccessImport)
 
   const config = useRuntimeConfig(event)
   const query = getQuery(event)

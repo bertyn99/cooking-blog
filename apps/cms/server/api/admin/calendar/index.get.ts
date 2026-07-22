@@ -1,8 +1,9 @@
 import { z } from 'zod'
-import { canAccessAdminApi } from '../../../../shared/abilities'
+import { canEditContent } from '../../../../shared/abilities'
 import { parseCalendarTypesParam } from '../../../../shared/calendar'
 import { useCalendarService } from '../../../services/calendar-service'
 import { createApiError } from '../../../utils/errors'
+import { requireAbility } from '../../../utils/http-auth'
 
 const calendarQuerySchema = z.object({
   from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -14,8 +15,7 @@ const calendarQuerySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  await requireUserSession(event)
-  await authorize(event, canAccessAdminApi)
+  await requireAbility(event, canEditContent)
 
   const parsed = calendarQuerySchema.safeParse(getQuery(event))
   if (!parsed.success) {

@@ -1,9 +1,9 @@
-import { canAccessAdminApi } from '../../../../shared/abilities'
+import { canAccessImport } from '../../../../shared/abilities'
 import { getStrapiImportStatus, resetStrapiImportState } from '../../../services/strapi-import-status'
+import { requireAbility } from '../../../utils/http-auth'
 
 export default defineEventHandler(async (event) => {
-  await requireUserSession(event)
-  await authorize(event, canAccessAdminApi)
+  await requireAbility(event, canAccessImport)
 
   await resetStrapiImportState(event)
   return { ok: true, status: await getStrapiImportStatus(event) }

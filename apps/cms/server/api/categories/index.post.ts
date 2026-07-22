@@ -2,15 +2,20 @@ import { createRecipeCategorySchema } from '../../utils/validations/categories'
 import { validateBody } from '../../utils/validate'
 import { createApiError } from '../../utils/errors'
 import { slugifyString } from '../../utils/slug'
-import { canEditContent } from '../../../shared/abilities'
 import { useQueries } from '../../utils/db'
+import { requireEditor } from '../../utils/http-auth'
+import { applyInitialContentStatusPolicy } from '../../utils/content-status-policy'
 
 export default defineEventHandler(async (event) => {
-  await requireUserSession(event)
-  await authorize(event, canEditContent)
+  const session = await requireEditor(event)
 
   const body = validateBody(createRecipeCategorySchema, await readBody(event))
   const { categories } = useQueries(event)
+
+  const statusPatch = applyInitialContentStatusPolicy(session.user, {
+    status: body.status,
+    publishedAt: body.publishedAt,
+  })
 
   const baseSlug = slugifyString(body.name)
   const slug = await categories.reserveUniqueSlug(baseSlug, body.locale)
@@ -22,10 +27,10 @@ export default defineEventHandler(async (event) => {
     slug,
     locale: body.locale,
     localeGroupId: body.localeGroupId ?? null,
-    status: body.status,
-    publishedAt: body.status === 'published'
-      ? (body.publishedAt ?? now)
-      : (body.publishedAt ?? null),
+    status: statusPatch.status ?? body.status,
+    publishedAt: statusPatch.status === 'published'
+      ? (statusPatch.publishedAt ?? now)
+      : (statusPatch.publishedAt ?? null),
     createdAt: now,
     updatedAt: now,
   })

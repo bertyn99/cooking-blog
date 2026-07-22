@@ -1,6 +1,7 @@
 import { registerSchema } from '../../../shared/validators/auth'
 import { toSessionUser } from '../../utils/auth/user'
-import { canManageUsers } from '../../../shared/abilities'
+import { canManageStaff } from '../../../shared/abilities'
+import { requireAbility } from '../../utils/http-auth'
 import { createApiError } from '../../utils/errors'
 import { useQueries } from '../../utils/db'
 import { isBootstrapMode } from '../../utils/auth/bootstrap'
@@ -21,8 +22,7 @@ export default defineEventHandler(async (event) => {
   const bootstrap = await isBootstrapMode(event)
 
   if (!bootstrap) {
-    await requireUserSession(event)
-    await authorize(event, canManageUsers)
+    await requireAbility(event, canManageStaff)
   }
 
   if (await users.emailExists(email)) {

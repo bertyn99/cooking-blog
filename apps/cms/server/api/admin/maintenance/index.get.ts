@@ -1,9 +1,9 @@
-import { canAccessAdminApi } from '../../../../shared/abilities'
+import { canAccessMaintenance } from '../../../../shared/abilities'
 import { useMaintenanceService } from '../../../services/maintenance-purge'
+import { requireAbility } from '../../../utils/http-auth'
 
 export default defineEventHandler(async (event) => {
-  await requireUserSession(event)
-  await authorize(event, canAccessAdminApi)
+  await requireAbility(event, canAccessMaintenance)
 
   const counts = await useMaintenanceService(event).getCounts()
 

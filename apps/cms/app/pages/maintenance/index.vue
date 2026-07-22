@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import type { CheckboxGroupItem } from '@nuxt/ui'
-import { FetchError } from 'ofetch'
+import { getApiErrorMessage } from '#shared/api-error'
 import {
   MAINTENANCE_PURGE_CONFIRM_PHRASE,
   MAINTENANCE_PURGE_TARGETS,
   type MaintenanceCounts,
   type MaintenancePurgeTarget,
 } from '#shared/maintenance'
+
+definePageMeta({ middleware: ['admin'] })
 
 const { $api } = useNuxtApp()
 const toast = useToast()
@@ -122,10 +124,11 @@ async function executePurge() {
     })
   }
   catch (error) {
-    const message = error instanceof FetchError
-      ? (error.data as { error?: { message?: string } })?.error?.message ?? error.message
-      : error instanceof Error ? error.message : 'Échec'
-    toast.add({ title: 'Suppression impossible', description: message, color: 'error' })
+    toast.add({
+      title: 'Suppression impossible',
+      description: getApiErrorMessage(error, 'Échec'),
+      color: 'error',
+    })
   }
   finally {
     purging.value = false

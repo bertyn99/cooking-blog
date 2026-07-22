@@ -1,11 +1,12 @@
 import { z } from 'zod'
-import { canAccessAdminApi } from '../../../../shared/abilities'
+import { canAccessMaintenance } from '../../../../shared/abilities'
 import {
   MAINTENANCE_PURGE_CONFIRM_PHRASE,
   MAINTENANCE_PURGE_TARGETS,
 } from '../../../../shared/maintenance'
 import { useMaintenanceService } from '../../../services/maintenance-purge'
 import { createApiError } from '../../../utils/errors'
+import { requireAbility } from '../../../utils/http-auth'
 import { validateBody } from '../../../utils/validate'
 
 const bodySchema = z.object({
@@ -14,8 +15,7 @@ const bodySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  await requireUserSession(event)
-  await authorize(event, canAccessAdminApi)
+  await requireAbility(event, canAccessMaintenance)
 
   const body = validateBody(bodySchema, await readBody(event))
 

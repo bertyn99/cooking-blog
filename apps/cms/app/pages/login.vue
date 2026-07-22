@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AuthFormField, FormSubmitEvent } from '@nuxt/ui'
-import { FetchError } from 'ofetch'
+import { getApiErrorMessage } from '#shared/api-error'
 import { z } from 'zod'
 
 definePageMeta({
@@ -59,14 +59,7 @@ function setLoginError(message: string) {
 }
 
 function getLoginErrorMessage(error: unknown): string {
-  if (error instanceof FetchError) {
-    const data = error.data as { error?: { message?: string } } | undefined
-    return data?.error?.message ?? error.statusMessage ?? 'Identifiants invalides'
-  }
-  if (error instanceof Error && error.message.length > 0) {
-    return error.message
-  }
-  return 'Identifiants invalides'
+  return getApiErrorMessage(error, 'Identifiants invalides')
 }
 
 onMounted(async () => {

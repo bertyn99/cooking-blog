@@ -66,7 +66,19 @@ export default defineEventHandler(async (event) => {
     throw createApiError('UNAUTHORIZED', 'Invalid email or password')
   }
 
+  if (!user.isActive) {
+    throw createApiError(
+      'FORBIDDEN',
+      'Ce compte a été désactivé.',
+      undefined,
+      { fix: 'Contactez un administrateur.' },
+    )
+  }
+
   await limiter.reset(ip)
+
+  const log = useLogger(event)
+  log.set({ auth: { action: 'login', userId: user.id, role: user.role } })
 
   const safeUser = toSessionUser(user)
   await setUserSession(event, {

@@ -1,28 +1,29 @@
 import { validateBody } from '../../utils/validate'
 import { updateArticleSchema } from '../../utils/validations/articles'
-import { canEditContent } from '../../../shared/abilities'
 import { useQueries } from '../../utils/db'
+import { requireEditor } from '../../utils/http-auth'
+import { applyContentStatusPolicy } from '../../utils/content-status-policy'
+import { createApiError } from '../../utils/errors'
 
 export default defineEventHandler(async (event) => {
-  await requireUserSession(event)
-  await authorize(event, canEditContent)
+  const session = await requireEditor(event)
 
-  const id = parseInt(getRouterParam(event, 'id') || '')
-  if (isNaN(id)) throw createError({ statusCode: 404 })
+  const id = Number.parseInt(getRouterParam(event, 'id') || '', 10)
+  if (Number.isNaN(id)) {
+    throw createApiError('NOT_FOUND', 'Article introuvable.')
+  }
 
   const { articles } = useQueries(event)
   const existing = await articles.findRowById(id)
-  if (!existing) throw createError({ statusCode: 404 })
+  if (!existing) {
+    throw createApiError('NOT_FOUND', 'Article introuvable.')
+  }
 
   const body = await readBody(event)
   const data = validateBody(updateArticleSchema, body)
 
   const updates: Record<string, unknown> = { ...data }
-
-  if (data.status === 'published') {
-    updates.publishedAt = new Date().toISOString()
-    if (!existing.firstPublishedAt) updates.firstPublishedAt = new Date().toISOString()
-  }
+  applyContentStatusPolicy(session.user, existing, updates)
 
   return articles.updateById(id, updates)
 })

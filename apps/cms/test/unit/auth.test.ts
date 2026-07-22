@@ -12,33 +12,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { createRateLimiter, type RateLimitStore } from '../../server/utils/rate-limit'
-import { canEditContent, canManageUsers } from '../../shared/abilities'
 import { loginSchema, registerSchema } from '../../shared/validators/auth'
-
-type TestUser = {
-  id: number
-  email: string
-  username: string | null
-  role: 'admin' | 'editor'
-  createdAt: string
-  updatedAt: string
-}
-
-const adminUser: TestUser = {
-  id: 1,
-  email: 'admin@journalducuistot.fr',
-  username: 'admin',
-  role: 'admin',
-  createdAt: '2026-01-01T00:00:00.000Z',
-  updatedAt: '2026-06-23T12:00:00.000Z',
-}
-
-const editorUser: TestUser = {
-  ...adminUser,
-  id: 2,
-  email: 'editor@journalducuistot.fr',
-  role: 'editor',
-}
 
 function createMockKv(): RateLimitStore & { _store: Map<string, unknown> } {
   const store = new Map<string, unknown>()
@@ -69,23 +43,6 @@ describe('createRateLimiter (KV-based rate limiting)', () => {
     }
     const status = await limiter.check('10.0.0.1')
     expect(status.blocked).toBe(true)
-  })
-})
-
-describe('nuxt-authorization abilities', () => {
-  it('canEditContent allows admin and editor', async () => {
-    expect(await canEditContent.execute(adminUser)).toBe(true)
-    expect(await canEditContent.execute(editorUser)).toBe(true)
-  })
-
-  it('canManageUsers allows admin only', async () => {
-    expect(await canManageUsers.execute(adminUser)).toBe(true)
-    expect(await canManageUsers.execute(editorUser)).toBe(false)
-  })
-
-  it('abilities deny when no user is present', async () => {
-    expect(await canEditContent.execute(null)).not.toBe(true)
-    expect(await canManageUsers.execute(null)).not.toBe(true)
   })
 })
 

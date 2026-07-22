@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { STRAPI_IMPORT_STEPS, type StrapiImportStep } from '#shared/strapi-import'
+
+definePageMeta({ middleware: ['admin'] })
 import {
   STRAPI_IMPORT_STEP_ITEMS,
   formatStepCoverageHintForItem,

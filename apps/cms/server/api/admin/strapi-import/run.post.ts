@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { canAccessAdminApi } from '../../../../shared/abilities'
+import { canAccessImport } from '../../../../shared/abilities'
 import { STRAPI_IMPORT_STEPS, type StrapiImportRunBody } from '../../../../shared/strapi-import'
 import { executeStrapiImportJob, primeStrapiImportStatus } from '../../../services/strapi-import-runner'
 import {
@@ -9,6 +9,7 @@ import {
 import { runInBackground, shouldDeferWorkToBackground } from '../../../utils/background-task'
 import { createApiError } from '../../../utils/errors'
 import { validateBody } from '../../../utils/validate'
+import { requireAbility } from '../../../utils/http-auth'
 
 const bodySchema = z.object({
   dryRun: z.boolean().optional().default(false),
@@ -21,12 +22,11 @@ const bodySchema = z.object({
 }) satisfies z.ZodType<StrapiImportRunBody, z.ZodTypeDef, unknown>
 
 export default defineEventHandler(async (event) => {
-  await requireUserSession(event)
-  await authorize(event, canAccessAdminApi)
+  await requireAbility(event, canAccessImport)
 
   const current = await getStrapiImportStatus(event)
   if (current.status === 'running') {
-    throw createError({ statusCode: 409, statusMessage: 'Un import est déjà en cours' })
+    throw createApiError('CONFLICT', 'Un import est déjà en cours.')
   }
 
   const body = validateBody(bodySchema, await readBody(event))
@@ -38,10 +38,10 @@ export default defineEventHandler(async (event) => {
 
   const lockId = await acquireStrapiImportLock(event)
   if (!lockId) {
-    throw createError({
-      statusCode: 409,
-      statusMessage: 'Import verrouillé — réessayez plus tard ou réinitialisez l’état',
-    })
+    throw createApiError(
+      'CONFLICT',
+      'Import verrouillé — réessayez plus tard ou réinitialisez l’état.',
+    )
   }
 
   await primeStrapiImportStatus(event, body.dryRun)

@@ -1,15 +1,15 @@
 import { z } from 'zod'
-import { canAccessAdminApi } from '../../../../shared/abilities'
+import { canEditContent } from '../../../../shared/abilities'
 import { useDashboardService } from '../../../services/dashboard-service'
 import { createApiError } from '../../../utils/errors'
+import { requireAbility } from '../../../utils/http-auth'
 
 const querySchema = z.object({
   locale: z.string().default('fr'),
 })
 
 export default defineEventHandler(async (event) => {
-  await requireUserSession(event)
-  await authorize(event, canAccessAdminApi)
+  await requireAbility(event, canEditContent)
 
   const parsed = querySchema.safeParse(getQuery(event))
   if (!parsed.success) {
