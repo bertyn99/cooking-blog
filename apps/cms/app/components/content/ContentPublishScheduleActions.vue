@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ContentStatus } from '~/types/cms'
 import type { AdminPublishContentType } from '~/composables/useContentPublishing'
+import SchedulePublicationPickerContent from '~/components/content/SchedulePublicationPickerContent.vue'
 
 const props = defineProps<{
   contentType: AdminPublishContentType
@@ -28,11 +29,6 @@ const scheduleOpen = ref(false)
 
 const isPublished = computed(() => props.status === 'published')
 const showActions = computed(() => Boolean(props.contentId))
-const showScheduleModal = computed(() => showActions.value && !isPublished.value)
-
-function openScheduleModal() {
-  scheduleOpen.value = true
-}
 
 async function onPublishNow() {
   const next = await publishNow(props.ensureSaved)
@@ -61,7 +57,7 @@ async function onConfirmSchedule(dayKey: string) {
 </script>
 
 <template>
-  <template v-if="showActions">
+  <div v-if="showActions" class="contents">
     <UButton
       v-if="isPublished"
       type="button"
@@ -74,10 +70,9 @@ async function onConfirmSchedule(dayKey: string) {
       @click="onUnpublish"
     />
 
-    <UFieldGroup
+    <div
       v-else
-      orientation="horizontal"
-      class="shadow-sm"
+      class="inline-flex items-stretch shadow-sm"
     >
       <UButton
         type="button"
@@ -87,31 +82,37 @@ async function onConfirmSchedule(dayKey: string) {
         variant="solid"
         :loading="publishing"
         :disabled="scheduling"
-        class="min-w-[6.5rem] transition-transform active:scale-[0.98]"
+        class="rounded-r-none transition-transform active:scale-[0.98]"
         @click="onPublishNow"
       />
-      <UButton
-        type="button"
-        icon="i-lucide-calendar-clock"
-        color="success"
-        variant="outline"
-        square
-        aria-label="Planifier la publication"
-        title="Planifier la publication"
-        :loading="scheduling"
-        :disabled="publishing"
-        class="relative z-[1] transition-transform active:scale-[0.98]"
-        @click.stop.prevent="openScheduleModal"
-      />
-    </UFieldGroup>
-  </template>
 
-  <Teleport to="body">
-    <SchedulePublicationModal
-      v-if="showScheduleModal"
-      v-model:open="scheduleOpen"
-      :loading="scheduling"
-      @confirm="onConfirmSchedule"
-    />
-  </Teleport>
+      <UPopover
+        v-model:open="scheduleOpen"
+        :content="{ side: 'bottom', align: 'end' }"
+        :ui="{ content: 'p-0' }"
+      >
+        <UButton
+          type="button"
+          icon="i-lucide-calendar-clock"
+          color="success"
+          variant="outline"
+          square
+          aria-label="Planifier la publication"
+          title="Planifier la publication"
+          :loading="scheduling"
+          :disabled="publishing"
+          class="rounded-l-none -ml-px transition-transform active:scale-[0.98]"
+        />
+
+        <template #content>
+          <SchedulePublicationPickerContent
+            v-if="scheduleOpen"
+            :loading="scheduling"
+            @confirm="onConfirmSchedule"
+            @cancel="scheduleOpen = false"
+          />
+        </template>
+      </UPopover>
+    </div>
+  </div>
 </template>
