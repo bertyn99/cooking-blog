@@ -1,4 +1,4 @@
-import { eq, and, sql, desc } from 'drizzle-orm'
+import { eq, and, sql, desc, inArray } from 'drizzle-orm'
 import type { AppDb } from '../create-db'
 import { schema } from '../create-db'
 import { paginateResult } from '../../utils/pagination'
@@ -22,6 +22,9 @@ export function buildArticlesListSqlWhere(opts: ArticleListOptions) {
     }),
     opts.filters?.slug ? eq(articles.slug, opts.filters.slug) : undefined,
     opts.filters?.categoryId ? eq(articles.categoryId, opts.filters.categoryId) : undefined,
+    opts.filters?.categoryIds?.length
+      ? inArray(articles.categoryId, opts.filters.categoryIds)
+      : undefined,
     localeFilter(articles, opts.filters?.locale),
     statusFilter(articles, opts.filters?.status),
     searchFilter(articles, opts.filters?.search),

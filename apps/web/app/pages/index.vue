@@ -16,7 +16,7 @@ useHead({
   ],
 });
 
-const { find } = useStrapi();
+const { find } = useCms();
 
 interface HomepageData {
   articles: Article[];

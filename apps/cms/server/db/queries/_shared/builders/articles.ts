@@ -8,6 +8,7 @@ export interface ArticlesQueryOptions {
   filters?: {
     slug?: string
     categoryId?: number
+    categoryIds?: number[]
     locale?: string
     status?: 'draft' | 'published' | 'scheduled'
     search?: string

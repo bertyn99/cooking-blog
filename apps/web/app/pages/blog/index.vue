@@ -4,7 +4,7 @@ import type { Article, Category, StrapiResponse } from "~/types/strapiMeta";
 const search = ref("");
 const checkedCategories = ref<string[]>([]);
 const currentPage = ref(1);
-const { find } = useStrapi();
+const { find } = useCms();
 
 const { data: articles, refresh } = await useAsyncData<StrapiResponse<Article>>(
   `articles`,
@@ -25,7 +25,9 @@ const { data: articles, refresh } = await useAsyncData<StrapiResponse<Article>>(
 );
 
 const { data: categories } = await useAsyncData(`categories`, () =>
-  find<Category>(`category-articles?fields=name`),
+  find<Category>(`category-articles`, {
+    pagination: { page: 1, pageSize: 100 },
+  }),
 );
 
 const formatCategories = computed(() =>

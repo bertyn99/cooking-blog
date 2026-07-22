@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Recipe } from "~/types/strapiMeta";
 
-const { find } = useStrapi();
+const { find } = useCms();
 
 const { data: recipes } = useAsyncData("lates-recipes", () => {
   return find<Recipe>("recipes", {

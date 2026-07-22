@@ -4,7 +4,7 @@ definePageMeta({ layout: "content" });
 
 <script lang="ts" setup>
 import { useGenerateSchemaArianne } from "~/composables/useGenerateSchemaArianne";
-import type { StrapiFilters } from "~/composables/useStrapi";
+import type { CmsFilters } from "~/utils/cms-client";
 import type { Page } from "~/types/strapiMeta";
 
 const {
@@ -20,10 +20,10 @@ if (slugArray.length === 0 || slugArray[0] === " ") {
 const currentSlug = slugArray[slugArray.length - 1];
 const parentSlug = slugArray.length > 1 ? slugArray[slugArray.length - 2] : null;
 
-const { find } = useStrapi();
+const { find } = useCms();
 
 const cacheKey = `page-${slugArray.join("-")}`;
-const filters: StrapiFilters = {
+const filters: CmsFilters = {
   slug: { $eq: currentSlug },
 };
 

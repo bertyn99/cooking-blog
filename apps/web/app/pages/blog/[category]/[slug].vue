@@ -16,13 +16,15 @@ if (!articleSlug || articleSlug === " " || !categorySlug || categorySlug === " "
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
-const config = useRuntimeConfig();
-const strapiUrl = config.public.cmsBaseUrl;
+const { find } = useCms();
 
 const { data: article } = await useAsyncData<Article | null>("article", async () => {
-  const url = `${strapiUrl}/api/articles?filters[slug][$eq]=${articleSlug}&populate=*&pagination[page]=1&pagination[pageSize]=1`;
-  const response = await $fetch<{ data: Article[] }>(url);
-  return response.data[0] ?? null;
+  const result = await find<Article>("articles", {
+    filters: { slug: { $eq: articleSlug } },
+    populate: "*",
+    pagination: { page: 1, pageSize: 1 },
+  });
+  return result.data[0] ?? null;
 });
 
 if (!article.value) {

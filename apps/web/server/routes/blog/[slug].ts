@@ -1,4 +1,5 @@
-import type { Article, StrapiResponse } from "~/types/strapiMeta";
+import type { Article } from "~/types/strapiMeta";
+import { serverCmsFind } from "../../utils/cms-fetch";
 
 export default defineEventHandler(async (event) => {
   const { slug } = getRouterParams(event);
@@ -13,12 +14,11 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const config = useRuntimeConfig();
-    const strapiUrl = config.public.cmsBaseUrl;
-
-    const response = await $fetch<StrapiResponse<Article>>(
-      `${strapiUrl}/api/articles?filters[slug][$eq]=${articleSlug}&populate=category&pagination[page]=0&pagination[pageSize]=1`,
-    );
+    const response = await serverCmsFind<Article>("articles", {
+      filters: { slug: { $eq: articleSlug } },
+      populate: ["category"],
+      pagination: { page: 1, pageSize: 1 },
+    });
 
     if (response.data && response.data.length > 0) {
       const articleData = response.data[0];

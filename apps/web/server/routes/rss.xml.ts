@@ -1,7 +1,8 @@
 import RSS from "rss";
 
 import { generateSlug } from "~/utils/format";
-import type { Article, Page, Recipe, SEO, StrapiResponse } from "~/types/strapiMeta";
+import type { Article, Page, Recipe, SEO } from "~/types/strapiMeta";
+import { serverCmsFind } from "../utils/cms-fetch";
 
 function getSeoDescription(seo: SEO[] | SEO | undefined, seoMeta?: SEO) {
   if (seoMeta?.description) return seoMeta.description;
@@ -10,25 +11,30 @@ function getSeoDescription(seo: SEO[] | SEO | undefined, seoMeta?: SEO) {
 }
 
 export default defineEventHandler(async (event) => {
-  const strapiUrl = process.env.STRAPI_URL || process.env.NUXT_PUBLIC_CMS_BASE_URL || "http://localhost:3001";
-
   const feed = new RSS({
     title: "Journal du cuistot",
     site_url: "https://journalducuistot.fr",
     feed_url: `https://journalducuistot.fr/rss.xml`,
   });
 
-  const { data: pages } = await $fetch<StrapiResponse<Page>>(
-    `${strapiUrl}/api/pages?populate[0]=parent&populate[1]=parent.parent&populate[2]=seoMeta&pagination[pageSize]=100&pagination[page]=1&status=published`,
-  );
+  const [pagesResponse, articlesResponse, recipesResponse] = await Promise.all([
+    serverCmsFind<Page>("pages", {
+      populate: ["parent", "seoMeta"],
+      pagination: { page: 1, pageSize: 100 },
+    }),
+    serverCmsFind<Article>("articles", {
+      populate: "*",
+      pagination: { page: 1, pageSize: 100 },
+    }),
+    serverCmsFind<Recipe>("recipes", {
+      populate: "*",
+      pagination: { page: 1, pageSize: 100 },
+    }),
+  ]);
 
-  const { data: articles } = await $fetch<StrapiResponse<Article>>(
-    `${strapiUrl}/api/articles?populate=*&publishedAt:desc`,
-  );
-
-  const { data: recipes } = await $fetch<StrapiResponse<Recipe>>(
-    `${strapiUrl}/api/recipes?populate=*&publishedAt:desc`,
-  );
+  const pages = pagesResponse.data;
+  const articles = articlesResponse.data;
+  const recipes = recipesResponse.data;
 
   for (const doc of pages) {
     feed.item({
@@ -54,7 +60,7 @@ export default defineEventHandler(async (event) => {
       description: getSeoDescription(doc.seo, doc.seoMeta),
     });
   }
-  const feedString = feed.xml({ indent: true });
-  event.node.res.setHeader("content-type", "text/xml");
-  event.node.res.end(feedString);
+
+  setHeader(event, "content-type", "text/xml");
+  return feed.xml({ indent: true });
 });

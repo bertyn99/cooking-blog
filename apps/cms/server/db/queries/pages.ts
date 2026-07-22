@@ -22,6 +22,8 @@ function buildPagesListSqlWhere(opts: PageListOptions) {
       includeDeleted: opts.includeDeleted,
     }),
     localeFilter(pages, opts.locale),
+    opts.filters?.slug ? eq(pages.slug, opts.filters.slug) : undefined,
+    opts.filters?.parentId ? eq(pages.parentId, opts.filters.parentId) : undefined,
   )
 }
 
@@ -95,6 +97,16 @@ export function createPageQueries(db: AppDb) {
 
     findRowById(id: number) {
       return db.select().from(pages).where(eq(pages.id, id)).get()
+    },
+
+    findRowBySlug(slug: string, locale?: string) {
+      const conditions = [eq(pages.slug, slug)]
+      if (locale) conditions.push(eq(pages.locale, locale))
+      return db
+        .select({ id: pages.id })
+        .from(pages)
+        .where(and(...conditions))
+        .get()
     },
 
     async wouldCreateParentCycle(pageId: number, newParentId: number | null): Promise<boolean> {

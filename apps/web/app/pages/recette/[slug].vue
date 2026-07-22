@@ -9,13 +9,15 @@ const {
 
 const recipeSlug = Array.isArray(slug) ? slug[0] : slug;
 
-const config = useRuntimeConfig();
-const strapiUrl = config.public.cmsBaseUrl;
+const { find } = useCms();
 
 const { data: recipe } = await useAsyncData<Recipe | null>(`recipe-${recipeSlug}`, async () => {
-  const url = `${strapiUrl}/api/recipes?filters[slug][$eq]=${recipeSlug}&populate=*&pagination[page]=1&pagination[pageSize]=1`;
-  const response = await $fetch<{ data: Recipe[] }>(url);
-  return response.data[0] ?? null;
+  const result = await find<Recipe>("recipes", {
+    filters: { slug: { $eq: recipeSlug } },
+    populate: "*",
+    pagination: { page: 1, pageSize: 1 },
+  });
+  return result.data[0] ?? null;
 });
 
 if (!recipe.value) {

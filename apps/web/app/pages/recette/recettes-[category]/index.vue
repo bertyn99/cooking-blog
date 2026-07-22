@@ -16,7 +16,7 @@ if (!categorySlug || categorySlug === " ") {
   throw createError({ statusCode: 404, statusMessage: "Category Page Not Found" });
 }
 
-const { find } = useStrapi();
+const { find } = useCms();
 const { data: page } = await useAsyncData<Page | null>(
   `page-recettes-category-${categorySlug}`,
   async () => {

@@ -1,18 +1,29 @@
 <script lang="ts" setup>
-import type { Recipe, StrapiResponse } from "~/types/strapiMeta";
+import type { Article, Recipe } from "~/types/strapiMeta";
 
 const { category, typeContent } = defineProps<{
   category: string;
-  typeContent: string;
+  typeContent: "articles" | "recipes";
 }>();
 
-const { find } = useStrapi();
-const { data: content } = await useAsyncData<StrapiResponse<Recipe>>(
-  `recipe-you-may-like-${category}`,
-  () =>
-    find<Recipe>(
-      `${typeContent}?filters[category][$eq]=${category}&populate=*&pagination[pageSize]=3`,
-    ),
+const { find } = useCms();
+
+const { data: content } = await useAsyncData(
+  `you-may-like-${typeContent}-${category}`,
+  async () => {
+    if (typeContent === "articles") {
+      return find<Article>(typeContent, {
+        filters: { category: { $eq: category } },
+        populate: "*",
+        pagination: { pageSize: 3 },
+      });
+    }
+    return find<Recipe>(typeContent, {
+      filters: { category: { $eq: category } },
+      populate: "*",
+      pagination: { pageSize: 3 },
+    });
+  },
 );
 </script>
 
@@ -36,6 +47,7 @@ const { data: content } = await useAsyncData<StrapiResponse<Recipe>>(
         ></span>
       </h4>
     </div>
-    <RecipeList :list="content?.data ?? []" />
+    <RecipeList v-if="typeContent === 'recipes'" :list="(content?.data as Recipe[]) ?? []" />
+    <ArticleList v-else :articles="(content?.data as Article[]) ?? []" />
   </section>
 </template>

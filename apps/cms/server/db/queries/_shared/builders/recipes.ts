@@ -5,7 +5,7 @@ export type RecipeRelation = (typeof RECIPES_RELATIONS)[number]
 
 export interface RecipesQueryOptions {
   include: string[]
-  filters?: { slug?: string; categoryId?: number; locale?: string }
+  filters?: { slug?: string; categoryId?: number; categoryIds?: number[]; locale?: string; search?: string }
   isAuthenticated: boolean
 }
 

@@ -1,4 +1,4 @@
-import { eq, and, sql, desc } from 'drizzle-orm'
+import { eq, and, sql, desc, inArray, or, like } from 'drizzle-orm'
 import type { AppDb } from '../create-db'
 import { schema } from '../create-db'
 import { paginateResult } from '../../utils/pagination'
@@ -29,13 +29,21 @@ export interface RecipeListOptions extends RecipesQueryOptions {
 }
 
 function buildRecipesListSqlWhere(opts: RecipeListOptions) {
+  const searchTerm = opts.filters?.search ? `%${opts.filters.search}%` : undefined
+
   return mergeConditions(
     ...applyPublishedScope(recipes, {
       scope: opts.isAuthenticated ? 'admin' : 'public',
     }),
     opts.filters?.slug ? eq(recipes.slug, opts.filters.slug) : undefined,
     opts.filters?.categoryId ? eq(recipes.categoryId, opts.filters.categoryId) : undefined,
+    opts.filters?.categoryIds?.length
+      ? inArray(recipes.categoryId, opts.filters.categoryIds)
+      : undefined,
     localeFilter(recipes, opts.filters?.locale),
+    searchTerm
+      ? or(like(recipes.title, searchTerm), like(recipes.slug, searchTerm))
+      : undefined,
   )
 }
 

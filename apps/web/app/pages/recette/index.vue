@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Category, Recipe, StrapiResponse } from "~/types/strapiMeta";
 
-const { find } = useStrapi();
+const { find } = useCms();
 const search = ref("");
 const checkedCategories = ref<string[]>([]);
 const currentPage = ref(1);
@@ -49,7 +49,9 @@ const searchWithFilter = () => {
   refresh();
 };
 const { data: categories } = await useAsyncData(`categories`, () =>
-  find<Category>(`categories?fields=name`),
+  find<Category>(`categories`, {
+    pagination: { page: 1, pageSize: 100 },
+  }),
 );
 
 const formatCategories = computed(() =>

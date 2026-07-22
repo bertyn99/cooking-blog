@@ -268,7 +268,7 @@
     "useLoadMeta": "readonly",
     "useComark": "readonly",
     "useReadingTime": "readonly",
-    "useStrapi": "readonly",
+    "useCms": "readonly",
     "capitalizeFirstLetter": "readonly",
     "cn": "readonly",
     "generateSlug": "readonly",

@@ -103,7 +103,7 @@ const { data } = await useAsyncData<T>('cache-key', () =>
   })
 );
 ```
-Always wrap `useStrapi().find()` in `useAsyncData` with a unique cache key. Type every call with the matching type from `~/types/strapiMeta.d.ts`.
+Always wrap `useCms().find()` in `useAsyncData` with a unique cache key. Type every call with the matching type from `~/types/strapiMeta.d.ts`. (`useStrapi` is a deprecated alias.)
 
 ### SEO triple-call (every content page)
 ```ts

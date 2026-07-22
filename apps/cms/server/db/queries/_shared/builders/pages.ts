@@ -13,6 +13,11 @@ export interface PagesQueryOptions {
   include: string[]
   /** Locale to filter by. If omitted, no locale filter is applied. */
   locale?: string
+  filters?: {
+    slug?: string
+    parentSlug?: string
+    parentId?: number
+  }
   /** When false (unauthenticated), filters to published + non-deleted pages only. */
   isAuthenticated: boolean
   includeDeleted?: boolean

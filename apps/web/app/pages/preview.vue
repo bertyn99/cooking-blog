@@ -4,7 +4,7 @@ definePageMeta({ layout: "content" });
 
 <script lang="ts" setup>
 import { useGenerateSchemaArianne } from "~/composables/useGenerateSchemaArianne";
-import type { StrapiFilters } from "~/composables/useStrapi";
+import type { CmsFilters } from "~/utils/cms-client";
 import type { Article, Page, Recipe } from "~/types/strapiMeta";
 
 const route = useRoute();
@@ -33,7 +33,7 @@ const isNestedSlug = slugParts.length > 1;
 const categorySlug: string | null = isNestedSlug && slugParts[0] ? slugParts[0] : null;
 const articleSlug: string = isNestedSlug && slugParts[1] ? slugParts[1] : contentSlug;
 
-const { find } = useStrapi();
+const { find } = useCms();
 const cacheKey = `preview-${contentType}-${contentSlug}`;
 
 const { data: content, error: fetchError } = await useAsyncData<Page | Recipe | Article | null>(
@@ -41,7 +41,7 @@ const { data: content, error: fetchError } = await useAsyncData<Page | Recipe | 
   async () => {
     try {
       if (contentType === "page") {
-        const filters: StrapiFilters = { slug: { $eq: articleSlug } };
+        const filters: CmsFilters = { slug: { $eq: articleSlug } };
         if (isNestedSlug && categorySlug) {
           filters.parent = { slug: { $eq: categorySlug } };
         }
@@ -67,7 +67,7 @@ const { data: content, error: fetchError } = await useAsyncData<Page | Recipe | 
       }
 
       if (contentType === "article") {
-        const filters: StrapiFilters = { slug: { $eq: articleSlug } };
+        const filters: CmsFilters = { slug: { $eq: articleSlug } };
         if (isNestedSlug && categorySlug) {
           filters.category = { slug: { $eq: categorySlug } };
         }
