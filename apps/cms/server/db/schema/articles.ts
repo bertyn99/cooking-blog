@@ -9,6 +9,8 @@ export const articles = sqliteTable('articles', {
   content: text('content'),
   slug: text('slug').notNull(),
   coverBlobPathname: text('cover_blob_pathname').references(() => blobs.pathname),
+  coverAltText: text('cover_alt_text'),
+  coverDescription: text('cover_description'),
   categoryId: integer('category_id').references(() => categoryArticles.id),
   firstPublishedAt: text('first_published_at'),
   status: text('status', { enum: ['draft', 'published', 'scheduled'] }).default('draft').notNull(),

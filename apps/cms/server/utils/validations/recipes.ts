@@ -34,6 +34,8 @@ export const createRecipeSchema = z.object({
   difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
   time: z.number().optional(),
   coverBlobPathname: z.string().optional(),
+  coverAltText: z.string().nullable().optional(),
+  coverDescription: z.string().nullable().optional(),
   locale: z.string().default('fr'),
   localeGroupId: z.string().optional(),
   status: z.enum(['draft', 'published', 'scheduled']).optional(),

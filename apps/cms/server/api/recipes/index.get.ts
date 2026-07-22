@@ -1,12 +1,14 @@
 import { createRecipeQueries } from '../../db/queries/recipes'
 import { parsePagination } from '../../utils/pagination'
 import { useDb } from '../../utils/db'
+import { serializeRecipeForScope } from '../../utils/serialize-content'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const db = useDb(event)
   const session = await getUserSession(event)
   const isAuthenticated = !!session.user
+  const scope = isAuthenticated ? 'admin' : 'public'
 
   const include = ((query.include as string) || '').split(',').map(s => s.trim()).filter(Boolean)
   const filters = {
@@ -19,10 +21,15 @@ export default defineEventHandler(async (event) => {
 
   const pagination = parsePagination(query as Record<string, string>)
 
-  return createRecipeQueries(db).listPage({
+  const page = await createRecipeQueries(db).listPage({
     include,
     filters,
     isAuthenticated,
     pagination,
   })
+
+  return {
+    ...page,
+    data: page.data.map(row => serializeRecipeForScope(row, scope)),
+  }
 })

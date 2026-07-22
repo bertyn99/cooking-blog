@@ -12,6 +12,8 @@ interface ArticleDetail {
   categoryId: number | null
   status: string
   coverBlobPathname: string | null
+  coverAltText?: string | null
+  coverDescription?: string | null
   cover?: { pathname: string, originalName: string | null } | null
   seo?: {
     description: string | null
@@ -47,6 +49,8 @@ const { data: article, status } = await useAsyncData(
         categoryId: article.categoryId ?? undefined,
         status: article.status,
         coverBlobPathname: article.coverBlobPathname,
+        coverAltText: article.coverAltText ?? null,
+        coverDescription: article.coverDescription ?? null,
         coverDisplayName: article.cover?.originalName ?? article.cover?.pathname ?? null,
         seo: article.seo,
       }"

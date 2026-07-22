@@ -31,6 +31,8 @@ interface RecipeDetail {
   categoryId: number | null
   status: string
   coverBlobPathname: string | null
+  coverAltText?: string | null
+  coverDescription?: string | null
   cover?: { pathname: string, originalName: string | null } | null
   ingredients?: RecipeIngredient[] | null
   utensils?: RecipeUtensilRow[] | null
@@ -79,6 +81,8 @@ const { data: recipe, status } = await useAsyncData(
         categoryId: recipe.categoryId ?? undefined,
         status: recipe.status,
         coverBlobPathname: recipe.coverBlobPathname,
+        coverAltText: recipe.coverAltText ?? null,
+        coverDescription: recipe.coverDescription ?? null,
         coverDisplayName: recipe.cover?.originalName ?? recipe.cover?.pathname ?? null,
         ingredients: recipe.ingredients ?? undefined,
         utensils: recipe.utensils ?? undefined,

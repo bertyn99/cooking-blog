@@ -27,6 +27,8 @@ export default defineEventHandler(async (event) => {
     slug,
     categoryId: data.categoryId,
     coverBlobPathname: data.coverBlobPathname,
+    coverAltText: data.coverAltText,
+    coverDescription: data.coverDescription,
     locale: data.locale || 'fr',
     localeGroupId: data.localeGroupId,
     status: 'draft',

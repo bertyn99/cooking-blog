@@ -2,6 +2,7 @@ import { createRecipeQueries } from '../../db/queries/recipes'
 import { parseInclude } from '../../utils/populate'
 import { createApiError } from '../../utils/errors'
 import { useDb } from '../../utils/db'
+import { serializeRecipeForScope } from '../../utils/serialize-content'
 
 export default defineEventHandler(async (event) => {
   const id = Number.parseInt(getRouterParam(event, 'id') || '', 10)
@@ -20,5 +21,5 @@ export default defineEventHandler(async (event) => {
     throw createApiError('NOT_FOUND', 'Recipe not found')
   }
 
-  return recipe
+  return serializeRecipeForScope(recipe, scope)
 })

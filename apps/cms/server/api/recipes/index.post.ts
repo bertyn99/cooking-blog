@@ -30,6 +30,8 @@ export default defineEventHandler(async (event) => {
     difficulty: data.difficulty,
     time: data.time,
     coverBlobPathname: data.coverBlobPathname,
+    coverAltText: data.coverAltText,
+    coverDescription: data.coverDescription,
     locale: data.locale || 'fr',
     localeGroupId: data.localeGroupId,
     status: 'draft',

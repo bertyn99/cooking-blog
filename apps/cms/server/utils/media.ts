@@ -219,6 +219,57 @@ export async function renameMediaFile(
   return getMediaDetail(event, pathname)
 }
 
+export async function updateMediaAccessibility(
+  event: H3Event,
+  db: AppDb,
+  pathname: string,
+  patch: { originalName?: string, altText?: string | null, description?: string | null },
+) {
+  const row = await db.select().from(schema.blobs).where(eq(schema.blobs.pathname, pathname)).get()
+  if (!row) {
+    throw createApiError('NOT_FOUND', 'Media not found')
+  }
+  if (isMediaFolderMarkerPathname(pathname)) {
+    throw createApiError('VALIDATION_ERROR', 'Folders cannot be edited this way')
+  }
+
+  const updates: {
+    originalName?: string
+    altText?: string | null
+    fileMetadata?: MediaFileMetadata | null
+    updatedAt: ReturnType<typeof sql>
+  } = {
+    updatedAt: sql`CURRENT_TIMESTAMP`,
+  }
+
+  if (patch.originalName !== undefined) {
+    const name = patch.originalName.trim()
+    if (!name) {
+      throw createApiError('VALIDATION_ERROR', 'Name is required')
+    }
+    updates.originalName = name
+  }
+
+  if (patch.altText !== undefined) {
+    updates.altText = patch.altText?.trim() || null
+  }
+
+  if (patch.description !== undefined) {
+    const meta: MediaFileMetadata = { ...(row.fileMetadata ?? {}) }
+    const next = patch.description?.trim()
+    if (next) {
+      meta.description = next
+    }
+    else {
+      delete meta.description
+    }
+    updates.fileMetadata = Object.keys(meta).length ? meta : null
+  }
+
+  await db.update(schema.blobs).set(updates).where(eq(schema.blobs.pathname, pathname))
+  return getMediaDetail(event, pathname)
+}
+
 export async function createMediaFolder(
   event: H3Event,
   db: AppDb,

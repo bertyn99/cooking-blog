@@ -6,6 +6,8 @@ export const createArticleSchema = z.object({
   slug: z.string().optional(),
   categoryId: z.number().optional(),
   coverBlobPathname: z.string().nullable().optional(),
+  coverAltText: z.string().nullable().optional(),
+  coverDescription: z.string().nullable().optional(),
   locale: z.string().default('fr'),
   localeGroupId: z.string().optional(),
   status: z.enum(['draft', 'published', 'scheduled']).optional(),

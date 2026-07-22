@@ -9,6 +9,8 @@ export const recipes = sqliteTable('recipes', {
   intro: text('intro'),
   slug: text('slug').notNull(),
   coverBlobPathname: text('cover_blob_pathname').references(() => blobs.pathname),
+  coverAltText: text('cover_alt_text'),
+  coverDescription: text('cover_description'),
   categoryId: integer('category_id').references(() => categories.id),
   step: text('step'),
   difficulty: text('difficulty', { enum: ['easy', 'medium', 'hard'] }).default('easy'),
