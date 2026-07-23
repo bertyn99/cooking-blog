@@ -1,5 +1,6 @@
 import { loginSchema } from '../../../shared/validators/auth'
 import { toSessionUser } from '../../utils/auth/user'
+import { getClientIp } from '../../utils/client-ip'
 import { createRateLimiter } from '../../utils/rate-limit'
 import { createApiError } from '../../utils/errors'
 import { useKvStore } from '../../utils/kv'
@@ -17,17 +18,6 @@ const DUMMY_HASH
 
 function getLoginLimiter(event: H3Event) {
   return createRateLimiter(useKvStore(event), LOGIN_LIMIT)
-}
-
-function getClientIp(event: H3Event): string {
-  const headers = getRequestHeaders(event)
-  const forwarded = headers['x-forwarded-for']
-  if (typeof forwarded === 'string' && forwarded.length > 0) {
-    return forwarded.split(',')[0]!.trim()
-  }
-  const nodeReq = (event as unknown as { node?: { req?: { remoteAddress?: string } } }).node
-  if (nodeReq?.req?.remoteAddress) return nodeReq.req.remoteAddress
-  return 'unknown'
 }
 
 export default defineEventHandler(async (event) => {

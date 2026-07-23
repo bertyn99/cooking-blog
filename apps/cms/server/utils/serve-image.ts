@@ -5,13 +5,17 @@ import {
   parseIpxImagePath,
 } from '../../shared/ipx-image-path'
 import {
+  IMAGE_DELIVERY_RATE_LIMIT,
   imageDeliveryCacheRequest,
   isAllowedMediaAssetPath,
   sanitizeDeliveryOperations,
 } from '../../shared/image-delivery-policy'
 import { transformImageBufferForDelivery } from '../../shared/image-transform-delivery'
+import { getClientIp } from './client-ip'
 import { runInBackground } from './background-task'
 import { useMediaStorage } from './media-storage'
+import { createRequestRateLimiter } from './rate-limit'
+import { useKvStore } from './kv'
 
 const LONG_CACHE = 'public, max-age=31536000, stale-while-revalidate=604800'
 
@@ -34,6 +38,15 @@ async function streamToArrayBuffer(stream: ReadableStream): Promise<ArrayBuffer>
  * Transformed (and origin) responses are cached via the Worker Cache API when available.
  */
 export async function serveCmsImage(event: H3Event, fullPath: string) {
+  const imageLimiter = createRequestRateLimiter(useKvStore(event), IMAGE_DELIVERY_RATE_LIMIT)
+  const rate = await imageLimiter.consume(getClientIp(event))
+  if (!rate.allowed) {
+    throw createError({
+      statusCode: 429,
+      statusMessage: 'Too many image requests',
+    })
+  }
+
   const { assetPath, operations } = parseIpxImagePath(fullPath)
   if (!assetPath) {
     throw createError({ statusCode: 404 })

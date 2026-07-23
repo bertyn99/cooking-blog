@@ -81,3 +81,10 @@ export function imageDeliveryCacheRequest(pathname: string): Request {
   const path = pathname.startsWith('/') ? pathname : `/${pathname}`
   return new Request(`https://image-cache.local${path}`)
 }
+
+/** KV fixed-window limits for public `GET /images/**` (per connecting IP). */
+export const IMAGE_DELIVERY_RATE_LIMIT = {
+  prefix: 'images:req',
+  maxRequests: 120,
+  windowSeconds: 60,
+} as const

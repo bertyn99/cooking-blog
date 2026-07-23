@@ -130,9 +130,10 @@ flowchart LR
 2. **Web** remains a **proxy** to CMS for `/images/**` (no second transform, no Worker Cache API on web).
 3. **Do not** add Cloudflare Images binding to Alchemy until a deliberate migration (option B or D) is chosen and URL compatibility is designed.
 4. **Follow-ups** (not blocking ADR):
-   - KV **rate limiting** on public `GET /images/**` (pattern from [Transloadit R2 article](https://transloadit.com/devtips/creating-a-free-image-cdn-with-cloudflare-r2/)).
+   - ~~KV **rate limiting** on public `GET /images/**`~~ — implemented (`IMAGE_DELIVERY_RATE_LIMIT` in [`image-delivery-policy.ts`](../../apps/cms/shared/image-delivery-policy.ts), enforced in [`serve-image.ts`](../../apps/cms/server/utils/serve-image.ts)).
    - Optional shared `packages/image-ipx` if `apps/web` should stop importing `apps/cms/shared/ipx-image-path.ts`.
    - Revisit **B** if Worker CPU or AVIF becomes a product requirement.
+   - Consider **Workers Caching** (response `Cache-Control` only) instead of or in addition to **Cache API** — see [Workers Cache](https://developers.cloudflare.com/workers/cache/) vs [Cache API limitations](https://developers.cloudflare.com/workers/cache/limitations/).
 
 ## Consequences
 
@@ -147,6 +148,7 @@ flowchart LR
 - Higher Worker CPU on cache cold starts than native resizing.
 - No true AVIF without changing option or adding a second encoder.
 - `cf.image` behaviour in local `nuxt dev` does not mirror production unless mocked.
+- **Cache API** (`caches.default`) does not replace zone CDN or **Workers Caching**: the Worker still runs on every request; hits only skip R2/jSquash work inside the handler ([Cache API vs Workers Cache](https://developers.cloudflare.com/workers/cache/limitations/)). Long `Cache-Control` headers enable browser cache and, on proxied routes, can feed **Workers Caching** at the edge when enabled for that Worker.
 
 ### When to revisit
 

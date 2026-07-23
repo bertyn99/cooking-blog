@@ -86,3 +86,36 @@ export function createRateLimiter(store: RateLimitStore, config: RateLimitConfig
 
 /** Type of the object returned by `createRateLimiter`. */
 export type RateLimiter = ReturnType<typeof createRateLimiter>
+
+export interface RequestRateLimitConfig {
+  prefix: string
+  maxRequests: number
+  windowSeconds: number
+}
+
+export interface RequestRateLimitResult {
+  allowed: boolean
+  current: number
+  limit: number
+}
+
+/**
+ * Fixed-window request counter (e.g. public `/images/**` abuse protection).
+ * Increments before serving; blocks when count exceeds `maxRequests` within the TTL window.
+ */
+export function createRequestRateLimiter(store: RateLimitStore, config: RequestRateLimitConfig) {
+  const keyFor = (id: string) => `${config.prefix}:${id}`
+
+  return {
+    async consume(id: string): Promise<RequestRateLimitResult> {
+      const raw = await store.get<number>(keyFor(id))
+      const current = typeof raw === 'number' ? raw : 0
+      if (current >= config.maxRequests) {
+        return { allowed: false, current, limit: config.maxRequests }
+      }
+      const next = current + 1
+      await store.set(keyFor(id), next, { ttl: config.windowSeconds })
+      return { allowed: true, current: next, limit: config.maxRequests }
+    },
+  }
+}
