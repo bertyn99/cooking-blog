@@ -101,22 +101,45 @@ Reduces duplicate encode logic for **delivery** but splits behaviour and test ma
 
 [Alchemy Workers Cache](https://alchemy.run/cloudflare/compute/cache/) enables **read-through edge caching in front of the Worker**. On a cache hit, Cloudflare serves the stored response **without invoking** the Worker handler (unlike the programmatic [Cache API](https://developers.cloudflare.com/workers/cache/limitations/), which still runs your code on every request).
 
-Configured in [`infra/workers.ts`](../../infra/workers.ts) for both `Cms` and `Web` Nitro bundles:
+Configured in [`infra/workers.ts`](../../infra/workers.ts) on the **Cms** Worker only (not **Web** — see pricing below):
 
 ```typescript
-const WORKERS_CACHE = {
+const CMS_WORKERS_CACHE = {
   enabled: true,
   crossVersionCache: true,
 } as const
 
-// Cloudflare.Worker('Cms', { ..., cache: WORKERS_CACHE })
+// Cloudflare.Worker('Cms', { ..., cache: CMS_WORKERS_CACHE })
+// Cloudflare.Worker('Web', { ... }) — no cache prop
 ```
+
+### Workers Cache pricing (checked against Cloudflare docs)
+
+[Workers Cache pricing](https://developers.cloudflare.com/workers/cache/) has **no separate SKU**: every request to a Worker with caching enabled is billed at the **standard Workers request rate**, including **cache hits** (no CPU on hits). The important caveat:
+
+> When caching is enabled, every request to your Worker is charged at the standard Workers request rate, **including requests that are normally free**: static asset requests and worker-to-worker invocations.
+
+| Request type | Request charge | CPU |
+|--------------|----------------|-----|
+| Cache **HIT** (Worker does not run) | Standard rate | Not billed |
+| Cache **MISS** / bypass | Standard rate | Billed |
+| Static asset (cache **disabled**) | **Free** ([pricing](https://developers.cloudflare.com/workers/platform/pricing/)) | Not billed |
+| Static asset (cache **enabled**) | Standard rate | Not billed |
+
+**Implications for this project:**
+
+| Worker | Workers Cache | Rationale |
+|--------|---------------|-----------|
+| **Web** | **Off** | High volume of `/_nuxt/*` and `public/` static assets; enabling cache would bill every asset request. Public HTML still uses Redis ISR / `Cache-Control` as today. `/images/**` proxy is cheap CPU; browsers cache via long `Cache-Control` from CMS. |
+| **Cms** | **On** | Pays request charges on admin static assets too, but **image cache hits avoid jSquash CPU** (main cost driver). Public `/images` reached via Web `fetch` to CMS still benefits from **CMS** edge cache on that subrequest ([subrequests are not billed](https://developers.cloudflare.com/workers/platform/pricing/) as separate inbound requests — the **CMS** worker still sees one inbound request per subrequest). **Admin traffic is ~1–5 users/day**, so billing `/_nuxt/*` on Cms is negligible vs public image volume. |
+
+Revisit enabling cache on **Web** only if traffic shifts to mostly cacheable `/images/**` and static assets move off the Worker (e.g. separate asset host).
 
 | Concern | How we handle it |
 |---------|-------------------|
 | **What gets cached** | Response headers only: `Cache-Control`, `Cache-Tag`, `Vary` ([Alchemy docs](https://alchemy.run/cloudflare/compute/cache/)) |
 | **Images (CMS)** | `Cache-Control: public, max-age=31536000, stale-while-revalidate=604800`, `Cache-Tag: media,media-path-…`, `Vary: Accept` when transforms run |
-| **Images (web proxy)** | Forwards CMS `Cache-Control`, `Cache-Tag`, and `Vary` so the **Web** Worker edge cache can serve repeat `/images/**` without hitting CMS |
+| **Images (web proxy)** | Forwards CMS `Cache-Control`, `Cache-Tag`, and `Vary` (browser cache; no Workers Cache on Web) |
 | **Admin / API** | Must keep `Cache-Control: private` or `no-store` on authenticated HTML and `/api/*` (Nuxt defaults) so Workers Cache does not store sessions |
 | **crossVersionCache** | Image bytes are content-addressed by URL; safe to share cached variants across deploys |
 | **Purge** | `Cache-Tag` + `ctx.cache.purge({ tags })` on blob delete ([`workers-image-cache.ts`](../../apps/cms/server/utils/workers-image-cache.ts)) and maintenance media wipe |
@@ -128,14 +151,13 @@ const WORKERS_CACHE = {
 
 ```mermaid
 flowchart LR
-  subgraph Edge["Workers Cache (edge)"]
+  subgraph Edge["Workers Cache (CMS only)"]
     WCms["Cms cache"]
-    WWeb["Web cache"]
   end
-  subgraph WebWorker["Web Worker (Alchemy)"]
+  subgraph WebWorker["Web Worker (no Workers Cache)"]
     WImg["/images/* proxy"]
   end
-  subgraph CmsWorker["CMS Worker (Alchemy)"]
+  subgraph CmsWorker["CMS Worker"]
     CImg["/images/* IPX + jSquash"]
     API["/api/*"]
   end
@@ -143,9 +165,8 @@ flowchart LR
   D1[(D1 DB)]
   KV[(KV Cache)]
 
-  User --> WWeb
-  WWeb -->|miss| WImg
-  WImg -->|miss| WCms
+  User --> WImg
+  WImg -->|fetch| WCms
   WCms -->|miss| CImg
   CImg --> R2
   API --> D1
@@ -158,7 +179,7 @@ On **hit**, the edge returns bytes and inner Workers are not executed (including
 ## Decision
 
 1. **Keep option A** for production on Alchemy: CMS owns transforms, IPX paths, jSquash, R2 originals.
-2. **Web** remains a **proxy** to CMS for `/images/**` (no transform); both Workers use Alchemy **Workers Cache** via the `cache` prop.
+2. **Web** remains a **proxy** to CMS for `/images/**` (no transform); **Workers Cache only on Cms** (see pricing).
 3. **Do not** add Cloudflare Images binding to Alchemy until a deliberate migration (option B or D) is chosen and URL compatibility is designed.
 4. **Follow-ups** (not blocking ADR):
    - ~~KV **rate limiting** on public `GET /images/**`~~ — implemented (`IMAGE_DELIVERY_RATE_LIMIT` in [`image-delivery-policy.ts`](../../apps/cms/shared/image-delivery-policy.ts), enforced in [`serve-image.ts`](../../apps/cms/server/utils/serve-image.ts)).
@@ -173,7 +194,7 @@ On **hit**, the edge returns bytes and inner Workers are not executed (including
 ### Positive
 
 - Single code path for admin and web; aligns with Nuxt Image / IPX ecosystem.
-- Alchemy **Workers Cache** on `Cms` + `Web` (`crossVersionCache` for image URLs); no separate Images product binding.
+- Alchemy **Workers Cache** on **Cms** only (`crossVersionCache` for image URLs); **Web** leaves cache off to preserve free static assets.
 - Policy layer (max edge, sanitize ops, path guard, transform failure → 502) is explicit in repo.
 
 ### Negative
@@ -181,7 +202,7 @@ On **hit**, the edge returns bytes and inner Workers are not executed (including
 - Higher Worker CPU on cache cold starts than native resizing.
 - No true AVIF without changing option or adding a second encoder.
 - `cf.image` behaviour in local `nuxt dev` does not mirror production unless mocked.
-- **Workers Cache hits** skip the handler (rate limit and transform not run on that request).
+- **Workers Cache on Cms** bills standard requests for admin `/_nuxt/*` assets that were previously free; offset by lower CPU on image cache hits ([pricing](https://developers.cloudflare.com/workers/cache/)).
 
 ### When to revisit
 
@@ -195,4 +216,7 @@ On **hit**, the edge returns bytes and inner Workers are not executed (including
 - [Transloadit: Free image CDN with R2 and Workers](https://transloadit.com/devtips/creating-a-free-image-cdn-with-cloudflare-r2/)
 - [unjs/ipx](https://github.com/unjs/ipx) — URL modifier conventions
 - [jSquash Cloudflare Worker example](https://github.com/jamsinclair/jSquash/tree/main/examples/cloudflare-worker-esm-format)
+- [Cloudflare Workers Cache (pricing)](https://developers.cloudflare.com/workers/cache/)
+- [Workers platform pricing](https://developers.cloudflare.com/workers/platform/pricing/)
+- [Alchemy Workers Cache](https://alchemy.run/cloudflare/compute/cache/)
 - Implementation: [`infra/workers.ts`](../../infra/workers.ts), [`apps/cms/server/utils/serve-image.ts`](../../apps/cms/server/utils/serve-image.ts), [`apps/cms/shared/image-delivery-policy.ts`](../../apps/cms/shared/image-delivery-policy.ts), [`apps/web/server/utils/serve-cms-image.ts`](../../apps/web/server/utils/serve-cms-image.ts)
