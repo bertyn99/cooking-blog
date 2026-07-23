@@ -4,6 +4,7 @@ import { createApiError } from '../../utils/errors'
 import { useQueries } from '../../utils/db'
 import { requireEditor } from '../../utils/http-auth'
 import { applyContentStatusPolicy } from '../../utils/content-status-policy'
+import { authorshipOnUpdate } from '../../utils/content-authorship'
 
 export default defineEventHandler(async (event) => {
   const session = await requireEditor(event)
@@ -50,8 +51,10 @@ export default defineEventHandler(async (event) => {
           status: statusFields.status ?? body.status,
           publishedAt: statusFields.publishedAt,
           scheduledAt: statusFields.scheduledAt,
+          firstPublishedAt: statusFields.firstPublishedAt,
         }
       : {}),
+    ...authorshipOnUpdate(session.user.id),
     updatedAt: now,
   })
 

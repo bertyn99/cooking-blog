@@ -3,6 +3,7 @@ import type { AppDb } from '../create-db'
 import { schema } from '../create-db'
 import { queryConflict, queryNotFound } from '../../db/query-errors'
 import type { PublishableContentType } from '../../utils/content-types'
+import { createContentRevisionQueries } from './content-revisions'
 
 type SchedulableTable =
   | typeof schema.articles
@@ -11,20 +12,28 @@ type SchedulableTable =
   | typeof schema.categories
   | typeof schema.categoryArticles
 
-type TrackFirstPublishedTable = typeof schema.articles | typeof schema.recipes
+type VersionedContentTable =
+  | typeof schema.articles
+  | typeof schema.recipes
+  | typeof schema.pages
 
 const CONTENT_TABLES = {
-  articles: { table: schema.articles, trackFirstPublished: true },
-  recipes: { table: schema.recipes, trackFirstPublished: true },
-  pages: { table: schema.pages, trackFirstPublished: false },
-  categories: { table: schema.categories, trackFirstPublished: false },
-  'category-articles': { table: schema.categoryArticles, trackFirstPublished: false },
+  articles: { table: schema.articles, trackFirstPublished: true, versioned: true },
+  recipes: { table: schema.recipes, trackFirstPublished: true, versioned: true },
+  pages: { table: schema.pages, trackFirstPublished: true, versioned: true },
+  categories: { table: schema.categories, trackFirstPublished: false, versioned: false },
+  'category-articles': { table: schema.categoryArticles, trackFirstPublished: false, versioned: false },
 } as const satisfies Record<PublishableContentType, {
   table: SchedulableTable
   trackFirstPublished: boolean
+  versioned: boolean
 }>
 
-type PublishDb = Pick<AppDb, 'select' | 'update'>
+export interface PublishActorContext {
+  actorUserId?: number | null
+}
+
+type PublishDb = Pick<AppDb, 'select' | 'update' | 'insert' | 'transaction'>
 
 function getContentConfig(contentType: PublishableContentType) {
   return CONTENT_TABLES[contentType]
@@ -39,33 +48,79 @@ function scheduledDueWhere<T extends SchedulableTable>(table: T, now: string) {
   )
 }
 
-async function publishDueArticles(
-  db: PublishDb,
-  table: TrackFirstPublishedTable,
-  now: string,
-): Promise<number> {
-  const due = await db
-    .select({ id: table.id, firstPublishedAt: table.firstPublishedAt })
-    .from(table)
-    .where(scheduledDueWhere(table, now))
-    .all()
-
-  for (const row of due) {
-    await db.update(table).set({
-      status: 'published',
-      publishedAt: now,
-      scheduledAt: null,
-      updatedAt: now,
-      ...(!row.firstPublishedAt ? { firstPublishedAt: now } : {}),
-    }).where(eq(table.id, row.id))
-  }
-
-  return due.length
+function rowToSnapshot(row: Record<string, unknown>) {
+  return { ...row }
 }
 
-async function publishDueSimple(
+async function publishVersionedRow(
   db: PublishDb,
-  table: Exclude<SchedulableTable, TrackFirstPublishedTable>,
+  contentType: PublishableContentType,
+  table: VersionedContentTable,
+  id: number,
+  now: string,
+  actor?: PublishActorContext,
+) {
+  const revisions = createContentRevisionQueries(db as AppDb)
+  const row = await db
+    .select()
+    .from(table)
+    .where(eq(table.id, id))
+    .get()
+
+  if (!row) {
+    return false
+  }
+
+  const currentVersion = row.version ?? 1
+  const nextVersion = currentVersion + 1
+  const firstPublishedAt = 'firstPublishedAt' in row ? row.firstPublishedAt : null
+
+  await db.update(table).set({
+    status: 'published',
+    publishedAt: now,
+    scheduledAt: null,
+    updatedAt: now,
+    version: nextVersion,
+    ...(!firstPublishedAt ? { firstPublishedAt: now } : {}),
+  }).where(eq(table.id, id))
+
+  const published = await db
+    .select()
+    .from(table)
+    .where(eq(table.id, id))
+    .get()
+
+  if (published) {
+    await revisions.recordPublishSnapshot({
+      contentType,
+      contentId: id,
+      version: nextVersion,
+      snapshot: rowToSnapshot(published as Record<string, unknown>),
+      actorUserId: actor?.actorUserId,
+    })
+  }
+
+  return true
+}
+
+async function publishSimpleRow(
+  db: PublishDb,
+  table: Exclude<SchedulableTable, VersionedContentTable>,
+  id: number,
+  now: string,
+) {
+  await db.update(table).set({
+    status: 'published',
+    publishedAt: now,
+    scheduledAt: null,
+    updatedAt: now,
+  }).where(eq(table.id, id))
+}
+
+async function publishDueVersioned(
+  db: PublishDb,
+  contentType: PublishableContentType,
+  table: VersionedContentTable,
   now: string,
 ): Promise<number> {
   const due = await db
@@ -75,12 +130,25 @@ async function publishDueSimple(
     .all()
 
   for (const row of due) {
-    await db.update(table).set({
-      status: 'published',
-      publishedAt: now,
-      scheduledAt: null,
-      updatedAt: now,
-    }).where(eq(table.id, row.id))
+    await publishVersionedRow(db, contentType, table, row.id, now)
+  }
+
+  return due.length
+}
+
+async function publishDueSimple(
+  db: PublishDb,
+  table: Exclude<SchedulableTable, VersionedContentTable>,
+  now: string,
+): Promise<number> {
+  const due = await db
+    .select({ id: table.id })
+    .from(table)
+    .where(scheduledDueWhere(table, now))
+    .all()
+
+  for (const row of due) {
+    await publishSimpleRow(db, table, row.id, now)
   }
 
   return due.length
@@ -94,50 +162,44 @@ export function createPublishingQueries(db: AppDb) {
       return db.transaction(async (tx) => {
         const publishDb = tx as PublishDb
         let published = 0
-        published += await publishDueArticles(publishDb, schema.articles, now)
-        published += await publishDueArticles(publishDb, schema.recipes, now)
-        published += await publishDueSimple(publishDb, schema.pages, now)
+        published += await publishDueVersioned(publishDb, 'articles', schema.articles, now)
+        published += await publishDueVersioned(publishDb, 'recipes', schema.recipes, now)
+        published += await publishDueVersioned(publishDb, 'pages', schema.pages, now)
         published += await publishDueSimple(publishDb, schema.categories, now)
         published += await publishDueSimple(publishDb, schema.categoryArticles, now)
         return { published }
       })
     },
 
-    async publish(contentType: PublishableContentType, id: number) {
+    async publish(contentType: PublishableContentType, id: number, actor?: PublishActorContext) {
       const config = getContentConfig(contentType)
       const now = new Date().toISOString()
-      const existing = await db
-        .select({ id: config.table.id })
-        .from(config.table)
-        .where(eq(config.table.id, id))
-        .get()
 
-      if (!existing) {
-        throw queryNotFound(`${contentType} not found`)
+      if (config.versioned) {
+        const ok = await publishVersionedRow(
+          db,
+          contentType,
+          config.table as VersionedContentTable,
+          id,
+          now,
+          actor,
+        )
+        if (!ok) {
+          throw queryNotFound(`${contentType} not found`)
+        }
       }
-
-      if (config.trackFirstPublished) {
-        const row = await db
-          .select({ firstPublishedAt: (config.table as TrackFirstPublishedTable).firstPublishedAt })
+      else {
+        const existing = await db
+          .select({ id: config.table.id })
           .from(config.table)
           .where(eq(config.table.id, id))
           .get()
 
-        await db.update(config.table as TrackFirstPublishedTable).set({
-          status: 'published',
-          publishedAt: now,
-          scheduledAt: null,
-          updatedAt: now,
-          ...(!row?.firstPublishedAt ? { firstPublishedAt: now } : {}),
-        }).where(eq(config.table.id, id))
-      }
-      else {
-        await db.update(config.table).set({
-          status: 'published',
-          publishedAt: now,
-          scheduledAt: null,
-          updatedAt: now,
-        }).where(eq(config.table.id, id))
+        if (!existing) {
+          throw queryNotFound(`${contentType} not found`)
+        }
+
+        await publishSimpleRow(db, config.table as Exclude<SchedulableTable, VersionedContentTable>, id, now)
       }
 
       return { status: 'published' as const, publishedAt: now }

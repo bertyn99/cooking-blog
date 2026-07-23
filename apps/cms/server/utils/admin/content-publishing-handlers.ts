@@ -15,9 +15,11 @@ function parseContentId(event: H3Event): number {
 }
 
 export async function handleAdminPublish(event: H3Event, contentType: PublishableContentType) {
-  await requireAbility(event, canPublishContent)
+  const session = await requireAbility(event, canPublishContent)
   const id = parseContentId(event)
-  return usePublishingService(event).publish(contentType, id)
+  return usePublishingService(event).publish(contentType, id, {
+    actorUserId: session.user?.id,
+  })
 }
 
 export async function handleAdminSchedule(event: H3Event, contentType: PublishableContentType) {

@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, text, integer, index, uniqueIndex } from 'drizzle-orm/sqlite-core'
 import { users } from './users'
 
 export const contentRevisions = sqliteTable('content_revisions', {
@@ -13,4 +13,5 @@ export const contentRevisions = sqliteTable('content_revisions', {
   reason: text('reason', { enum: ['save', 'publish', 'restore', 'autosave'] }).notNull(),
 }, (table) => [
   index('content_revisions_entity_idx').on(table.contentType, table.contentId),
+  uniqueIndex('content_revisions_version_idx').on(table.contentType, table.contentId, table.version),
 ])

@@ -1,7 +1,8 @@
-import { sql } from 'drizzle-orm'
+import { sql, isNull } from 'drizzle-orm'
 import { sqliteTable, text, integer, uniqueIndex, index } from 'drizzle-orm/sqlite-core'
 import { blobs } from './blobs'
 import { categories } from './categories'
+import { users } from './users'
 
 export const recipes = sqliteTable('recipes', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -22,13 +23,17 @@ export const recipes = sqliteTable('recipes', {
   locale: text('locale').default('fr').notNull(),
   localeGroupId: text('locale_group_id'),
   version: integer('version').default(1).notNull(),
+  createdByUserId: integer('created_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  updatedByUserId: integer('updated_by_user_id').references(() => users.id, { onDelete: 'set null' }),
   deletedAt: text('deleted_at'),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => [
-  uniqueIndex('recipes_slug_locale_idx').on(table.slug, table.locale),
+  uniqueIndex('recipes_slug_locale_active_idx').on(table.slug, table.locale).where(isNull(table.deletedAt)),
   index('recipes_status_idx').on(table.status),
   index('recipes_locale_idx').on(table.locale),
   index('recipes_locale_group_idx').on(table.localeGroupId),
   index('recipes_published_at_idx').on(table.publishedAt),
+  index('recipes_deleted_at_idx').on(table.deletedAt),
+  index('recipes_category_id_idx').on(table.categoryId),
 ])

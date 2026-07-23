@@ -46,32 +46,34 @@ function assertAdminStatusTransition(
  * Gate publish / schedule / unpublish transitions on PUT and create.
  * Editors may edit published content when `status` is omitted or unchanged.
  */
-export function applyContentStatusPolicy<T extends ContentStatusPatch>(
+export function applyContentStatusPolicy(
   user: User | null,
   existing: { status: PublishableStatus, firstPublishedAt?: string | null },
-  updates: T,
-): T {
+  updates: ContentStatusPatch,
+): ContentStatusPatch {
   if (updates.status === undefined) {
-    return updates
+    return { ...updates }
   }
 
   const nextStatus = updates.status
   if (nextStatus === existing.status) {
-    return updates
+    return { ...updates }
   }
 
   assertAdminStatusTransition(user, existing.status, nextStatus)
 
+  const patch: ContentStatusPatch = { ...updates }
+
   if (nextStatus === 'published') {
     const now = new Date().toISOString()
-    updates.publishedAt = updates.publishedAt ?? now
+    patch.publishedAt = patch.publishedAt ?? now
     if (!existing.firstPublishedAt) {
-      updates.firstPublishedAt = now
+      patch.firstPublishedAt = now
     }
-    updates.scheduledAt = null
+    patch.scheduledAt = null
   }
 
-  if (nextStatus === 'scheduled' && updates.scheduledAt === undefined) {
+  if (nextStatus === 'scheduled' && patch.scheduledAt === undefined) {
     throw createApiError(
       'VALIDATION_ERROR',
       'scheduledAt est requis pour le statut « scheduled ».',
@@ -79,18 +81,18 @@ export function applyContentStatusPolicy<T extends ContentStatusPatch>(
   }
 
   if (nextStatus === 'draft') {
-    updates.publishedAt = updates.publishedAt ?? null
-    updates.scheduledAt = updates.scheduledAt ?? null
+    patch.publishedAt = patch.publishedAt ?? null
+    patch.scheduledAt = patch.scheduledAt ?? null
   }
 
-  return updates
+  return patch
 }
 
 /** Initial status on create (treated as transition from draft). */
-export function applyInitialContentStatusPolicy<T extends ContentStatusPatch>(
+export function applyInitialContentStatusPolicy(
   user: User | null,
-  updates: T & { status?: PublishableStatus },
-): T {
+  updates: ContentStatusPatch & { status?: PublishableStatus },
+): ContentStatusPatch {
   const status = updates.status ?? 'draft'
   return applyContentStatusPolicy(
     user,

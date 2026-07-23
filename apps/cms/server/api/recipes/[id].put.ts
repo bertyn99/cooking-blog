@@ -4,6 +4,7 @@ import { useQueries } from '../../utils/db'
 import type { RecipeUpdatePatch } from '../../db/queries/recipes'
 import { requireEditor } from '../../utils/http-auth'
 import { applyContentStatusPolicy } from '../../utils/content-status-policy'
+import { authorshipOnUpdate } from '../../utils/content-authorship'
 import { createApiError } from '../../utils/errors'
 
 export default defineEventHandler(async (event) => {
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event) => {
   const data = validateBody(updateRecipeSchema, body)
 
   const { ingredients, nutrition, utensils, ...recipeFields } = data
-  const updates: RecipeUpdatePatch = { ...recipeFields }
+  const updates: RecipeUpdatePatch = { ...recipeFields, ...authorshipOnUpdate(session.user.id) }
   applyContentStatusPolicy(session.user, existing, updates)
 
   const result = await recipes.updateWithRelations(id, updates, {

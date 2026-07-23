@@ -3,6 +3,7 @@ import { createArticleSchema } from '../../utils/validations/articles'
 import { slugifyString } from '../../utils/slug'
 import { useQueries } from '../../utils/db'
 import { requireEditor } from '../../utils/http-auth'
+import { authorshipOnCreate } from '../../utils/content-authorship'
 import { applyInitialContentStatusPolicy } from '../../utils/content-status-policy'
 
 export default defineEventHandler(async (event) => {
@@ -34,6 +35,8 @@ export default defineEventHandler(async (event) => {
     status,
     publishedAt: status === 'published' ? (statusPatch.publishedAt ?? now) : null,
     scheduledAt: status === 'scheduled' ? statusPatch.scheduledAt ?? null : null,
+    firstPublishedAt: status === 'published' ? (statusPatch.firstPublishedAt ?? now) : null,
+    ...authorshipOnCreate(session.user.id),
   })
 
   setResponseStatus(event, 201)

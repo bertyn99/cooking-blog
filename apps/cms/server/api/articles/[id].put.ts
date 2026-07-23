@@ -4,6 +4,7 @@ import { useQueries } from '../../utils/db'
 import { requireEditor } from '../../utils/http-auth'
 import { applyContentStatusPolicy } from '../../utils/content-status-policy'
 import { createApiError } from '../../utils/errors'
+import { authorshipOnUpdate } from '../../utils/content-authorship'
 
 export default defineEventHandler(async (event) => {
   const session = await requireEditor(event)
@@ -22,7 +23,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const data = validateBody(updateArticleSchema, body)
 
-  const updates: Record<string, unknown> = { ...data }
+  const updates: Record<string, unknown> = { ...data, ...authorshipOnUpdate(session.user.id) }
   applyContentStatusPolicy(session.user, existing, updates)
 
   return articles.updateById(id, updates)
