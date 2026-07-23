@@ -6,6 +6,24 @@ import {
   contentGenerationRunSteps,
   contentGenerationRuns,
 } from '../schema/content-generation'
+import type { GenerationArtifactStore } from '../../services/generation/artifact-storage'
+import { createGenerationArtifactStore } from '../../services/generation/artifact-storage'
+import type { GenerationProgressStore } from '../../services/generation/progress'
+import { createGenerationProgressStore } from '../../services/generation/progress'
+import { executeGenerationStep } from '../../services/generation/step-runner'
+import { memoryKvStore } from '../../utils/kv'
+
+export interface ContentGenerationDeps {
+  artifacts: GenerationArtifactStore
+  progress: GenerationProgressStore
+}
+
+function defaultDeps(): ContentGenerationDeps {
+  return {
+    artifacts: createGenerationArtifactStore(),
+    progress: createGenerationProgressStore(memoryKvStore),
+  }
+}
 
 export const GENERATION_STEP_KEYS = [
   'normalize',
@@ -26,7 +44,9 @@ function newLeaseToken() {
   return crypto.randomUUID()
 }
 
-export function createContentGenerationQueries(db: AppDb) {
+export function createContentGenerationQueries(db: AppDb, deps?: ContentGenerationDeps) {
+  const runtime = deps ?? defaultDeps()
+
   return {
     findById(runId: string) {
       return db.query.contentGenerationRuns.findFirst({
@@ -159,23 +179,39 @@ export function createContentGenerationQueries(db: AppDb) {
           })
           .where(eq(contentGenerationRuns.id, runId))
 
-        if (run.targetType === 'article' && run.articleId) {
+        const articleId = run.articleId
+        const recipeId = run.recipeId
+        if (run.targetType === 'article' && articleId) {
           await db
             .update(schema.articles)
             .set({ requiresHumanReview: true, updatedAt: now })
-            .where(eq(schema.articles.id, run.articleId))
+            .where(eq(schema.articles.id, articleId))
         }
-        if (run.targetType === 'recipe' && run.recipeId) {
+        if (run.targetType === 'recipe' && recipeId) {
           await db
             .update(schema.recipes)
             .set({ requiresHumanReview: true, updatedAt: now })
-            .where(eq(schema.recipes.id, run.recipeId))
+            .where(eq(schema.recipes.id, recipeId))
         }
+
+        await runtime.progress.set({
+          runId,
+          stepKey: 'awaiting_review',
+          status: 'succeeded',
+          updatedAt: now,
+        })
 
         return { runId, advanced: false, completed: true }
       }
 
       const now = new Date().toISOString()
+      await runtime.progress.set({
+        runId,
+        stepKey: nextStep.stepKey,
+        status: 'running',
+        updatedAt: now,
+      })
+
       await db
         .update(contentGenerationRunSteps)
         .set({
@@ -186,11 +222,33 @@ export function createContentGenerationQueries(db: AppDb) {
         })
         .where(eq(contentGenerationRunSteps.id, nextStep.id))
 
-      // Scaffold: mark step succeeded; provider/R2 work lands in a follow-up.
+      const stepResult = await executeGenerationStep(db, runtime.artifacts, {
+        id: run.id,
+        targetType: run.targetType,
+        articleId: run.articleId,
+        recipeId: run.recipeId,
+        artifactPrefix: run.artifactPrefix,
+        requestedByUserId: run.requestedByUserId,
+      }, nextStep.stepKey)
+
+      if (stepResult.linkedArticleId) {
+        await db
+          .update(contentGenerationRuns)
+          .set({ articleId: stepResult.linkedArticleId, updatedAt: now })
+          .where(eq(contentGenerationRuns.id, runId))
+      }
+      if (stepResult.linkedRecipeId) {
+        await db
+          .update(contentGenerationRuns)
+          .set({ recipeId: stepResult.linkedRecipeId, updatedAt: now })
+          .where(eq(contentGenerationRuns.id, runId))
+      }
+
       await db
         .update(contentGenerationRunSteps)
         .set({
           status: 'succeeded',
+          artifactKey: stepResult.artifactKey,
           finishedAt: now,
           updatedAt: now,
         })
@@ -204,6 +262,13 @@ export function createContentGenerationQueries(db: AppDb) {
           updatedAt: now,
         })
         .where(eq(contentGenerationRuns.id, runId))
+
+      await runtime.progress.set({
+        runId,
+        stepKey: nextStep.stepKey,
+        status: 'succeeded',
+        updatedAt: now,
+      })
 
       return { runId, advanced: true, stepKey: nextStep.stepKey, completed: false }
     },

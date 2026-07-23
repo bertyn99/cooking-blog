@@ -1,28 +1,10 @@
 import { useDb } from '../utils/db'
 import { isSqliteBusyError } from '../utils/sqlite-busy'
-import { createContentGenerationQueries } from '../db/queries/content-generation'
+import { createContentGenerationService } from '../services/generation/service'
+import type { H3Event } from 'h3'
 
-export function createContentGenerationService(db: ReturnType<typeof useDb>) {
-  const queries = createContentGenerationQueries(db)
-  return {
-    async processDueRuns(limit = 5) {
-      const claimed = await queries.claimRunnableRuns(limit)
-      const results = []
-      for (const runId of claimed) {
-        try {
-          results.push(await queries.processRunOnce(runId))
-        }
-        catch (error) {
-          results.push({ runId, error: String(error) })
-        }
-      }
-      return { claimed: claimed.length, results }
-    },
-  }
-}
-
-export function useContentGenerationService(event?: Parameters<typeof useDb>[0]) {
-  return createContentGenerationService(useDb(event))
+export function useContentGenerationService(event?: H3Event) {
+  return createContentGenerationService(useDb(event), event)
 }
 
 export default defineTask({

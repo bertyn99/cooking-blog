@@ -10,7 +10,7 @@ import {
   type RasterImage,
 } from './image-optimize'
 
-function rasterToImageData(raster: RasterImage): ImageData {
+export function rasterToImageData(raster: RasterImage): ImageData {
   const clamped = raster.data instanceof Uint8ClampedArray
     ? raster.data
     : new Uint8ClampedArray(raster.data)
@@ -24,7 +24,7 @@ export interface OptimizedImageResult {
   filename?: string
 }
 
-async function decodeImage(buffer: ArrayBuffer, mime: string): Promise<RasterImage | null> {
+export async function decodeImage(buffer: ArrayBuffer, mime: string): Promise<RasterImage | null> {
   const bytes = new Uint8Array(buffer)
   let decoded: ImageData | null = null
   if (mime === 'image/jpeg' || mime === 'image/jpg') {
