@@ -109,8 +109,12 @@ export async function ensureBlobCatalogRecord(
   })
 }
 
-export function getMediaUrl(pathname: string): string {
-  return `/images/${pathname}`
+export function getMediaUrl(pathname: string, modifiers?: string): string {
+  const path = pathname.replace(/^\/+/, '')
+  if (!modifiers || modifiers === '_') {
+    return `/images/${path}`
+  }
+  return `/images/${modifiers}/${path}`
 }
 
 function rowToListItem(row: BlobRow): MediaListItem {

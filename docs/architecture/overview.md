@@ -1,7 +1,7 @@
 # Architecture Overview
 
-**Status:** T0 complete (monorepo foundation)  
-**Last updated:** 2026-07-12
+**Status:** T0 complete (monorepo foundation); Alchemy deploy for D1/R2/Workers in progress  
+**Last updated:** 2026-07-23
 
 Journal du Cuistot is a French cooking blog migrating from Strapi v5 to a self-hosted Nuxt stack. The codebase is a **pnpm monorepo** with two Nuxt applications and HTTP-based separation between read and write paths.
 
@@ -60,7 +60,7 @@ Default CMS URL: `http://localhost:3001` (override via `NUXT_PUBLIC_CMS_BASE_URL
 | API | Nitro REST under `/api/*` (articles, recipes, pages, categories, media, auth, SEO, publish) |
 | Persistence | Drizzle ORM + SQLite (local libSQL) / Cloudflare D1 (Alchemy deploy). Schema parity vs Strapi: [audit](./cms-strapi-schema-audit.md) |
 | Auth | nuxt-auth-utils sessions + `nuxt-authorization` (`admin` / `editor`) on write and admin routes |
-| Media | R2 (and local bucket binding in dev); image optimize pipeline |
+| Media | R2 (`Media` binding on CMS Worker); ingest jSquash WebP; on-demand IPX paths on `GET /images/**` ([ADR-006](./adr-006-image-delivery-cloudflare.md)) |
 | Tasks | Nitro scheduled tasks (e.g. `publish-scheduled` cron) |
 | UI | Minimal — API-only; admin UI deferred |
 
@@ -81,7 +81,7 @@ Default CMS URL: `http://localhost:3001` (override via `NUXT_PUBLIC_CMS_BASE_URL
 
 1. **Read path:** `apps/web` pages call `useStrapi().find('articles', { filters, populate, pagination })`. The adapter translates Strapi-style query params to CMS REST (`include`, `status=published`, etc.) and `$fetch`es `cmsBaseUrl`.
 2. **Write path:** Authenticated clients (future admin, migration tasks) call `apps/cms` directly. Web does not touch the database.
-3. **Media:** CMS stores blob pathnames in D1/SQLite; web resolves covers via its image pipeline (`localImageSharp` provider + proxy).
+3. **Media:** CMS stores blobs in R2; transforms run on the **CMS Worker** (IPX + jSquash). Web serves `/images/**` by proxying CMS with the same IPX path ([ADR-006](./adr-006-image-delivery-cloudflare.md)).
 
 ## Shared toolchain
 
@@ -109,7 +109,7 @@ Documented in [`IMPLEMENTATION_PLAN.md`](../../IMPLEMENTATION_PLAN.md):
 
 | Area | Current (T0) | Target |
 |------|--------------|--------|
-| Infrastructure | NuxtHub (`hub:db`, blob, kv) on CMS | **Alchemy v2** — D1, R2, KV, Cron as code |
+| Infrastructure | NuxtHub (`hub:db`, blob, kv) on CMS | **Alchemy v2** — D1, R2, KV, Cron ([`alchemy.run.ts`](../../alchemy.run.ts)); image delivery per [ADR-006](./adr-006-image-delivery-cloudflare.md) |
 | Markdown | `@nuxtjs/mdc` on web | **@comark/nuxt**; pages still on legacy `BaseContentDisplay` until migrated ([ADR-005](./adr-005-page-content-markdown-not-dynamic-zones.md)) |
 | Migration | External Strapi v5 | **Strapi extract** — zones → markdown for pages; `legacy_strapi_map` for IDs |
 | Strapi module | Removed from web; adapter in `useStrapi.ts` | Response serializers + filter parity; fix `articles` → `category_articles` FK ([audit](./cms-strapi-schema-audit.md)) |

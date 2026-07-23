@@ -68,7 +68,7 @@ export function buildCoverUrlTrace(
     cmsFetchUrl: cmsStoragePath && cmsBase ? `${cmsBase}/images/${cmsStoragePath}` : null,
     webProxyExample:
       publicKey
-        ? `/images/width_900,height_600,fit_cover,format_webp/${publicKey}`
+        ? `/images/w_900,h_600,fit_cover,f_webp/${publicKey}`
         : null,
   };
 }

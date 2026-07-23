@@ -1,129 +1,57 @@
 import type { H3Event } from 'h3'
-import { getRequestURL } from 'h3'
-import { hasImageTransformOps, parseCmsImagePath } from './parse-cms-image-path'
+import { getHeader } from 'h3'
+import { buildIpxImagePath, parseIpxImagePath } from '../../../cms/shared/ipx-image-path'
+import { toCmsStoragePath } from '../../shared/media-public-path'
 
 const LONG_CACHE = 'public, max-age=31536000, stale-while-revalidate=604800'
 
-interface WebCloudflareEnv {
-  IMAGES?: {
-    input(stream: ReadableStream): {
-      transform(options: Record<string, unknown>): {
-        output(options: Record<string, unknown>): Promise<{ response(): Promise<Response> }>
-      }
-    }
-  }
+/** Map a web `/images/...` path to the CMS IPX image URL (storage path + modifiers). */
+export function toCmsImageOriginPath(fullPath: string): string {
+  const { assetPath, modifiersSegment } = parseIpxImagePath(fullPath)
+  const storagePath = toCmsStoragePath(assetPath)
+  return buildIpxImagePath(storagePath, modifiersSegment)
 }
 
-function mapTransformOptions(operations: Record<string, string>) {
-  const transform: Record<string, unknown> = {}
-  if (operations.width) {
-    transform.width = Number.parseInt(operations.width, 10)
-  }
-  if (operations.height) {
-    transform.height = Number.parseInt(operations.height, 10)
-  }
-  if (operations.fit) {
-    transform.fit = operations.fit === 'cover' ? 'cover' : 'scale-down'
-  }
-  return transform
-}
-
-function mapOutputOptions(operations: Record<string, string>) {
-  const format = operations.format === 'webp'
-    ? 'image/webp'
-    : operations.format === 'avif'
-      ? 'image/avif'
-      : operations.format === 'png'
-        ? 'image/png'
-        : operations.format === 'jpeg'
-          ? 'image/jpeg'
-          : 'image/webp'
-  const quality = operations.quality
-    ? Number.parseInt(operations.quality, 10)
-    : 85
-  return { format, quality }
-}
-
-function getImagesBinding(event: H3Event) {
-  const env = (event.context.cloudflare as { env?: WebCloudflareEnv } | undefined)?.env
-  return env?.IMAGES
-}
-
+/**
+ * Proxy CMS image responses. Transforms (jSquash + IPX ops) and caching run on the CMS only.
+ */
 export async function serveOptimizedCmsImage(event: H3Event, fullPath: string) {
-  const { assetPath, operations } = parseCmsImagePath(fullPath)
-  if (!assetPath) {
+  const originPath = toCmsImageOriginPath(fullPath)
+  if (!originPath) {
     throw createError({ statusCode: 404 })
   }
 
   const config = useRuntimeConfig(event)
-  const originUrl = `${config.public.cmsBaseUrl.replace(/\/$/, '')}/images/${assetPath}`
+  const originUrl = `${config.public.cmsBaseUrl.replace(/\/$/, '')}/images/${originPath}`
 
-  const cache = typeof caches !== 'undefined' ? caches.default : undefined
-  const cacheKey = new Request(getRequestURL(event).href)
-
-  if (cache) {
-    const hit = await cache.match(cacheKey)
-    if (hit) {
-      return hit
-    }
-  }
-
-  let origin = await fetch(originUrl)
+  const origin = await fetch(originUrl, {
+    headers: {
+      accept: getHeader(event, 'accept') ?? 'image/webp,image/*,*/*',
+    },
+  })
   if (!origin.ok) {
     if (import.meta.dev) {
       console.error('[cms-image] origin fetch failed', {
         originUrl,
-        assetPath,
-        operations,
         status: origin.status,
         statusText: origin.statusText,
       })
     }
-    throw createError({ statusCode: origin.status === 404 ? 404 : 502, statusMessage: 'Media origin error' })
+    throw createError({
+      statusCode: origin.status === 404 ? 404 : 502,
+      statusMessage: 'Media origin error',
+    })
   }
 
-  const images = getImagesBinding(event)
-  let body = origin.body
-  let contentType = origin.headers.get('content-type') ?? 'application/octet-stream'
-
-  if (images && hasImageTransformOps(operations) && body) {
-    try {
-      const pipeline = images.input(body).transform(mapTransformOptions(operations))
-      const { response } = await pipeline.output(mapOutputOptions(operations))
-      const transformed = await response()
-      body = transformed.body
-      contentType = transformed.headers.get('content-type') ?? contentType
-    }
-    catch {
-      origin = await fetch(originUrl)
-      body = origin.body
-      contentType = origin.headers.get('content-type') ?? contentType
-    }
-  }
-
+  const body = origin.body
   if (!body) {
     throw createError({ statusCode: 404 })
   }
 
-  const response = new Response(body, {
+  return new Response(body, {
     headers: {
-      'Content-Type': contentType,
-      'Cache-Control': LONG_CACHE,
+      'Content-Type': origin.headers.get('content-type') ?? 'application/octet-stream',
+      'Cache-Control': origin.headers.get('cache-control') ?? LONG_CACHE,
     },
   })
-
-  if (cache) {
-    const waitUntil = (event.context.cloudflare as { context?: { waitUntil?: (p: Promise<unknown>) => void } } | undefined)
-      ?.context
-      ?.waitUntil
-    const putPromise = cache.put(cacheKey, response.clone())
-    if (waitUntil) {
-      waitUntil(putPromise)
-    }
-    else {
-      await putPromise
-    }
-  }
-
-  return response
 }

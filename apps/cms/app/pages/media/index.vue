@@ -2,7 +2,7 @@
 import type { TableColumn } from '@nuxt/ui'
 import { formatMediaByteSize, isWithinImageUploadLimit, maxImageUploadSizeLabel } from '#shared/media'
 import { MEDIA_UPLOAD_ROOT, mediaKindLabel, type MediaKind } from '#shared/media-paths'
-import { mediaPublicUrl, readApiErrorMessage } from '~/utils/media'
+import { mediaThumbnailUrl, mediaPublicUrl, readApiErrorMessage } from '~/utils/media'
 import { DASHBOARD_SURFACE_CLASS, DASHBOARD_TABLE_UI } from '~/utils/dashboard-shell'
 import { prepareImageForUpload } from '~/utils/prepare-image-upload.client'
 
@@ -347,7 +347,7 @@ const columns: TableColumn<MediaBlob>[] = [
     }, [
       row.original.kind === 'image'
         ? h('img', {
-          src: mediaPublicUrl(row.original.pathname),
+          src: mediaThumbnailUrl(row.original.pathname),
           class: 'size-10 rounded-md object-cover ring-1 ring-default/60',
           alt: '',
         })

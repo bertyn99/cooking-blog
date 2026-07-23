@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { readApiErrorMessage, mediaPublicUrl } from '~/utils/media'
+import { mediaPickerThumbUrl, mediaPublicUrl, readApiErrorMessage } from '~/utils/media'
 import { prepareImageForUpload } from '~/utils/prepare-image-upload.client'
 import { uploadMediaFile } from '~/utils/upload-media.client'
 import {
@@ -423,7 +423,7 @@ function displayName(blob: MediaBlob) {
               @dblclick="selectPending(blob.pathname); confirmSelection()"
             >
               <img
-                :src="mediaPublicUrl(blob.pathname)"
+                :src="mediaPickerThumbUrl(blob.pathname)"
                 :alt="displayName(blob)"
                 class="aspect-square w-full object-cover"
                 loading="lazy"

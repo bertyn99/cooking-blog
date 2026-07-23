@@ -92,9 +92,6 @@ export default defineNuxtConfig({
     cloudflare: {
       deployConfig: true,
       wrangler: {
-        images: {
-          binding: 'IMAGES',
-        },
         d1_databases: [
           {
             binding: 'AI_READY_DB',

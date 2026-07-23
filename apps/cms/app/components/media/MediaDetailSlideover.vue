@@ -3,7 +3,7 @@ import { blobDefaultDescription } from '#shared/media-accessibility'
 import { formatMediaByteSize } from '#shared/media'
 import { mediaKindLabel, type MediaKind } from '#shared/media-paths'
 import type { MediaDetailSection, MediaFileMetadata } from '#shared/media-file-metadata'
-import { mediaPublicUrl, readApiErrorMessage } from '~/utils/media'
+import { mediaDetailPreviewUrl, mediaPublicUrl, readApiErrorMessage } from '~/utils/media'
 import { DASHBOARD_SURFACE_CLASS } from '~/utils/dashboard-shell'
 
 export interface MediaDetail {
@@ -345,7 +345,7 @@ function copyUrl() {
           <div class="flex h-40 items-center justify-center sm:h-44">
             <img
               v-if="detail.kind === 'image'"
-              :src="mediaPublicUrl(detail.pathname)"
+              :src="mediaDetailPreviewUrl(detail.pathname)"
               :alt="displayTitle"
               class="max-h-full max-w-full rounded-sm object-contain shadow-sm ring-1 ring-default/40"
             >

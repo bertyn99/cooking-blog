@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { formatMediaByteSize } from '#shared/media'
 import { mediaKindLabel, type MediaKind } from '#shared/media-paths'
-import { mediaPublicUrl } from '~/utils/media'
+import { mediaThumbnailUrl } from '~/utils/media'
 
 const props = defineProps<{
   pathname: string
@@ -30,7 +30,7 @@ const isImage = computed(() => props.kind === 'image')
     <div class="absolute inset-0 bg-elevated/30">
       <img
         v-if="isImage"
-        :src="mediaPublicUrl(pathname)"
+        :src="mediaThumbnailUrl(pathname)"
         :alt="displayName"
         class="size-full object-cover transition duration-300 group-hover:scale-[1.04]"
         loading="lazy"

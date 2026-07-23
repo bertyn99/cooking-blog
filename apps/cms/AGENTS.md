@@ -40,7 +40,7 @@ apps/cms/
 │   │   ├── queries/              # All Drizzle I/O — useQueries(); see queries/README.md
 │   │   └── seed/                 # Admin seed helpers
 │   ├── plugins/                  # session refresh, authorization resolver
-│   ├── routes/images/            # Public image proxy from blob storage
+│   ├── routes/images/            # Public IPX image transform + R2 serve (+ Cache API)
 │   ├── services/                 # Publishing, calendar, Strapi import, maintenance, extract/*
 │   ├── tasks/                    # Nitro tasks (seed, publish-scheduled, strapi-extract)
 │   └── utils/                    # db, r2, populate, pagination, validations, admin handlers
@@ -209,7 +209,7 @@ SEO table uses nullable FKs per content type (not polymorphic).
 | GET/DELETE | `/api/media/[pathname]` | By path |
 | POST/DELETE | `/api/media/folder` | Folder create/delete |
 
-Images: client `prepareImageForUpload` + server pipeline (`shared/image-optimize-pipeline.ts`, `@jsquash/*`). Served at `GET /images/**` (`server/routes/images/[...pathname].get.ts`).
+Images: client `prepareImageForUpload` + server ingest pipeline (`shared/image-optimize-pipeline.ts`, `@jsquash/*`). On-demand delivery: **IPX URL syntax** + jSquash (`shared/image-transform-delivery.ts`, `shared/image-delivery-policy.ts`) at `GET /images/{modifiers}/{pathname}` — dimensions capped at 2560px, unsupported modifiers stripped, transform failures return 502 (not long-cached). Cache API keys use pathname only. Dashboard thumbnails use `mediaThumbnailUrl` / IPX presets in `app/utils/media.ts`. `apps/web` proxies CMS `/images` without a second transform or Cache API layer.
 
 ### Admin-only
 
@@ -300,7 +300,7 @@ pnpm --filter cms db:seed:admin
 | `STRAPI_API_TOKEN` | Strapi API token for import |
 | `STRAPI_UPLOADS_ORIGIN` | Optional CDN origin for Strapi uploads during import |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Deploy-time admin seed |
-| Cloudflare bindings | `DB` (D1), `Media` (R2), `Cache` (KV) — see `nuxt.config.ts` nitro.cloudflare |
+| Cloudflare bindings | `DB` (D1), `Media` (R2), `Cache` (KV) — see `nuxt.config.ts` nitro.cloudflare; image architecture [ADR-006](../../docs/architecture/adr-006-image-delivery-cloudflare.md) |
 
 ## CONVENTIONS
 

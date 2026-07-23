@@ -9,7 +9,7 @@ import {
   recipePublicPath,
   type NestedPageParent,
 } from '#shared/public-site-paths'
-import { mediaPublicUrl } from '~/utils/media'
+import { mediaCoverPreviewUrl, mediaPickerThumbUrl } from '~/utils/media'
 import { applyEditorLink, removeEditorLink } from '~/utils/editor-link'
 
 const props = defineProps<{
@@ -134,7 +134,7 @@ function setPreviewFromInternal(kind: InternalKind, row: ListRow) {
   previewTitle.value = rowTitle(row)
   previewIcon.value = rowIcon(kind)
   const cover = rowCoverPath(row)
-  previewCover.value = cover ? mediaPublicUrl(cover) : null
+  previewCover.value = cover ? mediaCoverPreviewUrl(cover) : null
   if (!hasTextSelection.value) {
     linkText.value = rowTitle(row)
   }
@@ -423,7 +423,7 @@ function onExternalKeydown(event: KeyboardEvent) {
                   >
                     <img
                       v-if="rowCoverPath(row)"
-                      :src="mediaPublicUrl(rowCoverPath(row)!)"
+                      :src="mediaPickerThumbUrl(rowCoverPath(row)!)"
                       alt=""
                       class="size-full object-cover"
                     >

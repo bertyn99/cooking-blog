@@ -2,6 +2,12 @@ import { encode as encodeJpeg } from '@jsquash/jpeg'
 import { encode as encodePng } from '@jsquash/png'
 import resize from '@jsquash/resize'
 import { encode as encodeWebp } from '@jsquash/webp'
+import {
+  allowsUpscale,
+  clampDeliveryDimension,
+  clampDeliveryQuality,
+  resolveDeliveryFormat,
+} from './image-delivery-policy'
 import { decodeImage, rasterToImageData, type OptimizedImageResult } from './image-optimize-pipeline'
 
 export interface DeliveryTransformOps {
@@ -10,18 +16,24 @@ export interface DeliveryTransformOps {
   fit?: string
   format?: string
   quality?: number
+  allowUpscale?: boolean
 }
 
-export function parseDeliveryTransformOps(operations: Record<string, string>): DeliveryTransformOps {
+export function parseDeliveryTransformOps(
+  operations: Record<string, string>,
+  context?: { acceptHeader?: string | null },
+): DeliveryTransformOps {
   const width = operations.width ? Number.parseInt(operations.width, 10) : undefined
   const height = operations.height ? Number.parseInt(operations.height, 10) : undefined
   const quality = operations.quality ? Number.parseInt(operations.quality, 10) : undefined
+  const format = resolveDeliveryFormat(operations.format, context?.acceptHeader)
   return {
-    width: Number.isFinite(width) ? width : undefined,
-    height: Number.isFinite(height) ? height : undefined,
+    width: clampDeliveryDimension(width),
+    height: clampDeliveryDimension(height),
     fit: operations.fit,
-    format: operations.format,
-    quality: Number.isFinite(quality) ? quality : undefined,
+    format,
+    quality: clampDeliveryQuality(quality),
+    allowUpscale: allowsUpscale(operations),
   }
 }
 
@@ -32,11 +44,35 @@ export interface DeliveryResizePlan {
   cropTo?: { width: number, height: number }
 }
 
-/** Map Nuxt Image / `localImageSharp` ops to @jsquash/resize options. */
+function capPlanToSource(
+  plan: DeliveryResizePlan,
+  sourceWidth: number,
+  sourceHeight: number,
+  allowUpscale: boolean,
+): DeliveryResizePlan {
+  if (allowUpscale) {
+    return plan
+  }
+  if (plan.resizeWidth <= sourceWidth && plan.resizeHeight <= sourceHeight) {
+    return plan
+  }
+  const ratio = Math.min(1, sourceWidth / plan.resizeWidth, sourceHeight / plan.resizeHeight)
+  const resizeWidth = Math.max(1, Math.round(plan.resizeWidth * ratio))
+  const resizeHeight = Math.max(1, Math.round(plan.resizeHeight * ratio))
+  const cropTo = plan.cropTo
+    ? {
+        width: Math.min(plan.cropTo.width, resizeWidth),
+        height: Math.min(plan.cropTo.height, resizeHeight),
+      }
+    : undefined
+  return { ...plan, resizeWidth, resizeHeight, cropTo }
+}
+
+/** Map IPX / Nuxt Image ops to @jsquash/resize options. */
 export function planDeliveryResize(
   sourceWidth: number,
   sourceHeight: number,
-  ops: Pick<DeliveryTransformOps, 'width' | 'height' | 'fit'>,
+  ops: Pick<DeliveryTransformOps, 'width' | 'height' | 'fit' | 'allowUpscale'>,
 ): DeliveryResizePlan | null {
   const targetWidth = ops.width
   const targetHeight = ops.height
@@ -44,40 +80,50 @@ export function planDeliveryResize(
     return null
   }
 
+  const allowUpscale = ops.allowUpscale ?? false
+  let plan: DeliveryResizePlan
+
   if (targetWidth && !targetHeight) {
-    const ratio = targetWidth / sourceWidth
-    return {
+    plan = {
       resizeWidth: targetWidth,
-      resizeHeight: Math.max(1, Math.round(sourceHeight * ratio)),
+      resizeHeight: Math.max(1, Math.round(sourceHeight * (targetWidth / sourceWidth))),
     }
   }
-
-  if (!targetWidth && targetHeight) {
-    const ratio = targetHeight / sourceHeight
-    return {
-      resizeWidth: Math.max(1, Math.round(sourceWidth * ratio)),
+  else if (!targetWidth && targetHeight) {
+    plan = {
+      resizeWidth: Math.max(1, Math.round(sourceWidth * (targetHeight / sourceHeight))),
       resizeHeight: targetHeight,
     }
   }
+  else {
+    const width = targetWidth!
+    const height = targetHeight!
+    const fit = ops.fit ?? 'cover'
 
-  const width = targetWidth!
-  const height = targetHeight!
-  const fit = ops.fit ?? 'cover'
-
-  if (fit === 'contain' || fit === 'inside') {
-    return { resizeWidth: width, resizeHeight: height, fitMethod: 'contain' }
-  }
-
-  if (fit === 'cover') {
-    const scale = Math.max(width / sourceWidth, height / sourceHeight)
-    return {
-      resizeWidth: Math.max(1, Math.round(sourceWidth * scale)),
-      resizeHeight: Math.max(1, Math.round(sourceHeight * scale)),
-      cropTo: { width, height },
+    if (fit === 'contain' || fit === 'inside') {
+      plan = { resizeWidth: width, resizeHeight: height, fitMethod: 'contain' }
+    }
+    else if (fit === 'outside') {
+      const scale = Math.max(width / sourceWidth, height / sourceHeight)
+      plan = {
+        resizeWidth: Math.max(1, Math.round(sourceWidth * scale)),
+        resizeHeight: Math.max(1, Math.round(sourceHeight * scale)),
+      }
+    }
+    else if (fit === 'cover') {
+      const scale = Math.max(width / sourceWidth, height / sourceHeight)
+      plan = {
+        resizeWidth: Math.max(1, Math.round(sourceWidth * scale)),
+        resizeHeight: Math.max(1, Math.round(sourceHeight * scale)),
+        cropTo: { width, height },
+      }
+    }
+    else {
+      plan = { resizeWidth: width, resizeHeight: height, fitMethod: 'stretch' }
     }
   }
 
-  return { resizeWidth: width, resizeHeight: height, fitMethod: 'stretch' }
+  return capPlanToSource(plan, sourceWidth, sourceHeight, allowUpscale)
 }
 
 function cropCenter(image: ImageData, width: number, height: number): ImageData {
@@ -100,10 +146,6 @@ function cropCenter(image: ImageData, width: number, height: number): ImageData 
 }
 
 function outputMimeFromFormat(format: string | undefined): string {
-  if (format === 'avif') {
-    // No AVIF encoder in jSquash; deliver WebP bytes with a WebP content-type.
-    return 'image/webp'
-  }
   switch (format) {
     case 'jpeg':
     case 'jpg':
@@ -130,22 +172,19 @@ async function encodeRaster(
   if (mime === 'image/png') {
     return encodePng(image) as Promise<ArrayBuffer | null>
   }
-  if (mime === 'image/avif') {
-    return encodeWebp(image, { quality }) as Promise<ArrayBuffer | null>
-  }
   return encodeWebp(image, { quality }) as Promise<ArrayBuffer | null>
 }
 
 /**
- * On-the-fly resize / re-encode for `apps/web` `/images/{ops}/…` (Cloudflare Worker via jSquash WASM).
- * @see https://github.com/jamsinclair/jSquash/tree/main/examples/cloudflare-worker-esm-format
+ * On-the-fly resize / re-encode for CMS `GET /images/{ipx-ops}/…` (Workers + dashboard via jSquash).
  */
 export async function transformImageBufferForDelivery(
   buffer: ArrayBuffer,
   mime: string,
   operations: Record<string, string>,
+  context?: { acceptHeader?: string | null },
 ): Promise<OptimizedImageResult | null> {
-  const ops = parseDeliveryTransformOps(operations)
+  const ops = parseDeliveryTransformOps(operations, context)
   const decoded = await decodeImage(buffer, mime)
   if (!decoded) {
     return null
@@ -167,8 +206,12 @@ export async function transformImageBufferForDelivery(
       : resized
   }
 
-  const quality = ops.quality ?? 85
-  const encoded = await encodeRaster(imageData, ops.format, quality)
+  const shouldEncode = Boolean(plan || ops.format || operations.quality)
+  if (!shouldEncode) {
+    return null
+  }
+
+  const encoded = await encodeRaster(imageData, ops.format, ops.quality ?? 85)
   if (!encoded) {
     return null
   }

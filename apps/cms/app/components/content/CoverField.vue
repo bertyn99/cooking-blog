@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { mediaPublicUrl, readApiErrorMessage } from '~/utils/media'
+import { mediaCoverPreviewUrl, mediaPublicUrl, readApiErrorMessage } from '~/utils/media'
 import { prepareImageForUpload } from '~/utils/prepare-image-upload.client'
 import { uploadMediaFile } from '~/utils/upload-media.client'
 import { formatMediaByteSize, isWithinImageUploadLimit, maxImageUploadSizeLabel } from '#shared/media'
@@ -25,7 +25,7 @@ const previewUrl = computed(() => {
   if (deferredMedia?.pendingCoverPreviewUrl.value) {
     return deferredMedia.pendingCoverPreviewUrl.value
   }
-  return model.value ? mediaPublicUrl(model.value) : null
+  return model.value ? mediaCoverPreviewUrl(model.value) : null
 })
 
 const fileLabel = computed(() => {
