@@ -95,52 +95,85 @@ Reduces duplicate encode logic for **delivery** but splits behaviour and test ma
 | AVIF | No (WebP fallback) | Yes | Yes |
 | Dashboard thumbs | CMS IPX presets | Same or query API | Same if same host |
 | Local dev | libSQL + `.data/media` + jSquash | `cf.image` often **prod-only** | N/A locally |
-| Abuse controls | Policy module; **KV rate limit TODO** | Same + platform limits | Platform + WAF |
+| Abuse controls | KV rate limit on `/images/**` | Same + platform limits | Platform + WAF |
+
+## Alchemy Workers Cache (deploy-time)
+
+[Alchemy Workers Cache](https://alchemy.run/cloudflare/compute/cache/) enables **read-through edge caching in front of the Worker**. On a cache hit, Cloudflare serves the stored response **without invoking** the Worker handler (unlike the programmatic [Cache API](https://developers.cloudflare.com/workers/cache/limitations/), which still runs your code on every request).
+
+Configured in [`infra/workers.ts`](../../infra/workers.ts) for both `Cms` and `Web` Nitro bundles:
+
+```typescript
+const WORKERS_CACHE = {
+  enabled: true,
+  crossVersionCache: true,
+} as const
+
+// Cloudflare.Worker('Cms', { ..., cache: WORKERS_CACHE })
+```
+
+| Concern | How we handle it |
+|---------|-------------------|
+| **What gets cached** | Response headers only: `Cache-Control`, `Cache-Tag`, `Vary` ([Alchemy docs](https://alchemy.run/cloudflare/compute/cache/)) |
+| **Images (CMS)** | `Cache-Control: public, max-age=31536000, stale-while-revalidate=604800`, `Cache-Tag: media,media-path-…`, `Vary: Accept` when transforms run |
+| **Images (web proxy)** | Forwards CMS `Cache-Control`, `Cache-Tag`, and `Vary` so the **Web** Worker edge cache can serve repeat `/images/**` without hitting CMS |
+| **Admin / API** | Must keep `Cache-Control: private` or `no-store` on authenticated HTML and `/api/*` (Nuxt defaults) so Workers Cache does not store sessions |
+| **crossVersionCache** | Image bytes are content-addressed by URL; safe to share cached variants across deploys |
+| **Purge** | `Cache-Tag` + `ctx.cache.purge({ tags })` on blob delete ([`workers-image-cache.ts`](../../apps/cms/server/utils/workers-image-cache.ts)) and maintenance media wipe |
+| **Local dev** | `cache` prop applies only after `alchemy deploy`; `pnpm dev:cms` / `dev:web` have no Workers Cache |
+
+**Removed:** in-handler `caches.default` put/match in `serve-image.ts` — redundant once Workers Cache is enabled in production.
 
 ## Alchemy deployment diagram (accepted architecture)
 
 ```mermaid
 flowchart LR
+  subgraph Edge["Workers Cache (edge)"]
+    WCms["Cms cache"]
+    WWeb["Web cache"]
+  end
   subgraph WebWorker["Web Worker (Alchemy)"]
     WImg["/images/* proxy"]
   end
   subgraph CmsWorker["CMS Worker (Alchemy)"]
     CImg["/images/* IPX + jSquash"]
     API["/api/*"]
-    CacheAPI["Cache API"]
   end
   R2[(R2 Media)]
   D1[(D1 DB)]
   KV[(KV Cache)]
 
-  User --> WImg
-  WImg -->|HTTP + Accept| CImg
+  User --> WWeb
+  WWeb -->|miss| WImg
+  WImg -->|miss| WCms
+  WCms -->|miss| CImg
   CImg --> R2
-  CImg --> CacheAPI
   API --> D1
   API --> KV
-  CmsWorker --> KV
+  CImg --> KV
 ```
 
-**Not in diagram:** Web does not bind `Media`. Transforms never run on the web Worker.
+On **hit**, the edge returns bytes and inner Workers are not executed (including KV rate limit on that request — acceptable for immutable image URLs).
 
 ## Decision
 
 1. **Keep option A** for production on Alchemy: CMS owns transforms, IPX paths, jSquash, R2 originals.
-2. **Web** remains a **proxy** to CMS for `/images/**` (no second transform, no Worker Cache API on web).
+2. **Web** remains a **proxy** to CMS for `/images/**` (no transform); both Workers use Alchemy **Workers Cache** via the `cache` prop.
 3. **Do not** add Cloudflare Images binding to Alchemy until a deliberate migration (option B or D) is chosen and URL compatibility is designed.
 4. **Follow-ups** (not blocking ADR):
    - ~~KV **rate limiting** on public `GET /images/**`~~ — implemented (`IMAGE_DELIVERY_RATE_LIMIT` in [`image-delivery-policy.ts`](../../apps/cms/shared/image-delivery-policy.ts), enforced in [`serve-image.ts`](../../apps/cms/server/utils/serve-image.ts)).
    - Optional shared `packages/image-ipx` if `apps/web` should stop importing `apps/cms/shared/ipx-image-path.ts`.
    - Revisit **B** if Worker CPU or AVIF becomes a product requirement.
-   - Consider **Workers Caching** (response `Cache-Control` only) instead of or in addition to **Cache API** — see [Workers Cache](https://developers.cloudflare.com/workers/cache/) vs [Cache API limitations](https://developers.cloudflare.com/workers/cache/limitations/).
+   - ~~Consider **Workers Caching**~~ — enabled in [`infra/workers.ts`](../../infra/workers.ts); see section above.
+   - ~~**Purge hook** on media delete~~ — `purgeImageDeliveryCache` / `purgeAllMediaImageCache` in [`workers-image-cache.ts`](../../apps/cms/server/utils/workers-image-cache.ts).
+   - Admin HTML: [`server/middleware/admin-private-cache.ts`](../../apps/cms/server/middleware/admin-private-cache.ts) sets `Cache-Control: private, no-store`.
 
 ## Consequences
 
 ### Positive
 
 - Single code path for admin and web; aligns with Nuxt Image / IPX ecosystem.
-- Alchemy stack stays minimal: no Images product wiring in [`infra/workers.ts`](../../infra/workers.ts).
+- Alchemy **Workers Cache** on `Cms` + `Web` (`crossVersionCache` for image URLs); no separate Images product binding.
 - Policy layer (max edge, sanitize ops, path guard, transform failure → 502) is explicit in repo.
 
 ### Negative
@@ -148,7 +181,7 @@ flowchart LR
 - Higher Worker CPU on cache cold starts than native resizing.
 - No true AVIF without changing option or adding a second encoder.
 - `cf.image` behaviour in local `nuxt dev` does not mirror production unless mocked.
-- **Cache API** (`caches.default`) does not replace zone CDN or **Workers Caching**: the Worker still runs on every request; hits only skip R2/jSquash work inside the handler ([Cache API vs Workers Cache](https://developers.cloudflare.com/workers/cache/limitations/)). Long `Cache-Control` headers enable browser cache and, on proxied routes, can feed **Workers Caching** at the edge when enabled for that Worker.
+- **Workers Cache hits** skip the handler (rate limit and transform not run on that request).
 
 ### When to revisit
 
@@ -162,4 +195,4 @@ flowchart LR
 - [Transloadit: Free image CDN with R2 and Workers](https://transloadit.com/devtips/creating-a-free-image-cdn-with-cloudflare-r2/)
 - [unjs/ipx](https://github.com/unjs/ipx) — URL modifier conventions
 - [jSquash Cloudflare Worker example](https://github.com/jamsinclair/jSquash/tree/main/examples/cloudflare-worker-esm-format)
-- Implementation: [`apps/cms/server/utils/serve-image.ts`](../../apps/cms/server/utils/serve-image.ts), [`apps/cms/shared/image-delivery-policy.ts`](../../apps/cms/shared/image-delivery-policy.ts), [`apps/web/server/utils/serve-cms-image.ts`](../../apps/web/server/utils/serve-cms-image.ts)
+- Implementation: [`infra/workers.ts`](../../infra/workers.ts), [`apps/cms/server/utils/serve-image.ts`](../../apps/cms/server/utils/serve-image.ts), [`apps/cms/shared/image-delivery-policy.ts`](../../apps/cms/shared/image-delivery-policy.ts), [`apps/web/server/utils/serve-cms-image.ts`](../../apps/web/server/utils/serve-cms-image.ts)

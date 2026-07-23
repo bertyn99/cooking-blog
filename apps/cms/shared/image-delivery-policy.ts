@@ -82,6 +82,12 @@ export function imageDeliveryCacheRequest(pathname: string): Request {
   return new Request(`https://image-cache.local${path}`)
 }
 
+export function imageDeliveryCacheTags(assetPath: string): string {
+  const normalized = assetPath.replace(/^\/+/, '')
+  const safe = normalized.replace(/[^\w./-]+/g, '_')
+  return `media,media-path-${safe}`
+}
+
 /** KV fixed-window limits for public `GET /images/**` (per connecting IP). */
 export const IMAGE_DELIVERY_RATE_LIMIT = {
   prefix: 'images:req',

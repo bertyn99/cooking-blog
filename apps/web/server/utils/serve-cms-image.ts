@@ -48,10 +48,18 @@ export async function serveOptimizedCmsImage(event: H3Event, fullPath: string) {
     throw createError({ statusCode: 404 })
   }
 
-  return new Response(body, {
-    headers: {
-      'Content-Type': origin.headers.get('content-type') ?? 'application/octet-stream',
-      'Cache-Control': origin.headers.get('cache-control') ?? LONG_CACHE,
-    },
-  })
+  const responseHeaders: Record<string, string> = {
+    'Content-Type': origin.headers.get('content-type') ?? 'application/octet-stream',
+    'Cache-Control': origin.headers.get('cache-control') ?? LONG_CACHE,
+  }
+  const cacheTag = origin.headers.get('cache-tag')
+  if (cacheTag) {
+    responseHeaders['Cache-Tag'] = cacheTag
+  }
+  const vary = origin.headers.get('vary')
+  if (vary) {
+    responseHeaders.Vary = vary
+  }
+
+  return new Response(body, { headers: responseHeaders })
 }

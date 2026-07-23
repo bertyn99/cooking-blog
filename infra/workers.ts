@@ -10,6 +10,11 @@ const NODE_COMPAT = {
 
 const PUBLISH_CRON = '*/5 * * * *'
 
+const WORKERS_CACHE = {
+  enabled: true,
+  crossVersionCache: true,
+} as const
+
 export const workers = Effect.fn(function* (input: {
   DB: Cloudflare.D1.Database
   AiReadyDB: Cloudflare.D1.Database
@@ -29,6 +34,7 @@ export const workers = Effect.fn(function* (input: {
   const Cms = yield* Cloudflare.Worker('Cms', {
     bundle: false,
     main: 'apps/cms/.output/server/index.mjs',
+    cache: WORKERS_CACHE,
     env: {
       DB: input.DB,
       Media: input.Media,
@@ -62,6 +68,7 @@ export const workers = Effect.fn(function* (input: {
   const Web = yield* Cloudflare.Worker('Web', {
     bundle: false,
     main: 'apps/web/.output/server/index.mjs',
+    cache: WORKERS_CACHE,
     env: {
       Cache: input.Cache,
       AI_READY_DB: input.AiReadyDB,

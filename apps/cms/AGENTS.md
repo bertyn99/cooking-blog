@@ -209,7 +209,7 @@ SEO table uses nullable FKs per content type (not polymorphic).
 | GET/DELETE | `/api/media/[pathname]` | By path |
 | POST/DELETE | `/api/media/folder` | Folder create/delete |
 
-Images: client `prepareImageForUpload` + server ingest pipeline (`shared/image-optimize-pipeline.ts`, `@jsquash/*`). On-demand delivery: **IPX URL syntax** + jSquash (`shared/image-transform-delivery.ts`, `shared/image-delivery-policy.ts`) at `GET /images/{modifiers}/{pathname}` — dimensions capped at 2560px, unsupported modifiers stripped, transform failures return 502 (not long-cached). Cache API keys use pathname only. Dashboard thumbnails use `mediaThumbnailUrl` / IPX presets in `app/utils/media.ts`. `apps/web` proxies CMS `/images` without a second transform or Cache API layer.
+Images: … `GET /images/{modifiers}/{pathname}` … Workers Cache enabled via Alchemy `cache` prop ([ADR-006](../../docs/architecture/adr-006-image-delivery-cloudflare.md)); purge on delete via `workers-image-cache.ts`. Admin HTML uses `private, no-store` middleware.
 
 ### Admin-only
 

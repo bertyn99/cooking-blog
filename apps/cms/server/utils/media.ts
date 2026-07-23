@@ -13,6 +13,7 @@ import {
 import { createApiError } from './errors'
 import { useQueries } from './db'
 import { useMediaStorage } from './media-storage'
+import { purgeImageDeliveryCache } from './workers-image-cache'
 import { extractImageFileMetadata, readStorageBuffer } from './extract-image-metadata'
 import {
   buildMediaDetailSections,
@@ -313,6 +314,7 @@ export async function deleteMedia(event: H3Event, pathname: string) {
   catch {
     // DB cleanup is best-effort
   }
+  await purgeImageDeliveryCache(event, pathname)
 }
 
 export async function listMedia(

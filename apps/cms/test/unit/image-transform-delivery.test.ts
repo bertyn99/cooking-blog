@@ -3,6 +3,7 @@ import {
   clampDeliveryDimension,
   clampDeliveryQuality,
   imageDeliveryCacheRequest,
+  imageDeliveryCacheTags,
   isAllowedMediaAssetPath,
   resolveDeliveryFormat,
   sanitizeDeliveryOperations,
@@ -49,6 +50,10 @@ describe('image-delivery-policy', () => {
     expect(imageDeliveryCacheRequest('/images/w_400/x.webp').url).toBe(
       'https://image-cache.local/images/w_400/x.webp',
     )
+  })
+
+  it('builds cache tags for purge', () => {
+    expect(imageDeliveryCacheTags('uploads/foo.webp')).toBe('media,media-path-uploads/foo.webp')
   })
 })
 

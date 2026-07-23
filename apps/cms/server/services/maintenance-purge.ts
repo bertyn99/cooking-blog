@@ -6,6 +6,7 @@ import type {
   MaintenancePurgeTarget,
 } from '../../shared/maintenance'
 import { useMediaStorage } from '../utils/media-storage'
+import { purgeAllMediaImageCache } from '../utils/workers-image-cache'
 import { useDb } from '../utils/db'
 
 export function createMaintenanceService(db: AppDb) {
@@ -41,6 +42,7 @@ export async function runMaintenancePurge(
         // Object may already be missing from R2/local disk
       }
     }
+    await purgeAllMediaImageCache(event)
   }
 
   return { deleted }

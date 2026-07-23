@@ -1,18 +1,17 @@
 import type { H3Event } from 'h3'
-import { getHeader, getRequestURL } from 'h3'
+import { getHeader } from 'h3'
 import {
   hasImageTransformOps,
   parseIpxImagePath,
 } from '../../shared/ipx-image-path'
 import {
   IMAGE_DELIVERY_RATE_LIMIT,
-  imageDeliveryCacheRequest,
+  imageDeliveryCacheTags,
   isAllowedMediaAssetPath,
   sanitizeDeliveryOperations,
 } from '../../shared/image-delivery-policy'
 import { transformImageBufferForDelivery } from '../../shared/image-transform-delivery'
 import { getClientIp } from './client-ip'
-import { runInBackground } from './background-task'
 import { useMediaStorage } from './media-storage'
 import { createRequestRateLimiter } from './rate-limit'
 import { useKvStore } from './kv'
@@ -35,7 +34,11 @@ async function streamToArrayBuffer(stream: ReadableStream): Promise<ArrayBuffer>
 
 /**
  * Serve CMS media with optional IPX-style transforms (`/images/w_800,f_webp/uploads/…`).
- * Transformed (and origin) responses are cached via the Worker Cache API when available.
+ *
+ * **Workers Cache** (Alchemy `cache: { enabled: true }` on the CMS Worker) stores
+ * responses at the edge when `Cache-Control` / `Cache-Tag` / `Vary` allow it —
+ * see [Alchemy Workers Cache](https://alchemy.run/cloudflare/compute/cache/).
+ * Local `nuxt dev` does not enable Workers Cache; only deployed Alchemy workers do.
  */
 export async function serveCmsImage(event: H3Event, fullPath: string) {
   const imageLimiter = createRequestRateLimiter(useKvStore(event), IMAGE_DELIVERY_RATE_LIMIT)
@@ -57,16 +60,6 @@ export async function serveCmsImage(event: H3Event, fullPath: string) {
 
   const deliveryOps = sanitizeDeliveryOperations(operations)
   const wantsTransform = hasImageTransformOps(deliveryOps)
-
-  const cache = typeof caches !== 'undefined' ? caches.default : undefined
-  const cacheKey = imageDeliveryCacheRequest(getRequestURL(event).pathname)
-
-  if (cache) {
-    const hit = await cache.match(cacheKey)
-    if (hit) {
-      return hit
-    }
-  }
 
   const storage = useMediaStorage(event)
   const result = await storage.get(assetPath)
@@ -97,20 +90,15 @@ export async function serveCmsImage(event: H3Event, fullPath: string) {
   const headers: Record<string, string> = {
     'Content-Type': contentType,
     'Cache-Control': LONG_CACHE,
+    'Cache-Tag': imageDeliveryCacheTags(assetPath),
     'Content-Security-Policy': "default-src 'none'",
+  }
+  if (wantsTransform) {
+    headers.Vary = 'Accept'
   }
   if (etag) {
     headers.ETag = etag
   }
 
-  const response = new Response(body, { headers })
-
-  if (cache) {
-    const cached = response.clone()
-    await runInBackground(event, async () => {
-      await cache.put(cacheKey, cached)
-    })
-  }
-
-  return response
+  return new Response(body, { headers })
 }

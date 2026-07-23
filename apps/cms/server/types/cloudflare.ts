@@ -10,10 +10,18 @@ export interface CloudflareBindings {
   Cache: KVNamespace
 }
 
+export interface WorkersCachePurge {
+  purge(options: { tags?: string[], prefixes?: string[] }): Promise<unknown>
+}
+
 declare module 'h3' {
   interface H3EventContext {
     cloudflare?: {
       env: CloudflareBindings
+      context?: {
+        waitUntil?: (promise: Promise<unknown>) => void
+        cache?: WorkersCachePurge
+      }
     }
   }
 }
