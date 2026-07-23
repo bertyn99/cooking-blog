@@ -85,6 +85,7 @@ export default defineNuxtConfig({
       ? {
           scheduledTasks: {
             '*/5 * * * *': 'publish-scheduled',
+            '2-57/5 * * * *': 'generation-process',
           },
         }
       : {}),

@@ -89,6 +89,7 @@ export function createRecipeQueries(db: AppDb) {
       const defaultWith = {
         ingredients: true,
         utensils: true,
+        steps: true,
         nutrition: true,
         reviews: true,
         seo: { with: { socialMeta: true } },
@@ -140,6 +141,7 @@ export function createRecipeQueries(db: AppDb) {
       relations: {
         ingredients?: Array<{ name: string, qty?: number, unit?: string, sortOrder?: number }>
         utensils?: Array<{ name: string, note?: string | null, affiliateUrl?: string | null, sortOrder?: number }>
+        steps?: Array<{ title?: string | null, instruction: string, sortOrder?: number }>
         nutrition?: NutritionRowInput | null
       },
     ) {
@@ -175,6 +177,20 @@ export function createRecipeQueries(db: AppDb) {
                 name: row.name.trim(),
                 note: row.note?.trim() || null,
                 affiliateUrl: row.affiliateUrl?.trim() || null,
+                sortOrder: row.sortOrder ?? i,
+              })),
+            )
+          }
+        }
+
+        if (relations.steps !== undefined) {
+          await tx.delete(schema.recipeSteps).where(eq(schema.recipeSteps.recipeId, id))
+          if (relations.steps.length) {
+            await tx.insert(schema.recipeSteps).values(
+              relations.steps.map((row, i) => ({
+                recipeId: id,
+                title: row.title?.trim() || null,
+                instruction: row.instruction,
                 sortOrder: row.sortOrder ?? i,
               })),
             )
@@ -222,6 +238,23 @@ export function createRecipeQueries(db: AppDb) {
             name: row.name.trim(),
             note: row.note?.trim() || null,
             affiliateUrl: row.affiliateUrl?.trim() || null,
+            sortOrder: row.sortOrder ?? i,
+          })),
+        )
+      }
+    },
+
+    async replaceSteps(
+      recipeId: number,
+      steps: Array<{ title?: string | null, instruction: string, sortOrder?: number }>,
+    ) {
+      await db.delete(schema.recipeSteps).where(eq(schema.recipeSteps.recipeId, recipeId))
+      if (steps.length) {
+        await db.insert(schema.recipeSteps).values(
+          steps.map((row, i) => ({
+            recipeId,
+            title: row.title?.trim() || null,
+            instruction: row.instruction,
             sortOrder: row.sortOrder ?? i,
           })),
         )

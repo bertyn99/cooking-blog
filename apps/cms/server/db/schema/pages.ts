@@ -9,6 +9,7 @@ export const pages = sqliteTable('pages', {
   title: text('title'),
   slug: text('slug').notNull(),
   content: text('content'),
+  excerpt: text('excerpt'),
   parentId: integer('parent_id').references((): AnySQLiteColumn => pages.id, { onDelete: 'set null' }),
   status: text('status', { enum: ['draft', 'published', 'scheduled'] }).default('draft').notNull(),
   firstPublishedAt: text('first_published_at'),

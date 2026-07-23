@@ -43,6 +43,7 @@ export default defineEventHandler(async (event) => {
     name: body.name,
     title: body.title,
     content: body.content,
+    excerpt: body.excerpt,
     parentId: body.parentId,
     locale: body.locale,
     localeGroupId: body.localeGroupId,

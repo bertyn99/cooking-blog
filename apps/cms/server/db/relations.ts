@@ -15,6 +15,10 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.articles.id,
       to: r.seo.articleId,
     }),
+    generationRuns: r.many.contentGenerationRuns({
+      from: r.articles.id,
+      to: r.contentGenerationRuns.articleId,
+    }),
   },
   categoryArticles: {
     articles: r.many.articles({
@@ -63,6 +67,10 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.recipes.id,
       to: r.recipeUtensils.recipeId,
     }),
+    steps: r.many.recipeSteps({
+      from: r.recipes.id,
+      to: r.recipeSteps.recipeId,
+    }),
     reviews: r.many.reviews({
       from: r.recipes.id,
       to: r.reviews.recipeId,
@@ -70,6 +78,16 @@ export const relations = defineRelations(schema, (r) => ({
     seo: r.one.seo({
       from: r.recipes.id,
       to: r.seo.recipeId,
+    }),
+    generationRuns: r.many.contentGenerationRuns({
+      from: r.recipes.id,
+      to: r.contentGenerationRuns.recipeId,
+    }),
+  },
+  recipeSteps: {
+    recipe: r.one.recipes({
+      from: r.recipeSteps.recipeId,
+      to: r.recipes.id,
     }),
   },
   ingredients: {
@@ -126,6 +144,50 @@ export const relations = defineRelations(schema, (r) => ({
     user: r.one.users({
       from: r.sessions.userId,
       to: r.users.id,
+    }),
+  },
+  contentGenerationRuns: {
+    steps: r.many.contentGenerationRunSteps({
+      from: r.contentGenerationRuns.id,
+      to: r.contentGenerationRunSteps.runId,
+    }),
+    article: r.one.articles({
+      from: r.contentGenerationRuns.articleId,
+      to: r.articles.id,
+    }),
+    recipe: r.one.recipes({
+      from: r.contentGenerationRuns.recipeId,
+      to: r.recipes.id,
+    }),
+  },
+  contentGenerationRunSteps: {
+    run: r.one.contentGenerationRuns({
+      from: r.contentGenerationRunSteps.runId,
+      to: r.contentGenerationRuns.id,
+    }),
+  },
+  tags: {
+    contentTags: r.many.contentTags({
+      from: r.tags.id,
+      to: r.contentTags.tagId,
+    }),
+  },
+  contentTags: {
+    tag: r.one.tags({
+      from: r.contentTags.tagId,
+      to: r.tags.id,
+    }),
+  },
+  mediaFolders: {
+    parent: r.one.mediaFolders({
+      from: r.mediaFolders.parentId,
+      to: r.mediaFolders.id,
+    }),
+  },
+  navigationItems: {
+    parent: r.one.navigationItems({
+      from: r.navigationItems.parentId,
+      to: r.navigationItems.id,
     }),
   },
 }))

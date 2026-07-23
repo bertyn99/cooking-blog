@@ -9,6 +9,7 @@ export type SeoContentType = 'article' | 'recipe' | 'page'
 export interface SeoUpsertBody {
   description?: string
   keywords?: string
+  canonicalUrl?: string
   metaRobots?: string
   socialMeta?: Array<{
     socialNetwork: 'Facebook' | 'Twitter'
@@ -44,6 +45,7 @@ export function createSeoQueries(db: AppDb) {
             .set({
               description: body.description !== undefined ? body.description : undefined,
               keywords: body.keywords !== undefined ? body.keywords : undefined,
+              canonicalUrl: body.canonicalUrl !== undefined ? body.canonicalUrl : undefined,
               metaRobots: body.metaRobots !== undefined ? body.metaRobots : undefined,
             })
             .where(eq(schema.seo.id, id))
@@ -57,6 +59,7 @@ export function createSeoQueries(db: AppDb) {
               pageId: contentType === 'page' ? contentId : null,
               description: body.description ?? null,
               keywords: body.keywords ?? null,
+              canonicalUrl: body.canonicalUrl ?? null,
               metaRobots: body.metaRobots ?? null,
             })
             .returning({ id: schema.seo.id })

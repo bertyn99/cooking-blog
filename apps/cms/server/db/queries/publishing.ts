@@ -1,9 +1,10 @@
 import { and, eq, isNotNull, isNull, lte } from 'drizzle-orm'
 import type { AppDb } from '../create-db'
 import { schema } from '../create-db'
-import { queryConflict, queryNotFound } from '../../db/query-errors'
+import { queryConflict, queryNotFound, isQueryError } from '../../db/query-errors'
 import type { PublishableContentType } from '../../utils/content-types'
 import { createContentRevisionQueries } from './content-revisions'
+import { assertHumanReviewAllowsPublish } from '../../utils/human-review-publish'
 
 type SchedulableTable =
   | typeof schema.articles
@@ -75,6 +76,16 @@ async function publishVersionedRow(
   const nextVersion = currentVersion + 1
   const firstPublishedAt = 'firstPublishedAt' in row ? row.firstPublishedAt : null
 
+  if (contentType === 'articles' || contentType === 'recipes') {
+    await assertHumanReviewAllowsPublish(
+      db as AppDb,
+      contentType === 'articles' ? 'article' : 'recipe',
+      id,
+      currentVersion,
+      Boolean('requiresHumanReview' in row && row.requiresHumanReview),
+    )
+  }
+
   await db.update(table).set({
     status: 'published',
     publishedAt: now,
@@ -118,26 +129,50 @@ async function publishSimpleRow(
 }
 
 async function publishDueVersioned(
-  db: PublishDb,
+  db: AppDb,
   contentType: PublishableContentType,
   table: VersionedContentTable,
   now: string,
-): Promise<number> {
+): Promise<{ published: number, skipped: number }> {
   const due = await db
     .select({ id: table.id })
     .from(table)
     .where(scheduledDueWhere(table, now))
     .all()
 
+  let published = 0
+  let skipped = 0
+
   for (const row of due) {
-    await publishVersionedRow(db, contentType, table, row.id, now)
+    try {
+      await db.transaction(async (tx) => {
+        const ok = await publishVersionedRow(
+          tx as PublishDb,
+          contentType,
+          table,
+          row.id,
+          now,
+        )
+        if (!ok) {
+          throw queryNotFound(`${contentType} not found`)
+        }
+      })
+      published++
+    }
+    catch (error) {
+      if (isQueryError(error) && error.code === 'CONFLICT') {
+        skipped++
+        continue
+      }
+      throw error
+    }
   }
 
-  return due.length
+  return { published, skipped }
 }
 
 async function publishDueSimple(
-  db: PublishDb,
+  db: AppDb,
   table: Exclude<SchedulableTable, VersionedContentTable>,
   now: string,
 ): Promise<number> {
@@ -148,7 +183,7 @@ async function publishDueSimple(
     .all()
 
   for (const row of due) {
-    await publishSimpleRow(db, table, row.id, now)
+    await publishSimpleRow(db as PublishDb, table, row.id, now)
   }
 
   return due.length
@@ -156,19 +191,28 @@ async function publishDueSimple(
 
 export function createPublishingQueries(db: AppDb) {
   return {
-    async publishDueScheduled(): Promise<{ published: number }> {
+    async publishDueScheduled(): Promise<{ published: number, skipped: number }> {
       const now = new Date().toISOString()
 
-      return db.transaction(async (tx) => {
-        const publishDb = tx as PublishDb
-        let published = 0
-        published += await publishDueVersioned(publishDb, 'articles', schema.articles, now)
-        published += await publishDueVersioned(publishDb, 'recipes', schema.recipes, now)
-        published += await publishDueVersioned(publishDb, 'pages', schema.pages, now)
-        published += await publishDueSimple(publishDb, schema.categories, now)
-        published += await publishDueSimple(publishDb, schema.categoryArticles, now)
-        return { published }
-      })
+      let published = 0
+      let skipped = 0
+
+      const articlesResult = await publishDueVersioned(db, 'articles', schema.articles, now)
+      published += articlesResult.published
+      skipped += articlesResult.skipped
+
+      const recipesResult = await publishDueVersioned(db, 'recipes', schema.recipes, now)
+      published += recipesResult.published
+      skipped += recipesResult.skipped
+
+      const pagesResult = await publishDueVersioned(db, 'pages', schema.pages, now)
+      published += pagesResult.published
+      skipped += pagesResult.skipped
+
+      published += await publishDueSimple(db, schema.categories, now)
+      published += await publishDueSimple(db, schema.categoryArticles, now)
+
+      return { published, skipped }
     },
 
     async publish(contentType: PublishableContentType, id: number, actor?: PublishActorContext) {

@@ -14,6 +14,7 @@ const socialMetaSchema = z.object({
 const seoBodySchema = z.object({
   description: z.string().optional(),
   keywords: z.string().optional(),
+  canonicalUrl: z.string().url().optional().or(z.literal('')),
   metaRobots: z.string().optional(),
   socialMeta: z.array(socialMetaSchema).optional(),
 })

@@ -25,6 +25,8 @@ export default defineEventHandler(async (event) => {
   const result = await articles.insert({
     title: data.title,
     content: data.content,
+    excerpt: data.excerpt,
+    featured: data.featured,
     slug,
     categoryId: data.categoryId,
     coverBlobPathname: data.coverBlobPathname,

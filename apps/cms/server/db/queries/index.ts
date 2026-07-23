@@ -12,6 +12,12 @@ import { createDashboardQueries } from './dashboard'
 import { createMaintenanceQueries } from './maintenance'
 import { createBlobQueries } from './blobs'
 import { createLegacyStrapiMapQueries } from './legacy-strapi-map'
+import { createTagQueries } from './tags'
+import { createRedirectQueries } from './redirects'
+import { createMediaFolderQueries } from './media-folders'
+import { createSiteSettingsQueries } from './site-settings'
+import { createNavigationQueries } from './navigation'
+import { createContentGenerationQueries } from './content-generation'
 
 /**
  * Single entry point for all Drizzle access in the CMS server.
@@ -32,6 +38,12 @@ export function createDbQueries(db: AppDb) {
     maintenance: createMaintenanceQueries(db),
     blobs: createBlobQueries(db),
     legacyStrapiMap: createLegacyStrapiMapQueries(db),
+    tags: createTagQueries(db),
+    redirects: createRedirectQueries(db),
+    mediaFolders: createMediaFolderQueries(db),
+    siteSettings: createSiteSettingsQueries(db),
+    navigation: createNavigationQueries(db),
+    contentGeneration: createContentGenerationQueries(db),
   }
 }
 

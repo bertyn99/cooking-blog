@@ -3,6 +3,8 @@ import { z } from 'zod'
 export const createArticleSchema = z.object({
   title: z.string().min(1),
   content: z.string().optional(),
+  excerpt: z.string().optional(),
+  featured: z.boolean().optional(),
   slug: z.string().optional(),
   categoryId: z.number().optional(),
   coverBlobPathname: z.string().nullable().optional(),

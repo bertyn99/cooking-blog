@@ -21,7 +21,8 @@
     "db:migrate:local": "node --import tsx scripts/migrate-local.ts",
     "db:seed:admin": "node --import tsx scripts/seed-admin.ts",
     "task:seed:admin": "nitro task run seed-admin",
-    "task:strapi-extract": "nitro task run strapi-extract"
+    "task:strapi-extract": "nitro task run strapi-extract",
+    "task:generation-process": "nitro task run generation-process"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.116",

@@ -28,6 +28,7 @@ export default defineEventHandler(async (event) => {
     title: body.title ?? null,
     slug,
     content: body.content ?? null,
+    excerpt: body.excerpt ?? null,
     parentId: body.parentId ?? null,
     status,
     locale: body.locale,

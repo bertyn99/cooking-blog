@@ -1,6 +1,6 @@
 import type { RecipesQueryFilter, RecipesWith } from '../../../query-types'
 
-export const RECIPES_RELATIONS = ['cover', 'category', 'nutrition', 'ingredients', 'utensils', 'reviews', 'seo'] as const
+export const RECIPES_RELATIONS = ['cover', 'category', 'nutrition', 'ingredients', 'utensils', 'steps', 'reviews', 'seo'] as const
 export type RecipeRelation = (typeof RECIPES_RELATIONS)[number]
 
 export interface RecipesQueryOptions {
@@ -46,6 +46,9 @@ export function buildRecipesWith(include: string[]): RecipesWith | undefined {
         break
       case 'utensils':
         withObj.utensils = true
+        break
+      case 'steps':
+        withObj.steps = true
         break
       case 'reviews':
         withObj.reviews = true

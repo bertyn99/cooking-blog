@@ -10,6 +10,7 @@ export const seo = sqliteTable('seo', {
   pageId: integer('page_id').references(() => pages.id, { onDelete: 'cascade' }),
   description: text('description'),
   keywords: text('keywords'),
+  canonicalUrl: text('canonical_url'),
   metaRobots: text('meta_robots').default('index, follow'),
 }, (table) => [
   uniqueIndex('seo_article_id_idx').on(table.articleId),

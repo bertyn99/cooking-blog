@@ -25,11 +25,16 @@ export default defineEventHandler(async (event) => {
   const result = await recipes.insert({
     title: data.title,
     intro: data.intro,
+    excerpt: data.excerpt,
+    featured: data.featured,
     slug,
     categoryId: data.categoryId,
     step: data.step,
     difficulty: data.difficulty,
     time: data.time,
+    prepTimeMinutes: data.prepTimeMinutes,
+    cookTimeMinutes: data.cookTimeMinutes,
+    servings: data.servings,
     coverBlobPathname: data.coverBlobPathname,
     coverAltText: data.coverAltText,
     coverDescription: data.coverDescription,
@@ -47,6 +52,9 @@ export default defineEventHandler(async (event) => {
   }
   if (data.utensils?.length) {
     await recipes.replaceUtensils(result.id, data.utensils)
+  }
+  if (data.steps?.length) {
+    await recipes.replaceSteps(result.id, data.steps)
   }
   if (data.nutrition) {
     await recipes.replaceNutrition(result.id, data.nutrition)
