@@ -30,6 +30,7 @@ interface RecipeDetail {
   time: number | null
   categoryId: number | null
   status: string
+  requiresHumanReview?: boolean | null
   coverBlobPathname: string | null
   coverAltText?: string | null
   coverDescription?: string | null
@@ -68,6 +69,13 @@ const { data: recipe, status } = await useAsyncData(
     :subtitle="recipe?.slug"
     :loading="status === 'pending'"
   >
+    <GenerationHumanReviewBanner
+      v-if="recipe"
+      target-type="recipe"
+      :content-id="recipe.id"
+      :requires-human-review="recipe.requiresHumanReview"
+    />
+
     <ContentRecipeForm
       v-if="recipe"
       :recipe-id="recipe.id"

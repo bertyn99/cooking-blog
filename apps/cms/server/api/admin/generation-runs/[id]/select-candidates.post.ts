@@ -5,9 +5,8 @@ import { validateBody } from '../../../../utils/validate'
 import { createApiError, fromQueryError } from '../../../../utils/errors'
 import { serializeGenerationRunForApi } from '../../../../utils/serialize-generation-run'
 
-/** @deprecated Prefer POST /review with action: 'approve'. Kept for compatibility. */
 const schema = z.object({
-  reviewNote: z.string().optional(),
+  candidateIds: z.array(z.string().min(1)).min(1).max(40),
 })
 
 export default defineEventHandler(async (event) => {
@@ -19,13 +18,20 @@ export default defineEventHandler(async (event) => {
 
   const body = validateBody(schema, await readBody(event))
   try {
-    const run = await useContentGenerationService(event).reviewRun(runId, {
-      action: 'approve',
-      reviewerUserId: session.user.id,
-      reviewNote: body.reviewNote,
-    })
+    const result = await useContentGenerationService(event).selectCandidates(
+      runId,
+      body.candidateIds,
+      session.user.id,
+    )
     return {
-      data: run ? serializeGenerationRunForApi(run as Record<string, unknown>) : run,
+      data: {
+        parent: result.parent
+          ? serializeGenerationRunForApi(result.parent as Record<string, unknown>)
+          : result.parent,
+        children: result.children.map(child =>
+          serializeGenerationRunForApi(child as Record<string, unknown>),
+        ),
+      },
     }
   }
   catch (error) {

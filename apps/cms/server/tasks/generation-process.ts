@@ -1,11 +1,5 @@
-import { useDb } from '../utils/db'
 import { isSqliteBusyError } from '../utils/sqlite-busy'
-import { createContentGenerationService } from '../services/generation/service'
-import type { H3Event } from 'h3'
-
-export function useContentGenerationService(event?: H3Event) {
-  return createContentGenerationService(useDb(event), event)
-}
+import { useContentGenerationService } from '../services/generation/service'
 
 export default defineTask({
   meta: {

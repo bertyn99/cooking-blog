@@ -11,6 +11,7 @@ const _useDashboard = () => {
     'g-p': () => router.push('/pages'),
     'g-c': () => router.push('/categories'),
     'g-m': () => router.push('/media'),
+    'g-g': () => router.push('/generate'),
     'g-i': () => router.push('/import')
   })
 

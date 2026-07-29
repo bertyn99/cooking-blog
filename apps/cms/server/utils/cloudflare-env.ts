@@ -3,14 +3,14 @@ import type { CloudflareBindings } from '../types/cloudflare'
 
 export function getCloudflareEnv(event?: H3Event): CloudflareBindings | undefined {
   const fromEvent = event?.context?.cloudflare?.env
-  if (fromEvent?.DB) {
+  if (fromEvent?.DB || fromEvent?.AI) {
     return fromEvent
   }
 
   try {
     const current = useEvent()
     const fromAsync = current?.context?.cloudflare?.env
-    if (fromAsync?.DB) {
+    if (fromAsync?.DB || fromAsync?.AI) {
       return fromAsync
     }
   }
