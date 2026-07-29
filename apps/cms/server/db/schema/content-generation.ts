@@ -17,8 +17,23 @@ export const contentGenerationRuns = sqliteTable('content_generation_runs', {
   recipeId: integer('recipe_id').references(() => recipes.id, { onDelete: 'restrict' }),
   artifactPrefix: text('artifact_prefix').notNull(),
   requestedByUserId: integer('requested_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  /** Batch parent for multi-recipe ebook fan-out; null on unit runs. */
+  parentRunId: text('parent_run_id'),
+  runKind: text('run_kind', { enum: ['unit', 'batch'] }).notNull().default('unit'),
+  /** Current HITL gate (1..3); 0 = not awaiting review. */
+  reviewRound: integer('review_round').notNull().default(0),
   status: text('status', {
-    enum: ['queued', 'running', 'awaiting_review', 'approved', 'rejected', 'failed', 'canceled'],
+    enum: [
+      'queued',
+      'running',
+      'revising',
+      'awaiting_selection',
+      'awaiting_review',
+      'approved',
+      'rejected',
+      'failed',
+      'canceled',
+    ],
   }).notNull().default('queued'),
   attemptCount: integer('attempt_count').notNull().default(0),
   maxAttempts: integer('max_attempts').notNull().default(3),
@@ -40,13 +55,26 @@ export const contentGenerationRuns = sqliteTable('content_generation_runs', {
   index('generation_runs_dispatch_idx').on(table.status, table.nextAttemptAt, table.leaseExpiresAt),
   index('generation_runs_article_idx').on(table.articleId, table.createdAt),
   index('generation_runs_recipe_idx').on(table.recipeId, table.createdAt),
+  index('generation_runs_parent_idx').on(table.parentRunId, table.createdAt),
+  index('generation_runs_review_inbox_idx').on(table.status, table.requestedByUserId, table.updatedAt),
 ])
 
 export const contentGenerationRunSteps = sqliteTable('content_generation_run_steps', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   runId: text('run_id').notNull().references(() => contentGenerationRuns.id, { onDelete: 'cascade' }),
   stepKey: text('step_key', {
-    enum: ['normalize', 'classify', 'extract', 'assemble', 'validate', 'generate_cover'],
+    enum: [
+      'normalize',
+      'classify',
+      'keyword_research',
+      'extract',
+      'assemble',
+      'validate',
+      'generate_cover',
+      'discover',
+      'revise_1',
+      'revise_2',
+    ],
   }).notNull(),
   ordinal: integer('ordinal').notNull(),
   status: text('status', {

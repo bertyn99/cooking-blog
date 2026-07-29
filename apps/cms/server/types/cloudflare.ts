@@ -4,10 +4,17 @@
  * Cloudflare Worker bindings provisioned by Alchemy (infra/workers.ts).
  * @see https://v2.alchemy.run/cloudflare/data/d1
  */
+export interface GenerationWorkflowParams {
+  runId: string
+}
+
 export interface CloudflareBindings {
   DB: D1Database
   Media: R2Bucket
   Cache: KVNamespace
+  AI?: Ai
+  /** Durable generation pipeline (Workflows). */
+  CONTENT_GENERATION?: Workflow<GenerationWorkflowParams>
 }
 
 export interface WorkersCachePurge {

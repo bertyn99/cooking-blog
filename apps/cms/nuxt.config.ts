@@ -23,6 +23,9 @@ export default defineNuxtConfig({
     strapiApiToken: process.env.STRAPI_API_TOKEN || '',
     /** Optional origin for Strapi `/uploads` files (e.g. public site CDN). */
     strapiUploadsOrigin: process.env.STRAPI_UPLOADS_ORIGIN || '',
+    /** Nuxt SEO Pro MCP (in-app content agent keyword tools). */
+    nuxtSeoProMcpUrl: process.env.NUXT_SEO_PRO_MCP_URL || 'https://nuxtseo.com/mcp/pro',
+    nuxtSeoProApiKey: process.env.NUXT_SEO_PRO_API_KEY || '',
   },
 
   css: ['~/assets/css/main.css'],
@@ -75,6 +78,16 @@ export default defineNuxtConfig({
             id: 'cms-cache-local',
           },
         ],
+        ai: {
+          binding: 'AI',
+        },
+        workflows: [
+          {
+            name: 'content-generation',
+            binding: 'CONTENT_GENERATION',
+            class_name: 'ContentGenerationWorkflow',
+          },
+        ],
       },
     },
     experimental: {
@@ -85,6 +98,7 @@ export default defineNuxtConfig({
       ? {
           scheduledTasks: {
             '*/5 * * * *': 'publish-scheduled',
+            // Fallback poller if Workflow create failed / local legacy runs.
             '2-57/5 * * * *': 'generation-process',
           },
         }

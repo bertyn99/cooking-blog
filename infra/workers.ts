@@ -31,6 +31,18 @@ export const workers = Effect.fn(function* (input: {
     },
   })
 
+  // Binding an AI Gateway yields the Workers AI `Ai` runtime binding (env.AI).
+  const CmsAi = yield* Cloudflare.AI.Gateway('CmsAi', {
+    id: 'cms-ai',
+    collectLogs: true,
+  })
+
+  const ContentGeneration = Cloudflare.Workflow<
+    { runId: string }
+  >('ContentGeneration', {
+    className: 'ContentGenerationWorkflow',
+  })
+
   const Cms = yield* Cloudflare.Worker('Cms', {
     bundle: false,
     main: 'apps/cms/.output/server/index.mjs',
@@ -39,6 +51,8 @@ export const workers = Effect.fn(function* (input: {
       DB: input.DB,
       Media: input.Media,
       Cache: input.Cache,
+      AI: CmsAi,
+      CONTENT_GENERATION: ContentGeneration,
       NUXT_SESSION_PASSWORD: Config.string('NUXT_SESSION_PASSWORD'),
     },
     crons: [PUBLISH_CRON],

@@ -39,6 +39,16 @@ const links = computed(() => {
       icon: 'i-lucide-calendar-days',
       to: '/planning',
       onSelect: () => { open.value = false },
+    }, {
+      label: 'Génération IA',
+      icon: 'i-lucide-sparkles',
+      to: '/generate',
+      onSelect: () => { open.value = false },
+    }, {
+      label: 'Inbox relecture',
+      icon: 'i-lucide-inbox',
+      to: '/generate/review',
+      onSelect: () => { open.value = false },
     }],
   }, {
     label: 'Taxonomie',

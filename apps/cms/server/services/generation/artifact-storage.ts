@@ -8,22 +8,24 @@ function localGenerationRoot() {
   return join(process.cwd(), '.data/generation')
 }
 
-function objectKey(artifactPrefix: string, stepKey: GenerationStepKey | 'source-pack') {
+function objectKey(artifactPrefix: string, stepKey: string) {
   const normalized = artifactPrefix.replace(/^\/+|\/+$/g, '')
   return `${normalized}/${stepKey}.json`
 }
 
-function r2ObjectKey(artifactPrefix: string, stepKey: GenerationStepKey | 'source-pack') {
+function r2ObjectKey(artifactPrefix: string, stepKey: string) {
   return `generation/${objectKey(artifactPrefix, stepKey)}`
 }
 
-function localPath(artifactPrefix: string, stepKey: GenerationStepKey | 'source-pack') {
+function localPath(artifactPrefix: string, stepKey: string) {
   return join(localGenerationRoot(), objectKey(artifactPrefix, stepKey))
 }
 
+export type GenerationArtifactName = GenerationStepKey | 'source-pack' | `review-notes-${number}`
+
 export interface GenerationArtifactStore {
-  putJson(artifactPrefix: string, stepKey: GenerationStepKey | 'source-pack', value: unknown): Promise<string>
-  getJson<T = unknown>(artifactPrefix: string, stepKey: GenerationStepKey | 'source-pack'): Promise<T | null>
+  putJson(artifactPrefix: string, stepKey: GenerationArtifactName | string, value: unknown): Promise<string>
+  getJson<T = unknown>(artifactPrefix: string, stepKey: GenerationArtifactName | string): Promise<T | null>
 }
 
 export function createGenerationArtifactStore(r2?: R2Bucket): GenerationArtifactStore {

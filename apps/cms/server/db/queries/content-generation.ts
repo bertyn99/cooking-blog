@@ -6,53 +6,215 @@ import {
   contentGenerationRunSteps,
   contentGenerationRuns,
 } from '../schema/content-generation'
-import type { GenerationArtifactStore } from '../../services/generation/artifact-storage'
-import { createGenerationArtifactStore } from '../../services/generation/artifact-storage'
-import type { GenerationProgressStore } from '../../services/generation/progress'
-import { createGenerationProgressStore } from '../../services/generation/progress'
-import { executeGenerationStep } from '../../services/generation/step-runner'
-import { memoryKvStore } from '../../utils/kv'
+import { createArticleQueries } from './articles'
+import { createRecipeQueries } from './recipes'
+import { slugifyString } from '../../utils/slug'
 
-export interface ContentGenerationDeps {
-  artifacts: GenerationArtifactStore
-  progress: GenerationProgressStore
-}
-
-function defaultDeps(): ContentGenerationDeps {
-  return {
-    artifacts: createGenerationArtifactStore(),
-    progress: createGenerationProgressStore(memoryKvStore),
-  }
-}
-
+/** Initial pipeline only (createRun inserts these). */
 export const GENERATION_STEP_KEYS = [
   'normalize',
   'classify',
+  'keyword_research',
   'extract',
   'assemble',
   'validate',
   'generate_cover',
 ] as const
 
-export type GenerationStepKey = (typeof GENERATION_STEP_KEYS)[number]
+/** Batch ebook parent: normalize then discover candidates. */
+export const GENERATION_BATCH_STEP_KEYS = [
+  'normalize',
+  'discover',
+] as const
+
+export const GENERATION_REVISE_STEP_KEYS = ['revise_1', 'revise_2'] as const
+
+export type GenerationPipelineStepKey = (typeof GENERATION_STEP_KEYS)[number]
+export type GenerationBatchStepKey = (typeof GENERATION_BATCH_STEP_KEYS)[number]
+export type GenerationReviseStepKey = (typeof GENERATION_REVISE_STEP_KEYS)[number]
+export type GenerationStepKey
+  = GenerationPipelineStepKey
+    | GenerationBatchStepKey
+    | GenerationReviseStepKey
 
 export type GenerationTargetType = 'article' | 'recipe'
+export type GenerationRunKind = 'unit' | 'batch'
+
+export function reviseStepKeyForRound(round: number): GenerationReviseStepKey {
+  if (round === 1) return 'revise_1'
+  if (round === 2) return 'revise_2'
+  throw new Error(`No revise step for review round ${round}`)
+}
+
+export interface AssembleRecipeFields {
+  prepTimeMinutes?: number
+  cookTimeMinutes?: number
+  servings?: number
+  difficulty?: 'easy' | 'medium' | 'hard'
+  ingredients?: Array<{ name: string, qty?: number, unit?: string, sortOrder?: number }>
+  steps?: Array<{ title?: string, instruction: string, sortOrder?: number }>
+  nutrition?: {
+    lipides?: string
+    proteine?: string
+    sucre?: string
+    calories?: string
+    glucides?: string
+    sodium?: string
+  }
+}
+
+export interface AssembleDraftInput {
+  title: string
+  content?: string | null
+  excerpt?: string | null
+  locale: string
+  recipeFields?: AssembleRecipeFields
+}
 
 const LEASE_MS = 120_000
+
+const RETRY_BACKOFF_MS = [30_000, 120_000, 300_000] as const
 
 function newLeaseToken() {
   return crypto.randomUUID()
 }
 
-export function createContentGenerationQueries(db: AppDb, deps?: ContentGenerationDeps) {
-  const runtime = deps ?? defaultDeps()
+export function generationRetryBackoffMs(attemptCount: number): number {
+  const index = Math.max(0, attemptCount - 1)
+  return RETRY_BACKOFF_MS[Math.min(index, RETRY_BACKOFF_MS.length - 1)] ?? 300_000
+}
 
+function serializeStepError(error: unknown) {
+  return {
+    message: error instanceof Error ? error.message : String(error),
+    at: new Date().toISOString(),
+  }
+}
+
+async function applyAssembledDraft(
+  db: AppDb,
+  input: {
+    targetType: GenerationTargetType
+    articleId?: number | null
+    recipeId?: number | null
+    requestedByUserId?: number | null
+    assemble: AssembleDraftInput
+  },
+): Promise<{ articleId?: number, recipeId?: number }> {
+  const now = new Date().toISOString()
+  const locale = input.assemble.locale || 'fr'
+
+  if (input.targetType === 'article') {
+    if (input.articleId) {
+      await db
+        .update(schema.articles)
+        .set({
+          title: input.assemble.title,
+          content: input.assemble.content ?? null,
+          excerpt: input.assemble.excerpt ?? null,
+          requiresHumanReview: true,
+          updatedAt: now,
+          ...(input.requestedByUserId
+            ? { updatedByUserId: input.requestedByUserId }
+            : {}),
+        })
+        .where(eq(schema.articles.id, input.articleId))
+      return { articleId: input.articleId }
+    }
+
+    const articles = createArticleQueries(db)
+    const slug = await articles.reserveUniqueSlug(
+      slugifyString(input.assemble.title),
+      locale,
+    )
+    const article = await articles.insert({
+      title: input.assemble.title,
+      content: input.assemble.content ?? null,
+      excerpt: input.assemble.excerpt ?? null,
+      slug,
+      locale,
+      status: 'draft',
+      requiresHumanReview: true,
+      createdByUserId: input.requestedByUserId ?? null,
+      updatedByUserId: input.requestedByUserId ?? null,
+      createdAt: now,
+      updatedAt: now,
+    })
+    return { articleId: article?.id }
+  }
+
+  const recipePatch = {
+    title: input.assemble.title,
+    intro: input.assemble.content ?? null,
+    excerpt: input.assemble.excerpt ?? null,
+    prepTimeMinutes: input.assemble.recipeFields?.prepTimeMinutes,
+    cookTimeMinutes: input.assemble.recipeFields?.cookTimeMinutes,
+    servings: input.assemble.recipeFields?.servings,
+    difficulty: input.assemble.recipeFields?.difficulty,
+    requiresHumanReview: true,
+    updatedAt: now,
+    ...(input.requestedByUserId ? { updatedByUserId: input.requestedByUserId } : {}),
+  }
+
+  const recipeRelations = input.assemble.recipeFields
+    ? {
+        ingredients: input.assemble.recipeFields.ingredients,
+        steps: input.assemble.recipeFields.steps,
+        nutrition: input.assemble.recipeFields.nutrition,
+      }
+    : undefined
+
+  if (input.recipeId) {
+    const recipes = createRecipeQueries(db)
+    await recipes.updateWithRelations(input.recipeId, recipePatch, recipeRelations ?? {})
+    return { recipeId: input.recipeId }
+  }
+
+  const recipes = createRecipeQueries(db)
+  const slug = await recipes.reserveUniqueSlug(slugifyString(input.assemble.title), locale)
+  const recipe = await recipes.insert({
+    title: input.assemble.title,
+    intro: input.assemble.content ?? null,
+    excerpt: input.assemble.excerpt ?? null,
+    prepTimeMinutes: input.assemble.recipeFields?.prepTimeMinutes,
+    cookTimeMinutes: input.assemble.recipeFields?.cookTimeMinutes,
+    servings: input.assemble.recipeFields?.servings,
+    difficulty: input.assemble.recipeFields?.difficulty,
+    slug,
+    locale,
+    status: 'draft',
+    requiresHumanReview: true,
+    createdByUserId: input.requestedByUserId ?? null,
+    updatedByUserId: input.requestedByUserId ?? null,
+    createdAt: now,
+    updatedAt: now,
+  })
+
+  if (recipe?.id && recipeRelations) {
+    await recipes.updateWithRelations(recipe.id, {}, recipeRelations)
+  }
+
+  return { recipeId: recipe?.id }
+}
+
+export function createContentGenerationQueries(db: AppDb) {
   return {
     findById(runId: string) {
       return db.query.contentGenerationRuns.findFirst({
         where: { id: runId },
         with: { steps: { orderBy: { ordinal: 'asc' } } },
       })
+    },
+
+    findRunLinkedIds(runId: string) {
+      return db
+        .select({
+          articleId: contentGenerationRuns.articleId,
+          recipeId: contentGenerationRuns.recipeId,
+        })
+        .from(contentGenerationRuns)
+        .where(eq(contentGenerationRuns.id, runId))
+        .get()
     },
 
     listForArticle(articleId: number) {
@@ -64,6 +226,15 @@ export function createContentGenerationQueries(db: AppDb, deps?: ContentGenerati
         .all()
     },
 
+    listForRecipe(recipeId: number) {
+      return db
+        .select()
+        .from(contentGenerationRuns)
+        .where(eq(contentGenerationRuns.recipeId, recipeId))
+        .orderBy(sql`${contentGenerationRuns.createdAt} DESC`)
+        .all()
+    },
+
     async createRun(input: {
       id: string
       targetType: GenerationTargetType
@@ -71,6 +242,8 @@ export function createContentGenerationQueries(db: AppDb, deps?: ContentGenerati
       recipeId?: number | null
       artifactPrefix: string
       requestedByUserId?: number | null
+      parentRunId?: string | null
+      runKind?: GenerationRunKind
     }) {
       const now = new Date().toISOString()
       await db.insert(contentGenerationRuns).values({
@@ -80,22 +253,67 @@ export function createContentGenerationQueries(db: AppDb, deps?: ContentGenerati
         recipeId: input.recipeId ?? null,
         artifactPrefix: input.artifactPrefix,
         requestedByUserId: input.requestedByUserId ?? null,
+        parentRunId: input.parentRunId ?? null,
+        runKind: input.runKind ?? 'unit',
+        reviewRound: 0,
         status: 'queued',
         createdAt: now,
         updatedAt: now,
       })
 
       await db.insert(contentGenerationRunSteps).values(
-        GENERATION_STEP_KEYS.map((stepKey, index) => ({
-          runId: input.id,
-          stepKey,
-          ordinal: index,
-          idempotencyKey: `${input.id}:${stepKey}`,
-          status: 'pending' as const,
-        })),
+        (input.runKind === 'batch' ? GENERATION_BATCH_STEP_KEYS : GENERATION_STEP_KEYS).map(
+          (stepKey, index) => ({
+            runId: input.id,
+            stepKey,
+            ordinal: index,
+            idempotencyKey: `${input.id}:${stepKey}`,
+            status: 'pending' as const,
+          }),
+        ),
       )
 
       return this.findById(input.id)
+    },
+
+    listChildren(parentRunId: string) {
+      return db
+        .select()
+        .from(contentGenerationRuns)
+        .where(eq(contentGenerationRuns.parentRunId, parentRunId))
+        .orderBy(sql`${contentGenerationRuns.createdAt} ASC`)
+        .all()
+    },
+
+    async completeRunAwaitingSelection(runId: string) {
+      const now = new Date().toISOString()
+      await db
+        .update(contentGenerationRuns)
+        .set({
+          status: 'awaiting_selection',
+          leaseToken: null,
+          leaseExpiresAt: null,
+          finishedAt: now,
+          updatedAt: now,
+        })
+        .where(eq(contentGenerationRuns.id, runId))
+    },
+
+    async markBatchSelectionComplete(runId: string, selectedCount: number) {
+      const now = new Date().toISOString()
+      await db
+        .update(contentGenerationRuns)
+        .set({
+          status: 'approved',
+          reviewNote: `${selectedCount} candidat(s) lancé(s)`,
+          reviewedAt: now,
+          finishedAt: now,
+          leaseToken: null,
+          leaseExpiresAt: null,
+          updatedAt: now,
+        })
+        .where(eq(contentGenerationRuns.id, runId))
+      return this.findById(runId)
     },
 
     async claimRunnableRuns(limit = 5) {
@@ -104,7 +322,7 @@ export function createContentGenerationQueries(db: AppDb, deps?: ContentGenerati
         .select({ id: contentGenerationRuns.id })
         .from(contentGenerationRuns)
         .where(and(
-          inArray(contentGenerationRuns.status, ['queued', 'running']),
+          inArray(contentGenerationRuns.status, ['queued', 'running', 'revising']),
           or(
             isNull(contentGenerationRuns.leaseExpiresAt),
             lte(contentGenerationRuns.leaseExpiresAt, now),
@@ -142,7 +360,7 @@ export function createContentGenerationQueries(db: AppDb, deps?: ContentGenerati
           })
           .where(and(
             eq(contentGenerationRuns.id, row.id),
-            inArray(contentGenerationRuns.status, ['queued', 'running']),
+            inArray(contentGenerationRuns.status, ['queued', 'running', 'revising']),
             or(
               isNull(contentGenerationRuns.leaseExpiresAt),
               lte(contentGenerationRuns.leaseExpiresAt, now),
@@ -159,118 +377,357 @@ export function createContentGenerationQueries(db: AppDb, deps?: ContentGenerati
       return claimed
     },
 
-    async processRunOnce(runId: string) {
-      const run = await this.findById(runId)
-      if (!run) {
-        throw queryNotFound('Generation run not found')
-      }
-
-      const nextStep = run.steps?.find(step => step.status === 'pending' || step.status === 'running')
-      if (!nextStep) {
-        const now = new Date().toISOString()
-        await db
-          .update(contentGenerationRuns)
-          .set({
-            status: 'awaiting_review',
-            leaseToken: null,
-            leaseExpiresAt: null,
-            finishedAt: now,
-            updatedAt: now,
-          })
-          .where(eq(contentGenerationRuns.id, runId))
-
-        const articleId = run.articleId
-        const recipeId = run.recipeId
-        if (run.targetType === 'article' && articleId) {
-          await db
-            .update(schema.articles)
-            .set({ requiresHumanReview: true, updatedAt: now })
-            .where(eq(schema.articles.id, articleId))
-        }
-        if (run.targetType === 'recipe' && recipeId) {
-          await db
-            .update(schema.recipes)
-            .set({ requiresHumanReview: true, updatedAt: now })
-            .where(eq(schema.recipes.id, recipeId))
-        }
-
-        await runtime.progress.set({
-          runId,
-          stepKey: 'awaiting_review',
-          status: 'succeeded',
-          updatedAt: now,
-        })
-
-        return { runId, advanced: false, completed: true }
-      }
-
+    async markStepRunning(stepId: number, attemptCount: number, startedAt: string | null) {
       const now = new Date().toISOString()
-      await runtime.progress.set({
-        runId,
-        stepKey: nextStep.stepKey,
-        status: 'running',
-        updatedAt: now,
-      })
-
       await db
         .update(contentGenerationRunSteps)
         .set({
           status: 'running',
-          startedAt: nextStep.startedAt ?? now,
-          attemptCount: (nextStep.attemptCount ?? 0) + 1,
+          startedAt: startedAt ?? now,
+          attemptCount,
           updatedAt: now,
         })
-        .where(eq(contentGenerationRunSteps.id, nextStep.id))
+        .where(eq(contentGenerationRunSteps.id, stepId))
+    },
 
-      const stepResult = await executeGenerationStep(db, runtime.artifacts, {
-        id: run.id,
-        targetType: run.targetType,
-        articleId: run.articleId,
-        recipeId: run.recipeId,
-        artifactPrefix: run.artifactPrefix,
-        requestedByUserId: run.requestedByUserId,
-      }, nextStep.stepKey)
-
-      if (stepResult.linkedArticleId) {
-        await db
-          .update(contentGenerationRuns)
-          .set({ articleId: stepResult.linkedArticleId, updatedAt: now })
-          .where(eq(contentGenerationRuns.id, runId))
-      }
-      if (stepResult.linkedRecipeId) {
-        await db
-          .update(contentGenerationRuns)
-          .set({ recipeId: stepResult.linkedRecipeId, updatedAt: now })
-          .where(eq(contentGenerationRuns.id, runId))
-      }
-
+    async markStepSucceeded(stepId: number, runId: string, artifactKey: string) {
+      const now = new Date().toISOString()
       await db
         .update(contentGenerationRunSteps)
         .set({
           status: 'succeeded',
-          artifactKey: stepResult.artifactKey,
+          artifactKey,
           finishedAt: now,
           updatedAt: now,
         })
-        .where(eq(contentGenerationRunSteps.id, nextStep.id))
+        .where(eq(contentGenerationRunSteps.id, stepId))
 
       await db
         .update(contentGenerationRuns)
         .set({
           heartbeatAt: now,
+          nextAttemptAt: null,
+          lastError: null,
           leaseExpiresAt: new Date(Date.now() + LEASE_MS).toISOString(),
           updatedAt: now,
         })
         .where(eq(contentGenerationRuns.id, runId))
+    },
 
-      await runtime.progress.set({
+    async linkRunContent(
+      runId: string,
+      linked: { articleId?: number | null, recipeId?: number | null },
+    ) {
+      const now = new Date().toISOString()
+      await db
+        .update(contentGenerationRuns)
+        .set({
+          ...(linked.articleId !== undefined ? { articleId: linked.articleId } : {}),
+          ...(linked.recipeId !== undefined ? { recipeId: linked.recipeId } : {}),
+          updatedAt: now,
+        })
+        .where(eq(contentGenerationRuns.id, runId))
+    },
+
+    async applyAssembledDraftAndLinkRun(
+      runId: string,
+      input: {
+        targetType: GenerationTargetType
+        articleId?: number | null
+        recipeId?: number | null
+        requestedByUserId?: number | null
+        assemble: AssembleDraftInput
+      },
+    ) {
+      return db.transaction(async (tx) => {
+        const draft = await applyAssembledDraft(tx as AppDb, input)
+        const now = new Date().toISOString()
+        await tx
+          .update(contentGenerationRuns)
+          .set({
+            articleId: draft.articleId ?? null,
+            recipeId: draft.recipeId ?? null,
+            updatedAt: now,
+          })
+          .where(eq(contentGenerationRuns.id, runId))
+        return draft
+      })
+    },
+
+    async completeRunAwaitingReview(
+      runId: string,
+      input: {
+        targetType: GenerationTargetType
+        articleId?: number | null
+        recipeId?: number | null
+        reviewRound?: number
+      },
+    ) {
+      const now = new Date().toISOString()
+      await db
+        .update(contentGenerationRuns)
+        .set({
+          status: 'awaiting_review',
+          reviewRound: input.reviewRound ?? 1,
+          leaseToken: null,
+          leaseExpiresAt: null,
+          finishedAt: now,
+          updatedAt: now,
+        })
+        .where(eq(contentGenerationRuns.id, runId))
+
+      if (input.targetType === 'article' && input.articleId) {
+        await db
+          .update(schema.articles)
+          .set({ requiresHumanReview: true, updatedAt: now })
+          .where(eq(schema.articles.id, input.articleId))
+      }
+      if (input.targetType === 'recipe' && input.recipeId) {
+        await db
+          .update(schema.recipes)
+          .set({ requiresHumanReview: true, updatedAt: now })
+          .where(eq(schema.recipes.id, input.recipeId))
+      }
+    },
+
+    async listAwaitingReview(input: {
+      excludeRequestedByUserId?: number | null
+      limit?: number
+    } = {}) {
+      const limit = input.limit ?? 50
+      const conditions = [eq(contentGenerationRuns.status, 'awaiting_review')]
+      if (input.excludeRequestedByUserId != null) {
+        conditions.push(
+          or(
+            isNull(contentGenerationRuns.requestedByUserId),
+            sql`${contentGenerationRuns.requestedByUserId} != ${input.excludeRequestedByUserId}`,
+          )!,
+        )
+      }
+
+      return db
+        .select()
+        .from(contentGenerationRuns)
+        .where(and(...conditions))
+        .orderBy(sql`${contentGenerationRuns.updatedAt} DESC`)
+        .limit(limit)
+        .all()
+    },
+
+    async countAwaitingReview(excludeRequestedByUserId?: number | null) {
+      const conditions = [eq(contentGenerationRuns.status, 'awaiting_review')]
+      if (excludeRequestedByUserId != null) {
+        conditions.push(
+          or(
+            isNull(contentGenerationRuns.requestedByUserId),
+            sql`${contentGenerationRuns.requestedByUserId} != ${excludeRequestedByUserId}`,
+          )!,
+        )
+      }
+      const row = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(contentGenerationRuns)
+        .where(and(...conditions))
+        .get()
+      return Number(row?.count ?? 0)
+    },
+
+    /**
+     * Ensure revise_N step row exists (inserted on first request_changes for that gate).
+     */
+    async ensureReviseStep(runId: string, stepKey: GenerationReviseStepKey) {
+      const existing = await db
+        .select()
+        .from(contentGenerationRunSteps)
+        .where(and(
+          eq(contentGenerationRunSteps.runId, runId),
+          eq(contentGenerationRunSteps.stepKey, stepKey),
+        ))
+        .get()
+      if (existing) {
+        if (existing.status === 'succeeded' || existing.status === 'skipped') {
+          // Allow a fresh revise attempt only if we reset — normally one revise per gate.
+          return existing
+        }
+        if (existing.status === 'failed') {
+          const now = new Date().toISOString()
+          await db
+            .update(contentGenerationRunSteps)
+            .set({
+              status: 'pending',
+              lastError: null,
+              finishedAt: null,
+              startedAt: null,
+              updatedAt: now,
+            })
+            .where(eq(contentGenerationRunSteps.id, existing.id))
+          return { ...existing, status: 'pending' as const }
+        }
+        return existing
+      }
+
+      const maxOrdinal = await db
+        .select({ max: sql<number>`max(${contentGenerationRunSteps.ordinal})` })
+        .from(contentGenerationRunSteps)
+        .where(eq(contentGenerationRunSteps.runId, runId))
+        .get()
+      const ordinal = Number(maxOrdinal?.max ?? GENERATION_STEP_KEYS.length - 1) + 1
+      const now = new Date().toISOString()
+      await db.insert(contentGenerationRunSteps).values({
         runId,
-        stepKey: nextStep.stepKey,
-        status: 'succeeded',
+        stepKey,
+        ordinal,
+        idempotencyKey: `${runId}:${stepKey}`,
+        status: 'pending',
+        createdAt: now,
         updatedAt: now,
       })
+      return db
+        .select()
+        .from(contentGenerationRunSteps)
+        .where(and(
+          eq(contentGenerationRunSteps.runId, runId),
+          eq(contentGenerationRunSteps.stepKey, stepKey),
+        ))
+        .get()
+    },
 
-      return { runId, advanced: true, stepKey: nextStep.stepKey, completed: false }
+    async rejectRun(runId: string, reviewerUserId: number, reason: string) {
+      const run = await this.findById(runId)
+      if (!run) {
+        throw queryNotFound('Generation run not found')
+      }
+      if (run.status !== 'awaiting_review') {
+        throw queryConflict('Only runs awaiting human review can be rejected')
+      }
+      if (run.requestedByUserId && run.requestedByUserId === reviewerUserId) {
+        throw queryConflict('The requester cannot reject their own generation run')
+      }
+
+      const now = new Date().toISOString()
+      await db
+        .update(contentGenerationRuns)
+        .set({
+          status: 'rejected',
+          reviewedAt: now,
+          reviewedByUserId: reviewerUserId,
+          reviewNote: reason,
+          updatedAt: now,
+        })
+        .where(eq(contentGenerationRuns.id, runId))
+
+      return this.findById(runId)
+    },
+
+    async requestChanges(runId: string, reviewerUserId: number, input: {
+      reviewNote: string
+      focusSteps?: string[] | null
+    }) {
+      const run = await this.findById(runId)
+      if (!run) {
+        throw queryNotFound('Generation run not found')
+      }
+      if (run.status !== 'awaiting_review') {
+        throw queryConflict('Only runs awaiting human review can request changes')
+      }
+      if (run.requestedByUserId && run.requestedByUserId === reviewerUserId) {
+        throw queryConflict('The requester cannot review their own generation run')
+      }
+
+      const round = run.reviewRound && run.reviewRound > 0 ? run.reviewRound : 1
+      if (run.targetType !== 'article') {
+        throw queryConflict('Revision rounds are only available for articles')
+      }
+      if (round > 2) {
+        throw queryConflict('No remaining revision rounds for this run')
+      }
+
+      const stepKey = reviseStepKeyForRound(round)
+      await this.ensureReviseStep(runId, stepKey)
+
+      const now = new Date().toISOString()
+      await db
+        .update(contentGenerationRuns)
+        .set({
+          status: 'revising',
+          reviewNote: input.reviewNote,
+          reviewedByUserId: reviewerUserId,
+          leaseToken: null,
+          leaseExpiresAt: null,
+          nextAttemptAt: null,
+          finishedAt: null,
+          updatedAt: now,
+        })
+        .where(eq(contentGenerationRuns.id, runId))
+
+      return {
+        run: await this.findById(runId),
+        round,
+        stepKey,
+        focusSteps: input.focusSteps ?? null,
+      }
+    },
+
+    async markStepFailure(input: {
+      stepId: number
+      runId: string
+      attemptCount: number
+      maxAttempts: number
+      error: unknown
+      stepStartedAt: string | null
+    }) {
+      const now = new Date().toISOString()
+      const errorPayload = serializeStepError(input.error)
+      const terminalFailure = input.attemptCount >= input.maxAttempts
+
+      await db
+        .update(contentGenerationRunSteps)
+        .set({
+          status: terminalFailure ? 'failed' : 'pending',
+          lastError: errorPayload,
+          finishedAt: terminalFailure ? now : null,
+          startedAt: terminalFailure ? input.stepStartedAt ?? now : null,
+          updatedAt: now,
+        })
+        .where(eq(contentGenerationRunSteps.id, input.stepId))
+
+      if (terminalFailure) {
+        await db
+          .update(contentGenerationRuns)
+          .set({
+            status: 'failed',
+            lastError: errorPayload,
+            leaseToken: null,
+            leaseExpiresAt: null,
+            finishedAt: now,
+            updatedAt: now,
+          })
+          .where(eq(contentGenerationRuns.id, input.runId))
+
+        return {
+          terminal: true as const,
+          error: errorPayload.message,
+        }
+      }
+
+      const nextAttemptAt = new Date(Date.now() + generationRetryBackoffMs(input.attemptCount)).toISOString()
+      await db
+        .update(contentGenerationRuns)
+        .set({
+          status: 'queued',
+          lastError: errorPayload,
+          nextAttemptAt,
+          leaseToken: null,
+          leaseExpiresAt: null,
+          updatedAt: now,
+        })
+        .where(eq(contentGenerationRuns.id, input.runId))
+
+      return {
+        terminal: false as const,
+        error: errorPayload.message,
+        nextAttemptAt,
+      }
     },
 
     async approveRun(runId: string, reviewerUserId: number, reviewNote?: string | null) {

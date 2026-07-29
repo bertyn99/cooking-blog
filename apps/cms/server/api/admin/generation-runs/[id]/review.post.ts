@@ -4,10 +4,13 @@ import { requireEditor } from '../../../../utils/http-auth'
 import { validateBody } from '../../../../utils/validate'
 import { createApiError, fromQueryError } from '../../../../utils/errors'
 import { serializeGenerationRunForApi } from '../../../../utils/serialize-generation-run'
+import { GENERATION_REVIEW_ACTIONS } from '../../../../services/generation/review-event'
 
-/** @deprecated Prefer POST /review with action: 'approve'. Kept for compatibility. */
 const schema = z.object({
+  action: z.enum(GENERATION_REVIEW_ACTIONS),
   reviewNote: z.string().optional(),
+  reason: z.string().optional(),
+  focusSteps: z.array(z.string()).optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -20,9 +23,11 @@ export default defineEventHandler(async (event) => {
   const body = validateBody(schema, await readBody(event))
   try {
     const run = await useContentGenerationService(event).reviewRun(runId, {
-      action: 'approve',
+      action: body.action,
       reviewerUserId: session.user.id,
       reviewNote: body.reviewNote,
+      reason: body.reason,
+      focusSteps: body.focusSteps,
     })
     return {
       data: run ? serializeGenerationRunForApi(run as Record<string, unknown>) : run,

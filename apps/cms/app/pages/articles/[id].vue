@@ -11,6 +11,7 @@ interface ArticleDetail {
   content: string | null
   categoryId: number | null
   status: string
+  requiresHumanReview?: boolean | null
   coverBlobPathname: string | null
   coverAltText?: string | null
   coverDescription?: string | null
@@ -39,6 +40,13 @@ const { data: article, status } = await useAsyncData(
     :subtitle="article?.slug"
     :loading="status === 'pending'"
   >
+    <GenerationHumanReviewBanner
+      v-if="article"
+      target-type="article"
+      :content-id="article.id"
+      :requires-human-review="article.requiresHumanReview"
+    />
+
     <ContentArticleForm
       v-if="article"
       :article-id="article.id"

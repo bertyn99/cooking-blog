@@ -68,11 +68,15 @@ apps/cms/
 | `/categories` | `pages/categories/index.vue` | Combined table: blog (`category-articles`) + recipe (`categories`) |
 | `/categories/new` | `pages/categories/new.vue` | `ContentCategoryForm` (type picker) |
 | `/planning` | `pages/planning/index.vue` | Publishing calendar + backlog (`usePublishingCalendar`) |
+| `/generate` | `pages/generate/index.vue` | AI composer → creates run + starts `CONTENT_GENERATION` Workflow (fallback: processRunOnce) |
+| `/generate/:id` | `pages/generate/[id].vue` | Run progress, draft link, cross-review approve (`sendEvent` to Workflow) |
 | `/media` | `pages/media/index.vue` | Folder browser, grid/table, upload, drag-drop, client image optimize |
 | `/import` | `pages/import/index.vue` | Strapi migration panel (`useStrapiImportPanel`) |
 | `/maintenance` | `pages/maintenance/index.vue` | Counts + selective purge (admin API) |
 
-**Layout:** `layouts/default.vue` — `UDashboardGroup` + collapsible sidebar. Keyboard shortcuts via `useDashboard`: `g-h` home, `g-a` articles, `g-r` recipes, `g-p` pages, `g-c` categories, `g-m` media, `g-i` import.
+**HITL / multi-content:** Layer A uses `generation-review` (`approve` | `reject` | `request_changes`) — articles get review→revise×2 then final gate; recipes single gate. Inbox at `/generate/review`. Ebook `sourceKind` creates a **batch** parent (`normalize`→`discover`→`awaiting_selection`); candidate picker spawns N unit children. Schema: `parent_run_id` / `run_kind` / `review_round`. Design: `generation-hitl-multi-content.canvas.tsx`.
+
+**Layout:** `layouts/default.vue` — `UDashboardGroup` + collapsible sidebar. Keyboard shortcuts via `useDashboard`: `g-h` home, `g-a` articles, `g-r` recipes, `g-p` pages, `g-c` categories, `g-m` media, `g-g` generate, `g-i` import.
 
 **Chrome:** `app/utils/dashboard-shell.ts` — shared table/navbar/surface classes used across list and editor pages.
 
@@ -299,8 +303,10 @@ pnpm --filter cms db:seed:admin
 | `STRAPI_URL` | Legacy Strapi base for import |
 | `STRAPI_API_TOKEN` | Strapi API token for import |
 | `STRAPI_UPLOADS_ORIGIN` | Optional CDN origin for Strapi uploads during import |
+| `NUXT_SEO_PRO_API_KEY` | Nuxt SEO Pro MCP Bearer token (in-app content agent keyword tools) |
+| `NUXT_SEO_PRO_MCP_URL` | Optional override (default `https://nuxtseo.com/mcp/pro`) |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Deploy-time admin seed |
-| Cloudflare bindings | `DB` (D1), `Media` (R2), `Cache` (KV) — see `nuxt.config.ts` nitro.cloudflare; image architecture [ADR-006](../../docs/architecture/adr-006-image-delivery-cloudflare.md) |
+| Cloudflare bindings | `DB` (D1), `Media` (R2), `Cache` (KV), `AI` (Workers AI / CmsAi gateway) — see `nuxt.config.ts` nitro.cloudflare; image architecture [ADR-006](../../docs/architecture/adr-006-image-delivery-cloudflare.md) |
 
 ## CONVENTIONS
 
