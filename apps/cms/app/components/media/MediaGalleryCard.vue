@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { formatMediaByteSize } from '#shared/media'
 import { mediaKindLabel, type MediaKind } from '#shared/media-paths'
-import { mediaThumbnailUrl } from '~/utils/media'
 
 const props = defineProps<{
   pathname: string
@@ -28,13 +27,12 @@ const isImage = computed(() => props.kind === 'image')
     @click="emit('open')"
   >
     <div class="absolute inset-0 bg-elevated/30">
-      <img
+      <MediaLazyThumb
         v-if="isImage"
-        :src="mediaThumbnailUrl(pathname)"
+        :pathname="pathname"
         :alt="displayName"
-        class="size-full object-cover transition duration-300 group-hover:scale-[1.04]"
-        loading="lazy"
-      >
+        img-class="size-full object-cover transition duration-300 group-hover:scale-[1.04]"
+      />
       <div
         v-else
         class="flex size-full flex-col items-center justify-center gap-2 p-4"

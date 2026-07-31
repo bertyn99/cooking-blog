@@ -8,6 +8,7 @@ import type {
 import { useMediaStorage } from '../utils/media-storage'
 import { purgeAllMediaImageCache } from '../utils/workers-image-cache'
 import { useDb } from '../utils/db'
+import { getStrapiImportStatus, resetStrapiImportState } from './strapi-import-status'
 
 export function createMaintenanceService(db: AppDb) {
   const maintenance = createMaintenanceQueries(db)
@@ -43,6 +44,13 @@ export async function runMaintenancePurge(
       }
     }
     await purgeAllMediaImageCache(event)
+  }
+
+  if (event) {
+    const importStatus = await getStrapiImportStatus(event)
+    if (importStatus.status === 'running') {
+      await resetStrapiImportState(event)
+    }
   }
 
   return { deleted }

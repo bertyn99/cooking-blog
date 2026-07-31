@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import { formatMediaByteSize, isWithinImageUploadLimit, maxImageUploadSizeLabel } from '#shared/media'
+import { formatMediaByteSize, isWithinImageUploadLimit, maxImageUploadSizeLabel, MEDIA_GALLERY_PAGE_SIZE } from '#shared/media'
 import { MEDIA_UPLOAD_ROOT, mediaKindLabel, type MediaKind } from '#shared/media-paths'
-import { mediaThumbnailUrl, mediaPublicUrl, readApiErrorMessage } from '~/utils/media'
+import { mediaPublicUrl, readApiErrorMessage } from '~/utils/media'
 import { DASHBOARD_SURFACE_CLASS, DASHBOARD_TABLE_UI } from '~/utils/dashboard-shell'
 import { prepareImageForUpload } from '~/utils/prepare-image-upload.client'
 
@@ -30,7 +30,9 @@ interface MediaListResponse {
   cursor?: string
 }
 
-const PAGE_SIZE = 60
+const PAGE_SIZE = MEDIA_GALLERY_PAGE_SIZE
+
+const loadMoreSentinel = ref<HTMLElement | null>(null)
 
 const { $api } = useNuxtApp()
 const toast = useToast()
@@ -193,6 +195,15 @@ watch(folderPrefix, () => {
   void fetchMedia(false)
 }, { immediate: true })
 
+useMediaGalleryInfiniteScroll(loadMoreSentinel, {
+  hasMore,
+  loading,
+  loadingMore,
+  search,
+  viewMode,
+  onLoadMore: () => fetchMedia(true),
+})
+
 function navigateToFolder(prefix: string) {
   const relative = prefix.slice(MEDIA_UPLOAD_ROOT.length).replace(/\/$/, '')
   if (!relative) {
@@ -346,11 +357,15 @@ const columns: TableColumn<MediaBlob>[] = [
       onClick: () => openDetail(row.original.pathname),
     }, [
       row.original.kind === 'image'
-        ? h('img', {
-          src: mediaThumbnailUrl(row.original.pathname),
-          class: 'size-10 rounded-md object-cover ring-1 ring-default/60',
-          alt: '',
-        })
+        ? h('div', {
+          class: 'size-10 shrink-0 overflow-hidden rounded-md ring-1 ring-default/60',
+        }, [
+          h(resolveComponent('MediaLazyThumb'), {
+            pathname: row.original.pathname,
+            alt: '',
+            imgClass: 'size-full object-cover',
+          }),
+        ])
         : h(resolveComponent('UIcon'), { name: 'i-lucide-file', class: 'size-10 text-muted' }),
       h('span', { class: 'truncate font-medium' }, displayName(row.original)),
     ]),
@@ -602,7 +617,7 @@ const columns: TableColumn<MediaBlob>[] = [
             class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
           >
             <USkeleton
-              v-for="i in 10"
+              v-for="i in 8"
               :key="i"
               class="aspect-square rounded-lg"
             />
@@ -645,14 +660,15 @@ const columns: TableColumn<MediaBlob>[] = [
 
         <div
           v-if="hasMore && !search.trim() && viewMode === 'grid'"
-          class="flex justify-center pt-1"
+          ref="loadMoreSentinel"
+          class="flex min-h-8 justify-center pt-1"
+          aria-hidden="true"
         >
-          <UButton
-            label="Charger plus"
-            color="neutral"
-            variant="outline"
-            :loading="loadingMore"
-            @click="fetchMedia(true)"
+          <UIcon
+            v-if="loadingMore"
+            name="i-lucide-loader-circle"
+            class="size-5 animate-spin text-muted"
+            aria-label="Chargement de fichiers supplémentaires"
           />
         </div>
       </div>

@@ -1,8 +1,8 @@
-import { useContentGenerationService } from '../../services/generation/service'
-import { createContentGenerationQueries } from '../../db/queries/content-generation'
-import { requireEditor } from '../../utils/http-auth'
-import { serializeGenerationRunForApi } from '../../utils/serialize-generation-run'
-import { useDb } from '../../utils/db'
+import { useContentGenerationService } from '../../../services/generation/service'
+import { createContentGenerationQueries } from '../../../db/queries/content-generation'
+import { requireEditor } from '../../../utils/http-auth'
+import { serializeGenerationRunForApi } from '../../../utils/serialize-generation-run'
+import { useDb } from '../../../utils/db'
 
 export default defineEventHandler(async (event) => {
   const session = await requireEditor(event)

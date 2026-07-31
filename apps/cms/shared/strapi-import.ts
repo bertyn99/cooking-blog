@@ -95,12 +95,19 @@ export function formatStepStatsMessage(step: string, stats: StrapiEntityStats): 
   return `${step} — créés ${created}, mis à jour ${updated}, inchangés ${skipped}`
 }
 
+export interface StrapiImportAccumulatedStats {
+  steps: Partial<Record<StrapiImportStep, StrapiEntityStats>>
+  media: StrapiEntityStats
+}
+
 export interface StrapiImportResult {
   dryRun: boolean
   finishedAt: string
   steps: Partial<Record<StrapiImportStep, StrapiEntityStats>>
   media: StrapiEntityStats
   messages: string[]
+  /** Present when more Worker invocations are required (media downloads). */
+  continuation?: StrapiImportContinuation
 }
 
 export function isImportResultFullyUnchanged(result: StrapiImportResult): boolean {
@@ -133,6 +140,41 @@ export interface StrapiReachabilityCache {
   checkedAt: string
 }
 
+/** Content items processed per HTTP request (Cloudflare Workers ~50 subrequest limit). */
+export const STRAPI_IMPORT_CONTENT_BATCH_SIZE = 1
+
+export const STRAPI_IMPORT_BATCHED_STEPS = ['articles', 'recipes', 'pages'] as const
+export type StrapiImportBatchedStep = typeof STRAPI_IMPORT_BATCHED_STEPS[number]
+
+export function isStrapiImportBatchedStep(step: StrapiImportStep): step is StrapiImportBatchedStep {
+  return (STRAPI_IMPORT_BATCHED_STEPS as readonly string[]).includes(step)
+}
+
+/**
+ * Lightweight resume token. Slug lists live in KV (`strapi-import:slugs:{lockId}:{step}`)
+ * so continuation bodies stay small across many Worker invocations.
+ */
+export interface StrapiImportContinuation {
+  lockId: string
+  dryRun: boolean
+  /** Full ordered step list for this run. */
+  steps: StrapiImportStep[]
+  /** Index into `steps` for the unit of work to run next. */
+  stepIndex: number
+  /**
+   * When set, resume mid-step content import.
+   * `reconcile: true` runs page parent linking after all page items are imported.
+   * When omitted, the next request starts (or lists slugs for) `steps[stepIndex]`.
+   */
+  batch?: {
+    step: StrapiImportBatchedStep
+    nextIndex: number
+    reconcile?: boolean
+  }
+  /** Running totals across prior requests in this import. */
+  accumulated: StrapiImportAccumulatedStats
+}
+
 export interface StrapiImportRunBody {
   dryRun?: boolean
   steps?: StrapiImportStep[]
@@ -140,6 +182,8 @@ export interface StrapiImportRunBody {
   slugFilter?: StrapiImportSlugFilter
   /** When slugFilter is set, do not auto-run prerequisite import steps. */
   omitDependencies?: boolean
+  /** Resume a multi-request import (same lock, next content batch). */
+  continuation?: StrapiImportContinuation
 }
 
 export interface StrapiImportConfigResponse {

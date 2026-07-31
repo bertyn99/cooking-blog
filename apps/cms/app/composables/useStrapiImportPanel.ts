@@ -2,6 +2,7 @@ import type { Ref } from 'vue'
 import type { CheckboxGroupItem } from '@nuxt/ui'
 import type {
   StrapiImportConfigResponse,
+  StrapiImportContinuation,
   StrapiImportProgress,
   StrapiImportStep,
   StrapiImportTestTarget,
@@ -107,7 +108,26 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
     }
   })
 
-  onBeforeUnmount(stopPolling)
+  const activeContinuation = ref(false)
+  const abortControllerRef = ref<AbortController | null>(null)
+
+  function onPageHideGlobal() {
+    abortControllerRef.value?.abort()
+  }
+
+  if (import.meta.client) {
+    window.addEventListener('pagehide', onPageHideGlobal)
+  }
+
+  onBeforeUnmount(() => {
+    stopPolling()
+    if (import.meta.client) {
+      window.removeEventListener('pagehide', onPageHideGlobal)
+    }
+    if (activeContinuation.value) {
+      void $api('/api/admin/strapi-import/reset', { method: 'POST' }).catch(() => {})
+    }
+  })
 
   const reachabilityBadge = computed(() => {
     if (config.value?.strapiReachable === true) {
@@ -137,6 +157,7 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
   async function resetImportState() {
     await $api('/api/admin/strapi-import/reset', { method: 'POST' })
     lastNotifiedStatus.value = 'idle'
+    activeContinuation.value = false
     await refresh()
     toast.add({ title: 'État d’import réinitialisé', color: 'neutral' })
   }
@@ -158,44 +179,74 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
 
     const runDryRun = overrides?.dryRun ?? dryRun.value
     running.value = true
+    lastNotifiedStatus.value = 'running'
+    activeContinuation.value = false
+    const abortController = typeof AbortController !== 'undefined' ? new AbortController() : null
+    abortControllerRef.value = abortController
 
     try {
-      const response = await $api<{
-        accepted: boolean
-        completed?: boolean
-        message: string
-        result?: StrapiImportProgress['result']
-      }>('/api/admin/strapi-import/run', {
-        method: 'POST',
-        body: {
-          dryRun: runDryRun,
-          steps,
-          slugFilter: overrides?.slugFilter,
-          omitDependencies: overrides?.omitDependencies,
-        },
-      })
+      let continuation: StrapiImportContinuation | undefined
 
-      await refresh()
-
-      if (!response.completed) {
-        lastNotifiedStatus.value = 'running'
-        toast.add({
-          title: dryRun.value ? 'Simulation lancée' : 'Import lancé',
-          description: response.message,
-          color: 'info',
+      do {
+        const response = await $api<{
+          accepted: boolean
+          completed?: boolean
+          message: string
+          continuation?: StrapiImportContinuation
+          result?: StrapiImportProgress['result']
+        }>('/api/admin/strapi-import/run', {
+          method: 'POST',
+          body: continuation
+            ? { continuation }
+            : {
+                dryRun: runDryRun,
+                steps,
+                slugFilter: overrides?.slugFilter,
+                omitDependencies: overrides?.omitDependencies,
+              },
+          signal: abortController?.signal,
         })
-      }
+
+        continuation = response.completed === false ? response.continuation : undefined
+        activeContinuation.value = Boolean(continuation)
+        await refresh()
+      } while (continuation)
     }
     catch (error) {
-      lastNotifiedStatus.value = importStatus.value?.status ?? 'idle'
-      toast.add({
-        title: 'Impossible de démarrer l’import',
-        description: formatImportError(error),
-        color: 'error',
-      })
+      const aborted = Boolean(abortController?.signal.aborted)
+        || (error instanceof DOMException && error.name === 'AbortError')
+        || (error instanceof Error && error.name === 'AbortError')
+
+      if (activeContinuation.value || aborted) {
+        try {
+          await $api('/api/admin/strapi-import/reset', { method: 'POST' })
+        }
+        catch {
+          // Best-effort unlock so the next import can start.
+        }
+        activeContinuation.value = false
+        lastNotifiedStatus.value = 'idle'
+        toast.add({
+          title: aborted ? 'Import interrompu' : 'Import interrompu — état réinitialisé',
+          description: aborted
+            ? 'L’onglet a été fermé ou la requête annulée. Relancez l’import.'
+            : formatImportError(error),
+          color: 'warning',
+        })
+      }
+      else {
+        lastNotifiedStatus.value = importStatus.value?.status ?? 'idle'
+        toast.add({
+          title: 'Impossible de démarrer l’import',
+          description: formatImportError(error),
+          color: 'error',
+        })
+      }
       await refresh()
     }
     finally {
+      abortControllerRef.value = null
+      activeContinuation.value = false
       running.value = false
       confirmOpen.value = false
     }

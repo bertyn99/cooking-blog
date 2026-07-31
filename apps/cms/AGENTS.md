@@ -239,6 +239,8 @@ Images: … `GET /images/{modifiers}/{pathname}` … Workers Cache enabled via A
 
 **Tasks:** `pnpm task:strapi-extract` → Nitro task `strapi-extract` (CLI/batch path).
 
+**Media hydrate (Plan B):** After content import, run **`pnpm media:hydrate`** (plain Node → `.data/db` + `.data/media`). Downloads remaining `/uploads/…` with paced requests and rewrites markdown. Options: `--dry-run`, `--slug=…`, `--delay=500`. Avoids Cloudflare Worker subrequest limits. Optional Nitro alias: `pnpm task:strapi-media-hydrate` (requires running Nitro).
+
 ## MAINTENANCE
 
 **UI:** `/maintenance` — live counts per purge target, confirmation phrase (`shared/maintenance.ts`).
@@ -273,6 +275,7 @@ Images: … `GET /images/{modifiers}/{pathname}` … Workers Cache enabled via A
 | `seed-admin` | `pnpm task:seed:admin` | Create admin user (deploy/CLI) |
 | `publish-scheduled` | CRON `*/5 * * * *` (production) | `publishDueScheduled()` |
 | `strapi-extract` | `pnpm task:strapi-extract` | Batch Strapi extraction |
+| `strapi-media-hydrate` | Prefer `pnpm media:hydrate` | Download leftover `/uploads` media (Node CLI) |
 
 ## SHARED PACKAGE (`shared/`)
 

@@ -5,6 +5,9 @@ import tailwindcss from "@tailwindcss/vite";
 
 const webRoot = fileURLToPath(new URL(".", import.meta.url));
 
+const skewProtectionKvNamespaceId =
+  process.env.SKEW_PROTECTION_KV_NAMESPACE_ID || "skew-protection-local";
+
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-20',
 
@@ -92,6 +95,7 @@ export default defineNuxtConfig({
     cloudflare: {
       deployConfig: true,
       wrangler: {
+        compatibility_flags: ['nodejs_compat_v2'],
         d1_databases: [
           {
             binding: 'AI_READY_DB',
@@ -102,24 +106,21 @@ export default defineNuxtConfig({
         kv_namespaces: [
           {
             binding: 'SKEW_PROTECTION',
-            id: 'skew-protection-local',
+            id: skewProtectionKvNamespaceId,
           },
         ],
-      },
-      nodeCompat: true,
-    },
-    unenv: {
-      alias: {
-        'process/': 'node:process',
-        'string_decoder/': 'node:string_decoder',
       },
     },
     experimental: {
       tasks: true
     },
-    storage: {
-      cache: { driver: "redis", url: process.env.REDIS_URL },
-    },
+    ...(process.env.REDIS_URL
+      ? {
+          storage: {
+            cache: { driver: 'redis', url: process.env.REDIS_URL },
+          },
+        }
+      : {}),
   },
 
   components: [{
@@ -205,6 +206,7 @@ export default defineNuxtConfig({
     storage: {
       driver: "cloudflare-kv-binding",
       binding: "SKEW_PROTECTION",
+      namespaceId: skewProtectionKvNamespaceId,
     },
   },
 

@@ -1,6 +1,9 @@
 /** Max size for browser uploads via `POST /api/media` (R2 / local storage). */
 export const MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024
 
+/** Thumbnails per API page — about one viewport in the media grid (5×4 on xl). */
+export const MEDIA_GALLERY_PAGE_SIZE = 20
+
 export function formatMediaByteSize(bytes: number): string {
   if (bytes < 1024) {
     return `${bytes} o`

@@ -96,15 +96,24 @@ export async function importStrapiMediaByUploadPath(
   const sourceId = `path:${pathname}`
 
   const mapped = await ctx.queries.legacyStrapiMap.findDestId('media', sourceId)
+  const storage = useMediaStorage(ctx.event)
+
   if (mapped === pathname) {
-    if (!ctx.dryRun) {
-      await ensureBlobCatalogRecord(ctx.queries.blobs, ctx.event, pathname)
+    const existingMapped = await storage.head(pathname)
+    if (existingMapped) {
+      if (!ctx.dryRun) {
+        await ensureBlobCatalogRecord(ctx.queries.blobs, ctx.event, pathname, {
+          mimeType: existingMapped.contentType,
+          size: existingMapped.size,
+        })
+      }
+      stats.skipped += 1
+      return pathname
     }
-    stats.skipped += 1
-    return pathname
+    // Map points at a missing file — fall through and re-download.
+    ctx.log(`Média ${pathname} : cartographie présente mais fichier absent — re-téléchargement.`)
   }
 
-  const storage = useMediaStorage(ctx.event)
   const existing = await storage.head(pathname)
   if (existing) {
     if (!ctx.dryRun) {
@@ -138,19 +147,27 @@ export async function importStrapiMediaByUploadPath(
     const buffer = await client.downloadFile(relative)
     const contentType = guessMimeFromPathname(pathname)
 
-    return await persistImportedBlob(ctx, {
-      pathname,
-      buffer,
-      contentType,
-      sourceId,
-      stats,
-      hadLegacyMap: Boolean(mapped),
-    })
+    try {
+      return await persistImportedBlob(ctx, {
+        pathname,
+        buffer,
+        contentType,
+        sourceId,
+        stats,
+        hadLegacyMap: Boolean(mapped),
+      })
+    }
+    catch (error) {
+      stats.errors += 1
+      const message = error instanceof Error ? error.message : String(error)
+      ctx.log(`Média ${pathname} : écriture échouée — ${message}`)
+      return null
+    }
   }
   catch (error) {
     stats.errors += 1
     const message = error instanceof Error ? error.message : String(error)
-    ctx.log(`Média ${pathname} : ${message}`)
+    ctx.log(`Média ${pathname} : téléchargement échoué — ${message}`)
     return null
   }
 }
@@ -225,20 +242,28 @@ export async function importStrapiMedia(
     const buffer = await client.downloadFile(downloadPath)
     const contentType = file.mime || guessMimeFromPathname(pathname)
 
-    return await persistImportedBlob(ctx, {
-      pathname,
-      buffer,
-      contentType,
-      sourceId,
-      stats,
-      hadLegacyMap: Boolean(mapped),
-      meta: file,
-    })
+    try {
+      return await persistImportedBlob(ctx, {
+        pathname,
+        buffer,
+        contentType,
+        sourceId,
+        stats,
+        hadLegacyMap: Boolean(mapped),
+        meta: file,
+      })
+    }
+    catch (error) {
+      stats.errors += 1
+      const message = error instanceof Error ? error.message : String(error)
+      ctx.log(`Média ${pathname} : écriture échouée — ${message}`)
+      return null
+    }
   }
   catch (error) {
     stats.errors += 1
     const message = error instanceof Error ? error.message : String(error)
-    ctx.log(`Média ${pathname} : ${message}`)
+    ctx.log(`Média ${pathname} : téléchargement échoué — ${message}`)
     return null
   }
 }

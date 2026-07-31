@@ -21,8 +21,9 @@ async function downloadOnce(
   url: string,
   opts: { token?: string, timeoutMs: number },
 ): Promise<ArrayBuffer> {
+  /** Public `/uploads` files — one fetch without auth to save Worker subrequests. */
   const headerVariants: (Record<string, string> | undefined)[] = opts.token
-    ? [{ Authorization: `Bearer ${opts.token}` }, undefined]
+    ? [undefined, { Authorization: `Bearer ${opts.token}` }]
     : [undefined]
 
   let lastError: unknown
@@ -41,18 +42,17 @@ async function downloadOnce(
     catch (error) {
       lastError = error
     }
+  }
 
-    try {
-      return await ofetch<ArrayBuffer>(url, {
-        responseType: 'arrayBuffer',
-        headers,
-        timeout: opts.timeoutMs,
-        retry: 1,
-      })
-    }
-    catch (error) {
-      lastError = error
-    }
+  try {
+    return await ofetch<ArrayBuffer>(url, {
+      responseType: 'arrayBuffer',
+      timeout: opts.timeoutMs,
+      retry: 0,
+    })
+  }
+  catch (error) {
+    lastError = error
   }
 
   throw lastError ?? new Error('download failed')
@@ -65,7 +65,7 @@ export async function fetchStrapiUploadBinary(
   const path = relativeUrl.startsWith('/') ? relativeUrl : `/${relativeUrl}`
   const origins = opts?.origins?.length ? opts.origins : ['https://admin.journalducuistot.fr']
   const timeoutMs = opts?.timeoutMs ?? 120_000
-  const retries = opts?.retries ?? 3
+  const retries = opts?.retries ?? 2
 
   let lastError: unknown
 

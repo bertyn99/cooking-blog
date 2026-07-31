@@ -28,9 +28,4 @@ export function getLocalDb(): AppDb {
   return localDb
 }
 
-/**
- * @deprecated Use `useDb(event)` for request-scoped D1/libSQL selection.
- */
-export const db = getLocalDb()
-
 export { schema } from './create-db'

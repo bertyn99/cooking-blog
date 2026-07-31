@@ -4,7 +4,7 @@ import {
   acquireStrapiImportLock,
   getStrapiImportStatus,
 } from '../services/strapi-import-status'
-import { executeStrapiImportJob, primeStrapiImportStatus } from '../services/strapi-import-runner'
+import { executeStrapiImportToCompletion, primeStrapiImportStatus } from '../services/strapi-import-runner'
 
 const payloadSchema = z.object({
   dryRun: z.boolean().optional(),
@@ -40,12 +40,17 @@ export default defineTask({
     const dryRun = parsed.data.dryRun ?? false
     await primeStrapiImportStatus(undefined, dryRun)
 
-    await executeStrapiImportJob(undefined, {
+    const outcome = await executeStrapiImportToCompletion(undefined, {
       dryRun,
       steps: parsed.data.steps,
     }, lockId)
 
+    if (!outcome) {
+      const status = await getStrapiImportStatus()
+      throw new Error(status.error ?? 'Strapi import failed')
+    }
+
     const status = await getStrapiImportStatus()
-    return { result: status.result }
+    return { result: status.result ?? outcome.result }
   },
 })

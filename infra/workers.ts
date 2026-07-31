@@ -6,7 +6,12 @@ import * as Effect from 'effect/Effect'
 const NODE_COMPAT = {
   date: '2025-01-15',
   flags: ['nodejs_compat'],
-}
+} as const
+
+const WEB_NODE_COMPAT = {
+  date: '2026-05-27',
+  flags: ['nodejs_compat_v2'],
+} as const
 
 const PUBLISH_CRON = '*/5 * * * *'
 
@@ -67,17 +72,28 @@ export const workers = Effect.fn(function* (input: {
     },
   })
 
+  const SkewProtection = yield* Cloudflare.KV.Namespace('WebSkewProtection', {})
+
   const webBuild = yield* Command.Build('web-build', {
     command: 'pnpm --filter web build',
     cwd: '.',
     outdir: 'apps/web/.output',
+    env: {
+      SKEW_PROTECTION_KV_NAMESPACE_ID: SkewProtection.namespaceId,
+      // Cloudflare Workers use routeRules ISR + KV bindings — not Vercel Redis.
+      REDIS_URL: '',
+      CMS_BASE_URL: Config.string('CMS_BASE_URL').pipe(
+        Config.withDefault('http://localhost:3001'),
+      ),
+      NUXT_PUBLIC_CMS_BASE_URL: Config.string('NUXT_PUBLIC_CMS_BASE_URL').pipe(
+        Config.withDefault('http://localhost:3001'),
+      ),
+    },
     memo: {
       include: ['apps/web/**', 'pnpm-lock.yaml', 'pnpm-workspace.yaml'],
       exclude: ['apps/web/.nuxt', 'apps/web/.cache'],
     },
   })
-
-  const SkewProtection = yield* Cloudflare.KV.Namespace('WebSkewProtection', {})
 
   const Web = yield* Cloudflare.Worker('Web', {
     bundle: false,
@@ -97,7 +113,7 @@ export const workers = Effect.fn(function* (input: {
         Config.withDefault('https://journalducuistot.fr'),
       ),
     },
-    compatibility: NODE_COMPAT,
+    compatibility: WEB_NODE_COMPAT,
     assets: {
       directory: 'apps/web/.output/public',
       hash: webBuild.hash,

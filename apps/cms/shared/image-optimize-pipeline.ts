@@ -9,6 +9,7 @@ import {
   shouldSkipImageOptimize,
   type RasterImage,
 } from './image-optimize'
+import { ensureJsquashRuntime } from './jsquash-runtime'
 
 export function rasterToImageData(raster: RasterImage): ImageData {
   const clamped = raster.data instanceof Uint8ClampedArray
@@ -25,6 +26,7 @@ export interface OptimizedImageResult {
 }
 
 export async function decodeImage(buffer: ArrayBuffer, mime: string): Promise<RasterImage | null> {
+  await ensureJsquashRuntime()
   const bytes = new Uint8Array(buffer)
   let decoded: ImageData | null = null
   if (mime === 'image/jpeg' || mime === 'image/jpg') {
@@ -59,41 +61,46 @@ export async function optimizeImageBuffer(
     return null
   }
 
-  const decoded = await decodeImage(buffer, mime)
-  if (!decoded) {
-    return null
-  }
-
-  const target = scaleToMaxEdge(decoded.width, decoded.height, IMAGE_OPTIMIZE.maxEdgePx)
-  let image: RasterImage = decoded
-  if (target.width !== decoded.width || target.height !== decoded.height) {
-    const resized = await resize(rasterToImageData(decoded), {
-      width: target.width,
-      height: target.height,
-    })
-    if (!resized) {
+  try {
+    const decoded = await decodeImage(buffer, mime)
+    if (!decoded) {
       return null
     }
-    image = {
-      data: new Uint8Array(resized.data),
-      width: resized.width,
-      height: resized.height,
+
+    const target = scaleToMaxEdge(decoded.width, decoded.height, IMAGE_OPTIMIZE.maxEdgePx)
+    let image: RasterImage = decoded
+    if (target.width !== decoded.width || target.height !== decoded.height) {
+      const resized = await resize(rasterToImageData(decoded), {
+        width: target.width,
+        height: target.height,
+      })
+      if (!resized) {
+        return null
+      }
+      image = {
+        data: new Uint8Array(resized.data),
+        width: resized.width,
+        height: resized.height,
+      }
+    }
+
+    const webpBuffer = await encodeWebp(rasterToImageData(image), {
+      quality: IMAGE_OPTIMIZE.webpQuality,
+    })
+    if (!webpBuffer) {
+      return null
+    }
+
+    return {
+      buffer: webpBuffer,
+      contentType: IMAGE_OPTIMIZE.outputMime,
+      pathname: opts?.pathname ? pathnameWithWebpExtension(opts.pathname) : undefined,
+      filename: opts?.filename
+        ? opts.filename.replace(/\.[^./]+$/, IMAGE_OPTIMIZE.outputExt)
+        : undefined,
     }
   }
-
-  const webpBuffer = await encodeWebp(rasterToImageData(image), {
-    quality: IMAGE_OPTIMIZE.webpQuality,
-  })
-  if (!webpBuffer) {
+  catch {
     return null
-  }
-
-  return {
-    buffer: webpBuffer,
-    contentType: IMAGE_OPTIMIZE.outputMime,
-    pathname: opts?.pathname ? pathnameWithWebpExtension(opts.pathname) : undefined,
-    filename: opts?.filename
-      ? opts.filename.replace(/\.[^./]+$/, IMAGE_OPTIMIZE.outputExt)
-      : undefined,
   }
 }

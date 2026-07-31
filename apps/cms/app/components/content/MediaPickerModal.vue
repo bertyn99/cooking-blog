@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { mediaPickerThumbUrl, mediaPublicUrl, readApiErrorMessage } from '~/utils/media'
+import { mediaPublicUrl, readApiErrorMessage } from '~/utils/media'
 import { prepareImageForUpload } from '~/utils/prepare-image-upload.client'
 import { uploadMediaFile } from '~/utils/upload-media.client'
 import {
   formatMediaByteSize,
   isWithinImageUploadLimit,
   maxImageUploadSizeLabel,
+  MEDIA_GALLERY_PAGE_SIZE,
 } from '#shared/media'
+import { MEDIA_UPLOAD_ROOT } from '#shared/media-paths'
 
 const open = defineModel<boolean>('open', { required: true })
 
@@ -89,6 +91,8 @@ const hasMore = ref(false)
 const cursor = ref<string | undefined>()
 const loading = ref(false)
 const loadingMore = ref(false)
+const galleryScroll = ref<HTMLElement | null>(null)
+const loadMoreSentinel = ref<HTMLElement | null>(null)
 
 async function fetchPage(append: boolean) {
   if (append) {
@@ -101,8 +105,8 @@ async function fetchPage(append: boolean) {
   try {
     const res = await $api<MediaListResponse>('/api/media', {
       query: {
-        limit: 48,
-        prefix: '',
+        limit: MEDIA_GALLERY_PAGE_SIZE,
+        prefix: MEDIA_UPLOAD_ROOT,
         ...(append && cursor.value ? { cursor: cursor.value } : {}),
       },
     })
@@ -145,6 +149,15 @@ watch(() => props.selectedPathname, (value) => {
   if (open.value && value) {
     pendingPathname.value = value
   }
+})
+
+useMediaGalleryInfiniteScroll(loadMoreSentinel, {
+  hasMore,
+  loading,
+  loadingMore,
+  search,
+  root: galleryScroll,
+  onLoadMore: () => fetchPage(true),
 })
 
 const filteredBlobs = computed(() => {
@@ -408,6 +421,7 @@ function displayName(blob: MediaBlob) {
 
         <div
           v-else-if="filteredBlobs.length"
+          ref="galleryScroll"
           class="max-h-[min(24rem,50vh)] overflow-y-auto rounded-lg border border-default bg-elevated/20 p-2"
         >
           <div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -422,12 +436,13 @@ function displayName(blob: MediaBlob) {
               @click="selectPending(blob.pathname)"
               @dblclick="selectPending(blob.pathname); confirmSelection()"
             >
-              <img
-                :src="mediaPickerThumbUrl(blob.pathname)"
+              <MediaLazyThumb
+                :pathname="blob.pathname"
                 :alt="displayName(blob)"
-                class="aspect-square w-full object-cover"
-                loading="lazy"
-              >
+                variant="picker"
+                :scroll-root="galleryScroll"
+                img-class="aspect-square w-full object-cover"
+              />
               <div
                 class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-1.5 pb-1.5 pt-6"
               >
@@ -446,17 +461,19 @@ function displayName(blob: MediaBlob) {
               </div>
             </button>
           </div>
-        </div>
-
-        <div v-if="hasMore && !search" class="flex justify-center">
-          <UButton
-            label="Charger plus"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            :loading="loadingMore"
-            @click="fetchPage(true)"
-          />
+          <div
+            v-if="hasMore && !search"
+            ref="loadMoreSentinel"
+            class="flex min-h-6 justify-center py-2"
+            aria-hidden="true"
+          >
+            <UIcon
+              v-if="loadingMore"
+              name="i-lucide-loader-circle"
+              class="size-4 animate-spin text-muted"
+              aria-label="Chargement de fichiers supplémentaires"
+            />
+          </div>
         </div>
 
         <UAlert

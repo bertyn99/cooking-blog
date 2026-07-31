@@ -4,7 +4,7 @@ import { strapiSourceId } from './types'
 import { createStrapiClient } from './strapi-client'
 import { iterateStrapiRows } from './strapi-iterate'
 import { importStrapiMedia } from './media'
-import { rewriteStrapiUploadsInText } from './content-media'
+import { extractUploadPathsFromText, rewriteStrapiUploadsInText } from './content-media'
 import { upsertContentSeo } from './seo'
 import { bumpImportStats, dryRunOutcome, shallowFieldsEqual, stableJson } from './import-row'
 import { schema } from '../../db/create-db'
@@ -154,15 +154,19 @@ async function recipePayloadMatchesDb(
     && (seo.metaRobots ?? 'index, follow') === (existingSeo.metaRobots ?? 'index, follow')
 }
 
-export async function extractRecipes(ctx: ExtractContext, mediaStats: StrapiEntityStats): Promise<StrapiEntityStats> {
+export async function extractRecipes(
+  ctx: ExtractContext,
+  mediaStats: StrapiEntityStats,
+  onlySlugs?: string[],
+): Promise<StrapiEntityStats> {
   const stats = { created: 0, updated: 0, skipped: 0, errors: 0 }
   const client = createStrapiClient({ baseUrl: ctx.strapiUrl, token: ctx.strapiApiToken })
 
   ctx.log('Import des recettes…')
 
-  for await (const row of iterateStrapiRows<StrapiRecipe>(ctx, client, 'recipes')) {
+  async function processRow(row: StrapiRecipe) {
     const sourceId = strapiSourceId(row)
-    if (!sourceId) continue
+    if (!sourceId) return
 
     try {
       const existingId = await ctx.queries.legacyStrapiMap.findDestId( 'recipes', sourceId)
@@ -195,6 +199,9 @@ export async function extractRecipes(ctx: ExtractContext, mediaStats: StrapiEnti
       }
 
       const seo = normalizeSeo(row.seo)
+      const hasPendingStrapiUploads =
+        extractUploadPathsFromText(intro ?? '').length > 0
+        || extractUploadPathsFromText(step ?? '').length > 0
       let unchanged = false
       if (existingId) {
         unchanged = await recipePayloadMatchesDb(
@@ -203,17 +210,17 @@ export async function extractRecipes(ctx: ExtractContext, mediaStats: StrapiEnti
           values,
           row,
           seo,
-        )
+        ) && !hasPendingStrapiUploads
       }
 
       if (ctx.dryRun) {
         bumpImportStats(stats, dryRunOutcome(existingId, unchanged))
-        continue
+        return
       }
 
       if (existingId && unchanged) {
         bumpImportStats(stats, 'skip')
-        continue
+        return
       }
 
       let recipeId: number
@@ -273,6 +280,23 @@ export async function extractRecipes(ctx: ExtractContext, mediaStats: StrapiEnti
       stats.errors += 1
       ctx.log(`Recette « ${row.slug} » : ${error instanceof Error ? error.message : String(error)}`)
     }
+  }
+
+  if (onlySlugs?.length) {
+    const localeHint = ctx.slugFilter?.locale || 'fr'
+    for (const slug of onlySlugs) {
+      const row = await client.findBySlug<StrapiRecipe>('recipes', slug, localeHint)
+      if (!row) {
+        ctx.log(`Recette introuvable dans Strapi : slug « ${slug} ».`)
+        continue
+      }
+      await processRow(row)
+    }
+    return stats
+  }
+
+  for await (const row of iterateStrapiRows<StrapiRecipe>(ctx, client, 'recipes')) {
+    await processRow(row)
   }
 
   return stats

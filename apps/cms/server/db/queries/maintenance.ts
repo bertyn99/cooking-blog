@@ -1,4 +1,4 @@
-import { count, eq, inArray, isNotNull } from 'drizzle-orm'
+import { count, eq, inArray, isNotNull, isNull } from 'drizzle-orm'
 import type { SQLiteTable } from 'drizzle-orm/sqlite-core'
 import type { AppDb } from '../create-db'
 import { schema } from '../create-db'
@@ -9,7 +9,7 @@ import type {
 } from '../../../shared/maintenance'
 import { MAINTENANCE_PURGE_TARGETS } from '../../../shared/maintenance'
 
-const REVISION_TYPES_BY_TARGET: Record<Exclude<MaintenancePurgeTarget, 'media'>, string[] | null> = {
+const REVISION_TYPES_BY_TARGET: Record<Exclude<MaintenancePurgeTarget, 'media' | 'legacy-strapi-map'>, string[] | null> = {
   articles: ['articles'],
   recipes: ['recipes'],
   pages: ['pages'],
@@ -31,15 +31,33 @@ export function createMaintenanceQueries(db: AppDb) {
       .where(eq(schema.legacyStrapiMap.sourceType, 'media'))
       .get()
 
+    const legacyAll = await db
+      .select({ value: count() })
+      .from(schema.legacyStrapiMap)
+      .get()
+
     return {
-      articles: await countTable(db, schema.articles),
-      recipes: await countTable(db, schema.recipes),
-      pages: await countTable(db, schema.pages),
-      categoryArticles: await countTable(db, schema.categoryArticles),
-      categories: await countTable(db, schema.categories),
+      articles: await countActive(db, schema.articles),
+      recipes: await countActive(db, schema.recipes),
+      pages: await countActive(db, schema.pages),
+      categoryArticles: await countActive(db, schema.categoryArticles),
+      categories: await countActive(db, schema.categories),
       legacyMediaMap: Number(legacyMedia?.value ?? 0),
+      legacyStrapiMap: Number(legacyAll?.value ?? 0),
       media: await countTable(db, schema.blobs),
     }
+  }
+
+  async function countActive(
+    conn: AppDb,
+    table: typeof schema.articles,
+  ) {
+    const row = await conn
+      .select({ value: count() })
+      .from(table)
+      .where(isNull(table.deletedAt))
+      .get()
+    return Number(row?.value ?? 0)
   }
 
   async function deleteRevisionsForTypes(contentTypes: string[]) {
@@ -137,6 +155,13 @@ export function createMaintenanceQueries(db: AppDb) {
     return { count: pathnames.length, pathnames }
   }
 
+  async function purgeLegacyStrapiMapAll(): Promise<number> {
+    const n = await countTable(db, schema.legacyStrapiMap)
+    if (n === 0) return 0
+    await db.delete(schema.legacyStrapiMap)
+    return n
+  }
+
   const PURGE_HANDLERS: Record<Exclude<MaintenancePurgeTarget, 'media'>, () => Promise<number>> = {
     articles: purgeArticles,
     recipes: purgeRecipes,
@@ -144,6 +169,7 @@ export function createMaintenanceQueries(db: AppDb) {
     'category-articles': purgeCategoryArticles,
     categories: purgeCategories,
     'legacy-media-map': purgeLegacyMediaMap,
+    'legacy-strapi-map': purgeLegacyStrapiMapAll,
   }
 
   return {
@@ -189,6 +215,7 @@ export function createMaintenanceQueries(db: AppDb) {
         'category-articles': counts.categoryArticles,
         categories: counts.categories,
         'legacy-media-map': counts.legacyMediaMap,
+        'legacy-strapi-map': counts.legacyStrapiMap,
         media: counts.media,
       }
       return targets.reduce((sum, t) => sum + (map[t] ?? 0), 0)

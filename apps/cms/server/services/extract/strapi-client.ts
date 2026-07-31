@@ -42,12 +42,15 @@ export function createStrapiClient(opts: StrapiClientOptions) {
       ? Object.keys(extraQuery).some(key => key === 'populate' || key.startsWith('populate['))
       : false
 
-    if (!hasExplicitPopulate) {
+    const skipPopulate = extraQuery?.populate === '' || extraQuery?.populate === 'null'
+
+    if (!hasExplicitPopulate && !skipPopulate) {
       params.set('populate', '*')
     }
 
     if (extraQuery) {
       for (const [key, value] of Object.entries(extraQuery)) {
+        if (key === 'populate' && skipPopulate) continue
         params.set(key, value)
       }
     }
@@ -112,5 +115,17 @@ export function createStrapiClient(opts: StrapiClientOptions) {
     return withoutLocale.data?.[0] ?? null
   }
 
-  return { listAll, downloadFile, ping, countCollection, findBySlug }
+  async function listSlugs(collection: string): Promise<string[]> {
+    const slugs: string[] = []
+    // Lean listing — slug only, no populate (avoids burning Worker subrequests).
+    for await (const row of listAll<{ slug: string }>(collection, 100, {
+      'fields[0]': 'slug',
+      populate: 'null',
+    })) {
+      if (row.slug) slugs.push(row.slug)
+    }
+    return slugs
+  }
+
+  return { listAll, downloadFile, ping, countCollection, findBySlug, listSlugs }
 }

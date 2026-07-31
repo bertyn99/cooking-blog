@@ -31,7 +31,33 @@ export function useDb(event?: H3Event): AppDb {
   if (env?.DB) {
     return createD1Db(env.DB) as unknown as AppDb
   }
-  return getLocalDb()
+
+  // `nuxt preview` / wrangler with NODE_ENV=production but no populated D1 — use migrated sqlite.
+  if (import.meta.dev) {
+    return getLocalDb()
+  }
+
+  throw createError({
+    statusCode: 500,
+    statusMessage: 'D1 binding DB is not available',
+  })
+}
+
+export type CmsDatabaseSource = 'local' | 'd1'
+
+/** For admin diagnostics (maintenance, health). */
+export function resolveDatabaseSource(event?: H3Event): CmsDatabaseSource {
+  if (!prefersD1Database()) {
+    return 'local'
+  }
+  const env = getCloudflareEnv(event)
+  if (env?.DB) {
+    return 'd1'
+  }
+  if (import.meta.dev) {
+    return 'local'
+  }
+  return 'd1'
 }
 
 /** Typed query layer — prefer over raw `useDb` in handlers and services. */

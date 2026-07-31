@@ -9,7 +9,7 @@ import {
   recipePublicPath,
   type NestedPageParent,
 } from '#shared/public-site-paths'
-import { mediaCoverPreviewUrl, mediaPickerThumbUrl } from '~/utils/media'
+import { mediaCoverPreviewUrl } from '~/utils/media'
 import { applyEditorLink, removeEditorLink } from '~/utils/editor-link'
 
 const props = defineProps<{
@@ -421,12 +421,12 @@ function onExternalKeydown(event: KeyboardEvent) {
                   <div
                     class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-elevated"
                   >
-                    <img
+                    <MediaLazyThumb
                       v-if="rowCoverPath(row)"
-                      :src="mediaPickerThumbUrl(rowCoverPath(row)!)"
-                      alt=""
-                      class="size-full object-cover"
-                    >
+                      :pathname="rowCoverPath(row)!"
+                      variant="picker"
+                      img-class="size-full object-cover"
+                    />
                     <UIcon
                       v-else
                       :name="rowIcon(internalMode)"

@@ -4,7 +4,7 @@ import { strapiSourceId } from './types'
 import { createStrapiClient } from './strapi-client'
 import { iterateStrapiRows } from './strapi-iterate'
 import { importStrapiMedia } from './media'
-import { rewriteStrapiUploadsInText } from './content-media'
+import { extractUploadPathsFromText, rewriteStrapiUploadsInText } from './content-media'
 import { upsertContentSeo } from './seo'
 import { bumpImportStats, dryRunOutcome, shallowFieldsEqual } from './import-row'
 import { schema } from '../../db/create-db'
@@ -49,15 +49,19 @@ function seoEqual(a: StrapiSeoFields | null, existing: { description: string | n
     && (a.metaRobots ?? 'index, follow') === (existing.metaRobots ?? 'index, follow')
 }
 
-export async function extractArticles(ctx: ExtractContext, mediaStats: StrapiEntityStats): Promise<StrapiEntityStats> {
+export async function extractArticles(
+  ctx: ExtractContext,
+  mediaStats: StrapiEntityStats,
+  onlySlugs?: string[],
+): Promise<StrapiEntityStats> {
   const stats = { created: 0, updated: 0, skipped: 0, errors: 0 }
   const client = createStrapiClient({ baseUrl: ctx.strapiUrl, token: ctx.strapiApiToken })
 
   ctx.log('Import des articles…')
 
-  for await (const row of iterateStrapiRows<StrapiArticle>(ctx, client, 'articles')) {
+  async function processRow(row: StrapiArticle) {
     const sourceId = strapiSourceId(row)
-    if (!sourceId) continue
+    if (!sourceId) return
 
     try {
       const existingId = await ctx.queries.legacyStrapiMap.findDestId( 'articles', sourceId)
@@ -109,20 +113,23 @@ export async function extractArticles(ctx: ExtractContext, mediaStats: StrapiEnt
           .get()
       }
 
+      const hasPendingStrapiUploads = extractUploadPathsFromText(content ?? '').length > 0
+
       const unchanged = Boolean(
         existingRow
         && shallowFieldsEqual(existingRow, values, ARTICLE_KEYS)
-        && seoEqual(seo, existingSeo),
+        && seoEqual(seo, existingSeo)
+        && !hasPendingStrapiUploads,
       )
 
       if (ctx.dryRun) {
         bumpImportStats(stats, dryRunOutcome(existingId, unchanged))
-        continue
+        return
       }
 
       if (existingId && existingRow && unchanged) {
         bumpImportStats(stats, 'skip')
-        continue
+        return
       }
 
       let articleId: number
@@ -151,6 +158,23 @@ export async function extractArticles(ctx: ExtractContext, mediaStats: StrapiEnt
       stats.errors += 1
       ctx.log(`Article « ${row.slug} » : ${error instanceof Error ? error.message : String(error)}`)
     }
+  }
+
+  if (onlySlugs?.length) {
+    const localeHint = ctx.slugFilter?.locale || 'fr'
+    for (const slug of onlySlugs) {
+      const row = await client.findBySlug<StrapiArticle>('articles', slug, localeHint)
+      if (!row) {
+        ctx.log(`Article introuvable dans Strapi : slug « ${slug} ».`)
+        continue
+      }
+      await processRow(row)
+    }
+    return stats
+  }
+
+  for await (const row of iterateStrapiRows<StrapiArticle>(ctx, client, 'articles')) {
+    await processRow(row)
   }
 
   return stats

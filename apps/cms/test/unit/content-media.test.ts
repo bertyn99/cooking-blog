@@ -14,6 +14,13 @@ describe('extractUploadPathsFromText', () => {
     expect(paths).toContain('/uploads/bar.png')
     expect(paths).toContain('/uploads/width_410,height_287,fit_cover/uploads/nested_abc.webp')
   })
+
+  it('ignores CMS rewritten /images/uploads/ paths', () => {
+    const text = `![x](/images/uploads/foo.webp)\n![y](/uploads/still-pending.png)`
+    const paths = extractUploadPathsFromText(text)
+    expect(paths).not.toContain('/uploads/foo.webp')
+    expect(paths).toContain('/uploads/still-pending.png')
+  })
 })
 
 describe('canonicalStrapiUploadPath', () => {

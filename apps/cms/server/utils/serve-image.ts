@@ -79,12 +79,15 @@ export async function serveCmsImage(event: H3Event, fullPath: string) {
       deliveryOps,
       { acceptHeader: getHeader(event, 'accept') },
     )
-    if (!transformed) {
-      throw createError({ statusCode: 502, statusMessage: 'Image transform failed' })
+    if (transformed) {
+      body = bufferToStream(transformed.buffer)
+      contentType = transformed.contentType
+      etag = undefined
     }
-    body = bufferToStream(transformed.buffer)
-    contentType = transformed.contentType
-    etag = undefined
+    else {
+      // Transform unavailable — serve stored bytes (see ensureJsquashRuntime).
+      body = bufferToStream(sourceBuffer)
+    }
   }
 
   const headers: Record<string, string> = {

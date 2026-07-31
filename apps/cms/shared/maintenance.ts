@@ -5,6 +5,7 @@ export const MAINTENANCE_PURGE_TARGETS = [
   'category-articles',
   'categories',
   'legacy-media-map',
+  'legacy-strapi-map',
   'media',
 ] as const
 
@@ -18,8 +19,19 @@ export interface MaintenanceCounts {
   pages: number
   categoryArticles: number
   categories: number
+  /** Rows in legacy_strapi_map with sourceType=media */
   legacyMediaMap: number
+  /** All rows in legacy_strapi_map (import id mapping) */
+  legacyStrapiMap: number
   media: number
+}
+
+export type CmsDatabaseSource = 'local' | 'd1'
+
+export interface MaintenanceStatusResponse {
+  counts: MaintenanceCounts
+  databaseSource: CmsDatabaseSource
+  strapiImportStatus: 'idle' | 'running' | 'completed' | 'failed'
 }
 
 export interface MaintenancePurgeResult {

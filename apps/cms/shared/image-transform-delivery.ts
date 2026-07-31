@@ -9,6 +9,7 @@ import {
   resolveDeliveryFormat,
 } from './image-delivery-policy'
 import { decodeImage, rasterToImageData, type OptimizedImageResult } from './image-optimize-pipeline'
+import { ensureJsquashRuntime } from './jsquash-runtime'
 
 export interface DeliveryTransformOps {
   width?: number
@@ -184,40 +185,46 @@ export async function transformImageBufferForDelivery(
   operations: Record<string, string>,
   context?: { acceptHeader?: string | null },
 ): Promise<OptimizedImageResult | null> {
-  const ops = parseDeliveryTransformOps(operations, context)
-  const decoded = await decodeImage(buffer, mime)
-  if (!decoded) {
-    return null
-  }
-
-  let imageData = rasterToImageData(decoded)
-  const plan = planDeliveryResize(decoded.width, decoded.height, ops)
-  if (plan) {
-    const resized = await resize(imageData, {
-      width: plan.resizeWidth,
-      height: plan.resizeHeight,
-      ...(plan.fitMethod ? { fitMethod: plan.fitMethod } : {}),
-    })
-    if (!resized) {
+  try {
+    await ensureJsquashRuntime()
+    const ops = parseDeliveryTransformOps(operations, context)
+    const decoded = await decodeImage(buffer, mime)
+    if (!decoded) {
       return null
     }
-    imageData = plan.cropTo
-      ? cropCenter(resized, plan.cropTo.width, plan.cropTo.height)
-      : resized
-  }
 
-  const shouldEncode = Boolean(plan || ops.format || operations.quality)
-  if (!shouldEncode) {
+    let imageData = rasterToImageData(decoded)
+    const plan = planDeliveryResize(decoded.width, decoded.height, ops)
+    if (plan) {
+      const resized = await resize(imageData, {
+        width: plan.resizeWidth,
+        height: plan.resizeHeight,
+        ...(plan.fitMethod ? { fitMethod: plan.fitMethod } : {}),
+      })
+      if (!resized) {
+        return null
+      }
+      imageData = plan.cropTo
+        ? cropCenter(resized, plan.cropTo.width, plan.cropTo.height)
+        : resized
+    }
+
+    const shouldEncode = Boolean(plan || ops.format || operations.quality)
+    if (!shouldEncode) {
+      return null
+    }
+
+    const encoded = await encodeRaster(imageData, ops.format, ops.quality ?? 85)
+    if (!encoded) {
+      return null
+    }
+
+    return {
+      buffer: encoded,
+      contentType: outputMimeFromFormat(ops.format),
+    }
+  }
+  catch {
     return null
-  }
-
-  const encoded = await encodeRaster(imageData, ops.format, ops.quality ?? 85)
-  if (!encoded) {
-    return null
-  }
-
-  return {
-    buffer: encoded,
-    contentType: outputMimeFromFormat(ops.format),
   }
 }

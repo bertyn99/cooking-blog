@@ -3,9 +3,9 @@ import { importStrapiMediaByUploadPath } from './media'
 import { getMediaUrl } from '../../utils/media'
 import { canonicalStrapiUploadPath } from '../../utils/media-storage'
 
-/** `/uploads/...` paths (incl. Strapi image transforms) and absolute Strapi upload URLs. */
+/** `/uploads/...` paths (not already under `/images/uploads/…`) and absolute Strapi upload URLs. */
 const UPLOAD_REF_PATTERN
-  = /(?:https?:\/\/[^/\s"'<>]+)?(\/uploads\/[^\s"'<>)\]]+)/gi
+  = /(?:https?:\/\/[^/\s"'<>]+)?(?<!\/images)(\/uploads\/[^\s"'<>)\]]+)/gi
 
 export function extractUploadPathsFromText(text: string): string[] {
   const paths = new Set<string>()
