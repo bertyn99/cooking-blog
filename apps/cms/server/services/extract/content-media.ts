@@ -2,6 +2,12 @@ import type { ExtractContext, StrapiEntityStats } from './types'
 import { importStrapiMediaByUploadPath } from './media'
 import { getMediaUrl } from '../../utils/media'
 import { canonicalStrapiUploadPath } from '../../utils/media-storage'
+import {
+  isEmptyOrGenericImageAlt,
+  iterateMarkdownImages,
+  pathnameFromContentImageSrc,
+  serializeMarkdownImage,
+} from '../../../shared/content-image'
 
 /** `/uploads/...` paths (not already under `/images/uploads/…`) and absolute Strapi upload URLs. */
 const UPLOAD_REF_PATTERN
@@ -17,7 +23,47 @@ export function extractUploadPathsFromText(text: string): string[] {
 }
 
 /**
+ * When markdown image alt is empty/generic, use the media library alt (Strapi alternativeText).
+ */
+export async function fillMarkdownImageAltsFromCatalog(
+  ctx: ExtractContext,
+  text: string,
+): Promise<string> {
+  const images = iterateMarkdownImages(text)
+  if (!images.length) {
+    return text
+  }
+
+  let output = text
+  // Replace from the end so indices stay valid.
+  for (let i = images.length - 1; i >= 0; i--) {
+    const image = images[i]!
+    if (!isEmptyOrGenericImageAlt(image.alt)) {
+      continue
+    }
+    const pathname = pathnameFromContentImageSrc(image.src)
+    if (!pathname) {
+      continue
+    }
+    const blob = await ctx.queries.blobs.findByPathname(pathname)
+    const fromMedia = blob?.altText?.trim()
+    if (!fromMedia) {
+      continue
+    }
+    const next = serializeMarkdownImage({
+      alt: fromMedia,
+      src: image.src,
+      title: image.title,
+    })
+    output = output.slice(0, image.index) + next + output.slice(image.index + image.full.length)
+  }
+
+  return output
+}
+
+/**
  * Downloads Strapi upload files referenced in markdown/HTML and rewrites URLs to `/images/uploads/…`.
+ * Then fills empty image alts from the media catalog.
  */
 export async function rewriteStrapiUploadsInText(
   ctx: ExtractContext,
@@ -33,7 +79,7 @@ export async function rewriteStrapiUploadsInText(
 
   for (const foundPath of extractUploadPathsFromText(text)) {
     const canonical = canonicalStrapiUploadPath(foundPath)
-    const variants = variantsByCanonical.get(canonical) ?? new Set<string>()
+    const variants = variantsByCanonical.get(canonical) ?? new Set()
     variants.add(foundPath)
     variantsByCanonical.set(canonical, variants)
   }
@@ -49,5 +95,5 @@ export async function rewriteStrapiUploadsInText(
     }
   }
 
-  return output
+  return fillMarkdownImageAltsFromCatalog(ctx, output)
 }

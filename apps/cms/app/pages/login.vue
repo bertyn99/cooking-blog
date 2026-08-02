@@ -1,65 +1,39 @@
 <script setup lang="ts">
-import type { AuthFormField, FormSubmitEvent } from '@nuxt/ui'
+import type { FormSubmitEvent } from '@nuxt/ui'
 import { getApiErrorMessage } from '#shared/api-error'
 import { z } from 'zod'
 
 definePageMeta({
   layout: false,
-  middleware: []
+  middleware: [],
 })
 
 const schema = z.object({
   email: z.string().email('Email invalide'),
-  password: z.string().min(1, 'Mot de passe requis')
+  password: z.string().min(1, 'Mot de passe requis'),
 })
 
 type Schema = z.output<typeof schema>
 
-const fields: AuthFormField[] = [
-  {
-    name: 'email',
-    type: 'email',
-    label: 'Email',
-    placeholder: 'admin@journalducuistot.fr',
-    icon: 'i-lucide-mail',
-    autocomplete: 'email',
-    required: true,
-    size: 'lg',
-    defaultValue: '',
-  },
-  {
-    name: 'password',
-    type: 'password',
-    label: 'Mot de passe',
-    placeholder: '••••••••',
-    icon: 'i-lucide-lock',
-    autocomplete: 'current-password',
-    required: true,
-    size: 'lg',
-    defaultValue: '',
-  }
-]
+const state = reactive<Schema>({
+  email: '',
+  password: '',
+})
 
 const { loggedIn, fetch: fetchSession } = useUserSession()
 const loading = ref(false)
 const router = useRouter()
 const submitError = ref<string>()
-const authForm = useTemplateRef('authForm')
+const formRef = useTemplateRef('formRef')
 
 function clearLoginErrors() {
   submitError.value = undefined
-  authForm.value?.formRef?.clear('password')
+  formRef.value?.clear('password')
 }
 
 function setLoginError(message: string) {
   submitError.value = message
-  authForm.value?.formRef?.setErrors([
-    { name: 'password', message },
-  ])
-}
-
-function getLoginErrorMessage(error: unknown): string {
-  return getApiErrorMessage(error, 'Identifiants invalides')
+  formRef.value?.setErrors([{ name: 'password', message }])
 }
 
 onMounted(async () => {
@@ -81,9 +55,11 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     })
     await fetchSession()
     await navigateTo('/')
-  } catch (error: unknown) {
-    setLoginError(getLoginErrorMessage(error))
-  } finally {
+  }
+  catch (error: unknown) {
+    setLoginError(getApiErrorMessage(error, 'Identifiants invalides'))
+  }
+  finally {
     loading.value = false
   }
 }
@@ -111,57 +87,78 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       spotlight-color="primary"
       :ui="{
         root: 'shadow-xl shadow-orange-500/10 ring-1 ring-orange-500/10 backdrop-blur-sm',
-        container: 'p-6 sm:p-8'
+        container: 'p-6 sm:p-8',
       }"
     >
-      <UAuthForm
-        ref="authForm"
-        :fields="fields"
+      <div class="flex w-full flex-col items-center text-center">
+        <div
+          class="mb-4 inline-flex size-16 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20 shadow-sm"
+        >
+          <UIcon name="i-lucide-chef-hat" class="size-9 text-primary" />
+        </div>
+        <h1 class="text-2xl font-semibold tracking-tight">
+          Journal du Cuistot
+        </h1>
+        <p class="mt-1 text-sm text-muted">
+          Connectez-vous pour gérer le contenu
+        </p>
+      </div>
+
+      <UForm
+        ref="formRef"
         :schema="schema"
-        title="Journal du Cuistot"
-        description="Connectez-vous pour gérer le contenu"
-        :loading="loading"
-        :submit="{
-          label: 'Se connecter',
-          icon: 'i-lucide-log-in',
-          size: 'lg',
-          block: true
-        }"
-        :ui="{
-          root: 'w-full',
-          header: 'items-center text-center',
-          title: 'text-2xl font-semibold tracking-tight',
-          description: 'text-sm',
-          form: 'space-y-5',
-          leadingIcon: 'hidden'
-        }"
+        :state="state"
+        :loading-auto="false"
+        class="mt-6 w-full space-y-5"
         :on-submit="onSubmit"
       >
-        <template #validation>
-          <UAlert
-            v-if="submitError"
-            color="error"
-            variant="subtle"
-            icon="i-lucide-circle-alert"
-            title="Connexion impossible"
-            :description="submitError"
+        <UFormField name="email" label="Email">
+          <UInput
+            v-model="state.email"
+            type="email"
+            placeholder="admin@journalducuistot.fr"
+            icon="i-lucide-mail"
+            autocomplete="email"
+            size="lg"
+            class="w-full"
           />
-        </template>
+        </UFormField>
 
-        <template #leading>
-          <div
-            class="mb-1 inline-flex size-16 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20 shadow-sm"
-          >
-            <UIcon name="i-lucide-chef-hat" class="size-9 text-primary" />
-          </div>
-        </template>
+        <UFormField name="password" label="Mot de passe">
+          <UInput
+            v-model="state.password"
+            type="password"
+            placeholder="••••••••"
+            icon="i-lucide-lock"
+            autocomplete="current-password"
+            size="lg"
+            class="w-full"
+          />
+        </UFormField>
 
-        <template #footer>
-          <p class="text-center text-xs text-muted">
-            Accès réservé aux administrateurs
-          </p>
-        </template>
-      </UAuthForm>
+        <UAlert
+          v-if="submitError"
+          color="error"
+          variant="subtle"
+          icon="i-lucide-circle-alert"
+          title="Connexion impossible"
+          :description="submitError"
+          role="alert"
+        />
+
+        <UButton
+          type="submit"
+          label="Se connecter"
+          icon="i-lucide-log-in"
+          size="lg"
+          block
+          :loading="loading"
+        />
+      </UForm>
+
+      <p class="mt-6 text-center text-xs text-muted">
+        Accès réservé aux administrateurs
+      </p>
     </UPageCard>
   </div>
 </template>

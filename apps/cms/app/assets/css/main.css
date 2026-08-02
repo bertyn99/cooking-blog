@@ -9,6 +9,31 @@
   .cms-markdown-editor--embedded .ProseMirror {
     min-height: 18rem;
   }
+
+  /* Inline article images — aspect classes applied by ContentImage TipTap node */
+  .cms-markdown-editor .ProseMirror img.cms-editor-image {
+    @apply max-w-full w-4/5 rounded-md object-cover;
+  }
+
+  .cms-markdown-editor .ProseMirror img.cms-editor-image.aspect-\[16\/9\] {
+    aspect-ratio: 16 / 9;
+  }
+
+  .cms-markdown-editor .ProseMirror img.cms-editor-image.aspect-\[4\/3\] {
+    aspect-ratio: 4 / 3;
+  }
+
+  .cms-markdown-editor .ProseMirror img.cms-editor-image.aspect-\[3\/2\] {
+    aspect-ratio: 3 / 2;
+  }
+
+  .cms-markdown-editor .ProseMirror img.cms-editor-image.aspect-square {
+    aspect-ratio: 1 / 1;
+  }
+
+  .cms-markdown-editor .ProseMirror img.cms-editor-image.aspect-\[3\/4\] {
+    aspect-ratio: 3 / 4;
+  }
 }
 
 @theme static {

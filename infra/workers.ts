@@ -6,12 +6,12 @@ import * as Effect from 'effect/Effect'
 const NODE_COMPAT = {
   date: '2025-01-15',
   flags: ['nodejs_compat'],
-} as const
+}
 
 const WEB_NODE_COMPAT = {
   date: '2026-05-27',
   flags: ['nodejs_compat_v2'],
-} as const
+}
 
 const PUBLISH_CRON = '*/5 * * * *'
 

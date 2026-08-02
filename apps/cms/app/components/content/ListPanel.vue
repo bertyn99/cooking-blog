@@ -14,14 +14,18 @@ export interface ContentRow {
   updatedAt: string
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   title: string
   panelId: string
   endpoint: string
   createLabel?: string
   /** Base path for create/edit routes, e.g. `/articles` */
   contentBasePath?: string
-}>()
+  /** Show slug column (hidden for articles list). */
+  showSlugColumn?: boolean
+}>(), {
+  showSlugColumn: true,
+})
 
 const router = useRouter()
 
@@ -71,35 +75,42 @@ const statusColor = {
   scheduled: 'warning'
 } as const
 
-const columns: TableColumn<ContentRow>[] = [
-  { accessorKey: 'title', header: 'Titre' },
-  { accessorKey: 'slug', header: 'Slug' },
-  { accessorKey: 'locale', header: 'Locale' },
-  {
-    accessorKey: 'status',
-    header: 'Statut',
-    cell: ({ row }) => h(UBadge, {
-      class: 'capitalize',
-      variant: 'subtle',
-      color: statusColor[row.original.status]
-    }, () => row.original.status)
-  },
-  {
-    accessorKey: 'updatedAt',
-    header: 'Modifié',
-    cell: ({ row }) => new Date(row.original.updatedAt).toLocaleDateString('fr-FR')
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => h(UButton, {
-      icon: 'i-lucide-pencil',
-      color: 'neutral',
-      variant: 'ghost',
-      size: 'sm',
-      onClick: () => router.push(`${basePath.value}/${row.original.id}`),
-    })
+const columns = computed<TableColumn<ContentRow>[]>(() => {
+  const cols: TableColumn<ContentRow>[] = [
+    { accessorKey: 'title', header: 'Titre' },
+  ]
+  if (props.showSlugColumn) {
+    cols.push({ accessorKey: 'slug', header: 'Slug' })
   }
-]
+  cols.push(
+    { accessorKey: 'locale', header: 'Locale' },
+    {
+      accessorKey: 'status',
+      header: 'Statut',
+      cell: ({ row }) => h(UBadge, {
+        class: 'capitalize',
+        variant: 'subtle',
+        color: statusColor[row.original.status],
+      }, () => row.original.status),
+    },
+    {
+      accessorKey: 'updatedAt',
+      header: 'Modifié',
+      cell: ({ row }) => new Date(row.original.updatedAt).toLocaleDateString('fr-FR'),
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => h(UButton, {
+        icon: 'i-lucide-pencil',
+        color: 'neutral',
+        variant: 'ghost',
+        size: 'sm',
+        onClick: () => router.push(`${basePath.value}/${row.original.id}`),
+      }),
+    },
+  )
+  return cols
+})
 
 watch([search, statusFilter], () => {
   pagination.value.pageIndex = 0

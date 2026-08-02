@@ -4,6 +4,7 @@ import { schema } from '../db/create-db'
 import { createDbQueries } from '../db/queries'
 import {
   extractUploadPathsFromText,
+  fillMarkdownImageAltsFromCatalog,
   rewriteStrapiUploadsInText,
 } from './extract/content-media'
 import { emptyStats } from './extract/types.server'
@@ -80,7 +81,13 @@ export async function hydrateStrapiMedia(
 
   /** Pace downloads so Strapi / CDN is not hammered. */
   const pacedRewrite = async (text: string | null | undefined) => {
-    if (!textHasUploads(text)) return text ?? null
+    const hasUploads = textHasUploads(text)
+    if (!hasUploads && text) {
+      // Already rewritten URLs: still fill empty alts from the media catalog.
+      const filled = await fillMarkdownImageAltsFromCatalog(ctx, text)
+      return filled === text ? text : filled
+    }
+    if (!hasUploads) return text ?? null
 
     const paths = extractUploadPathsFromText(text ?? '')
     // Ensure delay between distinct download attempts for this field.
@@ -119,9 +126,12 @@ export async function hydrateStrapiMedia(
       .all()
 
   for (const row of articleRows) {
-    if (!textHasUploads(row.content)) continue
+    if (!row.content) continue
+    if (!textHasUploads(row.content) && !row.content.includes('![')) continue
     const refs = extractUploadPathsFromText(row.content ?? '')
-    log(`Article « ${row.slug} » — ${refs.length} référence(s) /uploads/`)
+    if (refs.length) {
+      log(`Article « ${row.slug} » — ${refs.length} référence(s) /uploads/`)
+    }
     const content = await pacedRewrite(row.content)
     if (content && content !== row.content) {
       if (!dryRun) {
@@ -156,7 +166,8 @@ export async function hydrateStrapiMedia(
       .all()
 
   for (const row of recipeRows) {
-    if (!textHasUploads(row.intro) && !textHasUploads(row.step)) continue
+    const hasMd = Boolean(row.intro?.includes('![') || row.step?.includes('!['))
+    if (!textHasUploads(row.intro) && !textHasUploads(row.step) && !hasMd) continue
     log(`Recette « ${row.slug} » — hydratation intro/étapes`)
     const intro = await pacedRewrite(row.intro)
     const step = await pacedRewrite(row.step)
@@ -184,7 +195,8 @@ export async function hydrateStrapiMedia(
       .all()
 
   for (const row of pageRows) {
-    if (!textHasUploads(row.content)) continue
+    if (!row.content) continue
+    if (!textHasUploads(row.content) && !row.content.includes('![')) continue
     log(`Page « ${row.slug} » — hydratation`)
     const content = await pacedRewrite(row.content)
     if (content && content !== row.content) {

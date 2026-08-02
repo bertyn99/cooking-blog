@@ -21,20 +21,35 @@ export interface ApiErrorBody {
 export function getApiErrorMessage(error: unknown, fallback = 'Une erreur est survenue'): string {
   if (error && typeof error === 'object') {
     const fetchLike = error as {
-      data?: ApiErrorBody | { message?: string, why?: string, code?: string }
+      data?: ApiErrorBody | Record<string, unknown>
       statusMessage?: string
       message?: string
     }
-    const nested = fetchLike.data && 'error' in fetchLike.data
-      ? fetchLike.data.error
-      : undefined
-    if (nested?.message) return nested.message
-    const flat = fetchLike.data
-    if (flat && 'message' in flat && typeof flat.message === 'string' && flat.message) {
-      return flat.message
-    }
-    if (flat && 'why' in flat && typeof flat.why === 'string' && flat.why) {
-      return flat.why
+    const payload = fetchLike.data
+    if (payload && typeof payload === 'object') {
+      const nestedError = 'error' in payload
+        && payload.error
+        && typeof payload.error === 'object'
+        && payload.error !== null
+        && 'message' in payload.error
+        ? (payload.error as ApiErrorBody['error'])
+        : undefined
+      if (nestedError?.message) return nestedError.message
+
+      if ('message' in payload && typeof payload.message === 'string' && payload.message) {
+        return payload.message
+      }
+
+      const inner = 'data' in payload ? payload.data : undefined
+      if (inner && typeof inner === 'object' && inner !== null) {
+        const record = inner as Record<string, unknown>
+        if (typeof record.message === 'string' && record.message) return record.message
+        if (typeof record.why === 'string' && record.why) return record.why
+      }
+
+      if ('why' in payload && typeof payload.why === 'string' && payload.why) {
+        return payload.why
+      }
     }
     if (fetchLike.statusMessage) return fetchLike.statusMessage
     if (fetchLike.message) return fetchLike.message

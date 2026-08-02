@@ -3,6 +3,7 @@ import type { Editor } from '@tiptap/vue-3'
 import type { EditorToolbarItem } from '@nuxt/ui'
 import { mediaAltFromPathname, mediaPublicUrl } from '~/utils/media'
 import { useDeferredArticleMedia } from '~/composables/useDeferredArticleMedia'
+import { ContentImage } from '~/utils/editor-image-extension'
 
 const model = defineModel<string>({ required: true })
 
@@ -15,10 +16,12 @@ const props = withDefaults(defineProps<{
 
 const deferredMedia = useDeferredArticleMedia()
 const deferUpload = computed(() => Boolean(deferredMedia))
+const { $api } = useNuxtApp()
 
 const preview = ref(false)
 const mediaPickerOpen = ref(false)
 const linkPickerOpen = ref(false)
+const imageSettingsOpen = ref(false)
 const pickerMode = ref<'insert' | 'replace'>('insert')
 const activeEditor = shallowRef<Editor | null>(null)
 
@@ -28,8 +31,26 @@ function openMediaPicker(mode: 'insert' | 'replace', editor: Editor) {
   mediaPickerOpen.value = true
 }
 
-function applyMediaToEditor(pathname: string) {
-  applyImageToEditor(mediaPublicUrl(pathname), mediaAltFromPathname(pathname))
+async function resolveAltForPathname(pathname: string): Promise<string> {
+  try {
+    const detail = await $api<{ altText?: string | null }>('/api/media/item', {
+      query: { pathname },
+    })
+    const fromMedia = detail.altText?.trim()
+    if (fromMedia) {
+      return fromMedia
+    }
+  }
+  catch {
+    // Fall through to filename-derived alt.
+  }
+  return mediaAltFromPathname(pathname)
+}
+
+async function applyMediaToEditor(pathname: string) {
+  const src = mediaPublicUrl(pathname)
+  const alt = await resolveAltForPathname(pathname)
+  applyImageToEditor(src, alt)
 }
 
 function applyLocalMediaToEditor(payload: { previewUrl: string, file: File }) {
@@ -43,8 +64,16 @@ function applyImageToEditor(src: string, alt: string) {
     return
   }
 
+  const currentTitle = pickerMode.value === 'replace' && editor.isActive('image')
+    ? (editor.getAttributes('image').title as string | null | undefined) ?? null
+    : null
+
   if (pickerMode.value === 'replace' && editor.isActive('image')) {
-    editor.chain().focus().updateAttributes('image', { src, alt }).run()
+    editor.chain().focus().updateAttributes('image', {
+      src,
+      alt,
+      ...(currentTitle ? { title: currentTitle } : {}),
+    }).run()
   }
   else {
     editor.chain().focus().setImage({ src, alt }).run()
@@ -153,13 +182,20 @@ function textBubbleShouldShow({
   return view.hasFocus() && !selection.empty
 }
 
-const imageBubbleItems = (editor: Editor): EditorToolbarItem[] => [
-  {
+const imageBubbleItems = (editor: Editor): EditorToolbarItem[][] => [
+  [{
+    icon: 'i-lucide-captions',
+    label: 'Alt / format',
+    onClick: () => {
+      activeEditor.value = editor
+      imageSettingsOpen.value = true
+    },
+  }],
+  [{
     icon: 'i-lucide-image-plus',
     label: 'Remplacer',
     onClick: () => openMediaPicker('replace', editor),
-  },
-  {
+  }, {
     icon: 'i-lucide-trash-2',
     label: 'Supprimer',
     color: 'error',
@@ -171,7 +207,7 @@ const imageBubbleItems = (editor: Editor): EditorToolbarItem[] => [
         editor.chain().focus().deleteSelection().run()
       }
     },
-  },
+  }],
 ]
 
 function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFocus: () => boolean } }) {
@@ -199,6 +235,8 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
           headings: { levels: [2, 3, 4] },
           link: { openOnClick: false },
         }"
+        :image="false"
+        :extensions="[ContentImage]"
         :ui="{
           root: 'flex min-h-0 flex-1 flex-col',
           content: 'min-h-0 flex-1',
@@ -284,6 +322,11 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
           :should-show="imageBubbleShouldShow"
         />
       </UEditor>
+
+      <ContentEditorImageSettings
+        v-model:open="imageSettingsOpen"
+        :editor="activeEditor"
+      />
 
       <ContentMediaPickerModal
         v-model:open="mediaPickerOpen"

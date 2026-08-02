@@ -3,9 +3,9 @@ packages:
 
 catalog:
   '@nuxt/eslint-plugin': '^1.15.2'
-  alchemy: '2.0.0-beta.61'
-  effect: '4.0.0-beta.94'
-  '@effect/platform-node': '4.0.0-beta.94'
+  alchemy: '2.0.0-beta.67'
+  effect: '4.0.0-beta.102'
+  '@effect/platform-node': '4.0.0-beta.102'
   drizzle-kit: '1.0.0-rc.4'
   drizzle-orm: '1.0.0-rc.4'
   nuxt: '^4.4.5'
@@ -18,10 +18,10 @@ catalog:
   zod: 'latest'
 
 overrides:
-  effect: 4.0.0-beta.94
-  '@effect/platform-node': 4.0.0-beta.94
-  '@effect/platform-bun': 4.0.0-beta.94
-  '@effect/sql-pg': 4.0.0-beta.94
+  effect: 4.0.0-beta.102
+  '@effect/platform-node': 4.0.0-beta.102
+  '@effect/platform-bun': 4.0.0-beta.102
+  '@effect/sql-pg': 4.0.0-beta.102
   typescript: 6.0.3
 
 ignoredBuiltDependencies:

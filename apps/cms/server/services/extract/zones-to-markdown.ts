@@ -17,7 +17,7 @@ function blockToMarkdown(block: StrapiZoneBlock): string {
 
     case 'ui.image': {
       const url = asString(block.url) || asString(block.src)
-      const alt = asString(block.alt) || asString(block.alternativeText) || 'image'
+      const alt = asString(block.alt) || asString(block.alternativeText)
       return url ? `\n![${alt}](${url})\n` : ''
     }
 
@@ -55,7 +55,7 @@ function blockToMarkdown(block: StrapiZoneBlock): string {
           if (!img || typeof img !== 'object') return ''
           const record = img as Record<string, unknown>
           const url = asString(record.url)
-          const alt = asString(record.alternativeText) || 'image'
+          const alt = asString(record.alternativeText)
           return url ? `![${alt}](${url})` : ''
         })
         .filter(Boolean)
