@@ -185,6 +185,7 @@ apps/cms/
 | POST | `/api/auth/login` | Public |
 | POST | `/api/auth/register` | Bootstrap or admin |
 | GET | `/api/health` | Public |
+| POST | `/api/completion` | Editor+ — streaming editor AI (Workers AI + `jdc-cms-ai` gateway); KV rate limit 30/min per user+IP |
 
 ### Content CRUD (Strapi-like pagination)
 
@@ -309,7 +310,8 @@ pnpm --filter cms db:seed:admin
 | `NUXT_SEO_PRO_API_KEY` | Nuxt SEO Pro MCP Bearer token (in-app content agent keyword tools) |
 | `NUXT_SEO_PRO_MCP_URL` | Optional override (default `https://nuxtseo.com/mcp/pro`) |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Deploy-time admin seed |
-| Cloudflare bindings | `DB` (D1), `Media` (R2), `Cache` (KV), `AI` (Workers AI / CmsAi gateway) — see `nuxt.config.ts` nitro.cloudflare; image architecture [ADR-006](../../docs/architecture/adr-006-image-delivery-cloudflare.md) |
+| Cloudflare bindings | `DB` (D1), `Media` (R2), `Cache` (KV), `AI` (Workers AI), `CMS_AI_GATEWAY_ID` (`jdc-cms-ai`) — see `nuxt.config.ts` nitro.cloudflare; image architecture [ADR-006](../../docs/architecture/adr-006-image-delivery-cloudflare.md) |
+| `CMS_AI_GATEWAY_ID` | Cloudflare AI Gateway id for Workers AI (`workers-ai-provider`); default `jdc-cms-ai` |
 
 ## CONVENTIONS
 

@@ -2,7 +2,31 @@ import { Extension } from '@tiptap/core'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import type { Editor } from '@tiptap/vue-3'
-import { useDebounceFn } from '@vueuse/core'
+
+function createDebouncedEditorCallback(
+  callback: (editor: Editor) => void,
+  waitMs: number,
+): { run: (editor: Editor) => void, cancel: () => void } {
+  let timer: ReturnType<typeof setTimeout> | undefined
+
+  return {
+    run(editor: Editor) {
+      if (timer) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(() => {
+        timer = undefined
+        callback(editor)
+      }, waitMs)
+    },
+    cancel() {
+      if (timer) {
+        clearTimeout(timer)
+        timer = undefined
+      }
+    },
+  }
+}
 
 export interface CompletionOptions {
   debounce?: number
@@ -17,12 +41,13 @@ export interface CompletionStorage {
   suggestion: string
   position: number | undefined
   visible: boolean
-  debouncedTrigger: ((editor: Editor) => void) | null
+  debouncedTrigger: { run: (editor: Editor) => void, cancel: () => void } | null
   setSuggestion: (text: string) => void
   clearSuggestion: () => void
 }
 
 export const completionPluginKey = new PluginKey('completion')
+export const completionUpdateMetaKey = 'completionUpdate'
 
 export const EditorCompletionExtension = Extension.create<CompletionOptions, CompletionStorage>({
   name: 'completion',
@@ -43,7 +68,7 @@ export const EditorCompletionExtension = Extension.create<CompletionOptions, Com
       suggestion: '',
       position: undefined as number | undefined,
       visible: false,
-      debouncedTrigger: null as ((editor: Editor) => void) | null,
+      debouncedTrigger: null as { run: (editor: Editor) => void, cancel: () => void } | null,
       setSuggestion(text: string) {
         this.suggestion = text
       },
@@ -61,6 +86,17 @@ export const EditorCompletionExtension = Extension.create<CompletionOptions, Com
     return [
       new Plugin({
         key: completionPluginKey,
+        state: {
+          init() {
+            return 0
+          },
+          apply(tr, tick) {
+            if (tr.getMeta(completionUpdateMetaKey)) {
+              return tick + 1
+            }
+            return tick
+          },
+        },
         props: {
           decorations(state) {
             if (!storage.visible || !storage.suggestion || storage.position === undefined) {
@@ -71,7 +107,6 @@ export const EditorCompletionExtension = Extension.create<CompletionOptions, Com
               const span = document.createElement('span')
               span.className = 'completion-suggestion'
               span.textContent = storage.suggestion
-              span.style.cssText = 'color: var(--ui-text-muted); opacity: 0.6; pointer-events: none;'
               return span
             }, { side: 1 })
 
@@ -89,7 +124,11 @@ export const EditorCompletionExtension = Extension.create<CompletionOptions, Com
           this.storage.clearSuggestion()
           this.options.onDismiss?.()
         }
-        this.storage.debouncedTrigger?.(editor as Editor)
+        // Manual invoke: skip auto-trigger guards (punctuation / end-of-block).
+        const { selection } = editor.state
+        this.storage.position = selection.from
+        this.storage.visible = true
+        this.options.onTrigger?.(editor as Editor)
         return true
       },
       Tab: ({ editor }) => {
@@ -101,7 +140,7 @@ export const EditorCompletionExtension = Extension.create<CompletionOptions, Com
         const position = this.storage.position
 
         this.storage.clearSuggestion()
-        editor.view.dispatch(editor.state.tr.setMeta('completionUpdate', true))
+        editor.view.dispatch(editor.state.tr.setMeta(completionUpdateMetaKey, true))
         editor.chain().focus().insertContentAt(position, suggestion).run()
         this.options.onAccept?.()
         return true
@@ -109,7 +148,7 @@ export const EditorCompletionExtension = Extension.create<CompletionOptions, Com
       Escape: ({ editor }) => {
         if (this.storage.visible) {
           this.storage.clearSuggestion()
-          editor.view.dispatch(editor.state.tr.setMeta('completionUpdate', true))
+          editor.view.dispatch(editor.state.tr.setMeta(completionUpdateMetaKey, true))
           this.options.onDismiss?.()
           return true
         }
@@ -121,19 +160,19 @@ export const EditorCompletionExtension = Extension.create<CompletionOptions, Com
   onUpdate({ editor }) {
     if (this.storage.visible) {
       this.storage.clearSuggestion()
-      editor.view.dispatch(editor.state.tr.setMeta('completionUpdate', true))
+      editor.view.dispatch(editor.state.tr.setMeta(completionUpdateMetaKey, true))
       this.options.onDismiss?.()
     }
 
     if (this.options.autoTrigger) {
-      this.storage.debouncedTrigger?.(editor as Editor)
+      this.storage.debouncedTrigger?.run(editor as Editor)
     }
   },
 
   onSelectionUpdate({ editor }) {
     if (this.storage.visible) {
       this.storage.clearSuggestion()
-      editor.view.dispatch(editor.state.tr.setMeta('completionUpdate', true))
+      editor.view.dispatch(editor.state.tr.setMeta(completionUpdateMetaKey, true))
       this.options.onDismiss?.()
     }
   },
@@ -142,7 +181,7 @@ export const EditorCompletionExtension = Extension.create<CompletionOptions, Com
     const storage = this.storage
     const options = this.options
 
-    this.storage.debouncedTrigger = useDebounceFn((editor: Editor) => {
+    this.storage.debouncedTrigger = createDebouncedEditorCallback((editor: Editor) => {
       if (!options.onTrigger) {
         return
       }
@@ -170,6 +209,7 @@ export const EditorCompletionExtension = Extension.create<CompletionOptions, Com
   },
 
   onDestroy() {
+    this.storage.debouncedTrigger?.cancel()
     this.storage.debouncedTrigger = null
   },
 })

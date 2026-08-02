@@ -1,15 +1,12 @@
-export type EditorCompletionMode =
-  | 'continue'
-  | 'fix'
-  | 'extend'
-  | 'reduce'
-  | 'simplify'
-  | 'summarize'
-  | 'translate'
+import type { EditorCompletionMode } from '../../shared/editor-completion-modes'
+
+export type { EditorCompletionMode } from '../../shared/editor-completion-modes'
 
 export interface EditorCompletionConfig {
   system: string
   maxOutputTokens: number
+  /** Cache identical transform prompts via AI Gateway (seconds). */
+  cacheTtl?: number
 }
 
 const PRESERVE_MARKDOWN
@@ -32,6 +29,7 @@ export function buildEditorCompletionConfig(
           'Only output the corrected text, nothing else.',
         ].join(' '),
         maxOutputTokens: 500,
+        cacheTtl: 3600,
       }
     case 'extend':
       return {
@@ -52,6 +50,7 @@ export function buildEditorCompletionConfig(
           'Only output the reduced text, nothing else.',
         ].join(' '),
         maxOutputTokens: 300,
+        cacheTtl: 3600,
       }
     case 'simplify':
       return {
@@ -62,6 +61,7 @@ export function buildEditorCompletionConfig(
           'Only output the simplified text, nothing else.',
         ].join(' '),
         maxOutputTokens: 400,
+        cacheTtl: 3600,
       }
     case 'summarize':
       return {
@@ -71,6 +71,7 @@ export function buildEditorCompletionConfig(
           'Only output the summary, nothing else.',
         ].join(' '),
         maxOutputTokens: 200,
+        cacheTtl: 3600,
       }
     case 'translate':
       return {
@@ -83,7 +84,6 @@ export function buildEditorCompletionConfig(
         maxOutputTokens: 500,
       }
     case 'continue':
-    default:
       return {
         system: [
           'You are a writing assistant providing inline autocompletions.',
@@ -97,6 +97,10 @@ export function buildEditorCompletionConfig(
         ].join('\n'),
         maxOutputTokens: 40,
       }
+    default: {
+      const _exhaustive: never = mode
+      return _exhaustive
+    }
   }
 }
 

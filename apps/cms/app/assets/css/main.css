@@ -48,13 +48,13 @@
     @apply min-w-0 flex-1 text-sm leading-relaxed text-default;
   }
 
-  .cms-markdown-editor .ProseMirror .cms-editor-callout [data-node-view-content-vue] > *:first-child,
-  .cms-markdown-editor .ProseMirror .cms-editor-callout [data-node-view-content] > *:first-child {
+  .cms-markdown-editor .ProseMirror .cms-editor-callout [data-node-view-content-vue]>*:first-child,
+  .cms-markdown-editor .ProseMirror .cms-editor-callout [data-node-view-content]>*:first-child {
     margin-top: 0;
   }
 
-  .cms-markdown-editor .ProseMirror .cms-editor-callout [data-node-view-content-vue] > *:last-child,
-  .cms-markdown-editor .ProseMirror .cms-editor-callout [data-node-view-content] > *:last-child {
+  .cms-markdown-editor .ProseMirror .cms-editor-callout [data-node-view-content-vue]>*:last-child,
+  .cms-markdown-editor .ProseMirror .cms-editor-callout [data-node-view-content]>*:last-child {
     margin-bottom: 0;
   }
 
@@ -103,18 +103,18 @@
     @apply min-w-0 flex-1 px-2.5 py-2 text-sm leading-relaxed text-default;
   }
 
-  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content-vue] > *:first-child,
-  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content] > *:first-child {
+  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content-vue]>*:first-child,
+  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content]>*:first-child {
     margin-top: 0;
   }
 
-  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content-vue] > *:last-child,
-  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content] > *:last-child {
+  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content-vue]>*:last-child,
+  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content]>*:last-child {
     margin-bottom: 0;
   }
 
-  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content-vue] > *,
-  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content] > * {
+  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content-vue]>*,
+  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content]>* {
     @apply m-0 min-w-0;
   }
 

@@ -1,5 +1,6 @@
 import { generateText, Output } from 'ai'
 import type { H3Event } from 'h3'
+import { WORKERS_AI_MODEL } from '../../../shared/workers-ai-model'
 import type { GenerationTargetType } from '../../db/queries/content-generation'
 import { getCloudflareEnv } from '../../utils/cloudflare-env'
 import { createCmsWorkersAI } from '../../utils/cms-workers-ai'
@@ -9,8 +10,6 @@ import {
   llmRecipeExtractSchema,
 } from '../../utils/validations/llm-extract'
 import { extractFromMarkdownHeuristic } from './llm-extract-heuristic'
-
-import { WORKERS_AI_MODEL } from '../../../shared/workers-ai-model'
 
 export interface LlmExtractRequest {
   targetType: GenerationTargetType
@@ -58,7 +57,10 @@ function buildUserPrompt(request: LlmExtractRequest) {
 }
 
 export function createWorkersAiClient(ai: Ai, gatewayId?: string): LlmClient {
-  const workersai = createCmsWorkersAI(ai, gatewayId)
+  const workersai = createCmsWorkersAI(ai, {
+    gatewayId,
+    metadata: { surface: 'generation-extract' },
+  })
   const model = workersai(WORKERS_AI_MODEL)
 
   return {

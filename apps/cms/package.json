@@ -41,7 +41,7 @@
     "@tanstack/table-core": "^8.21.3",
     "@vueuse/core": "^13.9.0",
     "@vueuse/nuxt": "^13.9.0",
-    "ai": "^7.0.37",
+    "ai": "^7.0.48",
     "drizzle-orm": "catalog:",
     "evlog": "^2.22.0",
     "exifr": "^7.1.3",

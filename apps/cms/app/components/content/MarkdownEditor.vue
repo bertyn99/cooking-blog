@@ -11,7 +11,7 @@ import { ContentImage } from '~/utils/editor-image-extension'
 
 const model = defineModel<string>({ required: true })
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   /** Inside ContentEditorSection + surface: no extra title or outer card. */
   embedded?: boolean
 }>(), {
@@ -66,7 +66,7 @@ const aiToolbarGroup = computed(() => [{
   }, {
     kind: 'aiContinue' as const,
     icon: 'i-lucide-text',
-    label: 'Continuer (Ctrl+J)',
+    label: 'Continuer (⌘/Ctrl+J)',
   }, {
     kind: 'aiSummarize' as const,
     icon: 'i-lucide-list',
@@ -74,7 +74,8 @@ const aiToolbarGroup = computed(() => [{
   }, {
     icon: 'i-lucide-languages',
     label: 'Traduire',
-    children: [{
+    content: { align: 'start' as const },
+    items: [{
       kind: 'aiTranslate' as const,
       language: 'English',
       label: 'Anglais',
@@ -212,9 +213,9 @@ const fixedToolbarItems = computed(() => [
   slot: 'grid' as const,
   icon: 'i-lucide-layout-grid',
   tooltip: { text: 'Grille (colonnes)' },
-}]]] satisfies EditorToolbarItem<typeof editorHandlers>[][])
+}]] satisfies EditorToolbarItem<typeof editorHandlers>[][])
 
-const bubbleToolbarItems = [[{
+const bubbleToolbarItems = computed(() => [[{
   kind: 'mark' as const,
   mark: 'bold' as const,
   icon: 'i-lucide-bold',
@@ -240,7 +241,29 @@ const bubbleToolbarItems = [[{
   onClick: () => {
     linkPickerOpen.value = true
   },
-}]] satisfies EditorToolbarItem[][]
+}], [{
+  icon: 'i-lucide-sparkles',
+  label: 'IA',
+  loading: aiLoading.value,
+  content: { align: 'start' as const },
+  items: [{
+    kind: 'aiFix' as const,
+    icon: 'i-lucide-spell-check',
+    label: 'Orthographe',
+  }, {
+    kind: 'aiSimplify' as const,
+    icon: 'i-lucide-lightbulb',
+    label: 'Simplifier',
+  }, {
+    kind: 'aiExtend' as const,
+    icon: 'i-lucide-unfold-vertical',
+    label: 'Développer',
+  }, {
+    kind: 'aiContinue' as const,
+    icon: 'i-lucide-text',
+    label: 'Continuer',
+  }],
+}]] satisfies EditorToolbarItem<typeof editorHandlers>[][])
 
 function textBubbleShouldShow({
   editor,
@@ -298,7 +321,7 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
   <div
     class="cms-markdown-editor overflow-hidden"
     :class="[
-      props.embedded ? 'cms-markdown-editor--embedded' : 'rounded-lg border border-default bg-default',
+      embedded ? 'cms-markdown-editor--embedded' : 'rounded-lg border border-default bg-default',
       preview ? 'cms-markdown-editor--preview' : '',
     ]"
   >
@@ -311,7 +334,7 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
         :editable="!preview"
         placeholder="Rédigez le contenu…"
         class="w-full"
-        :class="props.embedded ? 'min-h-[20rem]' : 'min-h-[22rem]'"
+        :class="embedded ? 'min-h-[20rem]' : 'min-h-[22rem]'"
         :handlers="editorHandlers"
         :starter-kit="{
           headings: { levels: [2, 3, 4] },
@@ -324,7 +347,7 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
           content: 'min-h-0 flex-1',
           base: [
             preview ? 'pointer-events-none opacity-90' : '',
-            props.embedded ? '!px-4 !pt-4 !pb-6 sm:!px-5' : '',
+            embedded ? '!px-4 !pt-4 !pb-6 sm:!px-5' : '',
           ].filter(Boolean).join(' '),
         }"
       >
@@ -352,7 +375,7 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
           class="flex flex-wrap items-center gap-1 border-b border-default bg-elevated/55 px-2 py-2 sm:px-3"
           :class="[
             preview ? 'opacity-70' : '',
-            props.embedded ? 'sticky top-0 z-[1] backdrop-blur-sm' : '',
+            embedded ? 'sticky top-0 z-[1] backdrop-blur-sm' : '',
           ]"
         >
           <UEditorToolbar
