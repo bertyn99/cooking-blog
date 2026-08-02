@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@ai-sdk/mcp": "^2.0.16",
+    "@ai-sdk/vue": "^4.0.48",
     "@iconify-json/lucide": "^1.2.116",
     "@iconify-json/simple-icons": "^1.2.89",
     "@jsquash/jpeg": "^1.6.0",

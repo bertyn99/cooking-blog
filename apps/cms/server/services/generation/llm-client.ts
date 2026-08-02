@@ -1,8 +1,8 @@
-import type { H3Event } from 'h3'
 import { generateText, Output } from 'ai'
-import { createWorkersAI } from 'workers-ai-provider'
+import type { H3Event } from 'h3'
 import type { GenerationTargetType } from '../../db/queries/content-generation'
 import { getCloudflareEnv } from '../../utils/cloudflare-env'
+import { createCmsWorkersAI } from '../../utils/cms-workers-ai'
 import type { LlmArticleExtract, LlmRecipeExtract } from '../../utils/validations/llm-extract'
 import {
   llmArticleExtractSchema,
@@ -10,17 +10,7 @@ import {
 } from '../../utils/validations/llm-extract'
 import { extractFromMarkdownHeuristic } from './llm-extract-heuristic'
 
-/**
- * Extract source today: R2 SourcePack JSON
- * `{ title?, locale?, markdown?, sourceUrl? }` — markdown is required.
- * Vision is unused until SourcePack gains images/PDFs; Gemma 4 still wins on
- * FR multilingual + structured extract, and keeps vision for that upgrade.
- *
- * `@cf/google/gemma-4-26b-a4b-it` — Gemma 4 (Gemini 3 research), 35+ langs /
- * pretrained 140+, vision, 256k ctx, $0.10/$0.30 per M tokens.
- * @see https://developers.cloudflare.com/workers-ai/models/gemma-4-26b-a4b-it/
- */
-const WORKERS_AI_MODEL = '@cf/google/gemma-4-26b-a4b-it' as const
+import { WORKERS_AI_MODEL } from '../../../shared/workers-ai-model'
 
 export interface LlmExtractRequest {
   targetType: GenerationTargetType
@@ -67,8 +57,8 @@ function buildUserPrompt(request: LlmExtractRequest) {
   ].filter(Boolean).join('\n')
 }
 
-export function createWorkersAiClient(ai: Ai): LlmClient {
-  const workersai = createWorkersAI({ binding: ai })
+export function createWorkersAiClient(ai: Ai, gatewayId?: string): LlmClient {
+  const workersai = createCmsWorkersAI(ai, gatewayId)
   const model = workersai(WORKERS_AI_MODEL)
 
   return {
@@ -115,7 +105,7 @@ export function createHeuristicLlmClient(): LlmClient {
 export function createLlmClient(event?: H3Event): LlmClient {
   const env = getCloudflareEnv(event)
   if (env?.AI) {
-    return createWorkersAiClient(env.AI)
+    return createWorkersAiClient(env.AI, env.CMS_AI_GATEWAY_ID)
   }
   return createHeuristicLlmClient()
 }

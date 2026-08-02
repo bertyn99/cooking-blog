@@ -2,6 +2,7 @@ import * as Cloudflare from 'alchemy/Cloudflare'
 import * as Command from 'alchemy/Command'
 import * as Config from 'effect/Config'
 import * as Effect from 'effect/Effect'
+import { CMS_AI_GATEWAY_ID } from '../apps/cms/shared/workers-ai-model.ts'
 
 const NODE_COMPAT = {
   date: '2025-01-15',
@@ -36,9 +37,9 @@ export const workers = Effect.fn(function* (input: {
     },
   })
 
-  // Binding an AI Gateway yields the Workers AI `Ai` runtime binding (env.AI).
+  // AI Gateway + Workers AI binding (env.AI). Gateway id must match app `CMS_AI_GATEWAY_ID`.
   const CmsAi = yield* Cloudflare.AI.Gateway('CmsAi', {
-    id: 'cms-ai',
+    id: CMS_AI_GATEWAY_ID,
     collectLogs: true,
   })
 
@@ -57,6 +58,9 @@ export const workers = Effect.fn(function* (input: {
       Media: input.Media,
       Cache: input.Cache,
       AI: CmsAi,
+      CMS_AI_GATEWAY_ID: Config.string('CMS_AI_GATEWAY_ID').pipe(
+        Config.withDefault(CMS_AI_GATEWAY_ID),
+      ),
       CONTENT_GENERATION: ContentGeneration,
       NUXT_SESSION_PASSWORD: Config.string('NUXT_SESSION_PASSWORD'),
     },

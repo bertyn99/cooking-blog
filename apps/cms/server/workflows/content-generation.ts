@@ -114,7 +114,7 @@ async function runDurableStep(
       recipeId: run.recipeId,
       artifactPrefix: run.artifactPrefix,
       requestedByUserId: run.requestedByUserId,
-    }, stepKey, { ai: env.AI }, { linkedIds })
+    }, stepKey, { ai: env.AI, gatewayId: env.CMS_AI_GATEWAY_ID }, { linkedIds })
 
     if (stepResult.pendingAssemble) {
       const linked = await queries.applyAssembledDraftAndLinkRun(run.id, {

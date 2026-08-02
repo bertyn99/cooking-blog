@@ -19,6 +19,8 @@ export interface RunLlmExtractInput {
   } | null
   /** Explicit AI binding (Workflows); falls back to getCloudflareEnv().AI */
   ai?: Ai
+  /** AI Gateway id (Workflows / env); falls back to getCloudflareEnv().CMS_AI_GATEWAY_ID */
+  gatewayId?: string
 }
 
 export type ExtractRunResult = (LlmArticleExtract | LlmRecipeExtract) & {
@@ -36,10 +38,12 @@ export async function runLlmExtract(input: RunLlmExtractInput): Promise<ExtractR
     throw new Error('Source pack markdown is required for extract')
   }
 
-  const ai = input.ai ?? getCloudflareEnv()?.AI
+  const env = getCloudflareEnv()
+  const ai = input.ai ?? env?.AI
   if (ai) {
     const result = await runContentExtractAgent({
       ai,
+      gatewayId: input.gatewayId ?? env?.CMS_AI_GATEWAY_ID,
       targetType: input.targetType,
       locale: input.locale,
       source: input.source,

@@ -1,5 +1,4 @@
 import { ToolLoopAgent, hasToolCall, isStepCount, tool, type ToolSet } from 'ai'
-import { createWorkersAI } from 'workers-ai-provider'
 import { z } from 'zod'
 import type { GenerationTargetType } from '../../db/queries/content-generation'
 import {
@@ -14,8 +13,9 @@ import {
   loadSeoMcpTools,
   readSeoMcpConfig,
 } from './seo-mcp'
+import { createCmsWorkersAI } from '../../utils/cms-workers-ai'
 
-const WORKERS_AI_MODEL = '@cf/google/gemma-4-26b-a4b-it' as const
+import { WORKERS_AI_MODEL } from '../../../shared/workers-ai-model'
 const SITE_HINT = 'journalducuistot.fr'
 
 export type SourceKind = 'paste' | 'article' | 'ebook'
@@ -104,6 +104,7 @@ function buildPrompt(input: {
  */
 export async function runContentExtractAgent(input: {
   ai: Ai
+  gatewayId?: string
   targetType: GenerationTargetType
   locale: string
   source: SourcePack
@@ -203,7 +204,7 @@ export async function runContentExtractAgent(input: {
       seoToolsUsed.push('keyword_brief')
     }
 
-    const workersai = createWorkersAI({ binding: input.ai })
+    const workersai = createCmsWorkersAI(input.ai, input.gatewayId)
     const agent = new ToolLoopAgent({
       model: workersai(WORKERS_AI_MODEL),
       instructions: agentInstructions(

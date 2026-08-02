@@ -38,6 +38,8 @@ export interface GenerationRunContext {
 export interface GenerationStepDeps {
   /** Workers AI binding when running outside H3 (Workflows). */
   ai?: Ai
+  /** Cloudflare AI Gateway id (see `CMS_AI_GATEWAY_ID`). */
+  gatewayId?: string
 }
 
 export interface GenerationStepResult {
@@ -147,6 +149,7 @@ export async function executeGenerationStep(
         locale: normalize?.locale ?? source?.locale ?? 'fr',
         keywordBrief,
         ai: deps.ai,
+        gatewayId: deps.gatewayId,
       })
       const artifactKey = await artifacts.putJson(run.artifactPrefix, stepKey, extracted)
       return { artifactKey }
@@ -251,6 +254,7 @@ export async function executeGenerationStep(
           focusSteps: notes.focusSteps ?? null,
         },
         ai: deps.ai,
+        gatewayId: deps.gatewayId,
       })
       await artifacts.putJson(run.artifactPrefix, 'extract', extracted)
       const artifactKey = await artifacts.putJson(run.artifactPrefix, stepKey, {

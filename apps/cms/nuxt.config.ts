@@ -26,6 +26,8 @@ export default defineNuxtConfig({
     /** Nuxt SEO Pro MCP (in-app content agent keyword tools). */
     nuxtSeoProMcpUrl: process.env.NUXT_SEO_PRO_MCP_URL || 'https://nuxtseo.com/mcp/pro',
     nuxtSeoProApiKey: process.env.NUXT_SEO_PRO_API_KEY || '',
+    /** Cloudflare AI Gateway id for Workers AI (`workers-ai-provider` gateway option). */
+    cmsAiGatewayId: process.env.CMS_AI_GATEWAY_ID || 'jdc-cms-ai',
   },
 
   css: ['~/assets/css/main.css'],

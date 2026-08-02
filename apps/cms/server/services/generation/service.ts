@@ -22,7 +22,10 @@ export function createContentGenerationService(db: AppDb, event?: H3Event) {
   const queries = createContentGenerationQueries(db)
   const artifacts = useGenerationArtifactStore(event)
   const progress = useGenerationProgressStore(event)
-  const stepDeps = { ai: getCloudflareEnv(event)?.AI }
+  const stepDeps = {
+    ai: getCloudflareEnv(event)?.AI,
+    gatewayId: getCloudflareEnv(event)?.CMS_AI_GATEWAY_ID,
+  }
 
   async function sendReviewEvent(runId: string, payload: GenerationReviewEventPayload) {
     const workflow = getCloudflareEnv(event)?.CONTENT_GENERATION

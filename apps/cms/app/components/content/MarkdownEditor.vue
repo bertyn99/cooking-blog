@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3'
-import type { EditorToolbarItem } from '@nuxt/ui'
+import type { EditorCustomHandlers, EditorToolbarItem } from '@nuxt/ui'
 import { DragHandle } from '@tiptap/extension-drag-handle-vue-3'
 import { mediaAltFromPathname, mediaPublicUrl } from '~/utils/media'
 import { useDeferredArticleMedia } from '~/composables/useDeferredArticleMedia'
@@ -28,6 +28,67 @@ const linkPickerOpen = ref(false)
 const imageSettingsOpen = ref(false)
 const pickerMode = ref<'insert' | 'replace'>('insert')
 const activeEditor = shallowRef<Editor | null>(null)
+const editorComponentRef = useTemplateRef('editorComponentRef')
+
+const {
+  extension: completionExtension,
+  handlers: aiHandlers,
+  isLoading: aiLoading,
+} = useEditorCompletion(editorComponentRef)
+
+const editorHandlers = {
+  ...aiHandlers,
+} satisfies EditorCustomHandlers
+
+const aiToolbarGroup = computed(() => [{
+  icon: 'i-lucide-sparkles',
+  label: 'IA',
+  variant: 'soft' as const,
+  loading: aiLoading.value,
+  tooltip: { text: 'Assistance IA (Workers AI)' },
+  content: { align: 'start' as const },
+  items: [{
+    kind: 'aiFix' as const,
+    icon: 'i-lucide-spell-check',
+    label: 'Orthographe & grammaire',
+  }, {
+    kind: 'aiExtend' as const,
+    icon: 'i-lucide-unfold-vertical',
+    label: 'Développer',
+  }, {
+    kind: 'aiReduce' as const,
+    icon: 'i-lucide-fold-vertical',
+    label: 'Raccourcir',
+  }, {
+    kind: 'aiSimplify' as const,
+    icon: 'i-lucide-lightbulb',
+    label: 'Simplifier',
+  }, {
+    kind: 'aiContinue' as const,
+    icon: 'i-lucide-text',
+    label: 'Continuer (Ctrl+J)',
+  }, {
+    kind: 'aiSummarize' as const,
+    icon: 'i-lucide-list',
+    label: 'Résumer',
+  }, {
+    icon: 'i-lucide-languages',
+    label: 'Traduire',
+    children: [{
+      kind: 'aiTranslate' as const,
+      language: 'English',
+      label: 'Anglais',
+    }, {
+      kind: 'aiTranslate' as const,
+      language: 'French',
+      label: 'Français',
+    }, {
+      kind: 'aiTranslate' as const,
+      language: 'Spanish',
+      label: 'Espagnol',
+    }],
+  }],
+}] satisfies EditorToolbarItem<typeof editorHandlers>[])
 
 function openMediaPicker(mode: 'insert' | 'replace', editor: Editor) {
   activeEditor.value = editor
@@ -88,7 +149,9 @@ function applyImageToEditor(src: string, alt: string) {
 }
 
 /** Fixed toolbar — aligned with Nuxt UI EditorExample item shapes. */
-const fixedToolbarItems = [[{
+const fixedToolbarItems = computed(() => [
+  aiToolbarGroup.value,
+  [{
   icon: 'i-lucide-heading',
   tooltip: { text: 'Titres' },
   content: { align: 'start' as const },
@@ -149,7 +212,7 @@ const fixedToolbarItems = [[{
   slot: 'grid' as const,
   icon: 'i-lucide-layout-grid',
   tooltip: { text: 'Grille (colonnes)' },
-}]] satisfies EditorToolbarItem[][]
+}]]] satisfies EditorToolbarItem<typeof editorHandlers>[][])
 
 const bubbleToolbarItems = [[{
   kind: 'mark' as const,
@@ -241,6 +304,7 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
   >
     <ClientOnly>
       <UEditor
+        ref="editorComponentRef"
         v-slot="{ editor }"
         v-model="model"
         content-type="markdown"
@@ -248,12 +312,13 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
         placeholder="Rédigez le contenu…"
         class="w-full"
         :class="props.embedded ? 'min-h-[20rem]' : 'min-h-[22rem]'"
+        :handlers="editorHandlers"
         :starter-kit="{
           headings: { levels: [2, 3, 4] },
           link: { openOnClick: false },
         }"
         :image="false"
-        :extensions="[ContentImage, ContentCallout, ContentGridColumn, ContentGrid]"
+        :extensions="[ContentImage, ContentCallout, ContentGridColumn, ContentGrid, completionExtension]"
         :ui="{
           root: 'flex min-h-0 flex-1 flex-col',
           content: 'min-h-0 flex-1',

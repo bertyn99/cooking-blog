@@ -13,6 +13,8 @@ export interface CloudflareBindings {
   Media: R2Bucket
   Cache: KVNamespace
   AI?: Ai
+  /** Cloudflare AI Gateway id (Alchemy-provisioned `jdc-cms-ai`). */
+  CMS_AI_GATEWAY_ID?: string
   /** Durable generation pipeline (Workflows). */
   CONTENT_GENERATION?: Workflow<GenerationWorkflowParams>
 }
