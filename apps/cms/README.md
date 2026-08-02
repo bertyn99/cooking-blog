@@ -49,7 +49,7 @@ pnpm task:strapi-extract
 
 ## Admin seeder
 
-Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` for deploy-time seed (`server/tasks/seed-admin.ts` / Alchemy). Manual D1 seed: `pnpm --filter cms db:seed:admin` (Cloudflare API env vars). Optional: `ADMIN_USERNAME`, `ADMIN_SEED_FORCE=1`.
+Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` for env defaults in `seed-admin` task / `resolveSeedAdminInput`. **Production (D1):** `POST /api/auth/seed-admin` with JSON body `{ "email", "password", "username?", "force?" }` — allowed when the `users` table is empty, or with `ADMIN_SEED_SECRET` + header `x-admin-seed-secret`. Local SQLite: `pnpm --filter cms db:seed:admin`. Dev-only HTTP task: `/_nitro/tasks/seed-admin` (Nitro dev server). Optional: `ADMIN_USERNAME`, `ADMIN_SEED_FORCE=1` / `"force": true`.
 
 First user can also be created via `POST /api/auth/register` when the `users` table is empty (bootstrap → `admin`).
 

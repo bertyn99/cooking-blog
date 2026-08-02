@@ -1,11 +1,14 @@
 /**
  * Seed admin against the local libSQL database (no dev server required).
  *
- * For D1 / remote dev, prefer the Nitro task while the CMS is running:
+ * For D1 / remote dev, prefer the Nitro task while the CMS dev server is running:
  *   pnpm task:seed:admin
  *   curl -X POST http://localhost:3001/_nitro/tasks/seed-admin \
  *     -H 'content-type: application/json' \
  *     -d '{"payload":{"email":"you@example.com","password":"your-password"}}'
+ *
+ * On deployed Workers (`cloudflare_module`), `/_nitro/tasks/*` is not available —
+ * use POST /api/auth/seed-admin (bootstrap or ADMIN_SEED_SECRET).
  */
 import { getLocalDb } from '../server/db/client'
 import { seedAdmin } from '../server/db/seed/admin'
