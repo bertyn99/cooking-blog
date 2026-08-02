@@ -227,16 +227,12 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
 
           <ContentCoverField
             v-model="state.coverBlobPathname"
-            :display-name="initial?.coverDisplayName"
-            :defer-upload="!articleId"
-            compact
-          />
-
-          <ContentCoverAccessibilityFields
-            v-model:cover-blob-pathname="state.coverBlobPathname"
             v-model:cover-alt-text="state.coverAltText"
             v-model:cover-description="state.coverDescription"
+            :display-name="initial?.coverDisplayName"
+            :defer-upload="!articleId"
             :content-title="state.title"
+            compact
           />
         </div>
       </ContentEditorSurface>

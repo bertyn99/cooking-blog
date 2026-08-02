@@ -2,7 +2,6 @@
 import type { Editor } from '@tiptap/vue-3'
 import {
   CONTENT_IMAGE_ASPECTS,
-  DEFAULT_CONTENT_IMAGE_ASPECT,
   isContentImageAspect,
   parseImageAspectFromTitle,
   pathnameFromContentImageSrc,
@@ -69,7 +68,7 @@ watch(open, async (isOpen) => {
 })
 
 const aspectItems = [
-  { label: `Défaut (${DEFAULT_CONTENT_IMAGE_ASPECT})`, value: 'default' as const },
+  { label: 'Défaut (largeur naturelle)', value: 'default' as const },
   ...CONTENT_IMAGE_ASPECTS.map(item => ({
     label: item.label,
     value: item.value,

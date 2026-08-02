@@ -8,6 +8,8 @@ const coverDescription = defineModel<string | null>('coverDescription', { defaul
 
 const props = defineProps<{
   contentTitle?: string
+  /** Show alt/description fields before a blob pathname exists (deferred local cover). */
+  allowDeferred?: boolean
 }>()
 
 const { $api } = useNuxtApp()
@@ -61,7 +63,7 @@ const defaultDescriptionHint = computed(() => {
 })
 
 const showFields = computed(() =>
-  Boolean(coverBlobPathname.value) || loadingDefaults.value,
+  Boolean(coverBlobPathname.value) || loadingDefaults.value || props.allowDeferred,
 )
 
 function normalizeOverride(value: string | null | undefined): string | null {
@@ -90,18 +92,15 @@ const descriptionDisplay = computed({
 <template>
   <div
     v-if="showFields"
-    class="space-y-3 rounded-lg p-3 ring-1 ring-default"
+    class="space-y-3"
   >
-    <p class="text-xs text-muted">
-      Laissez vide pour reprendre les valeurs du fichier média (import Strapi).
-    </p>
-
     <UFormField
       label="Texte alternatif (couverture)"
       :help="`Défaut du fichier : ${defaultAltHint}`"
     >
       <UInput
         v-model="altDisplay"
+        class="w-full"
         :loading="loadingDefaults"
         placeholder="Personnaliser l’alt de cette couverture"
       />
@@ -113,6 +112,7 @@ const descriptionDisplay = computed({
     >
       <UTextarea
         v-model="descriptionDisplay"
+        class="w-full"
         :rows="2"
         autoresize
         :loading="loadingDefaults"
@@ -120,4 +120,10 @@ const descriptionDisplay = computed({
       />
     </UFormField>
   </div>
+  <p
+    v-else
+    class="text-sm text-muted"
+  >
+    Choisissez une image de couverture pour personnaliser l’alt et la description.
+  </p>
 </template>

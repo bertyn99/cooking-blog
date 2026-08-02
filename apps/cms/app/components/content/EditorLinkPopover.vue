@@ -234,31 +234,81 @@ function syncFromEditor() {
   previewCover.value = null
 }
 
+function linkSelectionKey() {
+  const { from, to } = props.editor.state.selection
+  const href = ((props.editor.getAttributes('link').href as string) || '').trim()
+  return `${href}|${from}|${to}`
+}
+
+/** After the user closes the popover, do not reopen until the caret moves to another link/range. */
+let autoOpenSuppressedKey: string | null = null
+let lastLinkCaretKey: string | null = null
+let boundEditor: Editor | null = null
+
 watch(() => props.editor, (editor, _, onCleanup) => {
-  if (!editor) {
+  if (!editor?.view?.dom || editor === boundEditor) {
     return
   }
+  boundEditor = editor
 
   const onSelection = () => {
     if (!open.value) {
       syncFromEditor()
     }
+
+    const nextKey = editor.isActive('link') ? linkSelectionKey() : null
+    const previousKey = lastLinkCaretKey
+    lastLinkCaretKey = nextKey
+
+    if (!props.autoOpen || !nextKey || nextKey === autoOpenSuppressedKey) {
+      return
+    }
+    if (previousKey !== null && nextKey !== previousKey) {
+      open.value = true
+    }
+  }
+
+  const onEditorClick = (event: MouseEvent) => {
+    if (!props.autoOpen) {
+      return
+    }
+    const target = event.target
+    if (!(target instanceof Element)) {
+      return
+    }
+    if (!target.closest('a[href]')) {
+      return
+    }
+    queueMicrotask(() => {
+      if (!editor.isActive('link')) {
+        return
+      }
+      autoOpenSuppressedKey = null
+      open.value = true
+    })
   }
 
   editor.on('selectionUpdate', onSelection)
-  onCleanup(() => editor.off('selectionUpdate', onSelection))
+  editor.view.dom.addEventListener('click', onEditorClick, true)
+  onCleanup(() => {
+    editor.off('selectionUpdate', onSelection)
+    editor.view.dom.removeEventListener('click', onEditorClick, true)
+    lastLinkCaretKey = null
+    if (boundEditor === editor) {
+      boundEditor = null
+    }
+  })
 }, { immediate: true })
 
-watch(active, (isActive) => {
-  if (isActive && props.autoOpen) {
-    open.value = true
-  }
-})
-
-watch(open, async (isOpen) => {
+watch(open, async (isOpen, wasOpen) => {
   if (isOpen) {
     syncFromEditor()
     await fetchInternalLists()
+    return
+  }
+
+  if (wasOpen && props.autoOpen && props.editor.isActive('link')) {
+    autoOpenSuppressedKey = linkSelectionKey()
   }
 })
 

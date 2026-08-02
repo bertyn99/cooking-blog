@@ -9,6 +9,7 @@ export const CONTENT_IMAGE_ASPECTS = [
 
 export type ContentImageAspect = (typeof CONTENT_IMAGE_ASPECTS)[number]['value']
 
+/** Suggested aspect when the author picks an explicit crop in image settings. */
 export const DEFAULT_CONTENT_IMAGE_ASPECT: ContentImageAspect = '4:3'
 
 const ASPECT_RE = /^(\d+):(\d+)$/
@@ -25,29 +26,50 @@ export function parseImageAspectFromTitle(title: string | null | undefined): Con
   return isContentImageAspect(trimmed) ? trimmed : null
 }
 
+/**
+ * Tailwind aspect utility for an explicit ratio.
+ * Pass `fallback` only when a default crop is required (settings UI).
+ * Editor display should call with no fallback so unset images stay natural height.
+ */
 export function contentImageAspectClass(
   aspect: string | null | undefined,
-  fallback: ContentImageAspect = DEFAULT_CONTENT_IMAGE_ASPECT,
-): string {
+  fallback: ContentImageAspect | null = null,
+): string | null {
   const key = parseImageAspectFromTitle(aspect) ?? fallback
-  return CONTENT_IMAGE_ASPECTS.find(item => item.value === key)?.className
-    ?? 'aspect-[4/3]'
+  if (!key) return null
+  return CONTENT_IMAGE_ASPECTS.find(item => item.value === key)?.className ?? null
 }
 
-/** Base + aspect Tailwind classes for TipTap / prose `<img>` nodes. */
+/**
+ * Classes for TipTap / prose `<img>` nodes.
+ * Full width by default; aspect + object-cover only when title encodes a ratio.
+ */
 export function contentImageClassList(
   title: string | null | undefined,
   extras?: string | null,
 ): string {
+  const aspectClass = contentImageAspectClass(title, null)
   return [
     'cms-editor-image',
     'max-w-full',
-    'w-4/5',
+    'w-full',
     'rounded-md',
-    'object-cover',
-    contentImageAspectClass(title),
+    aspectClass ? 'object-cover' : 'h-auto',
+    aspectClass,
     extras,
   ].filter(Boolean).join(' ')
+}
+
+/**
+ * Orphan public paths (`/images/foo.jpg`) that are not CMS uploads / blobs.
+ * Used by TipTap renderHTML + ImageNodeView.
+ */
+export function isLikelyBrokenContentImageSrc(src: string | null | undefined): boolean {
+  if (!src) return true
+  if (src.startsWith('/images/uploads/') || src.startsWith('blob:') || src.startsWith('data:')) {
+    return false
+  }
+  return src.startsWith('/images/') || (src.includes('/images/') && !src.includes('/uploads/'))
 }
 
 /** Map CMS public `/images/…` URL (optional IPX ops) → `uploads/…` pathname. */

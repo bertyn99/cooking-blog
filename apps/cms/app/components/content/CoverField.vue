@@ -6,11 +6,14 @@ import { formatMediaByteSize, isWithinImageUploadLimit, maxImageUploadSizeLabel 
 import { useDeferredArticleMedia } from '~/composables/useDeferredArticleMedia'
 
 const model = defineModel<string | null>({ required: true })
+const coverAltText = defineModel<string | null>('coverAltText', { default: null })
+const coverDescription = defineModel<string | null>('coverDescription', { default: null })
 
 const props = defineProps<{
   displayName?: string | null
   deferUpload?: boolean
   compact?: boolean
+  contentTitle?: string
 }>()
 
 const deferredMedia = useDeferredArticleMedia()
@@ -18,8 +21,13 @@ const deferUpload = computed(() => props.deferUpload ?? Boolean(deferredMedia))
 
 const toast = useToast()
 const pickerOpen = ref(false)
+const accessibilityOpen = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploading = ref(false)
+
+const canEditAccessibility = computed(() =>
+  Boolean(model.value || deferredMedia?.pendingCoverPreviewUrl.value),
+)
 
 const previewUrl = computed(() => {
   if (deferredMedia?.pendingCoverPreviewUrl.value) {
@@ -200,7 +208,17 @@ function clearCover() {
             @click="pickerOpen = true"
           />
           <UButton
-            v-if="model || deferredMedia?.pendingCoverPreviewUrl.value"
+            v-if="canEditAccessibility"
+            size="xs"
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-captions"
+            :label="compact ? undefined : 'Alt / description'"
+            aria-label="Modifier l’alt et la description de couverture"
+            @click="accessibilityOpen = true"
+          />
+          <UButton
+            v-if="canEditAccessibility"
             size="xs"
             color="neutral"
             variant="ghost"
@@ -220,5 +238,21 @@ function clearCover() {
       @select="onPicked"
       @select-local="onPickedLocal"
     />
+
+    <UModal
+      v-model:open="accessibilityOpen"
+      title="Accessibilité de la couverture"
+      description="Laissez vide pour reprendre les valeurs du fichier média (import Strapi)."
+    >
+      <template #body>
+        <ContentCoverAccessibilityFields
+          v-model:cover-blob-pathname="model"
+          v-model:cover-alt-text="coverAltText"
+          v-model:cover-description="coverDescription"
+          :content-title="props.contentTitle"
+          :allow-deferred="Boolean(deferredMedia?.pendingCoverPreviewUrl.value)"
+        />
+      </template>
+    </UModal>
   </div>
 </template>

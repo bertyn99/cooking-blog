@@ -13,11 +13,29 @@ import {
 const UPLOAD_REF_PATTERN
   = /(?:https?:\/\/[^/\s"'<>]+)?(?<!\/images)(\/uploads\/[^\s"'<>)\]]+)/gi
 
+/**
+ * Public-site style paths that are NOT CMS media (`/images/uploads/…`).
+ * Often leftover Nuxt Content placeholders that were never in Strapi media.
+ * Example: `/images/aperitif-portugais/caldo-verde.jpg`
+ */
+const ORPHAN_PUBLIC_IMAGE_PATTERN
+  = /(?:https?:\/\/[^/\s"'<>]+)?(\/images\/(?!uploads\/)[^\s"'<>)\]]+)/gi
+
 export function extractUploadPathsFromText(text: string): string[] {
   const paths = new Set<string>()
   for (const match of text.matchAll(UPLOAD_REF_PATTERN)) {
     const uploadPath = match[1]
     if (uploadPath) paths.add(uploadPath)
+  }
+  return [...paths]
+}
+
+/** Non-upload `/images/…` refs that hydrate cannot import automatically. */
+export function extractOrphanPublicImagePaths(text: string): string[] {
+  const paths = new Set<string>()
+  for (const match of text.matchAll(ORPHAN_PUBLIC_IMAGE_PATTERN)) {
+    const path = match[1]
+    if (path) paths.add(path)
   }
   return [...paths]
 }
@@ -93,6 +111,13 @@ export async function rewriteStrapiUploadsInText(
       output = output.split(variant).join(cmsUrl)
       output = output.split(`${base}${variant}`).join(cmsUrl)
     }
+  }
+
+  const orphans = extractOrphanPublicImagePaths(output)
+  if (orphans.length) {
+    ctx.log(
+      `[media] ${orphans.length} image(s) hors /uploads (absentes de Strapi — à remplacer dans l’éditeur) : ${orphans.slice(0, 5).join(', ')}${orphans.length > 5 ? '…' : ''}`,
+    )
   }
 
   return fillMarkdownImageAltsFromCatalog(ctx, output)

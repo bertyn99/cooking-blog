@@ -10,9 +10,17 @@
     min-height: 18rem;
   }
 
-  /* Inline article images — aspect classes applied by ContentImage TipTap node */
+  /* Inline article images — full width; aspect utilities only when title sets a ratio */
   .cms-markdown-editor .ProseMirror img.cms-editor-image {
-    @apply max-w-full w-4/5 rounded-md object-cover;
+    @apply max-w-full w-full rounded-md;
+  }
+
+  .cms-markdown-editor .ProseMirror img.cms-editor-image.h-auto {
+    height: auto;
+  }
+
+  .cms-markdown-editor .ProseMirror img.cms-editor-image.object-cover {
+    @apply object-cover;
   }
 
   .cms-markdown-editor .ProseMirror img.cms-editor-image.aspect-\[16\/9\] {
@@ -33,6 +41,154 @@
 
   .cms-markdown-editor .ProseMirror img.cms-editor-image.aspect-\[3\/4\] {
     aspect-ratio: 3 / 4;
+  }
+
+  .cms-markdown-editor .ProseMirror .cms-editor-callout [data-node-view-content-vue],
+  .cms-markdown-editor .ProseMirror .cms-editor-callout [data-node-view-content] {
+    @apply min-w-0 flex-1 text-sm leading-relaxed text-default;
+  }
+
+  .cms-markdown-editor .ProseMirror .cms-editor-callout [data-node-view-content-vue] > *:first-child,
+  .cms-markdown-editor .ProseMirror .cms-editor-callout [data-node-view-content] > *:first-child {
+    margin-top: 0;
+  }
+
+  .cms-markdown-editor .ProseMirror .cms-editor-callout [data-node-view-content-vue] > *:last-child,
+  .cms-markdown-editor .ProseMirror .cms-editor-callout [data-node-view-content] > *:last-child {
+    margin-bottom: 0;
+  }
+
+  /*
+   * TipTap places column node-views inside [data-node-view-content-vue].
+   * Force side-by-side layout (JS also sets inline styles as primary path).
+   */
+  .cms-markdown-editor .ProseMirror .cms-editor-grid[data-cols="1"] [data-node-view-content-vue] {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+    align-items: stretch !important;
+    box-sizing: border-box;
+  }
+
+  .cms-markdown-editor .ProseMirror .cms-editor-grid[data-cols="2"] [data-node-view-content-vue] {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+    align-items: stretch !important;
+    box-sizing: border-box;
+  }
+
+  .cms-markdown-editor .ProseMirror .cms-editor-grid[data-cols="3"] [data-node-view-content-vue] {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+    align-items: stretch !important;
+    box-sizing: border-box;
+  }
+
+  .cms-markdown-editor .ProseMirror .cms-editor-grid[data-cols="4"] [data-node-view-content-vue] {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+    align-items: stretch !important;
+    box-sizing: border-box;
+  }
+
+  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content-vue],
+  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content] {
+    @apply min-w-0 flex-1 px-2.5 py-2 text-sm leading-relaxed text-default;
+  }
+
+  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content-vue] > *:first-child,
+  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content] > *:first-child {
+    margin-top: 0;
+  }
+
+  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content-vue] > *:last-child,
+  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content] > *:last-child {
+    margin-bottom: 0;
+  }
+
+  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content-vue] > *,
+  .cms-markdown-editor .ProseMirror .cms-editor-grid-column [data-node-view-content] > * {
+    @apply m-0 min-w-0;
+  }
+
+  .cms-markdown-editor .cms-editor-drag-handle {
+    @apply absolute z-20;
+  }
+
+  .cms-markdown-editor .ProseMirror .cms-editor-image-wrap {
+    @apply max-w-full;
+  }
+
+  /* Callout: preview icon only in preview mode */
+  .cms-markdown-editor:not(.cms-markdown-editor--preview) .cms-editor-callout__preview-icon {
+    display: none !important;
+  }
+
+  /* ---------- Preview mode: published-like, no edit chrome ---------- */
+  .cms-markdown-editor--preview .cms-editor-block-chrome {
+    display: none !important;
+  }
+
+  .cms-markdown-editor--preview .cms-editor-grid {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+  }
+
+  .cms-markdown-editor--preview .cms-editor-grid [data-node-view-content-vue] {
+    padding: 0 !important;
+    gap: 1.5rem !important;
+  }
+
+  .cms-markdown-editor--preview .cms-editor-grid-column {
+    min-height: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    ring: none;
+  }
+
+  .cms-markdown-editor--preview .cms-editor-grid-column {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Neutralize Tailwind ring utility leftovers on columns in preview */
+  .cms-markdown-editor--preview .cms-editor-grid-column.ring-1 {
+    --tw-ring-width: 0px;
+    --tw-ring-offset-width: 0px;
+    box-shadow: none !important;
+  }
+
+  .cms-markdown-editor--preview .cms-editor-grid-column [data-node-view-content-vue],
+  .cms-markdown-editor--preview .cms-editor-grid-column [data-node-view-content] {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .cms-markdown-editor--preview .cms-editor-image-hint {
+    display: none !important;
+  }
+
+  .cms-markdown-editor--preview .cms-editor-callout {
+    @apply my-6 rounded-r-md shadow-none border-y-0 border-r-0;
+    border-left-width: 4px;
+  }
+
+  .cms-markdown-editor--preview .cms-editor-callout__content {
+    @apply py-4;
   }
 }
 

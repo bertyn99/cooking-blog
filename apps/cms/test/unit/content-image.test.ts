@@ -3,6 +3,7 @@ import {
   contentImageAspectClass,
   contentImageClassList,
   isEmptyOrGenericImageAlt,
+  isLikelyBrokenContentImageSrc,
   iterateMarkdownImages,
   parseImageAspectFromTitle,
   pathnameFromContentImageSrc,
@@ -14,7 +15,8 @@ describe('content-image', () => {
     expect(parseImageAspectFromTitle('16:9')).toBe('16:9')
     expect(parseImageAspectFromTitle('caption')).toBeNull()
     expect(contentImageAspectClass('16:9')).toContain('16/9')
-    expect(contentImageAspectClass(null)).toContain('4/3')
+    expect(contentImageAspectClass(null)).toBeNull()
+    expect(contentImageAspectClass(null, '4:3')).toContain('4/3')
   })
 
   it('maps CMS image URLs to uploads pathname', () => {
@@ -41,9 +43,24 @@ describe('content-image', () => {
     expect(isEmptyOrGenericImageAlt('Pastéis de Bacalhau')).toBe(false)
   })
 
-  it('builds editor class list with aspect', () => {
-    expect(contentImageClassList('16:9')).toContain('aspect-[16/9]')
-    expect(contentImageClassList('16:9')).toContain('cms-editor-image')
-    expect(contentImageClassList(null)).toContain('aspect-[4/3]')
+  it('uses full width by default and aspect only when title sets a ratio', () => {
+    const natural = contentImageClassList(null)
+    expect(natural).toContain('w-full')
+    expect(natural).not.toContain('w-4/5')
+    expect(natural).toContain('h-auto')
+    expect(natural).not.toMatch(/aspect-/)
+
+    const cropped = contentImageClassList('16:9')
+    expect(cropped).toContain('w-full')
+    expect(cropped).toContain('aspect-[16/9]')
+    expect(cropped).toContain('object-cover')
+    expect(cropped).not.toContain('h-auto')
+  })
+
+  it('flags orphan public image paths as broken', () => {
+    expect(isLikelyBrokenContentImageSrc('/images/aperitif-portugais/caldo-verde.jpg')).toBe(true)
+    expect(isLikelyBrokenContentImageSrc('/images/uploads/ok.webp')).toBe(false)
+    expect(isLikelyBrokenContentImageSrc('blob:http://localhost/1')).toBe(false)
+    expect(isLikelyBrokenContentImageSrc('')).toBe(true)
   })
 })

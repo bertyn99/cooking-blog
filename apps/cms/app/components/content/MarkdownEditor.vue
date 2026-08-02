@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3'
 import type { EditorToolbarItem } from '@nuxt/ui'
+import { DragHandle } from '@tiptap/extension-drag-handle-vue-3'
 import { mediaAltFromPathname, mediaPublicUrl } from '~/utils/media'
 import { useDeferredArticleMedia } from '~/composables/useDeferredArticleMedia'
+import { ContentCallout } from '~/utils/editor-callout-extension'
+import { ContentGridColumn } from '~/utils/editor-grid-column-extension'
+import { ContentGrid } from '~/utils/editor-grid-extension'
 import { ContentImage } from '~/utils/editor-image-extension'
 
 const model = defineModel<string>({ required: true })
@@ -72,6 +76,7 @@ function applyImageToEditor(src: string, alt: string) {
     editor.chain().focus().updateAttributes('image', {
       src,
       alt,
+      'data-broken': null,
       ...(currentTitle ? { title: currentTitle } : {}),
     }).run()
   }
@@ -136,6 +141,14 @@ const fixedToolbarItems = [[{
   kind: 'blockquote' as const,
   icon: 'i-lucide-quote',
   tooltip: { text: 'Citation' },
+}], [{
+  slot: 'callout' as const,
+  icon: 'i-lucide-message-square-warning',
+  tooltip: { text: 'Encadré (callout)' },
+}, {
+  slot: 'grid' as const,
+  icon: 'i-lucide-layout-grid',
+  tooltip: { text: 'Grille (colonnes)' },
 }]] satisfies EditorToolbarItem[][]
 
 const bubbleToolbarItems = [[{
@@ -179,7 +192,10 @@ function textBubbleShouldShow({
     return false
   }
   const { selection } = state
-  return view.hasFocus() && !selection.empty
+  if (!view.hasFocus()) {
+    return false
+  }
+  return !selection.empty || editor.isActive('link')
 }
 
 const imageBubbleItems = (editor: Editor): EditorToolbarItem[][] => [
@@ -220,6 +236,7 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
     class="cms-markdown-editor overflow-hidden"
     :class="[
       props.embedded ? 'cms-markdown-editor--embedded' : 'rounded-lg border border-default bg-default',
+      preview ? 'cms-markdown-editor--preview' : '',
     ]"
   >
     <ClientOnly>
@@ -236,7 +253,7 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
           link: { openOnClick: false },
         }"
         :image="false"
-        :extensions="[ContentImage]"
+        :extensions="[ContentImage, ContentCallout, ContentGridColumn, ContentGrid]"
         :ui="{
           root: 'flex min-h-0 flex-1 flex-col',
           content: 'min-h-0 flex-1',
@@ -246,6 +263,26 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
           ].filter(Boolean).join(' '),
         }"
       >
+        <DragHandle
+          v-if="editor && !preview"
+          :editor="editor"
+          :nested="{
+            allowedContainers: ['gridColumn'],
+            edgeDetection: { threshold: 16, strength: 400 },
+          }"
+          class="cms-editor-drag-handle"
+        >
+          <div
+            class="flex size-6 items-center justify-center rounded-md border border-default bg-default text-muted shadow-sm hover:text-default"
+            title="Déplacer le bloc"
+          >
+            <UIcon
+              name="i-lucide-grip-vertical"
+              class="size-3.5"
+            />
+          </div>
+        </DragHandle>
+
         <div
           class="flex flex-wrap items-center gap-1 border-b border-default bg-elevated/55 px-2 py-2 sm:px-3"
           :class="[
@@ -275,6 +312,28 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
                   variant="ghost"
                   size="sm"
                   @click="openMediaPicker('insert', editor)"
+                />
+              </UTooltip>
+            </template>
+            <template #callout>
+              <UTooltip text="Encadré (callout)">
+                <UButton
+                  icon="i-lucide-message-square-warning"
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  @click="editor.chain().focus().setCallout({ type: 'info' }).run()"
+                />
+              </UTooltip>
+            </template>
+            <template #grid>
+              <UTooltip text="Grille (colonnes)">
+                <UButton
+                  icon="i-lucide-layout-grid"
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  @click="editor.chain().focus().setGrid({ cols: 2 }).run()"
                 />
               </UTooltip>
             </template>
