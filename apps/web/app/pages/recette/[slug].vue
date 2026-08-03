@@ -39,23 +39,28 @@ const utensils = computed(
 );
 
 const cover = computed(() => recipe.value?.cover || ({} as Cover));
-const urlCover = computed(() => {
-  const source = {
+const urlCover = computed(() =>
+  formatCoverUrlFromSource({
     cover: recipe.value?.cover,
     coverBlobPathname: recipe.value?.coverBlobPathname,
     slug: recipe.value?.slug,
     title: recipe.value?.title,
-  };
-  const url = formatCoverUrlFromSource(source);
-  logCoverResolution(`recipe/${recipeSlug}`, source);
-  return url;
-});
+  }),
+);
+
+const pagePath = `/recette/${recipeSlug}`;
+const pageUrl = useSitePageUrl(pagePath);
+const coverSource = {
+  cover: recipe.value?.cover,
+  coverBlobPathname: recipe.value?.coverBlobPathname,
+  slug: recipe.value?.slug,
+  title: recipe.value?.title,
+};
+
+const link = computed(() => pageUrl);
 
 const steps = computed(() => recipe.value?.step?.split("\n\n")[0]?.split("\n") || []);
 
-const link = computed(
-  () => "https://journalducuistot.fr/recette/" + (recipe.value?.slug || ""),
-);
 const date = computed(() => recipe.value?.publishedAt || "");
 const dateModified = computed(() => recipe.value?.updatedAt || "");
 
@@ -81,23 +86,27 @@ const seo = computed(() => {
   return Array.isArray(seoValue) ? seoValue[0] || ({} as SEO) : seoValue || ({} as SEO);
 });
 
+const metaDescription = computed(
+  () =>
+    seo.value?.description ||
+    `Recette sur le Journal du cuistot : ${titleContent.value}`,
+);
+
 useApplySeoMeta({
   title: titleContent.value || "Journal du cuistot",
-  description: "Journal du cuistot | " + (seo.value?.description || "No description"),
+  description: metaDescription.value,
   keywords: seo.value?.keywords,
-  image: urlCover.value || "",
-  url: "https://journalducuistot.fr/recette/" + recipeSlug,
-  author: "magius",
+  image: formatCoverOgImagePath(coverSource) || "/img/logo.webp",
+  url: pagePath,
+  author: SITE_AUTHOR_NAME,
   articleDatePublished: recipe.value?.publishedAt,
   articleDateModified: recipe.value?.updatedAt,
 });
-useHead({
-  link: [
-    {
-      rel: "canonical",
-      href: "https://journalducuistot.fr/recette/" + recipeSlug,
-    },
-  ],
+usePageCanonical(pagePath);
+
+defineOgImage("Cooking", {
+  headline: titleContent.value,
+  description: metaDescription.value,
 });
 </script>
 
@@ -111,7 +120,7 @@ useHead({
     { name: titleContent, item: `/recette/${recipeSlug}` },
   ]" />
   <SchemaOrgRecipe :name="titleContent" :totalTime="`PT${time}M`" :datePublished="dateFormattedDisplay"
-    :dateModified="dateModifiedFormatted" author="bertyn boulikou" :keywords="seo?.keywords"
+    :dateModified="dateModifiedFormatted" :author="SITE_AUTHOR_NAME" :keywords="seo?.keywords"
     :recipeCategory="categoryRecipe.name" />
   <div>
     <h1 itemprop="name" class="block mb-4 font-serif text-5xl font-normal text-black align-baseline">

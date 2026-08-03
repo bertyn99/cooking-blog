@@ -18,7 +18,15 @@ const urlCover = computed(() =>
   }),
 );
 
-const link = computed(() => "https://journalducuistot.fr/blog/" + (article?.category?.slug || 'uncategorized') + "/" + (article?.slug || ""));
+const site = useSiteConfig();
+const authorImageUrl = useSitePageUrl("/img/author.jpg");
+
+const link = computed(() =>
+  absoluteSiteUrl(
+    site.url,
+    `/blog/${article?.category?.slug || "uncategorized"}/${article?.slug || ""}`,
+  ),
+);
 const date = computed(() => article?.publishedAt || "");
 const modifiedAt = computed(() => article?.updatedAt || "");
 
@@ -42,8 +50,8 @@ const seo = computed(() => article?.seo || {});
         },
     ]" />
     <SchemaOrgArticle type="BlogPosting" :datePublished="date" :dateModified="modifiedAt" :author="{
-        name: 'bertyn boulikou',
-        image: 'https://journalducuistot.fr/img/author.jpg',
+        name: SITE_AUTHOR_NAME,
+        image: authorImageUrl,
     }" />
 
     <div>

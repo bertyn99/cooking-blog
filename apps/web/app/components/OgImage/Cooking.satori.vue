@@ -13,6 +13,8 @@ const props = withDefaults(defineProps<{ title?: string, description?: string, h
 
 const title = computed(() => (props.title || '').slice(0, 60))
 const description = computed(() => (props.description || '').slice(0, 200))
+
+const logoUrl = computed(() => useSitePageUrl("/img/logo.png"));
 </script>
 
 <template>
@@ -80,7 +82,7 @@ const description = computed(() => (props.description || '').slice(0, 200))
         y="105" 
         width="120" 
         height="120" 
-        href="https://journalducuistot.fr/img/logo.png"
+        :href="logoUrl"
         preserveAspectRatio="xMidYMid meet"
         
        /> 
@@ -93,7 +95,7 @@ const description = computed(() => (props.description || '').slice(0, 200))
         y="105" 
         width="120" 
         height="120" 
-        href="https://journalducuistot.fr/img/logo.png"
+        :href="logoUrl"
         preserveAspectRatio="xMidYMid meet"
         
        /> 

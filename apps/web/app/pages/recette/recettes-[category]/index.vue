@@ -47,24 +47,19 @@ const pageContent = computed(() => page.value?.content);
 const titleContent = computed(() => page.value?.title || "No title");
 const seo = computed(() => page.value?.seoMeta || {});
 
+const categoryPath = `/recette/recettes-${categorySlug}`;
+
 useApplySeoMeta({
     title: titleContent.value || "Journal du cuistot",
     description: seo.value?.description || "No description",
-    image: "https://journalducuistot.fr/img/logo.webp",
-    url: "https://journalducuistot.fr/recette/recettes-" + categorySlug,
+    image: "/img/logo.webp",
+    url: categoryPath,
     keywords: seo.value?.keywords,
-    author: "bertyn",
+    author: SITE_AUTHOR_NAME,
     articleDatePublished: page.value?.publishedAt,
     articleDateModified: page.value?.updatedAt,
 });
-useHead({
-  link: [
-    {
-      rel: "canonical",
-      href: "https://journalducuistot.fr/recette/recettes-" + categorySlug,
-    },
-  ],
-});
+usePageCanonical(categoryPath);
 defineOgImage("Cooking", {
   headline: titleContent.value || "Journal du cuistot",
   description: seo.value?.description || "No description",

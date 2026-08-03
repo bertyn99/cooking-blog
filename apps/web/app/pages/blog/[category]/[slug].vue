@@ -36,21 +36,26 @@ const titleContent = computed(() => article.value?.title || "No title");
 const categoriesContent = computed(() => article.value?.categories || ([] as Category[]));
 const cover = computed(() => article.value?.cover || ({} as Cover));
 
-const urlCover = computed(() => {
-  const source = {
+const urlCover = computed(() =>
+  formatCoverUrlFromSource({
     cover: article.value?.cover,
     coverBlobPathname: article.value?.coverBlobPathname,
     slug: article.value?.slug,
     title: article.value?.title,
-  };
-  const url = formatCoverUrlFromSource(source);
-  logCoverResolution(`article/${categorySlug}/${articleSlug}`, source);
-  return url;
-});
-
-const link = computed(
-  () => "https://journalducuistot.fr/blog/" + categorySlug + "/" + (article.value?.slug || ""),
+  }),
 );
+
+const pagePath = `/blog/${categorySlug}/${articleSlug}`;
+const pageUrl = useSitePageUrl(pagePath);
+const coverSource = {
+  cover: article.value?.cover,
+  coverBlobPathname: article.value?.coverBlobPathname,
+  slug: article.value?.slug,
+  title: article.value?.title,
+};
+const authorImageUrl = useSitePageUrl("/img/author.jpg");
+
+const link = computed(() => pageUrl);
 const date = computed(() => article.value?.publishedAt || "");
 const modifiedAt = computed(() => article.value?.updatedAt || "");
 
@@ -62,23 +67,27 @@ const seo = computed(() => {
   return Array.isArray(seoValue) ? seoValue[0] || {} : seoValue || {};
 });
 
+const metaDescription = computed(
+  () =>
+    seo.value?.description ||
+    `Article sur le Journal du cuistot : ${titleContent.value}`,
+);
+
 useApplySeoMeta({
-    title: titleContent.value || "Journal du cuistot",
-    description: "Journal du cuistot | " + (seo.value?.description || "No description"),
-    keywords: seo.value?.keywords,
-    image: urlCover || "",
-    url: "https://journalducuistot.fr/blog/" + categorySlug + "/" + articleSlug,
-    author: "magius",
-    articleDatePublished: article.value?.publishedAt,
-    articleDateModified: article.value?.updatedAt,
+  title: titleContent.value || "Journal du cuistot",
+  description: metaDescription.value,
+  keywords: seo.value?.keywords,
+  image: formatCoverOgImagePath(coverSource) || "/img/logo.webp",
+  url: pagePath,
+  author: SITE_AUTHOR_NAME,
+  articleDatePublished: article.value?.publishedAt,
+  articleDateModified: article.value?.updatedAt,
 });
-useHead({
-  link: [
-    {
-      rel: "canonical",
-      href: "https://journalducuistot.fr/blog/" + categorySlug + "/" + articleSlug,
-    },
-  ],
+usePageCanonical(pagePath);
+
+defineOgImage("Cooking", {
+  headline: titleContent.value,
+  description: metaDescription.value,
 });
 </script>
 
@@ -105,8 +114,8 @@ useHead({
     :datePublished="date"
     :dateModified="modifiedAt"
     :author="{
-      name: 'bertyn boulikou',
-      image: 'https://journalducuistot.fr/img/author.jpg',
+      name: SITE_AUTHOR_NAME,
+      image: authorImageUrl,
     }"
   />
   <div>

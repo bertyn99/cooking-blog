@@ -2,11 +2,20 @@
 import { fileURLToPath } from "node:url";
 import listRedirects from "./app/utils/redirect";
 import tailwindcss from "@tailwindcss/vite";
+import { resolveSiteIdentity } from "./shared/site-identity";
 
 const webRoot = fileURLToPath(new URL(".", import.meta.url));
 
 const skewProtectionKvNamespaceId =
   process.env.SKEW_PROTECTION_KV_NAMESPACE_ID || "skew-protection-local";
+
+const siteUrl = process.env.NUXT_PUBLIC_SITE_URL || "https://journalducuistot.fr";
+const siteOrigin = siteUrl.replace(/\/$/, "");
+const siteName = process.env.NUXT_SITE_NAME || "Journal du cuistot";
+const siteDescription =
+  process.env.NUXT_SITE_DESCRIPTION ||
+  "Bienvenue sur le journal du cuistot, un blog de recettes de cuisine d'un globe-trotter";
+const siteIdentity = resolveSiteIdentity({ siteOrigin, siteName });
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-20',
@@ -133,11 +142,11 @@ export default defineNuxtConfig({
   }],
 
   site: {
-    url: process.env.NUXT_PUBLIC_SITE_URL || "https://journalducuistot.fr",
-    name: "Journal du cuistot",
-    description:
-      "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
+    url: siteUrl,
+    name: siteName,
+    description: siteDescription,
     defaultLocale: "fr",
+    identity: siteIdentity,
   },
 
   seo: {
@@ -235,6 +244,12 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    site: {
+      name: siteName,
+      description: siteDescription,
+      url: siteUrl,
+      identity: siteIdentity,
+    },
     public: {
       language: "fr-FR", // prefer more explicit language codes like `en-AU` over `en`
       cmsBaseUrl: process.env.NUXT_PUBLIC_CMS_BASE_URL || 'http://localhost:3001',

@@ -28,7 +28,12 @@ const urlCover = computed(() =>
 
 const steps = computed(() => recipe?.step?.split("\n\n")[0]?.split("\n") || []);
 
-const link = computed(() => "https://journalducuistot.fr/recette/" + (recipe?.slug || ""));
+const site = useSiteConfig();
+const authorImageUrl = useSitePageUrl("/img/author.jpg");
+
+const link = computed(() =>
+  absoluteSiteUrl(site.url, `/recette/${recipe?.slug || ""}`),
+);
 const date = computed(() => recipe?.publishedAt || "");
 const dateModified = computed(() => recipe?.updatedAt || "");
 
@@ -63,8 +68,8 @@ const seoKeywords = computed(() => {
   ]" />
   <SchemaOrgRecipe :name="titleContent" :totalTime="`PT${time}M`" :datePublished="dateFormattedDisplay"
     :dateModified="dateModifiedFormatted" :author="{
-      name: 'bertyn boulikou',
-      image: 'https://journalducuistot.fr/img/author.jpg',
+      name: SITE_AUTHOR_NAME,
+      image: authorImageUrl,
     }" :keywords="seoKeywords" :recipeCuisine="categoryRecipe" />
 
   <div>

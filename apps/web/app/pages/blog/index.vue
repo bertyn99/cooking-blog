@@ -1,6 +1,21 @@
 <script lang="ts" setup>
 import type { Article, Category, StrapiResponse } from "~/types/strapiMeta";
 
+const blogDescription =
+  "Articles, astuces et inspiration culinaire sur le Journal du cuistot.";
+
+defineOgImage("Cooking", {
+  headline: "Blog",
+  description: blogDescription,
+});
+useApplySeoMeta({
+  title: "Blog",
+  description: blogDescription,
+  image: "/img/logo.webp",
+  url: "/blog",
+});
+usePageCanonical("/blog");
+
 const search = ref("");
 const checkedCategories = ref<string[]>([]);
 const currentPage = ref(1);
@@ -55,6 +70,7 @@ const goTo = (id: number) => {
 </script>
 
 <template>
+  <SchemaOrgWebPage name="Blog" :description="blogDescription" />
   <SchemaOrgBreadcrumb
     :itemListElement="[
       { name: 'Accueil', item: '/' },
