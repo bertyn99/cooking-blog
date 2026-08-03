@@ -12,6 +12,8 @@ Automated Cloudflare deploys follow [Alchemy Part 5: CI/CD](https://alchemy.run/
 
 Workflow: `.github/workflows/deploy.yml`. Remote Alchemy state is enabled via `CI=true` (see `alchemy.run.ts`).
 
+**Production domains** (only when `stage === prod`): Web `journalducuistot.fr`, CMS `admin.journalducuistot.fr` — configured in `infra/workers.ts` via Worker `domain`. The `journalducuistot.fr` zone must already be on your Cloudflare account; Alchemy provisions DNS + TLS for those hostnames on deploy.
+
 ## One-time setup (from your laptop)
 
 1. **Remote state** — If deploys fail with state RPC errors: `pnpm bootstrap:alchemy --force` (see root `alchemy.run.ts` comment).

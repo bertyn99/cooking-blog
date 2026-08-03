@@ -31,6 +31,7 @@ const CI_PERMISSION_GROUPS = [
   'Account Settings Write',
   'Workers Tail Read',
   'AI Gateway Write',
+  'DNS Write',
 ] as const
 
 export default Alchemy.Stack(

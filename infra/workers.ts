@@ -1,8 +1,13 @@
 import * as Cloudflare from 'alchemy/Cloudflare'
 import * as Command from 'alchemy/Command'
+import { Stage } from 'alchemy/Stage'
 import * as Config from 'effect/Config'
 import * as Effect from 'effect/Effect'
 import { CMS_AI_GATEWAY_ID } from '../apps/cms/shared/workers-ai-model.ts'
+
+/** Production custom domains (`stage === prod` only). Zone must exist on the Cloudflare account. */
+const PROD_WEB_HOST = 'journalducuistot.fr'
+const PROD_CMS_HOST = 'admin.journalducuistot.fr'
 
 const NODE_COMPAT = {
   date: '2025-01-15',
@@ -27,6 +32,12 @@ export const workers = Effect.fn(function* (input: {
   Media: Cloudflare.R2.Bucket
   Cache: Cloudflare.KV.Namespace
 }) {
+  const stage = yield* Stage
+  const isProd = stage === 'prod'
+  const cmsPublicOrigin = isProd ? `https://${PROD_CMS_HOST}` : 'http://localhost:3001'
+  const cmsDomain = isProd ? PROD_CMS_HOST : undefined
+  const webDomain = isProd ? PROD_WEB_HOST : undefined
+
   const cmsBuild = yield* Command.Build('cms-build', {
     command: 'pnpm --filter cms build',
     cwd: '.',
@@ -52,6 +63,7 @@ export const workers = Effect.fn(function* (input: {
   const Cms = yield* Cloudflare.Worker('Cms', {
     bundle: false,
     main: 'apps/cms/.output/server/index.mjs',
+    domain: cmsDomain,
     cache: CMS_WORKERS_CACHE,
     env: {
       DB: input.DB,
@@ -87,10 +99,10 @@ export const workers = Effect.fn(function* (input: {
       // Cloudflare Workers use routeRules ISR + KV bindings — not Vercel Redis.
       REDIS_URL: '',
       CMS_BASE_URL: Config.string('CMS_BASE_URL').pipe(
-        Config.withDefault('http://localhost:3001'),
+        Config.withDefault(cmsPublicOrigin),
       ),
       NUXT_PUBLIC_CMS_BASE_URL: Config.string('NUXT_PUBLIC_CMS_BASE_URL').pipe(
-        Config.withDefault('http://localhost:3001'),
+        Config.withDefault(cmsPublicOrigin),
       ),
     },
     memo: {
@@ -102,19 +114,20 @@ export const workers = Effect.fn(function* (input: {
   const Web = yield* Cloudflare.Worker('Web', {
     bundle: false,
     main: 'apps/web/.output/server/index.mjs',
+    domain: webDomain,
     // Workers Cache intentionally OFF — see ADR-006 (static assets stay free).
     env: {
       Cache: input.Cache,
       AI_READY_DB: input.AiReadyDB,
       SKEW_PROTECTION: SkewProtection,
       CMS_BASE_URL: Config.string('CMS_BASE_URL').pipe(
-        Config.withDefault('http://localhost:3001'),
+        Config.withDefault(cmsPublicOrigin),
       ),
       NUXT_PUBLIC_CMS_BASE_URL: Config.string('NUXT_PUBLIC_CMS_BASE_URL').pipe(
-        Config.withDefault('http://localhost:3001'),
+        Config.withDefault(cmsPublicOrigin),
       ),
       NUXT_PUBLIC_SITE_URL: Config.string('NUXT_PUBLIC_SITE_URL').pipe(
-        Config.withDefault('https://journalducuistot.fr'),
+        Config.withDefault(isProd ? `https://${PROD_WEB_HOST}` : 'http://localhost:3000'),
       ),
     },
     compatibility: WEB_NODE_COMPAT,
