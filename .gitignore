@@ -1,9 +1,16 @@
 node_modules
+.pnpm-store
 *.log*
 .nuxt
 .nitro
 .cache
 .output
+.wrangler
 .env
 dist
+coverage
 .DS_Store
+
+.data
+apps/cms/.data
+.alchemy

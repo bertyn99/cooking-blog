@@ -1,0 +1,36 @@
+packages:
+  - 'apps/*'
+
+catalog:
+  '@nuxt/eslint-plugin': '^1.15.2'
+  alchemy: '2.0.0-beta.67'
+  effect: '4.0.0-beta.102'
+  '@effect/platform-node': '4.0.0-beta.102'
+  drizzle-kit: '1.0.0-rc.4'
+  drizzle-orm: '1.0.0-rc.4'
+  nuxt: '^4.4.5'
+  oxfmt: '^0.58.0'
+  oxlint: '^1.73.0'
+  typescript: '6.0.3'
+  vitest: '^4.1.6'
+  vue: 'latest'
+  vue-tsc: '^3.2.9'
+  zod: 'latest'
+
+overrides:
+  effect: 4.0.0-beta.102
+  '@effect/platform-node': 4.0.0-beta.102
+  '@effect/platform-bun': 4.0.0-beta.102
+  '@effect/sql-pg': 4.0.0-beta.102
+  typescript: 6.0.3
+
+ignoredBuiltDependencies:
+  - '@parcel/watcher'
+  - '@tailwindcss/oxide'
+  - esbuild
+  - sharp
+  - unrs-resolver
+  - vue-demi
+onlyBuiltDependencies:
+  - msgpackr-extract
+  - workerd
