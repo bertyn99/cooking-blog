@@ -61,6 +61,10 @@ export const workers = Effect.fn(function* (input: {
     className: 'ContentGenerationWorkflow',
   })
 
+  // Nuxt runtimeConfig only picks up NUXT_* env at runtime on Workers.
+  const strapiUrl = Config.string('STRAPI_URL').pipe(Config.withDefault(''))
+  const strapiApiToken = Config.string('STRAPI_API_TOKEN').pipe(Config.withDefault(''))
+
   const Cms = yield* Cloudflare.Worker('Cms', {
     bundle: false,
     main: 'apps/cms/.output/server/index.mjs',
@@ -79,10 +83,10 @@ export const workers = Effect.fn(function* (input: {
       NUXT_OG_IMAGE_SECRET: Config.string('NUXT_OG_IMAGE_SECRET').pipe(
         Config.withDefault(''),
       ),
-      STRAPI_URL: Config.string('STRAPI_URL').pipe(Config.withDefault('')),
-      STRAPI_API_TOKEN: Config.string('STRAPI_API_TOKEN').pipe(
-        Config.withDefault(''),
-      ),
+      STRAPI_URL: strapiUrl,
+      NUXT_STRAPI_URL: strapiUrl,
+      STRAPI_API_TOKEN: strapiApiToken,
+      NUXT_STRAPI_API_TOKEN: strapiApiToken,
     },
     crons: [PUBLISH_CRON],
     compatibility: NODE_COMPAT,
@@ -113,8 +117,8 @@ export const workers = Effect.fn(function* (input: {
   const siteUrl = isProd
     ? `https://${PROD_WEB_HOST}`
     : Config.string('NUXT_PUBLIC_SITE_URL').pipe(
-        Config.withDefault('http://localhost:3000'),
-      )
+      Config.withDefault('http://localhost:3000'),
+    )
   const ogImageSecret = Config.string('NUXT_OG_IMAGE_SECRET').pipe(
     Config.withDefault(''),
   )

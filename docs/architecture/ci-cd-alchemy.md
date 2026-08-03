@@ -24,8 +24,8 @@ Set via `pnpm deploy:github` from `.env`, or manually under **Settings → Secre
 | `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` | Alchemy CI |
 | `NUXT_SESSION_PASSWORD` | CMS Worker (sessions) |
 | `NUXT_OG_IMAGE_SECRET` | CMS + Web Workers |
-| `STRAPI_URL` | CMS (+ Web fallback) Strapi import / legacy |
-| `STRAPI_API_TOKEN` | CMS Strapi import (optional) |
+| `STRAPI_URL` | CMS Strapi import — also bound as `NUXT_STRAPI_URL` (Nuxt runtimeConfig override) |
+| `STRAPI_API_TOKEN` | Optional; also bound as `NUXT_STRAPI_API_TOKEN` |
 
 ## One-time setup (from your laptop)
 
