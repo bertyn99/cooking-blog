@@ -1,20 +1,15 @@
 <script setup lang="ts">
 import type { Article, Recipe } from "~/types/strapiMeta";
 
+const homeDescription = "Venez rejoindre la communauté des jeunes cuistots !";
+
 useApplySeoMeta({
-    title: "Accueil",
-    description: "Venez rejoindre la communauté des jeunes cuistots !",
-    image: "https://journalducuistot.fr/img/logo.png",
-    url: "https://journalducuistot.fr",
+  title: "Accueil",
+  description: homeDescription,
+  image: "/img/logo.png",
+  url: "/",
 });
-useHead({
-  link: [
-    {
-      rel: "canonical",
-      href: "https://journalducuistot.fr",
-    },
-  ],
-});
+usePageCanonical("/");
 
 const { find } = useCms();
 
@@ -54,11 +49,12 @@ const recipes = computed(() => data.value?.recipes || []);
 
 defineOgImage("Cooking", {
   headline: "Accueil",
+  description: homeDescription,
 });
 </script>
 
 <template>
-  <SchemaOrgWebPage />
+  <SchemaOrgWebPage name="Accueil" :description="homeDescription" />
   <SchemaOrgBreadcrumb :itemListElement="[{ name: 'Accueil', item: '/' }]" />
   <SectionHero></SectionHero>
   <SectionNewsletter></SectionNewsletter>

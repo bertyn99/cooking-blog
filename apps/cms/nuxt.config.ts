@@ -19,10 +19,11 @@ export default defineNuxtConfig({
     session: {
       maxAge: 60 * 60 * 8,
     },
-    strapiUrl: process.env.STRAPI_URL || 'https://admin.journalducuistot.fr',
-    strapiApiToken: process.env.STRAPI_API_TOKEN || '',
+    // Overridden at runtime by NUXT_STRAPI_URL on Workers (plain STRAPI_URL alone is ignored by Nuxt).
+    strapiUrl: process.env.NUXT_STRAPI_URL || process.env.STRAPI_URL || '',
+    strapiApiToken: process.env.NUXT_STRAPI_API_TOKEN || process.env.STRAPI_API_TOKEN || '',
     /** Optional origin for Strapi `/uploads` files (e.g. public site CDN). */
-    strapiUploadsOrigin: process.env.STRAPI_UPLOADS_ORIGIN || '',
+    strapiUploadsOrigin: process.env.NUXT_STRAPI_UPLOADS_ORIGIN || process.env.STRAPI_UPLOADS_ORIGIN || '',
     /** Nuxt SEO Pro MCP (in-app content agent keyword tools). */
     nuxtSeoProMcpUrl: process.env.NUXT_SEO_PRO_MCP_URL || 'https://nuxtseo.com/mcp/pro',
     nuxtSeoProApiKey: process.env.NUXT_SEO_PRO_API_KEY || '',
@@ -98,12 +99,12 @@ export default defineNuxtConfig({
     },
     ...(process.env.NODE_ENV === 'production'
       ? {
-          scheduledTasks: {
-            '*/5 * * * *': 'publish-scheduled',
-            // Fallback poller if Workflow create failed / local legacy runs.
-            '2-57/5 * * * *': 'generation-process',
-          },
-        }
+        scheduledTasks: {
+          '*/5 * * * *': 'publish-scheduled',
+          // Fallback poller if Workflow create failed / local legacy runs.
+          '2-57/5 * * * *': 'generation-process',
+        },
+      }
       : {}),
     externals: {
       inline: [

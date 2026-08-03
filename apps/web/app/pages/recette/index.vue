@@ -31,19 +31,12 @@ useApplySeoMeta({
   title: "Recettes",
   description:
     "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.",
-  image: "https://journalducuistot.fr/img/logo.webp",
-  url: "https://journalducuistot.fr/recette",
+  image: "/img/logo.webp",
+  url: "/recette",
   keywords: "recettes, cuisine, gastronomie, plats, desserts, entrées",
-  author: "bertyn",
+  author: SITE_AUTHOR_NAME,
 });
-useHead({
-  link: [
-    {
-      rel: "canonical",
-      href: "https://journalducuistot.fr/recette/recette",
-    },
-  ],
-});
+usePageCanonical("/recette");
 
 const searchWithFilter = () => {
   refresh();

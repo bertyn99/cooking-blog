@@ -44,19 +44,26 @@ export function formatCoverUrlFromSource(
   return formatCoverUrl(source?.cover, size, source?.coverBlobPathname);
 }
 
+/** Absolute site path for Open Graph / meta images from a cover source. */
+export function formatCoverOgImagePath(source?: CoverSource | null): string {
+  const key = formatCoverUrlFromSource(source);
+  if (!key) {
+    return "";
+  }
+  const normalized = key.replace(/^\//, "");
+  return `/images/w_1200,h_630,fit_cover,f_webp/${normalized}`;
+}
+
 export function buildCoverUrlTrace(
   source: CoverSource | null | undefined,
   size?: string,
+  cmsBase?: string,
 ) {
   const cmsRawUrl = source?.cover?.url ?? null;
   const coverBlobPathname = source?.coverBlobPathname ?? null;
   const publicKey = formatCoverUrlFromSource(source ?? undefined, size);
   const cmsStoragePath = publicKey ? toCmsStoragePath(publicKey) : null;
-  const config = useRuntimeConfig();
-  const cmsBase = String(config.public.cmsBaseUrl || config.public.apiBase || "").replace(
-    /\/$/,
-    "",
-  );
+  const cmsBaseNormalized = cmsBase?.replace(/\/$/, "") ?? "";
 
   return {
     slug: source?.slug ?? null,
@@ -65,7 +72,10 @@ export function buildCoverUrlTrace(
     coverBlobPathname,
     publicImageKey: publicKey || null,
     cmsStoragePath,
-    cmsFetchUrl: cmsStoragePath && cmsBase ? `${cmsBase}/images/${cmsStoragePath}` : null,
+    cmsFetchUrl:
+      cmsStoragePath && cmsBaseNormalized
+        ? `${cmsBaseNormalized}/images/${cmsStoragePath}`
+        : null,
     webProxyExample:
       publicKey
         ? `/images/w_900,h_600,fit_cover,f_webp/${publicKey}`

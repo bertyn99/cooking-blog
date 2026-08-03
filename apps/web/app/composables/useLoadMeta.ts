@@ -1,78 +1,87 @@
 import type { MetaData, MetaOption } from "~/types/meta";
+import { absoluteSiteUrl, siteUrlOrigin } from "~/composables/useSitePageUrl";
 
-const defaultMetaData: MetaData = {
-  type: "website",
-  title: "JournalduCuistot - recettes de cuisine d'un globe trotters",
-  description:
-    "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
-  robots: "index, follow, max-image-preview:large",
-  ogType: "website",
-  ogLocale: "fr-FR",
-  ogLocaleAlternate: "fr-FR",
-  ogUrl: "https://journalducuistot.fr/",
-  ogSite_name: "Journal du Cuistot",
-  ogTitle: "JournalduCuistot - recettes de cuisine d'un globe trotter",
-  ogDescription:
-    "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
-  ogImage: "https://journalducuistot.fr/img/logo.webp",
-  keywords:
-    "cuisine du monde, recettes de cuisine, recettes de cuisine du monde",
-  twitterCard: "summary_large_image",
-  twitterUrl: "https://journalducuistot.fr/",
-  twitterTitle: "journalduCuistot - recettes de cuisine d'un globe trotter",
-  twitterDescription:
-    "Bienvenu sur le journal du cuistot, un blog de recettes de cuisine d'un globe trotter",
-  twitterImage: "https://journalducuistot.fr/img/logo.webp",
-};
+export const useLoadMeta = (metaOption: MetaOption): MetaData => {
+  const site = useSiteConfig();
+  const origin = siteUrlOrigin(site.url);
+  const siteName = site.name;
+  const brandedTitle = metaOption.title
+    ? `${metaOption.title} — ${siteName}`
+    : siteName;
 
-export const useLoadMeta = (metaOption: MetaOption) => {
+  const description =
+    metaOption.description || site.description || "";
+
+  const pageUrl = metaOption.url
+    ? absoluteSiteUrl(site.url, metaOption.url)
+    : `${origin}/`;
+
+  const keywords =
+    metaOption.keywords?.length
+      ? metaOption.keywords
+      : "cuisine du monde, recettes de cuisine, recettes de cuisine du monde";
+
+  const defaultImage = `${origin}/img/logo.webp`;
+  const image =
+    absoluteSiteUrl(site.url, metaOption.image) || defaultImage;
+
+  const isArticle = Boolean(metaOption.articleDatePublished);
+
   const metaData: MetaData = {
-    type: "",
-    title: "",
-    description: "",
-    robots: "",
-    keywords: "",
-    ogType: "",
-    ogLocale: "",
-    ogLocaleAlternate: "",
-    ogUrl: "",
-    ogSite_name: "",
-    ogTitle: "",
-    ogDescription: "",
-    ogImage: "",
-    twitterCard: "",
-    twitterUrl: "",
-    twitterTitle: "",
-    twitterDescription: "",
-    twitterImage: "",
-    author: "",
-    articleDatePublished: "",
+    type: isArticle ? "article" : "website",
+    title: metaOption.title,
+    description,
+    robots: "index, follow, max-image-preview:large",
+    keywords,
+    ogType: isArticle ? "article" : "website",
+    ogLocale: "fr-FR",
+    ogLocaleAlternate: "fr-FR",
+    ogUrl: pageUrl,
+    ogSite_name: siteName,
+    ogTitle: brandedTitle,
+    ogDescription: description,
+    ogImage: image,
+    twitterCard: "summary_large_image",
+    twitterUrl: pageUrl,
+    twitterTitle: brandedTitle,
+    twitterDescription: description,
+    twitterImage: image,
   };
-  for (const [k, v] of Object.entries(defaultMetaData)) {
-    if (k.toLowerCase().includes("title"))
-      metaData[k] = metaOption.title;
-    if (k.toLowerCase().includes("description"))
-      metaData[k] = metaOption.description;
-    if (k.toLowerCase().includes("image")) metaData[k] = metaOption.image;
-    if (k.toLowerCase().includes("url")) metaData[k] = metaOption.url;
-    if (k.toLowerCase().includes("keywords")) {
-      metaData[k] =
-        metaOption.keywords?.length !== 0
-          ? metaOption.keywords!
-          : "cuisine du monde, recettes de cuisine, recettes de cuisine du monde";
-    }
-    if (
-      !k.toLowerCase().includes("title") &&
-      !k.toLowerCase().includes("description") &&
-      !k.toLowerCase().includes("image") &&
-      !k.toLowerCase().includes("url") &&
-      !k.toLowerCase().includes("keywords")
-    )
-      metaData[k] = v;
+
+  if (metaOption.author) {
+    metaData.author = metaOption.author;
   }
+  if (metaOption.articleDatePublished) {
+    metaData.articleDatePublished = metaOption.articleDatePublished;
+  }
+  if (metaOption.articleDateModified) {
+    metaData.articleDateModified = metaOption.articleDateModified;
+  }
+
   return metaData;
 };
 
 export const useApplySeoMeta = (metaOption: MetaOption) => {
-  useSeoMeta(useLoadMeta(metaOption) as Parameters<typeof useSeoMeta>[0]);
+  const meta = useLoadMeta(metaOption);
+  const {
+    articleDatePublished,
+    articleDateModified,
+    ...rest
+  } = meta;
+
+  const filtered = Object.fromEntries(
+    Object.entries(rest).filter(
+      ([, value]) => value !== undefined && value !== "",
+    ),
+  ) as Parameters<typeof useSeoMeta>[0];
+
+  useSeoMeta({
+    ...filtered,
+    ...(articleDatePublished
+      ? { articlePublishedTime: articleDatePublished }
+      : {}),
+    ...(articleDateModified
+      ? { articleModifiedTime: articleDateModified }
+      : {}),
+  });
 };

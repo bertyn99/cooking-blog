@@ -1,5 +1,6 @@
 import * as Cloudflare from 'alchemy/Cloudflare'
 import * as Command from 'alchemy/Command'
+import * as Output from 'alchemy/Output'
 import { Stage } from 'alchemy/Stage'
 import * as Config from 'effect/Config'
 import * as Effect from 'effect/Effect'
@@ -34,7 +35,7 @@ export const workers = Effect.fn(function* (input: {
 }) {
   const stage = yield* Stage
   const isProd = stage === 'prod'
-  const cmsPublicOrigin = isProd ? `https://${PROD_CMS_HOST}` : 'http://localhost:3001'
+  const prodCmsOrigin = `https://${PROD_CMS_HOST}`
   const cmsDomain = isProd ? PROD_CMS_HOST : undefined
   const webDomain = isProd ? PROD_WEB_HOST : undefined
 
@@ -60,6 +61,10 @@ export const workers = Effect.fn(function* (input: {
     className: 'ContentGenerationWorkflow',
   })
 
+  // Nuxt runtimeConfig only picks up NUXT_* env at runtime on Workers.
+  const strapiUrl = Config.string('STRAPI_URL').pipe(Config.withDefault(''))
+  const strapiApiToken = Config.string('STRAPI_API_TOKEN').pipe(Config.withDefault(''))
+
   const Cms = yield* Cloudflare.Worker('Cms', {
     bundle: false,
     main: 'apps/cms/.output/server/index.mjs',
@@ -75,6 +80,13 @@ export const workers = Effect.fn(function* (input: {
       ),
       CONTENT_GENERATION: ContentGeneration,
       NUXT_SESSION_PASSWORD: Config.string('NUXT_SESSION_PASSWORD'),
+      NUXT_OG_IMAGE_SECRET: Config.string('NUXT_OG_IMAGE_SECRET').pipe(
+        Config.withDefault(''),
+      ),
+      STRAPI_URL: strapiUrl,
+      NUXT_STRAPI_URL: strapiUrl,
+      STRAPI_API_TOKEN: strapiApiToken,
+      NUXT_STRAPI_API_TOKEN: strapiApiToken,
     },
     crons: [PUBLISH_CRON],
     compatibility: NODE_COMPAT,
@@ -88,6 +100,31 @@ export const workers = Effect.fn(function* (input: {
     },
   })
 
+  // Prod → custom CMS host; preview / local → Cms.url (workers.dev or alchemy.dev localhost).
+  const cmsOriginOverride = yield* Config.string('CMS_BASE_URL').pipe(Config.option)
+  const cmsPublicOverride = yield* Config.string('NUXT_PUBLIC_CMS_BASE_URL').pipe(
+    Config.option,
+  )
+  const cmsWorkerOrigin = Output.map(
+    Cms.url,
+    (url) => url ?? 'http://localhost:3001',
+  )
+  const defaultCmsOrigin = isProd ? prodCmsOrigin : cmsWorkerOrigin
+  const cmsBaseUrl =
+    cmsOriginOverride._tag === 'Some' ? cmsOriginOverride.value : defaultCmsOrigin
+  const cmsPublicUrl =
+    cmsPublicOverride._tag === 'Some' ? cmsPublicOverride.value : defaultCmsOrigin
+  const siteUrl = isProd
+    ? `https://${PROD_WEB_HOST}`
+    : Config.string('NUXT_PUBLIC_SITE_URL').pipe(
+      Config.withDefault('http://localhost:3000'),
+    )
+  const ogImageSecret = Config.string('NUXT_OG_IMAGE_SECRET').pipe(
+    Config.withDefault(''),
+  )
+  // Public analytics site id — prod only (preview/local stay without Umami).
+  const umamiId = isProd ? '54df0335-b527-43b0-9087-35f6331c9bc7' : ''
+
   const SkewProtection = yield* Cloudflare.KV.Namespace('WebSkewProtection', {})
 
   const webBuild = yield* Command.Build('web-build', {
@@ -98,12 +135,13 @@ export const workers = Effect.fn(function* (input: {
       SKEW_PROTECTION_KV_NAMESPACE_ID: SkewProtection.namespaceId,
       // Cloudflare Workers use routeRules ISR + KV bindings — not Vercel Redis.
       REDIS_URL: '',
-      CMS_BASE_URL: Config.string('CMS_BASE_URL').pipe(
-        Config.withDefault(cmsPublicOrigin),
-      ),
-      NUXT_PUBLIC_CMS_BASE_URL: Config.string('NUXT_PUBLIC_CMS_BASE_URL').pipe(
-        Config.withDefault(cmsPublicOrigin),
-      ),
+      CMS_BASE_URL: cmsBaseUrl,
+      NUXT_PUBLIC_CMS_BASE_URL: cmsPublicUrl,
+      NUXT_OG_IMAGE_SECRET: ogImageSecret,
+      NUXT_PUBLIC_SITE_URL: siteUrl,
+      NUXT_PUBLIC_UMAMI_ID: umamiId,
+      // nuxt-umami module options read NUXT_UMAMI_ID at build time.
+      NUXT_UMAMI_ID: umamiId,
     },
     memo: {
       include: ['apps/web/**', 'pnpm-lock.yaml', 'pnpm-workspace.yaml'],
@@ -120,15 +158,13 @@ export const workers = Effect.fn(function* (input: {
       Cache: input.Cache,
       AI_READY_DB: input.AiReadyDB,
       SKEW_PROTECTION: SkewProtection,
-      CMS_BASE_URL: Config.string('CMS_BASE_URL').pipe(
-        Config.withDefault(cmsPublicOrigin),
-      ),
-      NUXT_PUBLIC_CMS_BASE_URL: Config.string('NUXT_PUBLIC_CMS_BASE_URL').pipe(
-        Config.withDefault(cmsPublicOrigin),
-      ),
-      NUXT_PUBLIC_SITE_URL: Config.string('NUXT_PUBLIC_SITE_URL').pipe(
-        Config.withDefault(isProd ? `https://${PROD_WEB_HOST}` : 'http://localhost:3000'),
-      ),
+      CMS_BASE_URL: cmsBaseUrl,
+      NUXT_PUBLIC_CMS_BASE_URL: cmsPublicUrl,
+      NUXT_PUBLIC_SITE_URL: siteUrl,
+      NUXT_OG_IMAGE_SECRET: ogImageSecret,
+      STRAPI_URL: Config.string('STRAPI_URL').pipe(Config.withDefault('')),
+      NUXT_PUBLIC_UMAMI_ID: umamiId,
+      NUXT_UMAMI_ID: umamiId,
     },
     compatibility: WEB_NODE_COMPAT,
     assets: {
