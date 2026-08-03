@@ -1,18 +1,31 @@
 # CI/CD — Alchemy deploy (GitHub Actions)
 
-Automated Cloudflare deploys follow [Alchemy Part 5: CI/CD](https://alchemy.run/cloudflare/tutorial/part-5/).
+Automated Cloudflare deploys follow [Alchemy Part 5: CI/CD](https://alchemy.run/cloudflare/tutorial/part-5/), simplified to **two stages**.
 
-## What runs in GitHub Actions
+## Stages
 
 | Event | Stage | Action |
 | --- | --- | --- |
-| Push to `main` | `prod` | `pnpm alchemy deploy` |
-| PR opened / updated | `pr-{number}` | Deploy isolated preview stack |
-| PR closed | `pr-{number}` | `pnpm alchemy destroy` (never `prod`) |
+| Push to `main` | `prod` | `pnpm alchemy deploy --stage prod` |
+| Push to `dev` | `preview` | `pnpm alchemy deploy --stage preview` |
 
 Workflow: `.github/workflows/deploy.yml`. Remote Alchemy state is enabled via `CI=true` (see `alchemy.run.ts`).
 
 **Production domains** (only when `stage === prod`): Web `journalducuistot.fr`, CMS `admin.journalducuistot.fr` — configured in `infra/workers.ts` via Worker `domain`. The `journalducuistot.fr` zone must already be on your Cloudflare account; Alchemy provisions DNS + TLS for those hostnames on deploy.
+
+**Preview** uses `*.workers.dev` URLs (no custom domain). Web points at the preview CMS Worker URL.
+
+## App secrets (Actions)
+
+Set via `pnpm deploy:github` from `.env`, or manually under **Settings → Secrets → Actions**:
+
+| Secret | Used by |
+| --- | --- |
+| `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` | Alchemy CI |
+| `NUXT_SESSION_PASSWORD` | CMS Worker (sessions) |
+| `NUXT_OG_IMAGE_SECRET` | CMS + Web Workers |
+| `STRAPI_URL` | CMS (+ Web fallback) Strapi import / legacy |
+| `STRAPI_API_TOKEN` | CMS Strapi import (optional) |
 
 ## One-time setup (from your laptop)
 
@@ -24,23 +37,18 @@ Workflow: `.github/workflows/deploy.yml`. Remote Alchemy state is enabled via `C
    ```
    Use Global API Key or a token with User/Account **API Tokens Write**. Do not use `admin` for day-to-day deploys.
 
-3. **GitHub stack** — Mint CI token and push repository secrets:
+3. **GitHub stack** — Mint CI token and push repository secrets from `.env`:
    ```bash
-   export ALCHEMY_GITHUB_OWNER=your-org
-   export ALCHEMY_GITHUB_REPOSITORY=your-repo
-   export NUXT_SESSION_PASSWORD='…'   # optional; also pushed as Actions secret if set
+   # Ensure .env has NUXT_SESSION_PASSWORD, NUXT_OG_IMAGE_SECRET, STRAPI_URL, …
    pnpm deploy:github
    ```
    Stack definition: `stacks/github.ts`.
 
-4. **Session secret** — If you skipped `NUXT_SESSION_PASSWORD` above, add **Settings → Secrets → Actions** manually. CMS Worker requires it at deploy time.
+4. **Push workflow** — Commit `.github/workflows/deploy.yml` and push to `dev` / merge to `main`.
 
-5. **Push workflow** — Commit `.github/workflows/deploy.yml` and merge to `main` on GitHub.
+## Local deploys
 
-## PR previews
-
-On each PR deploy, Alchemy posts/updates a comment with Web and CMS worker URLs (`alchemy.run.ts` + `GITHUB_TOKEN` from Actions).
-
-## Note on CMS URL in preview builds
-
-Web’s Nuxt build can bake `NUXT_PUBLIC_CMS_BASE_URL` at build time. Per-stage preview CMS URLs may need a follow-up (runtime config or two-phase build) if previews must call the matching CMS worker URL.
+```bash
+pnpm alchemy deploy --stage preview --yes
+pnpm alchemy deploy --stage prod --yes
+```

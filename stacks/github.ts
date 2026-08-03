@@ -5,6 +5,7 @@
  *   pnpm deploy:github
  *
  * Repository is resolved from .env, GITHUB_REPOSITORY, or `git remote origin`.
+ * Loads app secrets from `.env` when present (NUXT_SESSION_PASSWORD, etc.).
  *
  * @see https://alchemy.run/cloudflare/tutorial/part-5/
  */
@@ -15,12 +16,17 @@ import * as Config from 'effect/Config'
 import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import * as Redacted from 'effect/Redacted'
-import { githubRepositoryEffect } from '../infra/github-repository.ts'
+import {
+  githubRepositoryEffect,
+  loadProjectEnv,
+} from '../infra/github-repository.ts'
+
+loadProjectEnv()
 
 const useRemoteState =
   process.env.CI === 'true' || process.env.ALCHEMY_REMOTE_STATE === '1'
 
-/** Permissions required by `alchemy.run.ts` (D1, R2, KV, Workers, AI Gateway, state store). */
+/** Permissions required by `alchemy.run.ts` (D1, R2, KV, Workers, AI Gateway, DNS, state store). */
 const CI_PERMISSION_GROUPS = [
   'Secrets Store Write',
   'Workers Scripts Write',
@@ -74,16 +80,23 @@ export default Alchemy.Stack(
       value: Redacted.make(accountId),
     })
 
-    const sessionPassword = yield* Config.redacted('NUXT_SESSION_PASSWORD').pipe(
-      Config.option,
-    )
-    if (sessionPassword._tag === 'Some') {
-      yield* GitHub.Secret('nuxt-session-password', {
-        owner,
-        repository,
-        name: 'NUXT_SESSION_PASSWORD',
-        value: sessionPassword.value,
-      })
+    const optionalSecrets = [
+      'NUXT_SESSION_PASSWORD',
+      'NUXT_OG_IMAGE_SECRET',
+      'STRAPI_URL',
+      'STRAPI_API_TOKEN',
+    ] as const
+
+    for (const name of optionalSecrets) {
+      const secret = yield* Config.redacted(name).pipe(Config.option)
+      if (secret._tag === 'Some') {
+        yield* GitHub.Secret(name.toLowerCase().replaceAll('_', '-'), {
+          owner,
+          repository,
+          name,
+          value: secret.value,
+        })
+      }
     }
   }),
 )
