@@ -116,12 +116,14 @@ export default defineEventHandler(async (event) => {
   }
 
   if (outcome.partial && outcome.result.continuation) {
+    const status = await getStrapiImportStatus(event)
     return {
       accepted: true,
       completed: false,
       dryRun: jobInput.dryRun,
       continuation: outcome.result.continuation,
       result: outcome.result,
+      status,
       message: outcome.result.messages.at(-1) ?? 'Import en cours…',
     }
   }

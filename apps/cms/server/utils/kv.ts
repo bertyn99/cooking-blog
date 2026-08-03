@@ -1,5 +1,7 @@
 import type { H3Event } from 'h3'
+import type { createSiteSettingsQueries } from '../db/queries/site-settings'
 import { getCloudflareEnv } from './cloudflare-env'
+import { prefersD1Database, useQueries } from './db'
 
 export function useKv(event?: H3Event): KVNamespace | undefined {
   return getCloudflareEnv(event)?.Cache
@@ -23,6 +25,23 @@ export function createKvStore(kv: KVNamespace): KvStore {
     },
     async del(key) {
       await kv.delete(key)
+    },
+  }
+}
+
+function createSiteSettingsStore(
+  siteSettings: ReturnType<typeof createSiteSettingsQueries>,
+): KvStore {
+  return {
+    async get<T>(key: string) {
+      const row = await siteSettings.get(key)
+      return (row?.value ?? null) as T | null
+    },
+    async set(key, value) {
+      await siteSettings.upsert(key, value)
+    },
+    async del(key) {
+      await siteSettings.deleteKey(key)
     },
   }
 }
@@ -51,7 +70,29 @@ export const memoryKvStore: KvStore = {
   },
 }
 
+let warnedMemoryKvWithoutBinding = false
+
+/**
+ * Ephemeral app state (import journal, locks, coverage cache).
+ * On deployed Workers, D1 is used so status survives across isolates; KV is optional for dev/preview.
+ */
 export function useKvStore(event?: H3Event): KvStore {
+  if (prefersD1Database()) {
+    return createSiteSettingsStore(useQueries(event).siteSettings)
+  }
+
   const kv = useKv(event)
-  return kv ? createKvStore(kv) : memoryKvStore
+  if (kv) {
+    return createKvStore(kv)
+  }
+
+  const env = getCloudflareEnv(event)
+  if (env?.DB && !warnedMemoryKvWithoutBinding) {
+    warnedMemoryKvWithoutBinding = true
+    console.warn(
+      '[cms] Cache KV binding missing while D1 is present — using in-memory store (import journal will not persist across requests).',
+    )
+  }
+
+  return memoryKvStore
 }

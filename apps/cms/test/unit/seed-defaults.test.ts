@@ -27,6 +27,7 @@ describe('resolveSeedAdminInput', () => {
       password: 'custompass1',
       username: 'chef',
       skipIfAdminExists: false,
+      resetPassword: false,
     })
   })
 })

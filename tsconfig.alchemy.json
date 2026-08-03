@@ -14,6 +14,7 @@
   },
   "include": [
     "alchemy.run.ts",
-    "infra/**/*.ts"
+    "infra/**/*.ts",
+    "stacks/**/*.ts"
   ]
 }

@@ -13,19 +13,34 @@ interface CategoryRow {
 
 const { $api } = useNuxtApp()
 
-const { data: recipeCategories, status: recipeStatus } = await useAsyncData(
+const {
+  data: recipeCategories,
+  status: recipeStatus,
+  refresh: refreshRecipeCategories,
+} = await useAsyncData(
   'categories-recipes-list',
-  () => $api<PaginatedResponse<{ id: number, name: string, slug: string }>>('/api/categories', {
+  () => $api<PaginatedResponse<{ id: number, name: string, slug: string }>>('/api/admin/categories', {
     query: { pageSize: 100 },
   }),
+  { getCachedData: () => undefined },
 )
 
-const { data: articleCategories, status: articleStatus } = await useAsyncData(
+const {
+  data: articleCategories,
+  status: articleStatus,
+  refresh: refreshArticleCategories,
+} = await useAsyncData(
   'categories-articles-list',
-  () => $api<PaginatedResponse<{ id: number, name: string, slug: string }>>('/api/category-articles', {
+  () => $api<PaginatedResponse<{ id: number, name: string, slug: string }>>('/api/admin/category-articles', {
     query: { pageSize: 100 },
   }),
+  { getCachedData: () => undefined },
 )
+
+onMounted(() => {
+  void refreshRecipeCategories()
+  void refreshArticleCategories()
+})
 
 const rows = computed<CategoryRow[]>(() => [
   ...(articleCategories.value?.data ?? []).map(row => ({

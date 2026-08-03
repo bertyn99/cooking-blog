@@ -19,6 +19,7 @@
     "postinstall": "pnpm -r postinstall",
     "alchemy": "alchemy",
     "deploy": "pnpm alchemy deploy",
+    "deploy:github": "pnpm alchemy deploy stacks/github.ts --profile admin",
     "deploy:plan": "pnpm alchemy plan",
     "dev:infra": "pnpm alchemy dev",
     "login:alchemy": "pnpm alchemy login",

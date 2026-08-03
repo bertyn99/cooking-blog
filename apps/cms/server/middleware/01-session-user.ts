@@ -3,6 +3,7 @@ import { syncSessionUserFromDb } from '../utils/session-user'
 const PUBLIC_API_PATHS = new Set([
   '/api/auth/login',
   '/api/auth/seed-admin',
+  '/api/auth/setup-status',
   '/api/health',
 ])
 

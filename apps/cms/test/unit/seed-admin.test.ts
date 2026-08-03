@@ -75,4 +75,21 @@ describe('seedAdmin', () => {
       password: 'short'
     })).rejects.toThrow(/at least 8 characters/i)
   })
+
+  it('updates password when resetPassword is set for existing admin', async () => {
+    await seedAdmin(db, {
+      email: 'admin@example.com',
+      password: 'password123',
+    })
+
+    const result = await seedAdmin(db, {
+      email: 'admin@example.com',
+      password: 'new-password-99',
+      resetPassword: true,
+    })
+
+    expect(result.passwordUpdated).toBe(true)
+    expect(result.skipped).toBe(false)
+    expect(result.user?.email).toBe('admin@example.com')
+  })
 })

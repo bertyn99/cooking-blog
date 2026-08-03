@@ -8,7 +8,7 @@ import {
   useStrapiImportPanel,
 } from '~/composables/useStrapiImportPanel'
 
-const selectedSteps = ref<StrapiImportStep[]>(['category-articles'])
+const selectedSteps = ref<StrapiImportStep[]>(['category-articles', 'categories'])
 const dryRun = ref(true)
 
 const {

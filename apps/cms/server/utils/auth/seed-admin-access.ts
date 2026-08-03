@@ -15,15 +15,7 @@ function readSeedSecretFromRequest(event: H3Event): string | undefined {
   return undefined
 }
 
-/**
- * Production seed: allowed when no users exist (bootstrap), or when
- * `ADMIN_SEED_SECRET` matches `x-admin-seed-secret` / `Authorization: Bearer`.
- */
-export function canRunAdminSeed(event: H3Event, bootstrap: boolean): boolean {
-  if (bootstrap) {
-    return true
-  }
-
+export function hasValidAdminSeedSecret(event: H3Event): boolean {
   const configured = process.env.ADMIN_SEED_SECRET?.trim()
   if (!configured) {
     return false
@@ -31,4 +23,9 @@ export function canRunAdminSeed(event: H3Event, bootstrap: boolean): boolean {
 
   const provided = readSeedSecretFromRequest(event)
   return provided === configured
+}
+
+/** No secret required: empty `users` table or no `admin` role yet. */
+export function canSeedAdminWithoutSecret(emptyUsers: boolean, lacksAdmin: boolean): boolean {
+  return emptyUsers || lacksAdmin
 }

@@ -64,6 +64,12 @@ export async function extractCategoryArticles(ctx: ExtractContext): Promise<Stra
         await ctx.db.update(schema.categoryArticles)
           .set(values)
           .where(eq(schema.categoryArticles.id, existingRow.id))
+        await ctx.queries.legacyStrapiMap.upsert({
+          sourceType: 'category-articles',
+          sourceId,
+          destTable: 'category_articles',
+          destId: existingRow.id,
+        }, false)
         bumpImportStats(stats, 'update')
         continue
       }

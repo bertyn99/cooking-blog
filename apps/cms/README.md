@@ -49,7 +49,18 @@ pnpm task:strapi-extract
 
 ## Admin seeder
 
-Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` for env defaults in `seed-admin` task / `resolveSeedAdminInput`. **Production (D1):** `POST /api/auth/seed-admin` with JSON body `{ "email", "password", "username?", "force?" }` — allowed when the `users` table is empty, or with `ADMIN_SEED_SECRET` + header `x-admin-seed-secret`. Local SQLite: `pnpm --filter cms db:seed:admin`. Dev-only HTTP task: `/_nitro/tasks/seed-admin` (Nitro dev server). Optional: `ADMIN_USERNAME`, `ADMIN_SEED_FORCE=1` / `"force": true`.
+| Mechanism | When | Auth |
+|-----------|------|------|
+| `GET /api/auth/setup-status` | Diagnose D1 (`emptyUsers`, `hasAdmin`) | Public |
+| `POST /api/auth/register` | **Zero rows** in `users` → first account is `admin` | Public |
+| `POST /api/auth/seed-admin` | **No `admin` role** yet, or empty `users` | No secret |
+| Same + `resetPassword: true` | Admin exists, set new password | `ADMIN_SEED_SECRET` header |
+| `pnpm task:seed:admin` / `/_nitro/tasks/seed-admin` | Local dev only (Nitro dev server HTTP) | No auth on task |
+| `pnpm db:seed:admin` | Local `.data/db/sqlite.db` only | CLI |
+
+Env defaults: `ADMIN_EMAIL`, `ADMIN_PASSWORD`, optional `ADMIN_SEED_FORCE`, `ADMIN_SEED_SECRET` on worker for prod recovery.
+
+If an admin already exists with default seed, try login with `changeme123` before resetting password.
 
 First user can also be created via `POST /api/auth/register` when the `users` table is empty (bootstrap → `admin`).
 

@@ -18,11 +18,14 @@ export interface SeedAdminOptions {
   username?: string | null
   /** Skip when any admin user already exists. Default: true */
   skipIfAdminExists?: boolean
+  /** Update password when an admin already exists for this email (ops recovery). */
+  resetPassword?: boolean
 }
 
 export interface SeedAdminResult {
   created: boolean
   skipped: boolean
+  passwordUpdated?: boolean
   reason?: string
   user?: User
 }
@@ -61,6 +64,34 @@ export async function seedAdmin(
     throw new Error('ADMIN_PASSWORD must be at least 8 characters')
   }
 
+  const existing = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.email, email))
+    .limit(1)
+
+  const found = existing[0]
+  if (found?.role === 'admin' && options.resetPassword) {
+    const passwordHash = await hasher.make(options.password)
+    const updated = await db
+      .update(schema.users)
+      .set({ passwordHash, updatedAt: new Date() })
+      .where(eq(schema.users.id, found.id))
+      .returning()
+
+    const user = updated[0]
+    if (!user) {
+      throw new Error('Failed to update admin password')
+    }
+
+    return {
+      created: false,
+      skipped: false,
+      passwordUpdated: true,
+      user: toSessionUser(user),
+    }
+  }
+
   if (skipIfAdminExists && await hasAdminUser(db)) {
     return {
       created: false,
@@ -69,13 +100,6 @@ export async function seedAdmin(
     }
   }
 
-  const existing = await db
-    .select()
-    .from(schema.users)
-    .where(eq(schema.users.email, email))
-    .limit(1)
-
-  const found = existing[0]
   if (found) {
     if (found.role === 'admin') {
       return {

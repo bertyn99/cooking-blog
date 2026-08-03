@@ -39,6 +39,38 @@ export function formatImportError(error: unknown): string {
   return getApiErrorMessage(error, 'Échec de l’import')
 }
 
+type StrapiImportRunResponse = {
+  accepted: boolean
+  completed?: boolean
+  message: string
+  continuation?: StrapiImportContinuation
+  result?: StrapiImportProgress['result']
+  status?: StrapiImportProgress
+}
+
+function mergeImportRunIntoConfig(
+  config: StrapiImportConfigResponse | null | undefined,
+  response: StrapiImportRunResponse,
+): StrapiImportConfigResponse | null | undefined {
+  if (!config) return config
+
+  if (response.status) {
+    return { ...config, status: response.status }
+  }
+
+  if (!response.result) return config
+
+  const progress: StrapiImportProgress = {
+    status: response.completed ? 'completed' : 'running',
+    dryRun: response.result.dryRun,
+    messages: response.result.messages.slice(-200),
+    finishedAt: response.completed ? response.result.finishedAt : undefined,
+    result: response.completed ? response.result : undefined,
+  }
+
+  return { ...config, status: progress }
+}
+
 export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) {
   const { $api } = useNuxtApp()
   const toast = useToast()
@@ -76,7 +108,8 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
     { immediate: false },
   )
 
-  watch(isRemoteImportRunning, (busy) => {
+  // Poll while POST is in flight or server reports running — journal lives in KV updated during run.
+  watch(isLaunchBusy, (busy) => {
     if (busy) startPolling()
     else stopPolling()
   }, { immediate: true })
@@ -86,6 +119,9 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
     if (status.status === lastNotifiedStatus.value) return
     if (status.status === 'completed') {
       const fullySynced = status.result && isImportResultFullyUnchanged(status.result)
+      if (!status.dryRun) {
+        void refreshNuxtData(['categories-recipes-list', 'categories-articles-list'])
+      }
       toast.add({
         title: status.dryRun
           ? (fullySynced ? 'Simulation : déjà à jour' : 'Simulation terminée')
@@ -183,18 +219,13 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
     activeContinuation.value = false
     const abortController = typeof AbortController !== 'undefined' ? new AbortController() : null
     abortControllerRef.value = abortController
+    void refresh()
 
     try {
       let continuation: StrapiImportContinuation | undefined
 
       do {
-        const response = await $api<{
-          accepted: boolean
-          completed?: boolean
-          message: string
-          continuation?: StrapiImportContinuation
-          result?: StrapiImportProgress['result']
-        }>('/api/admin/strapi-import/run', {
+        const response = await $api<StrapiImportRunResponse>('/api/admin/strapi-import/run', {
           method: 'POST',
           body: continuation
             ? { continuation }
@@ -207,6 +238,10 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
           signal: abortController?.signal,
         })
 
+        if (config.value) {
+          config.value = mergeImportRunIntoConfig(config.value, response) ?? config.value
+        }
+
         continuation = response.completed === false ? response.continuation : undefined
         activeContinuation.value = Boolean(continuation)
         await refresh()
@@ -217,7 +252,28 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
         || (error instanceof DOMException && error.name === 'AbortError')
         || (error instanceof Error && error.name === 'AbortError')
 
-      if (activeContinuation.value || aborted) {
+      await refresh()
+      const remoteStatus = importStatus.value?.status
+
+      if (aborted) {
+        if (remoteStatus === 'running') {
+          try {
+            await $api('/api/admin/strapi-import/reset', { method: 'POST' })
+          }
+          catch {
+            // Best-effort unlock so the next import can start.
+          }
+        }
+        activeContinuation.value = false
+        lastNotifiedStatus.value = 'idle'
+        await refresh()
+        toast.add({
+          title: 'Import interrompu',
+          description: 'L’onglet a été fermé ou la requête annulée. Relancez l’import.',
+          color: 'warning',
+        })
+      }
+      else if (activeContinuation.value && remoteStatus === 'running') {
         try {
           await $api('/api/admin/strapi-import/reset', { method: 'POST' })
         }
@@ -226,23 +282,31 @@ export function useStrapiImportPanel(options: UseStrapiImportPanelOptions = {}) 
         }
         activeContinuation.value = false
         lastNotifiedStatus.value = 'idle'
+        await refresh()
         toast.add({
-          title: aborted ? 'Import interrompu' : 'Import interrompu — état réinitialisé',
-          description: aborted
-            ? 'L’onglet a été fermé ou la requête annulée. Relancez l’import.'
-            : formatImportError(error),
+          title: 'Import interrompu — état réinitialisé',
+          description: formatImportError(error),
           color: 'warning',
         })
       }
-      else {
-        lastNotifiedStatus.value = importStatus.value?.status ?? 'idle'
+      else if (remoteStatus === 'failed') {
+        lastNotifiedStatus.value = 'failed'
         toast.add({
-          title: 'Impossible de démarrer l’import',
+          title: 'Import échoué',
+          description: importStatus.value?.error ?? formatImportError(error),
+          color: 'error',
+        })
+      }
+      else {
+        lastNotifiedStatus.value = remoteStatus ?? 'idle'
+        toast.add({
+          title: activeContinuation.value
+            ? 'Reprise d’import impossible'
+            : 'Impossible de démarrer l’import',
           description: formatImportError(error),
           color: 'error',
         })
       }
-      await refresh()
     }
     finally {
       abortControllerRef.value = null

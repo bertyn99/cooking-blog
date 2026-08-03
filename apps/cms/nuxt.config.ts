@@ -117,6 +117,14 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2025-01-15',
 
+  routeRules: {
+    '/api/**': {
+      headers: {
+        'Cache-Control': 'private, no-store, must-revalidate',
+      },
+    },
+  },
+
   evlog: {
     env: {
       service: 'journalducuistot-cms',

@@ -8,6 +8,7 @@ export const seedAdminPayloadSchema = z.object({
   password: z.string().min(8).max(512).optional(),
   username: z.string().min(1).max(100).optional(),
   force: z.boolean().optional(),
+  resetPassword: z.boolean().optional(),
 })
 
 export type SeedAdminPayload = z.infer<typeof seedAdminPayloadSchema>
@@ -24,5 +25,6 @@ export function resolveSeedAdminInput(payload: SeedAdminPayload = {}) {
       || DEFAULT_ADMIN_PASSWORD,
     username: parsed.username ?? process.env.ADMIN_USERNAME?.trim() ?? null,
     skipIfAdminExists: !(parsed.force ?? process.env.ADMIN_SEED_FORCE === '1'),
+    resetPassword: parsed.resetPassword ?? false,
   }
 }

@@ -1,8 +1,11 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { createEvent } from 'h3'
-import { canRunAdminSeed } from '../../server/utils/auth/seed-admin-access'
+import {
+  canSeedAdminWithoutSecret,
+  hasValidAdminSeedSecret,
+} from '../../server/utils/auth/seed-admin-access'
 
-describe('canRunAdminSeed', () => {
+describe('seed-admin access', () => {
   beforeEach(() => {
     vi.stubEnv('ADMIN_SEED_SECRET', 'test-secret')
   })
@@ -11,30 +14,33 @@ describe('canRunAdminSeed', () => {
     vi.unstubAllEnvs()
   })
 
-  it('allows seed when bootstrap', () => {
-    const event = createEvent({ path: '/api/auth/seed-admin' })
-    expect(canRunAdminSeed(event, true)).toBe(true)
+  it('allows without secret when users table is empty', () => {
+    expect(canSeedAdminWithoutSecret(true, true)).toBe(true)
+    expect(canSeedAdminWithoutSecret(true, false)).toBe(true)
   })
 
-  it('allows seed with matching x-admin-seed-secret when not bootstrap', () => {
+  it('allows without secret when users exist but no admin', () => {
+    expect(canSeedAdminWithoutSecret(false, true)).toBe(true)
+  })
+
+  it('requires secret when an admin already exists', () => {
+    expect(canSeedAdminWithoutSecret(false, false)).toBe(false)
+  })
+
+  it('validates x-admin-seed-secret', () => {
     const event = createEvent({
       path: '/api/auth/seed-admin',
       headers: { 'x-admin-seed-secret': 'test-secret' },
     })
-    expect(canRunAdminSeed(event, false)).toBe(true)
+    expect(hasValidAdminSeedSecret(event)).toBe(true)
   })
 
-  it('rejects seed without secret when not bootstrap', () => {
-    const event = createEvent({ path: '/api/auth/seed-admin' })
-    expect(canRunAdminSeed(event, false)).toBe(false)
-  })
-
-  it('rejects seed when ADMIN_SEED_SECRET is unset', () => {
+  it('rejects seed secret when env unset', () => {
     vi.stubEnv('ADMIN_SEED_SECRET', '')
     const event = createEvent({
       path: '/api/auth/seed-admin',
       headers: { 'x-admin-seed-secret': 'anything' },
     })
-    expect(canRunAdminSeed(event, false)).toBe(false)
+    expect(hasValidAdminSeedSecret(event)).toBe(false)
   })
 })

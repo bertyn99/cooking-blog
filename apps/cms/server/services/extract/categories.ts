@@ -69,6 +69,12 @@ export async function extractCategories(ctx: ExtractContext, mediaStats: StrapiE
       if (existingId && existingRow) {
         categoryId = existingRow.id
         await ctx.db.update(schema.categories).set(values).where(eq(schema.categories.id, categoryId))
+        await ctx.queries.legacyStrapiMap.upsert({
+          sourceType: 'categories',
+          sourceId,
+          destTable: 'categories',
+          destId: categoryId,
+        }, false)
         bumpImportStats(stats, 'update')
       }
       else {

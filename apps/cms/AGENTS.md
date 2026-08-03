@@ -183,8 +183,9 @@ apps/cms/
 | Method | Path | Auth |
 |--------|------|------|
 | POST | `/api/auth/login` | Public |
-| POST | `/api/auth/register` | Bootstrap or admin |
-| POST | `/api/auth/seed-admin` | Bootstrap or `ADMIN_SEED_SECRET` (prod D1 seed; replaces `/_nitro/tasks/seed-admin` on Workers) |
+| POST | `/api/auth/register` | Bootstrap (empty `users`) or admin |
+| POST | `/api/auth/seed-admin` | No admin in D1, or `ADMIN_SEED_SECRET` (see setup-status) |
+| GET | `/api/auth/setup-status` | Public — which bootstrap path applies |
 | GET | `/api/health` | Public |
 | POST | `/api/completion` | Editor+ — streaming editor AI (Workers AI + `jdc-cms-ai` gateway); KV rate limit 30/min per user+IP |
 
