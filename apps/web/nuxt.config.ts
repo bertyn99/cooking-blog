@@ -235,7 +235,7 @@ export default defineNuxtConfig({
   },
 
   umami: {
-    id: process.env.NUXT_UMAMI_ID,
+    id: process.env.NUXT_PUBLIC_UMAMI_ID || process.env.NUXT_UMAMI_ID,
     host: process.env.NUXT_UMAMI_HOST,
     autoTrack: true,
     ignoreLocalhost: true,

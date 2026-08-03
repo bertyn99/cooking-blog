@@ -122,6 +122,8 @@ export const workers = Effect.fn(function* (input: {
   const ogImageSecret = Config.string('NUXT_OG_IMAGE_SECRET').pipe(
     Config.withDefault(''),
   )
+  // Public analytics site id — prod only (preview/local stay without Umami).
+  const umamiId = isProd ? '54df0335-b527-43b0-9087-35f6331c9bc7' : ''
 
   const SkewProtection = yield* Cloudflare.KV.Namespace('WebSkewProtection', {})
 
@@ -137,6 +139,9 @@ export const workers = Effect.fn(function* (input: {
       NUXT_PUBLIC_CMS_BASE_URL: cmsPublicUrl,
       NUXT_OG_IMAGE_SECRET: ogImageSecret,
       NUXT_PUBLIC_SITE_URL: siteUrl,
+      NUXT_PUBLIC_UMAMI_ID: umamiId,
+      // nuxt-umami module options read NUXT_UMAMI_ID at build time.
+      NUXT_UMAMI_ID: umamiId,
     },
     memo: {
       include: ['apps/web/**', 'pnpm-lock.yaml', 'pnpm-workspace.yaml'],
@@ -158,6 +163,8 @@ export const workers = Effect.fn(function* (input: {
       NUXT_PUBLIC_SITE_URL: siteUrl,
       NUXT_OG_IMAGE_SECRET: ogImageSecret,
       STRAPI_URL: Config.string('STRAPI_URL').pipe(Config.withDefault('')),
+      NUXT_PUBLIC_UMAMI_ID: umamiId,
+      NUXT_UMAMI_ID: umamiId,
     },
     compatibility: WEB_NODE_COMPAT,
     assets: {
