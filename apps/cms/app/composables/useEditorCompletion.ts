@@ -96,6 +96,9 @@ async function streamCompletionText(options: {
 
   if (!response.body) {
     const text = await response.text()
+    if (options.signal?.aborted) {
+      throw new DOMException('Aborted', 'AbortError')
+    }
     options.onChunk(text)
     return text
   }
@@ -104,18 +107,29 @@ async function streamCompletionText(options: {
   const decoder = new TextDecoder()
   let full = ''
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) {
-      break
-    }
-    full += decoder.decode(value, { stream: true })
-    options.onChunk(full)
-  }
+  try {
+    while (true) {
+      if (options.signal?.aborted) {
+        await reader.cancel().catch(() => {})
+        throw new DOMException('Aborted', 'AbortError')
+      }
 
-  full += decoder.decode()
-  options.onChunk(full)
-  return full
+      const { done, value } = await reader.read()
+      if (done) {
+        break
+      }
+      full += decoder.decode(value, { stream: true })
+      options.onChunk(full)
+    }
+
+    full += decoder.decode()
+    options.onChunk(full)
+    return full
+  }
+  catch (error) {
+    await reader.cancel().catch(() => {})
+    throw error
+  }
 }
 
 function applyProofreadDecisions(
@@ -219,11 +233,16 @@ export function useEditorCompletion(
     const endPos = Math.max(from, Math.min(to, editor.state.doc.content.size) - (to > from ? 1 : 0))
     const end = editor.view.coordsAtPos(endPos)
 
+    // Use the editor chrome width so the panel fills available horizontal space.
+    const host = editor.view.dom.closest('.cms-markdown-editor') as HTMLElement | null
+    const box = (host ?? editor.view.dom).getBoundingClientRect()
+    const pad = 8
+
     return {
       top: Math.min(start.top, end.top),
       bottom: Math.max(start.bottom, end.bottom),
-      left: Math.min(start.left, end.left),
-      right: Math.max(start.right, end.right),
+      left: box.left + pad,
+      right: box.right - pad,
     }
   }
 
@@ -237,9 +256,19 @@ export function useEditorCompletion(
     useEventListener(window, 'resize', bumpReviewAnchor)
   }
 
-  watch(session, () => {
-    bumpReviewAnchor()
-  }, { deep: true })
+  watch(
+    () => session.value
+      ? [
+          session.value.range.from,
+          session.value.range.to,
+          session.value.status,
+          session.value.kind,
+        ]
+      : null,
+    () => {
+      bumpReviewAnchor()
+    },
+  )
 
   const review = computed<AiReviewPanelModel | null>(() => {
     const current = session.value
@@ -285,17 +314,42 @@ export function useEditorCompletion(
   const isLoading = computed(() => busy.value || ghostLoading.value)
 
   function abortSession() {
-    session.value?.abort?.abort()
+    const controller = session.value?.abort
     if (session.value) {
       session.value.abort = undefined
+    }
+    // Abort after detaching so in-flight onChunk handlers no-op immediately.
+    controller?.abort()
+  }
+
+  function clearHighlightsDeferred() {
+    // Highlight teardown can be costly on large selections — keep refuse snappy.
+    const run = () => {
+      try {
+        clearHighlights()
+      }
+      catch {
+        // Editor may already be destroyed.
+      }
+    }
+    if (import.meta.client) {
+      requestAnimationFrame(run)
+    }
+    else {
+      run()
     }
   }
 
   function clearReview() {
-    abortSession()
+    // Drop the panel first so Refuser feels instant, then abort + clean decorations.
+    const controller = session.value?.abort
+    if (session.value) {
+      session.value.abort = undefined
+    }
     session.value = null
     busy.value = false
-    clearHighlights()
+    controller?.abort()
+    clearHighlightsDeferred()
   }
 
   function clearClientCompletion() {

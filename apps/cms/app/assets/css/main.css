@@ -214,6 +214,25 @@
     border-radius: 2px;
   }
 
+  .ai-review-skeleton {
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--ui-muted) 18%, transparent) 0%,
+      color-mix(in oklab, var(--ui-muted) 38%, transparent) 45%,
+      color-mix(in oklab, var(--ui-muted) 18%, transparent) 90%
+    );
+    background-size: 220% 100%;
+    animation: ai-review-shimmer 1.15s ease-in-out infinite;
+  }
+}
+
+@keyframes ai-review-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
 }
 
 @theme static {
