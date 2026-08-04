@@ -107,6 +107,8 @@ export const EditorCompletionExtension = Extension.create<CompletionOptions, Com
               const span = document.createElement('span')
               span.className = 'completion-suggestion'
               span.textContent = storage.suggestion
+              // Match nuxt-ui-templates/editor ghost styling (no project CSS required).
+              span.style.cssText = 'color: var(--ui-text-muted); opacity: 0.6; pointer-events: none;'
               return span
             }, { side: 1 })
 
@@ -158,6 +160,8 @@ export const EditorCompletionExtension = Extension.create<CompletionOptions, Com
   },
 
   onUpdate({ editor }) {
+    // Only dismiss ghost suggestions — toolbar Continuer streams via insertState
+    // and must not be aborted when the bubble menu closes.
     if (this.storage.visible) {
       this.storage.clearSuggestion()
       editor.view.dispatch(editor.state.tr.setMeta(completionUpdateMetaKey, true))

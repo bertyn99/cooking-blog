@@ -49,9 +49,13 @@ export const workers = Effect.fn(function* (input: {
     },
   })
 
-  // AI Gateway + Workers AI binding (env.AI). Gateway id must match app `CMS_AI_GATEWAY_ID`.
-  const CmsAi = yield* Cloudflare.AI.Gateway('CmsAi', {
+  // Provision AI Gateway (dashboard logs, caching, rate limits).
+  // Nuxt CMS uses Workers AI binding + `CMS_AI_GATEWAY_ID` in `workers-ai-provider` (not Effect `QueryGateway`).
+  // @see https://alchemy.run/cloudflare/ai/ai-gateway/
+  // @see https://alchemy.run/cloudflare/ai/workers-ai
+  yield* Cloudflare.AI.Gateway('CmsAi', {
     id: CMS_AI_GATEWAY_ID,
+    cacheTtl: 60,
     collectLogs: true,
   })
 
@@ -74,7 +78,7 @@ export const workers = Effect.fn(function* (input: {
       DB: input.DB,
       Media: input.Media,
       Cache: input.Cache,
-      AI: CmsAi,
+      AI: Cloudflare.Workers.AI(),
       CMS_AI_GATEWAY_ID: Config.string('CMS_AI_GATEWAY_ID').pipe(
         Config.withDefault(CMS_AI_GATEWAY_ID),
       ),

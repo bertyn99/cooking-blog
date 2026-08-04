@@ -155,7 +155,6 @@
     box-shadow: none !important;
     border-radius: 0 !important;
     --tw-ring-shadow: 0 0 #0000 !important;
-    ring: none;
   }
 
   .cms-markdown-editor--preview .cms-editor-grid-column {
@@ -190,6 +189,31 @@
   .cms-markdown-editor--preview .cms-editor-callout__content {
     @apply py-4;
   }
+
+  /* AI review: reformulation original selection only */
+  .cms-markdown-editor .ProseMirror .ai-review-old {
+    background-color: color-mix(in oklab, var(--ui-error) 14%, transparent);
+    border-radius: 2px;
+  }
+
+  /* Proofread: only the wrong token — not the whole paragraph */
+  .cms-markdown-editor .ProseMirror .ai-review-error {
+    background-color: color-mix(in oklab, var(--ui-warning) 28%, transparent);
+    border-bottom: 2px wavy color-mix(in oklab, var(--ui-error) 85%, transparent);
+    border-radius: 2px;
+  }
+
+  .ai-review-old-inline {
+    background-color: color-mix(in oklab, var(--ui-warning) 22%, transparent);
+    text-decoration: line-through;
+    text-decoration-color: color-mix(in oklab, var(--ui-error) 70%, transparent);
+  }
+
+  .ai-review-new-text {
+    background-color: color-mix(in oklab, var(--ui-success) 16%, transparent);
+    border-radius: 2px;
+  }
+
 }
 
 @theme static {
