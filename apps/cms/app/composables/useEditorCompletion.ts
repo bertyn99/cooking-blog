@@ -1,4 +1,5 @@
 import { Extension } from '@tiptap/core'
+import type { JSONContent } from '@tiptap/core'
 import type { Editor } from '@tiptap/vue-3'
 import { useCompletion } from '@ai-sdk/vue'
 import { getApiErrorMessage } from '#shared/api-error'
@@ -147,6 +148,14 @@ function applyProofreadDecisions(
     next = `${next.slice(0, item.start)}${item.suggestion}${next.slice(item.end)}`
   }
   return next
+}
+
+/** Insert plain review text without markdown parsing (`*`, `_`, `#` stay literal). */
+function plainReviewTextToDocContent(text: string): JSONContent[] {
+  return text.split('\n').map(line => ({
+    type: 'paragraph',
+    content: line ? [{ type: 'text', text: line }] : [],
+  }))
 }
 
 /**
@@ -754,7 +763,7 @@ export function useEditorCompletion(
     editor.chain()
       .focus()
       .deleteRange({ from: current.range.from, to: current.range.to })
-      .insertContentAt(current.range.from, nextText, { contentType: 'markdown' })
+      .insertContentAt(current.range.from, plainReviewTextToDocContent(nextText))
       .run()
     clearReview()
   }
