@@ -1,6 +1,7 @@
 import { defineSitemapEventHandler } from "#imports";
 import type { SitemapUrlInput } from "#sitemap/types";
 import { generateSlug } from "~/utils/format";
+import { SITEMAP_EXCLUDED_PAGE_PATHS } from "~/utils/redirect";
 import type { Article, Page, Recipe } from "~/types/strapiMeta";
 import { serverCmsFindAll } from "../../utils/sitemap-cms";
 
@@ -32,8 +33,12 @@ export default defineSitemapEventHandler(async (): Promise<SitemapUrlInput[]> =>
   ];
 
   for (const doc of pages) {
+    const loc = generateSlug(doc.slug ?? "", doc.parent);
+    if (SITEMAP_EXCLUDED_PAGE_PATHS.has(loc)) {
+      continue;
+    }
     urls.push({
-      loc: generateSlug(doc.slug ?? "", doc.parent),
+      loc,
       lastmod: toSitemapLastmod(doc.updatedAt),
       priority: 0.8,
       changefreq: "daily",
