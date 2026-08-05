@@ -2,7 +2,7 @@ import { generateText } from 'ai'
 import { z } from 'zod'
 import { EDITOR_COMPLETION_MODEL } from '../../../shared/workers-ai-model'
 import type { ProofreadCorrection } from '../../../shared/editor-completion-modes'
-import { isPlausibleSpellingFix } from '../../../shared/proofread-sanitize'
+import { isPlausibleSpellingFix } from '#shared/proofread-sanitize'
 import { createCmsWorkersAI } from '../../utils/cms-workers-ai'
 import { resolveVisibleCompletionText } from '../../utils/editor-completion-output'
 

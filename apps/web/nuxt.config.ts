@@ -8,6 +8,8 @@ const webRoot = fileURLToPath(new URL(".", import.meta.url));
 
 const skewProtectionKvNamespaceId =
   process.env.SKEW_PROTECTION_KV_NAMESPACE_ID || "skew-protection-local";
+/** Build-time KV uploads need Wrangler + API token; skip locally so `pnpm build` works offline. */
+const skewProtectionBundleAssets = Boolean(process.env.CLOUDFLARE_API_TOKEN);
 
 const siteUrl = process.env.NUXT_PUBLIC_SITE_URL || "https://journalducuistot.fr";
 const siteOrigin = siteUrl.replace(/\/$/, "");
@@ -212,6 +214,7 @@ export default defineNuxtConfig({
 
   skewProtection: {
     updateStrategy: "polling",
+    bundleAssets: skewProtectionBundleAssets,
     storage: {
       driver: "cloudflare-kv-binding",
       binding: "SKEW_PROTECTION",

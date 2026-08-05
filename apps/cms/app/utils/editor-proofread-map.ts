@@ -1,6 +1,6 @@
 import type { Node as PmNode } from '@tiptap/pm/model'
-import type { ProofreadCorrection } from '../../shared/editor-completion-modes'
-import { isPlausibleSpellingFix } from '../../shared/proofread-sanitize'
+import type { ProofreadCorrection } from '#shared/editor-completion-modes'
+import { isPlausibleSpellingFix } from '#shared/proofread-sanitize'
 
 const MAX_CORRECTION_CHARS = 48
 
