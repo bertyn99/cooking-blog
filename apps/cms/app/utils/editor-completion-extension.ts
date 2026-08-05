@@ -32,7 +32,7 @@ export interface CompletionOptions {
   debounce?: number
   autoTrigger?: boolean
   triggerCharacters?: string[]
-  onTrigger?: (editor: Editor) => void
+  onTrigger?: (editor: Editor) => boolean | void
   onAccept?: () => void
   onDismiss?: () => void
 }
@@ -107,6 +107,8 @@ export const EditorCompletionExtension = Extension.create<CompletionOptions, Com
               const span = document.createElement('span')
               span.className = 'completion-suggestion'
               span.textContent = storage.suggestion
+              // Match nuxt-ui-templates/editor ghost styling (no project CSS required).
+              span.style.cssText = 'color: var(--ui-text-muted); opacity: 0.6; pointer-events: none;'
               return span
             }, { side: 1 })
 
@@ -124,11 +126,14 @@ export const EditorCompletionExtension = Extension.create<CompletionOptions, Com
           this.storage.clearSuggestion()
           this.options.onDismiss?.()
         }
-        // Manual invoke: skip auto-trigger guards (punctuation / end-of-block).
         const { selection } = editor.state
         this.storage.position = selection.from
+        const triggered = this.options.onTrigger?.(editor as Editor)
+        if (triggered === false) {
+          this.storage.position = undefined
+          return true
+        }
         this.storage.visible = true
-        this.options.onTrigger?.(editor as Editor)
         return true
       },
       Tab: ({ editor }) => {
@@ -158,6 +163,8 @@ export const EditorCompletionExtension = Extension.create<CompletionOptions, Com
   },
 
   onUpdate({ editor }) {
+    // Only dismiss ghost suggestions — toolbar Continuer streams via insertState
+    // and must not be aborted when the bubble menu closes.
     if (this.storage.visible) {
       this.storage.clearSuggestion()
       editor.view.dispatch(editor.state.tr.setMeta(completionUpdateMetaKey, true))
@@ -203,8 +210,12 @@ export const EditorCompletionExtension = Extension.create<CompletionOptions, Com
       }
 
       storage.position = selection.from
+      const triggered = options.onTrigger(editor)
+      if (triggered === false) {
+        storage.position = undefined
+        return
+      }
       storage.visible = true
-      options.onTrigger(editor)
     }, options.debounce || 250)
   },
 

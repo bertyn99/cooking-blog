@@ -37,9 +37,11 @@ export function buildEditorCompletionConfig(
           'You are a writing assistant.',
           `Extend the text with useful culinary detail while keeping the same tone. ${FRENCH_COPY}`,
           PRESERVE_MARKDOWN,
+          'Put the extended article text in your final answer content (not only in reasoning).',
           'Only output the extended text, nothing else.',
         ].join(' '),
-        maxOutputTokens: 500,
+        // Headroom for Gemma reasoning tokens + visible extended text.
+        maxOutputTokens: 1024,
       }
     case 'reduce':
       return {
@@ -90,12 +92,15 @@ export function buildEditorCompletionConfig(
           FRENCH_COPY,
           'CRITICAL RULES:',
           '- Output ONLY the NEW text that comes AFTER the user\'s input',
-          '- NEVER repeat words from the end of the user\'s text',
+          '- NEVER repeat any words from the end of the user\'s text',
           '- Keep completions short (one sentence max)',
           '- Match the tone and style of the existing text',
+          '- Put the completion in your final answer content (not only in reasoning)',
           `- ${PRESERVE_MARKDOWN}`,
         ].join('\n'),
-        maxOutputTokens: 40,
+        // Gemma may spend tokens on reasoning first — budget must leave room
+        // for the visible one-sentence completion TipTap inserts.
+        maxOutputTokens: 256,
       }
     default: {
       const _exhaustive: never = mode

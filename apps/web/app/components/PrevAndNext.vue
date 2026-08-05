@@ -1,18 +1,23 @@
 <script lang="ts" setup>
-const { prev, next } = defineProps({
-  prev: String,
-  next: String,
-});
+const { prev, next } = defineProps<{
+  prev?: string;
+  next?: string;
+}>();
+
+const hasPrev = computed(() => Boolean(prev?.trim()) && prev !== "undefined");
+const hasNext = computed(() => Boolean(next?.trim()) && next !== "undefined");
 </script>
 
 <template>
   <div
+    v-if="hasPrev || hasNext"
     class="flex relative justify-between items-center p-0 my-4 leading-6 align-baseline border-0 text-stone-500"
   >
     <NuxtLink
+      v-if="hasPrev"
       itemprop="url"
       class="flex relative items-center h-4 text-black align-baseline border-0 cursor-pointer hover:text-stone-500 after:content-[''] after:absolute after:-z-10 after:w-1/2 after:h-full after:bg-amber-200 after:transition-all after:ease-out hover:after:w-full"
-      :to="`/blog/${prev}`"
+      :to="prev!"
     >
       <Icon name="heroicons:arrow-long-left-solid" class="h-4 w-4 mr-3 ml-0" />
       <span
@@ -21,10 +26,12 @@ const { prev, next } = defineProps({
         >Previous</span
       >
     </NuxtLink>
+    <span v-else />
     <NuxtLink
+      v-if="hasNext"
       itemprop="url"
       class="flex relative flex-row-reverse items-center h-4 text-black align-baseline border-0 cursor-pointer hover:text-stone-500 after:content-[''] after:absolute after:w-1/2 after:-z-10 after:h-full after:bg-amber-200 after:transition-all after:ease-out hover:after:w-full"
-      :to="`/blog/${next}`"
+      :to="next!"
     >
       <Icon name="heroicons:arrow-long-right" class="h-4 w-4 mr-0 ml-3" />
       <span

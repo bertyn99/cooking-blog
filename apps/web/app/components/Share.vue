@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { SITE_AUTHOR_NAME } from "~/composables/useSitePageUrl";
+
 const props = defineProps({
   date: {
     type: String,
@@ -21,6 +23,7 @@ const dateFormatted = useDateFormat(props.date, "DD-MM-YYYY");
       <nuxt-img
         data-del="avatar"
         src="/img/author.jpg"
+        :alt="`Portrait de ${SITE_AUTHOR_NAME}`"
         class="max-w-full h-auto leading-6 text-black align-middle cursor-pointer rounded-full"
         height="48"
         width="48"

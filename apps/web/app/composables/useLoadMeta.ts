@@ -1,5 +1,6 @@
 import type { MetaData, MetaOption } from "~/types/meta";
 import { absoluteSiteUrl, siteUrlOrigin } from "~/composables/useSitePageUrl";
+import { formatOpenGraphDateTime } from "~/utils/open-graph-date";
 
 export const useLoadMeta = (metaOption: MetaOption): MetaData => {
   const site = useSiteConfig();
@@ -25,7 +26,7 @@ export const useLoadMeta = (metaOption: MetaOption): MetaData => {
   const image =
     absoluteSiteUrl(site.url, metaOption.image) || defaultImage;
 
-  const isArticle = Boolean(metaOption.articleDatePublished);
+  const isArticle = Boolean(formatOpenGraphDateTime(metaOption.articleDatePublished));
 
   const metaData: MetaData = {
     type: isArticle ? "article" : "website",
@@ -51,11 +52,13 @@ export const useLoadMeta = (metaOption: MetaOption): MetaData => {
   if (metaOption.author) {
     metaData.author = metaOption.author;
   }
-  if (metaOption.articleDatePublished) {
-    metaData.articleDatePublished = metaOption.articleDatePublished;
+  const published = formatOpenGraphDateTime(metaOption.articleDatePublished);
+  const modified = formatOpenGraphDateTime(metaOption.articleDateModified);
+  if (published) {
+    metaData.articleDatePublished = published;
   }
-  if (metaOption.articleDateModified) {
-    metaData.articleDateModified = metaOption.articleDateModified;
+  if (modified) {
+    metaData.articleDateModified = modified;
   }
 
   return metaData;

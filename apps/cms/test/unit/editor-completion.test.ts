@@ -11,9 +11,13 @@ import {
 describe('editor-completion', () => {
   it('builds continue mode with short token budget', () => {
     const config = buildEditorCompletionConfig('continue')
-    expect(config.maxOutputTokens).toBe(40)
+    expect(config.maxOutputTokens).toBe(256)
     expect(config.system).toContain('inline autocompletions')
     expect(config.cacheTtl).toBeUndefined()
+  })
+
+  it('gives extend enough tokens for Gemma reasoning + text', () => {
+    expect(buildEditorCompletionConfig('extend').maxOutputTokens).toBe(1024)
   })
 
   it('includes target language for translate mode', () => {

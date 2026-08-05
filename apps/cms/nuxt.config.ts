@@ -1,4 +1,34 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+function writeDevWranglerConfig(nitroConfig: {
+  dev?: boolean
+  rootDir?: string
+  compatibilityDate?: { cloudflare?: string, default?: string }
+  cloudflare?: { deployConfig?: boolean, wrangler?: Record<string, unknown> }
+}) {
+  if (!nitroConfig.dev || !nitroConfig.cloudflare?.deployConfig || !nitroConfig.rootDir) {
+    return
+  }
+  const wrangler = { ...(nitroConfig.cloudflare.wrangler ?? {}) }
+  // Workflows need a deployed `script_name`; omit them in local getPlatformProxy
+  // to avoid Wrangler’s noisy “not available in local development” warning.
+  delete wrangler.workflows
+  const devWrangler = {
+    ...wrangler,
+    name: 'jdc-cms-local',
+    compatibility_date:
+      nitroConfig.compatibilityDate?.cloudflare
+      ?? nitroConfig.compatibilityDate?.default
+      ?? '2026-05-27',
+  }
+  const dir = join(nitroConfig.rootDir, '.wrangler/dev')
+  const path = join(dir, 'wrangler.json')
+  mkdirSync(dir, { recursive: true })
+  writeFileSync(path, JSON.stringify(devWrangler, null, 2))
+}
+
 export default defineNuxtConfig({
   devServer: {
     port: 3001
@@ -60,6 +90,10 @@ export default defineNuxtConfig({
     compatibilityDate: '2026-05-27',
     cloudflare: {
       deployConfig: true,
+      dev: {
+        // Generated on dev start from `cloudflare.wrangler` below (bindings-only for getPlatformProxy).
+        configPath: '.wrangler/dev/wrangler.json',
+      },
       wrangler: {
         compatibility_flags: ['nodejs_compat'],
         d1_databases: [
@@ -83,6 +117,7 @@ export default defineNuxtConfig({
         ],
         ai: {
           binding: 'AI',
+          remote: true,
         },
         workflows: [
           {
@@ -131,5 +166,11 @@ export default defineNuxtConfig({
       service: 'journalducuistot-cms',
     },
     include: ['/api/**'],
+  },
+
+  hooks: {
+    'nitro:config'(nitroConfig) {
+      writeDevWranglerConfig(nitroConfig)
+    },
   },
 })

@@ -1,4 +1,6 @@
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import { SITE_AUTHOR_NAME } from "~/composables/useSitePageUrl";
+</script>
 
 <template>
   <aside class="w-full lg:w-1/4 space-y-8">
@@ -12,6 +14,7 @@
       <nuxt-img
         data-del="avatar"
         src="/img/author.jpg"
+        :alt="`Portrait de ${SITE_AUTHOR_NAME}`"
         class="max-w-full h-auto rounded-full leading-6 text-center text-black align-middle cursor-pointer"
         height="138"
         width="138"

@@ -32,8 +32,15 @@ const editorComponentRef = useTemplateRef('editorComponentRef')
 
 const {
   extension: completionExtension,
+  highlightExtension: aiHighlightExtension,
   handlers: aiHandlers,
   isLoading: aiLoading,
+  review: aiReview,
+  acceptReview,
+  refuseReview,
+  redoReview,
+  setActiveVariant,
+  setProofreadDecision,
 } = useEditorCompletion(editorComponentRef)
 
 const editorHandlers = {
@@ -336,12 +343,17 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
         class="w-full"
         :class="embedded ? 'min-h-[20rem]' : 'min-h-[22rem]'"
         :handlers="editorHandlers"
+        :editor-props="{
+          attributes: {
+            spellcheck: aiReview?.kind === 'proofread' ? 'false' : 'true',
+          },
+        }"
         :starter-kit="{
           headings: { levels: [2, 3, 4] },
           link: { openOnClick: false },
         }"
         :image="false"
-        :extensions="[ContentImage, ContentCallout, ContentGridColumn, ContentGrid, completionExtension]"
+        :extensions="[ContentImage, ContentCallout, ContentGridColumn, ContentGrid, completionExtension, aiHighlightExtension]"
         :ui="{
           root: 'flex min-h-0 flex-1 flex-col',
           content: 'min-h-0 flex-1',
@@ -469,6 +481,17 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
           :should-show="imageBubbleShouldShow"
         />
       </UEditor>
+
+      <ContentEditorAiReviewPanel
+        v-if="aiReview && !preview"
+        :review="aiReview"
+        :busy="aiLoading"
+        @accept="acceptReview"
+        @refuse="refuseReview"
+        @redo="redoReview"
+        @update:active-variant="setActiveVariant"
+        @update:proofread-decision="setProofreadDecision"
+      />
 
       <ContentEditorImageSettings
         v-model:open="imageSettingsOpen"

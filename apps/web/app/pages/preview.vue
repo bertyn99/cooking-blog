@@ -12,8 +12,8 @@ const { slug, type } = route.query;
 
 if (!slug || !type) {
   throw createError({
-    statusCode: 400,
-    statusMessage: "Missing required query parameters: slug and type",
+    statusCode: 404,
+    statusMessage: "Not Found",
   });
 }
 

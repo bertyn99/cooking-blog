@@ -187,3 +187,41 @@ pnpm preview          # Preview production build
 - **`app.vue:11` has `@todo`** — Schema.org identity selection (Organization vs Person) still pending.
 
 See `app/components/AGENTS.md` for the component domain guide and `server/AGENTS.md` for Nitro routes.
+
+---
+
+## NOTION TRACKING
+
+> Suivi du projet dans Notion, DB "Client project".
+
+### Page projet
+
+- **Page Notion**: https://app.notion.com/p/Journal-du-Cuistot-358827538c8a81aabd46eb6ccbf291b2
+- **Page ID**: `35882753-8c8a-81aa-bd46-eb6ccbf291b2`
+
+### Mettre a jour la page
+
+```bash
+# Lire la page (statut, notes)
+ntn api v1/pages/35882753-8c8a-81aa-bd46-eb6ccbf291b2
+
+# Mettre a jour le statut et les notes
+ntn api v1/pages/35882753-8c8a-81aa-bd46-eb6ccbf291b2 -X PATCH properties:='{"Status":{"status":{"name":"Dev"}},"Notes":{"rich_text":[{"text":{"content":"..."}}]}}'
+
+# Ajouter un block au body (heading_2, paragraph, bulleted_list_item...)
+ntn api v1/blocks/35882753-8c8a-81aa-bd46-eb6ccbf291b2/children -X PATCH 'children[0][type]=heading_2' 'children[0][heading_2][rich_text][0][text][content]=Stat'
+```
+
+### Ajouter une tache a la todo globale (DB Taches)
+
+Toute tache a faire se cree dans la DB Taches (`35782753-8c8a-8165-9068-eb0a4899acc6`) avec la relation `Projet` vers cette page. Elle apparait alors sur le kanban du projet.
+
+```bash
+ntn api v1/pages -X POST \
+  parent[data_source_id]=35782753-8c8a-8108-99cd-000b85e41234 \
+  properties:='{"Name":{"title":[{"text":{"content":"Titre de la tache"}}]},"Statut":{"status":{"name":"À faire"}},"Projet":{"relation":[{"id":"35882753-8c8a-81aa-bd46-eb6ccbf291b2"}]},"Priorité":{"select":{"name":"Moyenne"}},"Type":{"select":{"name":"Projet"}}}'
+```
+
+Statuts: À faire, En cours, En attente, Fait, Annulé. Priorites: Urgent, Haute, Moyenne, Basse. Types: Projet, Opérationnel, Contenu, Administratif.
+ 
+Prochaine tache connue: audit SEO avec nuxt-seo-pro sur le nouveau CMS (voir contexte dans les Notes de la page).
