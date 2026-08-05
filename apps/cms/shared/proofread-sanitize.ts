@@ -51,3 +51,13 @@ export function isPlausibleSpellingFix(original: string, suggestion: string): bo
       : Math.min(3, Math.ceil(left.length * 0.25))
   return dist > 0 && dist <= maxDist
 }
+
+export const PROOFREAD_MAX_CORRECTION_CHARS = 48
+
+/** Max character span for a single orthographe correction (aligned client + server). */
+export function proofreadMaxSpanChars(textLength: number): number {
+  return Math.min(
+    PROOFREAD_MAX_CORRECTION_CHARS,
+    Math.max(12, Math.floor(textLength * 0.35)),
+  )
+}

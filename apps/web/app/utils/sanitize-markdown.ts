@@ -10,14 +10,19 @@ export function sanitizePublicMarkdown(markdown: string): string {
   output = output.replace(/\/blog\/undefined(?=[/"'\s)>]|$)/g, "/blog/uncategorized");
 
   output = output.replace(
-    /\/uploads\/[^"'()\s]*undefinedundefined/g,
-    "",
-  );
+    /!\[[^\]]*]\([^)]*undefinedundefined[^)]*\)/g,
+    '',
+  )
 
   output = output.replace(
-    /\/images\/[^"'()\s]*undefinedundefined/g,
-    "",
-  );
+    /\/uploads\/[^"'()\s]*undefinedundefined[^"'()\s]*/g,
+    '',
+  )
+
+  output = output.replace(
+    /\/images\/[^"'()\s]*undefinedundefined[^"'()\s]*/g,
+    '',
+  )
 
   return output;
 }

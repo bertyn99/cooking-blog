@@ -1,8 +1,6 @@
 import type { Node as PmNode } from '@tiptap/pm/model'
 import type { ProofreadCorrection } from '#shared/editor-completion-modes'
-import { isPlausibleSpellingFix } from '#shared/proofread-sanitize'
-
-const MAX_CORRECTION_CHARS = 48
+import { isPlausibleSpellingFix, proofreadMaxSpanChars } from '../../shared/proofread-sanitize'
 
 /**
  * Map a UTF-16 offset inside `doc.textBetween(rangeFrom, rangeTo, blockSeparator)`
@@ -23,8 +21,12 @@ export function plainOffsetToDocPos(
   let mapped = rangeFrom
   let seenText = false
   let lastTextParent: PmNode | null = null
+  let done = false
 
   doc.nodesBetween(rangeFrom, rangeTo, (node, pos, parent) => {
+    if (done) {
+      return false
+    }
     if (!node.isText || !parent) {
       return
     }
@@ -32,6 +34,7 @@ export function plainOffsetToDocPos(
     if (seenText && parent !== lastTextParent && blockSeparator) {
       if (remaining <= blockSeparator.length) {
         mapped = Math.max(pos, rangeFrom)
+        done = true
         return false
       }
       remaining -= blockSeparator.length
@@ -49,6 +52,7 @@ export function plainOffsetToDocPos(
 
     if (remaining <= len) {
       mapped = from + remaining
+      done = true
       return false
     }
 
@@ -88,7 +92,7 @@ export function sanitizeProofreadCorrections(
   text: string,
   corrections: ProofreadCorrection[],
 ): ProofreadCorrection[] {
-  const maxSpan = Math.min(MAX_CORRECTION_CHARS, Math.max(12, Math.floor(text.length * 0.35)))
+  const maxSpan = proofreadMaxSpanChars(text.length)
   const seen = new Set<string>()
   const out: ProofreadCorrection[] = []
 

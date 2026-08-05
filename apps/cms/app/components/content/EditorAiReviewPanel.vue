@@ -166,6 +166,13 @@ function setVariant(index: number) {
 function setDecision(id: string, decision: 'accept' | 'reject' | 'pending') {
   emit('update:proofreadDecision', id, decision)
 }
+
+useFocusTrap(panelRef, { immediate: true })
+
+onKeyStroke('Escape', (event) => {
+  event.preventDefault()
+  emit('refuse')
+})
 </script>
 
 <template>
@@ -174,6 +181,7 @@ function setDecision(id: string, decision: 'accept' | 'reject' | 'pending') {
       ref="panelRef"
       class="ai-review-panel fixed z-50 max-h-[min(72vh,36rem)] overflow-y-auto rounded-lg border border-default bg-elevated p-3 shadow-lg sm:p-4"
       role="dialog"
+      aria-modal="true"
       :aria-label="title"
       :aria-busy="isStreaming"
       :style="panelStyle"

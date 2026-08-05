@@ -34,13 +34,13 @@ describe('editor-completion-output', () => {
     })).toBe('aromatisé au cumin et au paprika.')
   })
 
-  it('extracts the last prose paragraph from unstructured reasoning', () => {
+  it('does not treat unstructured reasoning as completion text', () => {
     expect(extractAnswerFromReasoning([
       'Let me think about a natural continuation.',
       '',
       'I should keep the French cooking tone.',
       '',
       'servi avec une sauce au citron.',
-    ].join('\n'))).toBe('servi avec une sauce au citron.')
+    ].join('\n'))).toBe('')
   })
 })

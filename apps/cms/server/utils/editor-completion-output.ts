@@ -62,15 +62,5 @@ export function extractAnswerFromReasoning(reasoning: string): string {
     return lastFence
   }
 
-  const paragraphs = reasoning
-    .split(/\n\s*\n/)
-    .map(part => part.trim())
-    .filter(Boolean)
-
-  const prose = [...paragraphs].reverse().find(paragraph =>
-    paragraph.length >= 12
-    && !/^(let me|i need|i should|the user|thinking|step\s*\d)/i.test(paragraph),
-  )
-
-  return prose ?? paragraphs.at(-1) ?? reasoning.trim()
+  return ''
 }

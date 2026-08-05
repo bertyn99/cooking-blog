@@ -37,10 +37,12 @@ export default defineEventHandler(async (event) => {
 
   const env = getCloudflareEnv(event)
   if (!env?.AI) {
-    throw createError({
-      statusCode: 503,
-      statusMessage: 'Workers AI n’est pas configuré.',
-    })
+    throw createApiError(
+      'INTERNAL_ERROR',
+      'Workers AI n’est pas configuré.',
+      undefined,
+      { why: 'Binding AI absent sur cet environnement.' },
+    )
   }
 
   const gatewayId = import.meta.dev
@@ -61,10 +63,11 @@ export default defineEventHandler(async (event) => {
   }
   catch (error) {
     console.error('[proofread] failed', error)
-    throw createError({
-      statusCode: 502,
-      message: 'Échec de l’analyse orthographique.',
-      cause: error,
-    })
+    throw createApiError(
+      'INTERNAL_ERROR',
+      'Échec de l’analyse orthographique.',
+      undefined,
+      { why: error instanceof Error ? error.message : 'Erreur inconnue' },
+    )
   }
 })

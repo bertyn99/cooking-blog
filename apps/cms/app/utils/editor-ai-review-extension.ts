@@ -53,7 +53,21 @@ export const AiReviewHighlightExtension = Extension.create<
             return 0
           },
           apply(tr, tick) {
-            if (tr.getMeta(aiReviewHighlightUpdateMeta)) {
+            if (tr.docChanged && storage.ranges.length) {
+              const docSize = tr.doc.content.size
+              storage.ranges = storage.ranges
+                .map((range) => {
+                  const from = tr.mapping.map(range.from, -1)
+                  const to = tr.mapping.map(range.to, 1)
+                  return { ...range, from, to }
+                })
+                .filter(range =>
+                  range.to > range.from
+                  && range.from >= 0
+                  && range.to <= docSize,
+                )
+            }
+            if (tr.getMeta(aiReviewHighlightUpdateMeta) || tr.docChanged) {
               return tick + 1
             }
             return tick
@@ -66,7 +80,7 @@ export const AiReviewHighlightExtension = Extension.create<
             }
 
             const decorations = storage.ranges
-              .filter(range => range.to > range.from)
+              .filter(range => range.to > range.from && range.from >= 0 && range.to <= state.doc.content.size)
               .map((range) => {
                 const className = range.kind === 'old'
                   ? 'ai-review-old'

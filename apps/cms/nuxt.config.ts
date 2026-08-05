@@ -16,12 +16,12 @@ function writeDevWranglerConfig(nitroConfig: {
   // to avoid Wrangler’s noisy “not available in local development” warning.
   delete wrangler.workflows
   const devWrangler = {
+    ...wrangler,
     name: 'jdc-cms-local',
     compatibility_date:
       nitroConfig.compatibilityDate?.cloudflare
       ?? nitroConfig.compatibilityDate?.default
       ?? '2026-05-27',
-    ...wrangler,
   }
   const dir = join(nitroConfig.rootDir, '.wrangler/dev')
   const path = join(dir, 'wrangler.json')

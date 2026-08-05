@@ -345,7 +345,7 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
         :handlers="editorHandlers"
         :editor-props="{
           attributes: {
-            spellcheck: 'false',
+            spellcheck: aiReview?.kind === 'proofread' ? 'false' : 'true',
           },
         }"
         :starter-kit="{

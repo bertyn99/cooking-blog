@@ -228,21 +228,30 @@ export function useEditorCompletion(
       return null
     }
 
-    const { from, to } = current.range
-    const start = editor.view.coordsAtPos(from)
-    const endPos = Math.max(from, Math.min(to, editor.state.doc.content.size) - (to > from ? 1 : 0))
-    const end = editor.view.coordsAtPos(endPos)
+    try {
+      const docSize = editor.state.doc.content.size
+      const { from, to } = current.range
+      const safeFrom = Math.max(0, Math.min(from, docSize))
+      const endPos = Math.max(
+        safeFrom,
+        Math.min(to, docSize) - (to > safeFrom ? 1 : 0),
+      )
+      const start = editor.view.coordsAtPos(safeFrom)
+      const end = editor.view.coordsAtPos(endPos)
 
-    // Use the editor chrome width so the panel fills available horizontal space.
-    const host = editor.view.dom.closest('.cms-markdown-editor') as HTMLElement | null
-    const box = (host ?? editor.view.dom).getBoundingClientRect()
-    const pad = 8
+      const host = editor.view.dom.closest('.cms-markdown-editor') as HTMLElement | null
+      const box = (host ?? editor.view.dom).getBoundingClientRect()
+      const pad = 8
 
-    return {
-      top: Math.min(start.top, end.top),
-      bottom: Math.max(start.bottom, end.bottom),
-      left: box.left + pad,
-      right: box.right - pad,
+      return {
+        top: Math.min(start.top, end.top),
+        bottom: Math.max(start.bottom, end.bottom),
+        left: box.left + pad,
+        right: box.right - pad,
+      }
+    }
+    catch {
+      return null
     }
   }
 
@@ -454,6 +463,8 @@ export function useEditorCompletion(
     session.value = { ...current }
     paintSessionHighlights(current)
 
+    const variantBuffers = ['', '']
+
     try {
       await Promise.all([0, 1].map(async (index) => {
         await streamCompletionText({
@@ -466,11 +477,10 @@ export function useEditorCompletion(
             if (!session.value || session.value.abort !== abort) {
               return
             }
-            const variants = [...session.value.variants]
-            variants[index] = text
+            variantBuffers[index] = text
             session.value = {
               ...session.value,
-              variants,
+              variants: [...variantBuffers],
               status: 'streaming',
             }
           },
@@ -661,6 +671,14 @@ export function useEditorCompletion(
     return editor.state.doc.textBetween(from, to, '\n')
   }
 
+  function reviewRangeStillValid(editor: Editor, from: number, to: number, expected: string): boolean {
+    const docSize = editor.state.doc.content.size
+    if (from < 0 || to > docSize || from > to) {
+      return false
+    }
+    return stateTextBetween(editor, from, to) === expected
+  }
+
   function acceptReview() {
     const current = session.value
     const editor = resolveEditor()
@@ -671,6 +689,15 @@ export function useEditorCompletion(
     if (current.kind === 'continue') {
       const text = current.variants[0]?.trim()
       if (!text) {
+        return
+      }
+      const docSize = editor.state.doc.content.size
+      if (current.range.from < 0 || current.range.from > docSize) {
+        toast.add({
+          title: 'Assistance IA',
+          description: 'Le document a changé. Relancez la génération.',
+          color: 'warning',
+        })
         return
       }
       let insert = text
@@ -691,6 +718,14 @@ export function useEditorCompletion(
       if (!text) {
         return
       }
+      if (!reviewRangeStillValid(editor, current.range.from, current.range.to, current.original)) {
+        toast.add({
+          title: 'Assistance IA',
+          description: 'La sélection a changé. Relancez la reformulation.',
+          color: 'warning',
+        })
+        return
+      }
       editor.chain()
         .focus()
         .deleteRange({ from: current.range.from, to: current.range.to })
@@ -707,10 +742,19 @@ export function useEditorCompletion(
       return
     }
 
+    if (!reviewRangeStillValid(editor, current.range.from, current.range.to, current.original)) {
+      toast.add({
+        title: 'Orthographe',
+        description: 'La sélection a changé. Relancez l’analyse.',
+        color: 'warning',
+      })
+      return
+    }
+
     editor.chain()
       .focus()
       .deleteRange({ from: current.range.from, to: current.range.to })
-      .insertContentAt(current.range.from, nextText)
+      .insertContentAt(current.range.from, nextText, { contentType: 'markdown' })
       .run()
     clearReview()
   }
@@ -757,12 +801,13 @@ export function useEditorCompletion(
   const extension = EditorCompletionExtension.configure({
     onTrigger: (editor) => {
       if (isLoading.value || session.value) {
-        return
+        return false
       }
       activeEditor.value = editor
       mode.value = 'continue'
       language.value = undefined
       void ghostComplete(getMarkdownBefore(editor, editor.state.selection.from))
+      return true
     },
     onAccept: () => {
       setGhostCompletion('')

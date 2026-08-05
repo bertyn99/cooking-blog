@@ -15,7 +15,7 @@ describe('normalizeProofreadCorrections', () => {
     expect(result[0]?.suggestion).toBe('poulet')
   })
 
-  it('repairs bad offsets via indexOf', () => {
+  it('repairs bad offsets via closest indexOf match', () => {
     const text = 'Le poulait est delicieux.'
     const result = normalizeProofreadCorrections(text, [{
       original: 'delicieux',
@@ -26,6 +26,19 @@ describe('normalizeProofreadCorrections', () => {
     }])
     expect(result).toHaveLength(1)
     expect(result[0]?.start).toBe(text.indexOf('delicieux'))
+  })
+
+  it('picks the occurrence nearest model start when duplicated', () => {
+    const text = 'foo bar foo baz'
+    const result = normalizeProofreadCorrections(text, [{
+      original: 'foo',
+      suggestion: 'fou',
+      message: 'Typo',
+      start: 8,
+      end: 11,
+    }])
+    expect(result).toHaveLength(1)
+    expect(result[0]?.start).toBe(8)
   })
 
   it('drops no-ops and oversized spans', () => {

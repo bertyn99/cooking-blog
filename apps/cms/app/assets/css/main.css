@@ -199,7 +199,8 @@
   /* Proofread: only the wrong token — not the whole paragraph */
   .cms-markdown-editor .ProseMirror .ai-review-error {
     background-color: color-mix(in oklab, var(--ui-warning) 28%, transparent);
-    border-bottom: 2px wavy color-mix(in oklab, var(--ui-error) 85%, transparent);
+    text-decoration: underline wavy color-mix(in oklab, var(--ui-error) 85%, transparent);
+    text-underline-offset: 2px;
     border-radius: 2px;
   }
 

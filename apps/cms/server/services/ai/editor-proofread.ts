@@ -2,7 +2,7 @@ import { generateText } from 'ai'
 import { z } from 'zod'
 import { EDITOR_COMPLETION_MODEL } from '../../../shared/workers-ai-model'
 import type { ProofreadCorrection } from '../../../shared/editor-completion-modes'
-import { isPlausibleSpellingFix } from '#shared/proofread-sanitize'
+import { isPlausibleSpellingFix, proofreadMaxSpanChars } from '../../../shared/proofread-sanitize'
 import { createCmsWorkersAI } from '../../utils/cms-workers-ai'
 import { resolveVisibleCompletionText } from '../../utils/editor-completion-output'
 
@@ -39,13 +39,24 @@ export function normalizeProofreadCorrections(
 
     const slice = text.slice(start, end)
     if (slice !== item.original) {
-      const fromCursor = text.indexOf(item.original, cursor)
-      const anywhere = fromCursor === -1 ? text.indexOf(item.original) : fromCursor
-      if (anywhere === -1) {
+      const candidates: number[] = []
+      let searchFrom = 0
+      while (searchFrom <= text.length) {
+        const idx = text.indexOf(item.original, searchFrom)
+        if (idx === -1) {
+          break
+        }
+        candidates.push(idx)
+        searchFrom = idx + 1
+      }
+      if (!candidates.length) {
         continue
       }
-      start = anywhere
-      end = anywhere + item.original.length
+      const preferred = candidates.reduce((best, idx) =>
+        Math.abs(idx - item.start) < Math.abs(best - item.start) ? idx : best,
+      )
+      start = preferred
+      end = preferred + item.original.length
     }
 
     if (end <= start || end > text.length) {
@@ -64,7 +75,7 @@ export function normalizeProofreadCorrections(
   }
 
   // Drop no-ops, rewrites, and huge spans (whole-paragraph "corrections" confuse the UI).
-  const maxSpan = Math.min(48, Math.max(12, Math.floor(text.length * 0.35)))
+  const maxSpan = proofreadMaxSpanChars(text.length)
   return out.filter((item) => {
     if (item.end - item.start > maxSpan) {
       return false
@@ -76,22 +87,39 @@ export function normalizeProofreadCorrections(
   })
 }
 
-function extractJsonObject(raw: string): unknown {
-  const trimmed = raw.trim()
+function tryParseJson(raw: string): unknown {
   try {
-    return JSON.parse(trimmed)
+    return JSON.parse(raw)
   }
   catch {
-    const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i)
-    if (fenced?.[1]) {
-      return JSON.parse(fenced[1].trim())
-    }
-    const brace = trimmed.match(/\{[\s\S]*\}/)
-    if (brace) {
-      return JSON.parse(brace[0])
-    }
-    throw new Error('Réponse proofread non JSON')
+    return undefined
   }
+}
+
+function extractJsonObject(raw: string): unknown {
+  const trimmed = raw.trim()
+  const direct = tryParseJson(trimmed)
+  if (direct !== undefined) {
+    return direct
+  }
+
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i)
+  if (fenced?.[1]) {
+    const parsed = tryParseJson(fenced[1].trim())
+    if (parsed !== undefined) {
+      return parsed
+    }
+  }
+
+  const brace = trimmed.match(/\{[\s\S]*\}/)
+  if (brace) {
+    const parsed = tryParseJson(brace[0])
+    if (parsed !== undefined) {
+      return parsed
+    }
+  }
+
+  throw new Error('Réponse proofread non JSON')
 }
 
 export async function runEditorProofread(options: {
