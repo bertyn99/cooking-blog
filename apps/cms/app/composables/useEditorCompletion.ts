@@ -709,6 +709,15 @@ export function useEditorCompletion(
         })
         return
       }
+      const promptNow = getMarkdownBefore(editor, current.range.from)
+      if (promptNow !== current.prompt) {
+        toast.add({
+          title: 'Assistance IA',
+          description: 'Le document a changé. Relancez la génération.',
+          color: 'warning',
+        })
+        return
+      }
       let insert = text
       const textBefore = editor.state.doc.textBetween(
         Math.max(0, current.range.from - 1),
@@ -763,7 +772,12 @@ export function useEditorCompletion(
     editor.chain()
       .focus()
       .deleteRange({ from: current.range.from, to: current.range.to })
-      .insertContentAt(current.range.from, plainReviewTextToDocContent(nextText))
+      .insertContentAt(
+        current.range.from,
+        nextText.includes('\n')
+          ? plainReviewTextToDocContent(nextText)
+          : [{ type: 'text', text: nextText }],
+      )
       .run()
     clearReview()
   }

@@ -8,8 +8,8 @@ export function formatOpenGraphDateTime(value?: string | null): string | undefin
     return undefined
   }
 
-  const normalized = raw.includes('T') || raw.includes(' ')
-    ? raw.replace(' ', 'T')
+  const normalized = /[T\s]/.test(raw)
+    ? raw.replace(/\s+/, 'T')
     : `${raw}T12:00:00.000Z`
 
   const parsed = new Date(normalized)
