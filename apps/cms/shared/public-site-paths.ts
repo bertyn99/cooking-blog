@@ -24,11 +24,9 @@ export function pagePublicPath(slug: string, parent?: NestedPageParent | null): 
 }
 
 export function articlePublicPath(articleSlug: string, categorySlug?: string | null): string {
-  const category = categorySlug?.trim()
-  if (category) {
-    return `/blog/${category}/${articleSlug}`
-  }
-  return `/blog/${articleSlug}`
+  const slug = articleSlug.trim()
+  const category = categorySlug?.trim() || 'uncategorized'
+  return `/blog/${category}/${slug}`
 }
 
 export function recipePublicPath(recipeSlug: string): string {

@@ -22,10 +22,8 @@ export default defineEventHandler(async (event) => {
 
     if (response.data && response.data.length > 0) {
       const articleData = response.data[0];
-      const category = articleData?.category;
-      if (category && category.slug) {
-        return sendRedirect(event, `/blog/${category.slug}/${articleSlug}`, 301);
-      }
+      const categorySlug = articleData?.category?.slug?.trim() || "uncategorized";
+      return sendRedirect(event, `/blog/${categorySlug}/${articleSlug}`, 301);
     }
 
     throw createError({

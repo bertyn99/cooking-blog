@@ -7,6 +7,9 @@ const listRedirects: Record<string, NitroRouteConfig> = {
   "/techniques-de-culinaires/techniques-de-cuisson": {
     redirect: { to: "/techniques-culinaires/methodes-de-cuisson", statusCode: 301 },
   },
+  "/bases-culinaires/techniques-de-cuisson": {
+    redirect: { to: "/techniques-culinaires/methodes-de-cuisson", statusCode: 301 },
+  },
   "/recipe/tout-sur-le-the-indien": {
     redirect: { to: "/blog/tout-sur-le-the-indien", statusCode: 301 },
   },

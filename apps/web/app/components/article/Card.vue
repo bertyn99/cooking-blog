@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { useReadingTime } from "~/composables/useReadingTime";
 import type { Article, Category, Cover } from "~/types/strapiMeta";
+import { articlePublicPath } from "~/utils/article-path";
 
 const { post } = defineProps<{
   post: Article;
@@ -33,6 +34,10 @@ const responsiveCover = computed(() => {
               `;
 });
 const { minutes } = useReadingTime(post.content || "");
+
+const articleLink = computed(() =>
+  articlePublicPath(post.slug, category.value?.slug),
+);
 </script>
 
 <template>
@@ -41,7 +46,7 @@ const { minutes } = useReadingTime(post.content || "");
       class="block lg:flex relative justify-center items-center p-0 m-0 leading-6 align-baseline border-0 text-stone-500">
       <div class="overflow-hidden flex-grow lg:basis-[44%] flex-shrink p-0 m-0 align-baseline border-0">
         <div class="p-0 m-0 align-baseline border-0">
-          <nuxt-link itemprop="url" :to="`blog/${category?.slug}/${post.slug}`"
+          <nuxt-link itemprop="url" :to="articleLink"
             class="p-0 m-0 text-black align-baseline border-0 cursor-pointer hover:text-stone-500" style="
               outline: 0px;
               text-decoration: none;
@@ -68,7 +73,7 @@ const { minutes } = useReadingTime(post.content || "");
         </div>
         <h3 itemprop="name" class="p-0 m-0 font-serif text-2xl font-normal text-black align-baseline break-words">
           <NuxtLink itemprop="url" class="p-0 m-0 align-baseline border-0 cursor-pointer hover:text-stone-500"
-            :to="`blog/${category?.slug}/${post.slug}`" style="
+            :to="articleLink" style="
               outline: 0px;
               text-decoration: none;
               transition: color 0.2s ease-out 0s;

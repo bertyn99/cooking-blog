@@ -163,7 +163,6 @@ defineOgImage("Cooking", {
   <RecipeNutritional :data="formated" />
   <LazyRecipeSteps :steps="steps" />
   <LazyCta />
-  <LazyPrevAndNext class="print:hidden" />
   <LazySectionYouMayAlsoLike :category="String(categoryRecipe.id ?? 'cuisine-africaine')" type-content="recipes"
     class="print:hidden" />
 </template>

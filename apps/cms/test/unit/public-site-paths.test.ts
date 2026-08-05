@@ -12,6 +12,7 @@ describe('public-site-paths', () => {
 
   it('builds article and recipe paths', () => {
     expect(articlePublicPath('mon-article', 'desserts')).toBe('/blog/desserts/mon-article')
+    expect(articlePublicPath('mon-article')).toBe('/blog/uncategorized/mon-article')
     expect(recipePublicPath('tarte')).toBe('/recette/tarte')
   })
 })
