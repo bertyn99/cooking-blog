@@ -1,6 +1,6 @@
 import type { Node as PmNode } from '@tiptap/pm/model'
 import type { ProofreadCorrection } from '#shared/editor-completion-modes'
-import { isPlausibleSpellingFix, proofreadMaxSpanChars } from '../../shared/proofread-sanitize'
+import { isPlausibleSpellingFix, proofreadMaxSpanChars } from '#shared/proofread-sanitize'
 
 /**
  * Map a UTF-16 offset inside `doc.textBetween(rangeFrom, rangeTo, blockSeparator)`
