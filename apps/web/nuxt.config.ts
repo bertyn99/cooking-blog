@@ -134,6 +134,7 @@ export default defineNuxtConfig({
     description: siteDescription,
     defaultLocale: 'fr',
     identity: siteIdentity,
+    indexable: process.env.NUXT_SITE_INDEXABLE !== 'false',
   },
 
   seo: {
@@ -222,11 +223,13 @@ export default defineNuxtConfig({
   },
 
   umami: {
-    id: process.env.NUXT_PUBLIC_UMAMI_ID || process.env.NUXT_UMAMI_ID,
+    id: process.env.NUXT_UMAMI_ID,
     host: process.env.NUXT_UMAMI_HOST,
     autoTrack: true,
     ignoreLocalhost: true,
     enabled: true,
+    // Core Web Vitals (LCP, FCP, CLS, INP, TTFB) — requires Umami v3.1.0+
+    performance: true,
   },
 
   runtimeConfig: {

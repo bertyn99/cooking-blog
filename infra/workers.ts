@@ -10,6 +10,7 @@ import { CMS_AI_GATEWAY_ID } from '../apps/cms/shared/workers-ai-model.ts'
 /** Production custom domains (`stage === prod` only). Zone must exist on the Cloudflare account. */
 const PROD_WEB_HOST = 'journalducuistot.fr'
 const PROD_CMS_HOST = 'admin.journalducuistot.fr'
+const PROD_UMAMI_HOST = 'https://analytics.bertynboulikou.com'
 const CMS_DEV_PORT = 3001
 const WEB_DEV_PORT = 3000
 const CMS_ROOT_DIR = fileURLToPath(new URL('../apps/cms/', import.meta.url))
@@ -133,8 +134,9 @@ export const workers = Effect.fn(function* (input: {
     ? `https://${PROD_WEB_HOST}`
     : Config.string('NUXT_PUBLIC_SITE_URL').pipe(Config.withDefault('http://localhost:3000'))
   const ogImageSecret = Config.string('NUXT_OG_IMAGE_SECRET').pipe(Config.withDefault(''))
-  // Public analytics site id — prod only (preview/local stay without Umami).
+  // Umami — prod only (preview/local: no id/host → module stays in test mode).
   const umamiId = isProd ? '54df0335-b527-43b0-9087-35f6331c9bc7' : ''
+  const umamiHost = isProd ? PROD_UMAMI_HOST : ''
 
   const SkewProtection = yield* Cloudflare.KV.Namespace('WebSkewProtection', {})
 
@@ -162,8 +164,10 @@ export const workers = Effect.fn(function* (input: {
       NUXT_PUBLIC_SITE_URL: siteUrl,
       NUXT_OG_IMAGE_SECRET: ogImageSecret,
       STRAPI_URL: Config.string('STRAPI_URL').pipe(Config.withDefault('')),
-      NUXT_PUBLIC_UMAMI_ID: umamiId,
       NUXT_UMAMI_ID: umamiId,
+      ...(isProd
+        ? { NUXT_UMAMI_HOST: umamiHost }
+        : { NUXT_SITE_INDEXABLE: 'false' }),
     },
     compatibility: WEB_NODE_COMPAT,
     memo: NUXT_MEMO,
@@ -173,6 +177,7 @@ export const workers = Effect.fn(function* (input: {
       },
       site: {
         url: siteUrl,
+        ...(isProd ? {} : { indexable: false }),
       },
       runtimeConfig: {
         public: {
@@ -182,6 +187,7 @@ export const workers = Effect.fn(function* (input: {
       },
       umami: {
         id: umamiId,
+        ...(isProd ? { host: umamiHost } : {}),
       },
       skewProtection: {
         bundleAssets: skewBundleAssets,
