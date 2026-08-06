@@ -16,6 +16,7 @@
     "typecheck": "nuxt typecheck"
   },
   "devDependencies": {
+    "@distilled.cloud/nuxt": "^0.17.1",
     "@iconify-json/akar-icons": "^1.2.7",
     "@iconify-json/heroicons": "^1.2.3",
     "@iconify-json/ion": "^1.2.6",

@@ -86,9 +86,13 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    // Same preset Alchemy Website.Nuxt enforces — keep for standalone `pnpm build` /
+    // `nuxt preview`. A *different* preset would hard-error under Alchemy.
     preset: 'cloudflare_module',
     compatibilityDate: '2026-05-27',
     cloudflare: {
+      // Alchemy Website.Nuxt forces deployConfig:false (wrangler-free). This
+      // wrangler block is only for standalone `pnpm dev:cms` getPlatformProxy.
       deployConfig: true,
       dev: {
         // Generated on dev start from `cloudflare.wrangler` below (bindings-only for getPlatformProxy).

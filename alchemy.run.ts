@@ -6,7 +6,6 @@
  */
 import * as Alchemy from 'alchemy'
 import * as Cloudflare from 'alchemy/Cloudflare'
-import * as Command from 'alchemy/Command'
 import * as Drizzle from 'alchemy/Drizzle'
 import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
@@ -28,7 +27,6 @@ export default Alchemy.Stack(
     providers: Layer.mergeAll(
       Cloudflare.providers(),
       Drizzle.providers(),
-      Command.providers(),
     ),
     state: useRemoteState ? Cloudflare.state() : Alchemy.localState(),
   },

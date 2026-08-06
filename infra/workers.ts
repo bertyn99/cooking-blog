@@ -1,5 +1,5 @@
+import * as Alchemy from 'alchemy'
 import * as Cloudflare from 'alchemy/Cloudflare'
-import * as Command from 'alchemy/Command'
 import * as Output from 'alchemy/Output'
 import { Stage } from 'alchemy/Stage'
 import * as Config from 'effect/Config'
@@ -27,6 +27,20 @@ const CMS_WORKERS_CACHE = {
   crossVersionCache: true,
 } as const
 
+const NUXT_MEMO = {
+  include: [
+    'app/**',
+    'server/**',
+    'shared/**',
+    'public/**',
+    'exports.cloudflare.ts',
+    'nuxt.config.ts',
+    'app.config.ts',
+    'package.json',
+  ],
+  exclude: ['.data/**', 'coverage/**', '.nuxt/**', '.output/**', '.cache/**'],
+}
+
 export const workers = Effect.fn(function* (input: {
   DB: Cloudflare.D1.Database
   AiReadyDB: Cloudflare.D1.Database
@@ -35,19 +49,10 @@ export const workers = Effect.fn(function* (input: {
 }) {
   const stage = yield* Stage
   const isProd = stage === 'prod'
+  const isAlchemyDev = yield* Alchemy.ALCHEMY_DEV
   const prodCmsOrigin = `https://${PROD_CMS_HOST}`
   const cmsDomain = isProd ? PROD_CMS_HOST : undefined
   const webDomain = isProd ? PROD_WEB_HOST : undefined
-
-  const cmsBuild = yield* Command.Build('cms-build', {
-    command: 'pnpm --filter cms build',
-    cwd: '.',
-    outdir: 'apps/cms/.output',
-    memo: {
-      include: ['apps/cms/**', 'pnpm-lock.yaml', 'pnpm-workspace.yaml'],
-      exclude: ['apps/cms/.data', 'apps/cms/coverage', 'apps/cms/.nuxt'],
-    },
-  })
 
   // Provision AI Gateway (dashboard logs, caching, rate limits).
   // Nuxt CMS uses Workers AI binding + `CMS_AI_GATEWAY_ID` in `workers-ai-provider` (not Effect `QueryGateway`).
@@ -69,9 +74,15 @@ export const workers = Effect.fn(function* (input: {
   const strapiUrl = Config.string('STRAPI_URL').pipe(Config.withDefault(''))
   const strapiApiToken = Config.string('STRAPI_API_TOKEN').pipe(Config.withDefault(''))
 
-  const Cms = yield* Cloudflare.Worker('Cms', {
-    bundle: false,
-    main: 'apps/cms/.output/server/index.mjs',
+  // Website.Nuxt builds via @distilled.cloud/nuxt (cloudflare_module) and
+  // runs Nuxt's own dev server under `alchemy dev` with bindings on
+  // event.context.cloudflare — wrangler-free.
+  // @see https://alchemy.run/cloudflare/frontend/nuxt/
+  // Workflow class stays on nitro's exports.cloudflare.ts seam (no custom main).
+  // Workflows are not servable in Website.Nuxt local dev yet — omit the binding
+  // so the platform proxy can start; CMS uses processRunOnce fallback (see service.ts).
+  const Cms = yield* Cloudflare.Website.Nuxt('Cms', {
+    rootDir: 'apps/cms',
     domain: cmsDomain,
     cache: CMS_WORKERS_CACHE,
     env: {
@@ -82,7 +93,7 @@ export const workers = Effect.fn(function* (input: {
       CMS_AI_GATEWAY_ID: Config.string('CMS_AI_GATEWAY_ID').pipe(
         Config.withDefault(CMS_AI_GATEWAY_ID),
       ),
-      CONTENT_GENERATION: ContentGeneration,
+      ...(isAlchemyDev ? {} : { CONTENT_GENERATION: ContentGeneration }),
       NUXT_SESSION_PASSWORD: Config.string('NUXT_SESSION_PASSWORD'),
       NUXT_OG_IMAGE_SECRET: Config.string('NUXT_OG_IMAGE_SECRET').pipe(
         Config.withDefault(''),
@@ -94,14 +105,7 @@ export const workers = Effect.fn(function* (input: {
     },
     crons: [PUBLISH_CRON],
     compatibility: NODE_COMPAT,
-    assets: {
-      directory: 'apps/cms/.output/public',
-      hash: cmsBuild.hash,
-    },
-    dev: {
-      mode: 'external',
-      url: 'http://localhost:3001',
-    },
+    memo: NUXT_MEMO,
   })
 
   // Prod → custom CMS host; preview / local → Cms.url (workers.dev or alchemy.dev localhost).
@@ -131,31 +135,15 @@ export const workers = Effect.fn(function* (input: {
 
   const SkewProtection = yield* Cloudflare.KV.Namespace('WebSkewProtection', {})
 
-  const webBuild = yield* Command.Build('web-build', {
-    command: 'pnpm --filter web build',
-    cwd: '.',
-    outdir: 'apps/web/.output',
-    env: {
-      SKEW_PROTECTION_KV_NAMESPACE_ID: SkewProtection.namespaceId,
-      // Cloudflare Workers use routeRules ISR + KV bindings — not Vercel Redis.
-      REDIS_URL: '',
-      CMS_BASE_URL: cmsBaseUrl,
-      NUXT_PUBLIC_CMS_BASE_URL: cmsPublicUrl,
-      NUXT_OG_IMAGE_SECRET: ogImageSecret,
-      NUXT_PUBLIC_SITE_URL: siteUrl,
-      NUXT_PUBLIC_UMAMI_ID: umamiId,
-      // nuxt-umami module options read NUXT_UMAMI_ID at build time.
-      NUXT_UMAMI_ID: umamiId,
-    },
-    memo: {
-      include: ['apps/web/**', 'pnpm-lock.yaml', 'pnpm-workspace.yaml'],
-      exclude: ['apps/web/.nuxt', 'apps/web/.cache'],
-    },
-  })
+  // Deploy-time Nuxt overrides (merge over apps/web/nuxt.config.ts).
+  // Skew assets only when a Cloudflare token is present (same gate as before).
+  const skewBundleAssets = Boolean(process.env.CLOUDFLARE_API_TOKEN)
+  // Former Command.Build forced REDIS_URL='' so nuxt.config does not embed
+  // Vercel Redis into the Workers bundle (host `.env` still has REDIS_URL).
+  process.env.REDIS_URL = ''
 
-  const Web = yield* Cloudflare.Worker('Web', {
-    bundle: false,
-    main: 'apps/web/.output/server/index.mjs',
+  const Web = yield* Cloudflare.Website.Nuxt('Web', {
+    rootDir: 'apps/web',
     domain: webDomain,
     // Workers Cache intentionally OFF — see ADR-006 (static assets stay free).
     env: {
@@ -171,13 +159,26 @@ export const workers = Effect.fn(function* (input: {
       NUXT_UMAMI_ID: umamiId,
     },
     compatibility: WEB_NODE_COMPAT,
-    assets: {
-      directory: 'apps/web/.output/public',
-      hash: webBuild.hash,
-    },
-    dev: {
-      mode: 'external',
-      url: 'http://localhost:3000',
+    memo: NUXT_MEMO,
+    nuxt: {
+      site: {
+        url: siteUrl,
+      },
+      runtimeConfig: {
+        public: {
+          cmsBaseUrl: cmsPublicUrl,
+          apiBase: cmsPublicUrl,
+        },
+      },
+      umami: {
+        id: umamiId,
+      },
+      skewProtection: {
+        bundleAssets: skewBundleAssets,
+        storage: {
+          namespaceId: SkewProtection.namespaceId,
+        },
+      },
     },
   })
 

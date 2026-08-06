@@ -55,6 +55,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260712.1",
+    "@distilled.cloud/nuxt": "^0.17.1",
     "@nuxt/eslint-plugin": "catalog:",
     "@vitest/browser-playwright": "^4.1.6",
     "@vitest/coverage-v8": "^4.1.6",
