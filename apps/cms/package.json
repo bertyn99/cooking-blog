@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "nuxt build",
-    "dev": "node --import tsx scripts/migrate-local.ts && nuxt dev",
+    "dev": "alchemy dev",
+    "deploy": "alchemy deploy",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "oxlint .",

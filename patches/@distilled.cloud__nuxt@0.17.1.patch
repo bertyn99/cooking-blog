@@ -1,0 +1,73 @@
+diff --git a/dist/source.js b/dist/source.js
+index eadb13b14ebe3d4c3c7ab410fd8c825bec7c7ffa..bcf7ce29e84506ad74bbd9498d1cda8e81a7784e 100644
+--- a/dist/source.js
++++ b/dist/source.js
+@@ -283,6 +283,21 @@ const resolveDevEnvOverrides = (env) => {
+     }
+     return out;
+ };
++/**
++ * The framework adapter normally asks Nuxt for an ephemeral port so multiple
++ * Website.Nuxt resources can start without coordination. Allow a Nuxt
++ * `devServer.port` override when a monorepo needs stable local URLs.
++ */
++const resolveDevPort = (options) => {
++    const devServer = options.nuxt?.devServer;
++    if (devServer !== null &&
++        typeof devServer === "object" &&
++        "port" in devServer &&
++        typeof devServer.port === "number") {
++        return devServer.port;
++    }
++    return 0;
++};
+ export const makeNuxtSource = (options) => {
+     const rootDir = NodePath.resolve(options.rootDir ?? process.cwd());
+     const frameworkOptions = (ctx, dev) => ({
+@@ -353,7 +368,7 @@ export const makeNuxtSource = (options) => {
+                 services: ctx.runtimeContext,
+             }));
+             const server = yield* framework
+-                .dev({ root: rootDir, port: 0 })
++                .dev({ root: rootDir, port: resolveDevPort(options) })
+                 .pipe(Effect.mapError(wrapFrameworkError));
+             return {
+                 mode: "server",
+diff --git a/src/source.ts b/src/source.ts
+index 42b9eeab9d0d68aa83e4b75162f494e0a5fee38a..93aef318f28edb69a271e77cd6bcff0c48e3c6be 100644
+--- a/src/source.ts
++++ b/src/source.ts
+@@ -507,6 +507,24 @@ const resolveDevEnvOverrides = (
+   return out;
+ };
+ 
++/**
++ * The framework adapter normally asks Nuxt for an ephemeral port so multiple
++ * Website.Nuxt resources can start without coordination. Allow a Nuxt
++ * `devServer.port` override when a monorepo needs stable local URLs.
++ */
++const resolveDevPort = (options: NuxtSourceOptions): number => {
++  const devServer = options.nuxt?.devServer;
++  if (
++    devServer !== null &&
++    typeof devServer === "object" &&
++    "port" in devServer &&
++    typeof devServer.port === "number"
++  ) {
++    return devServer.port;
++  }
++  return 0;
++};
++
+ export const makeNuxtSource = (options: NuxtSourceOptions): SourceProvider => {
+   const rootDir = NodePath.resolve(options.rootDir ?? process.cwd());
+   const frameworkOptions = (ctx: SourceContext, dev?: NuxtOptions["dev"]): NuxtOptions => ({
+@@ -595,7 +613,7 @@ export const makeNuxtSource = (options: NuxtSourceOptions): SourceProvider => {
+         }),
+       );
+       const server = yield* framework
+-        .dev({ root: rootDir, port: 0 })
++        .dev({ root: rootDir, port: resolveDevPort(options) })
+         .pipe(Effect.mapError(wrapFrameworkError));
+       return {
+         mode: "server",

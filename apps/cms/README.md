@@ -8,7 +8,7 @@ Custom CMS for [Journal du Cuistot](https://journalducuistot.fr): **Nuxt admin d
 
 | Layer | Choice |
 |-------|--------|
-| Framework | Nuxt 4 (`compatibilityVersion: 5`), Nitro `cloudflare_module` |
+| Framework | Nuxt 4 (`compatibilityVersion: 5`), Cloudflare deployment via Alchemy `Website.Nuxt` |
 | Admin UI | Nuxt UI 4 dashboard (French) |
 | ORM / DB | Drizzle → SQLite (local libSQL) / Cloudflare D1 (prod) |
 | Media | R2 (+ local binding in dev) |
@@ -48,7 +48,7 @@ pnpm task:strapi-extract
 | `pnpm dev:infra` (repo root) | Alchemy local D1 + bindings via `Website.Nuxt` | D1 migrations from Alchemy; Nuxt HMR + `event.context.cloudflare` (wrangler-free) |
 | `pnpm alchemy deploy` (repo root) | Cloudflare D1 | Drizzle migrations in `server/db/migrations/sqlite/` |
 
-**Editor AI (`POST /api/completion`)** needs the Workers AI binding (`env.AI`). Prefer `pnpm dev:infra` so Alchemy serves the binding. Standalone `pnpm dev:cms` still writes `.wrangler/dev/wrangler.json` for Wrangler `getPlatformProxy`. Alchemy: `Cloudflare.Website.Nuxt` + `Cloudflare.AI.Gateway` + `Cloudflare.Workers.AI()` in `infra/workers.ts` — redeploy after infra changes.
+**Editor AI (`POST /api/completion`)** needs the Workers AI binding (`env.AI`). Use `pnpm dev:infra` for Alchemy's wrangler-free local binding proxy; standalone `pnpm dev:cms` uses the local database and the generation fallback without Cloudflare bindings. Alchemy: `Cloudflare.Website.Nuxt` + `Cloudflare.AI.Gateway` + `Cloudflare.Workers.AI()` in `infra/workers.ts` — redeploy after infra changes.
 
 ## Admin seeder
 
