@@ -85,6 +85,10 @@ export default Alchemy.Stack(
       'NUXT_OG_IMAGE_SECRET',
       'STRAPI_URL',
       'STRAPI_API_TOKEN',
+      'PROD_WEB_HOST',
+      'PROD_CMS_HOST',
+      'NUXT_UMAMI_ID',
+      'NUXT_UMAMI_HOST',
     ] as const
 
     for (const name of optionalSecrets) {
