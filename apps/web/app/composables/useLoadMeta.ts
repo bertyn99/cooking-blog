@@ -6,6 +6,7 @@ export const useLoadMeta = (metaOption: MetaOption): MetaData => {
   const site = useSiteConfig();
   const origin = siteUrlOrigin(site.url);
   const siteName = site.name;
+  const isProductionEnv = site.env === "production" || site.env === undefined;
   const brandedTitle = metaOption.title
     ? `${metaOption.title} — ${siteName}`
     : siteName;
@@ -35,7 +36,11 @@ export const useLoadMeta = (metaOption: MetaOption): MetaData => {
     robots:
       site.indexable === false
         ? "noindex, nofollow"
-        : "index, follow, max-image-preview:large",
+        : site.indexable === true
+          ? "index, follow, max-image-preview:large"
+          : !isProductionEnv
+            ? "noindex, nofollow"
+            : "index, follow, max-image-preview:large",
     keywords,
     ogType: isArticle ? "article" : "website",
     ogLocale: "fr-FR",

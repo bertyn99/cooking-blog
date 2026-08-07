@@ -2,7 +2,7 @@
 import { fileURLToPath } from 'node:url'
 import listRedirects from './app/utils/redirect'
 import tailwindcss from '@tailwindcss/vite'
-import { resolveSiteIdentity } from './shared/site-identity'
+import { resolveSiteIdentity, toSchemaOrgIdentity, SITE_AUTHOR_NAME } from './shared/site-identity'
 
 const webRoot = fileURLToPath(new URL('.', import.meta.url))
 
@@ -22,6 +22,19 @@ const siteDescription =
   process.env.NUXT_SITE_DESCRIPTION ||
   "Bienvenue sur le journal du cuistot, un blog de recettes de cuisine d'un globe-trotter"
 const siteIdentity = resolveSiteIdentity({ siteOrigin, siteName })
+const siteEnv =
+  process.env.NUXT_SITE_ENV ||
+  (process.env.NODE_ENV === 'production' ? 'production' : 'development')
+
+function resolveSiteIndexable(): boolean | undefined {
+  if (process.env.NUXT_SITE_INDEXABLE === 'true') {
+    return true
+  }
+  if (process.env.NUXT_SITE_INDEXABLE === 'false') {
+    return false
+  }
+  return undefined
+}
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-20',
@@ -133,12 +146,22 @@ export default defineNuxtConfig({
     name: siteName,
     description: siteDescription,
     defaultLocale: 'fr',
-    identity: siteIdentity,
-    indexable: process.env.NUXT_SITE_INDEXABLE !== 'false',
+    trailingSlash: false,
+    env: siteEnv,
+    ...(resolveSiteIndexable() !== undefined
+      ? { indexable: resolveSiteIndexable() }
+      : {}),
+  },
+
+  schemaOrg: {
+    identity: toSchemaOrgIdentity(siteIdentity, siteDescription),
   },
 
   seo: {
+    redirectToCanonicalSiteUrl: siteEnv === 'production',
     meta: {
+      description: siteDescription,
+      author: SITE_AUTHOR_NAME,
       ogLocale: 'fr_FR',
       ogType: 'website',
       twitterCard: 'summary_large_image',

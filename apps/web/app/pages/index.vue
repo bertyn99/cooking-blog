@@ -3,13 +3,16 @@ import type { Article, Recipe } from "~/types/strapiMeta";
 
 const homeDescription = "Venez rejoindre la communauté des jeunes cuistots !";
 
-useApplySeoMeta({
+useApplyPageSeo({
   title: "Accueil",
   description: homeDescription,
   image: "/img/logo.png",
   url: "/",
+  og: {
+    headline: "Accueil",
+    description: homeDescription,
+  },
 });
-usePageCanonical("/");
 
 const { find } = useCms();
 
@@ -46,11 +49,6 @@ const { data } = await useAsyncData<HomepageData>("homepage-data", async () => {
 
 const articles = computed(() => data.value?.articles || []);
 const recipes = computed(() => data.value?.recipes || []);
-
-defineOgImage("Cooking", {
-  headline: "Accueil",
-  description: homeDescription,
-});
 </script>
 
 <template>
