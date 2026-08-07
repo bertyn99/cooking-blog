@@ -2,6 +2,7 @@ import type { H3Event } from 'h3'
 import type { createSiteSettingsQueries } from '../db/queries/site-settings'
 import { getCloudflareEnv } from './cloudflare-env'
 import { prefersD1Database, useQueries } from './db'
+import { logBackgroundWarning, logRequestWarning } from './logging'
 
 export function useKv(event?: H3Event): KVNamespace | undefined {
   return getCloudflareEnv(event)?.Cache
@@ -30,7 +31,7 @@ export function createKvStore(kv: KVNamespace): KvStore {
 }
 
 function createSiteSettingsStore(
-  siteSettings: ReturnType<typeof createSiteSettingsQueries>,
+  siteSettings: ReturnType<typeof createSiteSettingsQueries>
 ): KvStore {
   return {
     async get<T>(key: string) {
@@ -46,7 +47,7 @@ function createSiteSettingsStore(
   }
 }
 
-const memory = new Map<string, { value: unknown, expiresAt?: number }>()
+const memory = new Map<string, { value: unknown; expiresAt?: number }>()
 
 /** In-memory KV fallback for local `nuxt dev` without Cloudflare bindings. */
 export const memoryKvStore: KvStore = {
@@ -89,9 +90,19 @@ export function useKvStore(event?: H3Event): KvStore {
   const env = getCloudflareEnv(event)
   if (env?.DB && !warnedMemoryKvWithoutBinding) {
     warnedMemoryKvWithoutBinding = true
-    console.warn(
-      '[cms] Cache KV binding missing while D1 is present — using in-memory store (import journal will not persist across requests).',
-    )
+    const message = 'Cache KV binding missing while D1 is present; using in-memory storage.'
+    const context = {
+      cache: {
+        provider: 'memory',
+        persistence: 'request-local',
+        reason: 'missing-binding',
+      },
+    }
+    if (event) {
+      logRequestWarning(event, message, context)
+    } else {
+      logBackgroundWarning('cache-fallback', message, context)
+    }
   }
 
   return memoryKvStore

@@ -3,13 +3,17 @@ import { imageDeliveryCacheTags } from '../../shared/image-delivery-policy'
 import { runInBackground } from './background-task'
 
 export interface WorkersCachePurge {
-  purge(options: { tags?: string[], prefixes?: string[] }): Promise<unknown>
+  purge(options: { tags?: string[]; prefixes?: string[] }): Promise<unknown>
 }
 
 function getWorkersCache(event: H3Event): WorkersCachePurge | undefined {
-  const ctx = (event.context.cloudflare as {
-    context?: { cache?: WorkersCachePurge }
-  } | undefined)?.context
+  const ctx = (
+    event.context.cloudflare as
+      | {
+          context?: { cache?: WorkersCachePurge }
+        }
+      | undefined
+  )?.context
   const cache = ctx?.cache
   if (cache && typeof cache.purge === 'function') {
     return cache
@@ -31,9 +35,13 @@ export async function purgeImageDeliveryCache(event: H3Event, assetPath: string)
     return
   }
   const tags = imageDeliveryCacheTagList(assetPath)
-  await runInBackground(event, async () => {
-    await cache.purge({ tags })
-  })
+  await runInBackground(
+    event,
+    async () => {
+      await cache.purge({ tags })
+    },
+    { task: 'purge-image-delivery-cache', assetPath, tags }
+  )
 }
 
 /** Purge all image variants (e.g. maintenance wipe). */
@@ -42,7 +50,11 @@ export async function purgeAllMediaImageCache(event: H3Event) {
   if (!cache) {
     return
   }
-  await runInBackground(event, async () => {
-    await cache.purge({ tags: ['media'] })
-  })
+  await runInBackground(
+    event,
+    async () => {
+      await cache.purge({ tags: ['media'] })
+    },
+    { task: 'purge-all-media-image-cache' }
+  )
 }

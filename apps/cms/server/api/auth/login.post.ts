@@ -1,3 +1,4 @@
+import { useLogger } from 'evlog'
 import { loginSchema } from '../../../shared/validators/auth'
 import { toSessionUser } from '../../utils/auth/user'
 import { getClientIp } from '../../utils/client-ip'
@@ -13,8 +14,8 @@ const LOGIN_LIMIT = {
   windowSeconds: 15 * 60,
 } as const
 
-const DUMMY_HASH
-  = 'pbkdf2:100000:sha256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+const DUMMY_HASH =
+  'pbkdf2:100000:sha256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
 
 function getLoginLimiter(event: H3Event) {
   return createRateLimiter(useKvStore(event), LOGIN_LIMIT)
@@ -34,11 +35,9 @@ export default defineEventHandler(async (event) => {
 
   const status = await limiter.check(ip)
   if (status.blocked) {
-    throw createApiError(
-      'FORBIDDEN',
-      'Too many failed login attempts. Try again later.',
-      { retryAfterSeconds: 15 * 60 },
-    )
+    throw createApiError('FORBIDDEN', 'Too many failed login attempts. Try again later.', {
+      retryAfterSeconds: 15 * 60,
+    })
   }
 
   const user = await users.findByEmail(email)
@@ -46,8 +45,7 @@ export default defineEventHandler(async (event) => {
   let passwordOk = false
   if (user) {
     passwordOk = await verifyPassword(user.passwordHash, password)
-  }
-  else {
+  } else {
     await verifyPassword(DUMMY_HASH, password)
   }
 
@@ -57,17 +55,14 @@ export default defineEventHandler(async (event) => {
   }
 
   if (!user.isActive) {
-    throw createApiError(
-      'FORBIDDEN',
-      'Ce compte a été désactivé.',
-      undefined,
-      { fix: 'Contactez un administrateur.' },
-    )
+    throw createApiError('FORBIDDEN', 'Ce compte a été désactivé.', undefined, {
+      fix: 'Contactez un administrateur.',
+    })
   }
 
   await limiter.reset(ip)
 
-  const log = useLogger(event)
+  const log = useLogger(event as Parameters<typeof useLogger>[0])
   log.set({ auth: { action: 'login', userId: user.id, role: user.role } })
 
   const safeUser = toSessionUser(user)

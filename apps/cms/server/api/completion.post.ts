@@ -1,6 +1,7 @@
 import { generateText, streamText } from 'ai'
 import { Readable } from 'node:stream'
 import type { H3Event } from 'h3'
+import { useLogger } from 'evlog'
 import { z } from 'zod'
 import { EDITOR_COMPLETION_MODES } from '../../shared/editor-completion-modes'
 import {
@@ -19,6 +20,7 @@ import {
 import { createApiError } from '../utils/errors'
 import { requireEditor } from '../utils/http-auth'
 import { useKvStore } from '../utils/kv'
+import { toLogError } from '../utils/logging'
 import { createRequestRateLimiter } from '../utils/rate-limit'
 
 const COMPLETION_LIMIT = {
@@ -68,7 +70,7 @@ function sendPlainTextCompletionStream(event: H3Event, textStream: AsyncIterable
  * model never emits content tokens, fall back once to recovered answer text.
  */
 async function* streamVisibleEditorText(
-  result: ReturnType<typeof streamText>,
+  result: ReturnType<typeof streamText>
 ): AsyncGenerator<string> {
   let emitted = false
   for await (const chunk of result.textStream) {
@@ -82,10 +84,7 @@ async function* streamVisibleEditorText(
     return
   }
 
-  const [text, reasoningText] = await Promise.all([
-    result.text,
-    result.reasoningText,
-  ])
+  const [text, reasoningText] = await Promise.all([result.text, result.reasoningText])
   const visible = resolveVisibleCompletionText({ text, reasoningText })
   if (visible) {
     yield visible
@@ -93,16 +92,23 @@ async function* streamVisibleEditorText(
 }
 
 export default defineEventHandler(async (event) => {
+  const log = useLogger(event as Parameters<typeof useLogger>[0])
   const session = await requireEditor(event)
 
   const ip = getClientIp(event)
   const rateKey = `${session.user.id}:${ip}`
   const rate = await getCompletionLimiter(event).consume(rateKey)
   if (!rate.allowed) {
+    log.warn('Editor completion rate limit exceeded', {
+      completion: {
+        userId: session.user.id,
+        retryAfterSeconds: COMPLETION_LIMIT.windowSeconds,
+      },
+    })
     throw createApiError(
       'FORBIDDEN',
       'Trop de requêtes d’assistance IA. Réessayez dans une minute.',
-      { retryAfterSeconds: COMPLETION_LIMIT.windowSeconds },
+      { retryAfterSeconds: COMPLETION_LIMIT.windowSeconds }
     )
   }
 
@@ -112,27 +118,46 @@ export default defineEventHandler(async (event) => {
     throw createApiError(
       'VALIDATION_ERROR',
       'Requête d’assistance IA invalide.',
-      parsed.error.flatten(),
+      parsed.error.flatten()
     )
   }
 
   const env = getCloudflareEnv(event)
   if (!env?.AI) {
-    throw createError({
-      statusCode: 503,
-      statusMessage: 'Workers AI n’est pas configuré. Déployez via Alchemy ou activez le binding AI local.',
+    const cause = new Error('Workers AI binding is missing')
+    log.error(cause, {
+      completion: {
+        step: 'resolve-binding',
+        userId: session.user.id,
+      },
+    })
+    throw createApiError('INTERNAL_ERROR', 'Workers AI n’est pas configuré.', undefined, {
+      status: 503,
+      why: 'Le binding Workers AI est absent de cet environnement.',
+      fix: 'Déployez via Alchemy ou activez le binding AI local.',
+      cause,
+      internal: { binding: 'AI' },
     })
   }
 
   const mode = (parsed.data.mode ?? 'continue') as EditorCompletionMode
   const { system, maxOutputTokens, cacheTtl } = buildEditorCompletionConfig(
     mode,
-    parsed.data.language,
+    parsed.data.language
   )
   const prompt = truncateEditorPrompt(parsed.data.prompt)
   const gatewayId = resolveCompletionGatewayId(event, env.CMS_AI_GATEWAY_ID)
   const modelId = resolveEditorCompletionModelId(mode)
   const creative = isCreativeEditorCompletionMode(mode)
+
+  log.set({
+    completion: {
+      mode,
+      model: modelId,
+      userId: session.user.id,
+      ...(parsed.data.language ? { language: parsed.data.language } : {}),
+    },
+  })
 
   const workersai = createCmsWorkersAI(env.AI, {
     gatewayId,
@@ -185,31 +210,50 @@ export default defineEventHandler(async (event) => {
         reasoningText: generated.reasoningText,
       })
       if (!visible) {
-        console.error('[completion] empty Workers AI response', {
-          model: modelId,
-          mode,
-          finishReason: generated.finishReason,
-          usage: generated.usage,
-          textLen: generated.text?.length ?? 0,
-          reasoningLen: generated.reasoningText?.length ?? 0,
+        const cause = new Error('Workers AI returned an empty response')
+        log.error(cause, {
+          completion: {
+            step: 'generate-text',
+            finishReason: generated.finishReason,
+            outputLength: generated.text?.length ?? 0,
+            reasoningLength: generated.reasoningText?.length ?? 0,
+          },
         })
-        throw createError({
-          statusCode: 502,
-          message: 'Workers AI a renvoyé une réponse vide.',
-        })
+        throw createApiError(
+          'INTERNAL_ERROR',
+          'Workers AI a renvoyé une réponse vide.',
+          undefined,
+          {
+            status: 502,
+            why: 'Le modèle n’a produit aucun contenu exploitable.',
+            fix: 'Réessayez la génération ou choisissez un autre mode.',
+            cause,
+            internal: { model: modelId, mode },
+          }
+        )
       }
+      log.set({
+        completion: {
+          status: 'success',
+          finishReason: generated.finishReason,
+          outputLength: visible.length,
+        },
+      })
       setResponseHeader(event, 'Content-Type', 'text/plain; charset=utf-8')
       return visible
-    }
-    catch (error) {
+    } catch (error) {
       if (error && typeof error === 'object' && 'statusCode' in error) {
         throw error
       }
-      console.error('[completion] generateText failed', error)
-      throw createError({
-        statusCode: 502,
-        message: 'Échec de génération Workers AI.',
-        cause: error,
+      log.error(toLogError(error), {
+        completion: { step: 'generate-text' },
+      })
+      throw createApiError('INTERNAL_ERROR', 'Échec de génération Workers AI.', undefined, {
+        status: 502,
+        why: 'Le service Workers AI n’a pas pu générer le texte.',
+        fix: 'Réessayez dans quelques instants.',
+        cause: error instanceof Error ? error : undefined,
+        internal: { model: modelId, mode },
       })
     }
   }
@@ -217,7 +261,13 @@ export default defineEventHandler(async (event) => {
   const result = streamText({
     ...shared,
     onError: ({ error }) => {
-      console.error('[completion] streamText error', error)
+      log.error(toLogError(error), {
+        completion: {
+          step: 'stream-text',
+          model: modelId,
+          mode,
+        },
+      })
     },
   })
 

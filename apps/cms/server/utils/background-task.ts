@@ -1,14 +1,19 @@
 import type { H3Event } from 'h3'
+import { logBackgroundError, type LogContext } from './logging'
 
 type CloudflareExecutionContext = {
   waitUntil?: (promise: Promise<unknown>) => void
 }
 
 function getCloudflareContext(event: H3Event) {
-  return (event.context.cloudflare as {
-    context?: CloudflareExecutionContext
-    waitUntil?: (promise: Promise<unknown>) => void
-  } | undefined)?.context
+  return (
+    event.context.cloudflare as
+      | {
+          context?: CloudflareExecutionContext
+          waitUntil?: (promise: Promise<unknown>) => void
+        }
+      | undefined
+  )?.context
 }
 
 /**
@@ -27,10 +32,14 @@ export function shouldDeferWorkToBackground(event: H3Event): boolean {
  * Runs work after the HTTP response on Workers (`waitUntil`).
  * In local dev, awaits the work so imports actually finish.
  */
-export async function runInBackground(event: H3Event, work: () => Promise<void>) {
+export async function runInBackground(
+  event: H3Event,
+  work: () => Promise<void>,
+  context: LogContext & { task?: string } = {}
+) {
   const promise = work().catch((error: unknown) => {
-    const message = error instanceof Error ? error.message : String(error)
-    console.error(`[background-task] ${message}`)
+    const { task = 'background-task', ...details } = context
+    logBackgroundError(task, error, details)
   })
 
   const ctx = getCloudflareContext(event)

@@ -1,3 +1,4 @@
+import { createLogger } from 'evlog'
 import { isSqliteBusyError } from '../utils/sqlite-busy'
 import { useContentGenerationService } from '../services/generation/service'
 
@@ -7,16 +8,25 @@ export default defineTask({
     description: 'Advance queued AI generation runs (bounded poller scaffold)',
   },
   async run() {
+    const log = createLogger({ task: 'generation-process' })
     try {
       const result = await useContentGenerationService().processDueRuns(5)
+      log.set({ outcome: 'success', generation: result })
       return { result }
-    }
-    catch (error) {
+    } catch (error) {
       if (isSqliteBusyError(error)) {
-        console.warn('[generation-process] skipped — database busy')
-        return { result: { claimed: 0, skipped: true as const } }
+        log.warn('Generation processing skipped because the database is busy.', {
+          outcome: 'skipped',
+          reason: 'sqlite_busy',
+        })
+        return { result: { claimed: 0, results: [] } }
       }
+      log.error(error instanceof Error ? error : String(error), {
+        outcome: 'failure',
+      })
       throw error
+    } finally {
+      log.emit()
     }
   },
 })

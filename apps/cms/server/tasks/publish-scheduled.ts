@@ -1,3 +1,4 @@
+import { createLogger } from 'evlog'
 import { usePublishingService } from '../services/publishing-service'
 import { isSqliteBusyError } from '../utils/sqlite-busy'
 
@@ -7,16 +8,25 @@ export default defineTask({
     description: 'Publish content whose scheduledAt has passed',
   },
   async run() {
+    const log = createLogger({ task: 'publish-scheduled' })
     try {
       const result = await usePublishingService().publishDueScheduled()
+      log.set({ outcome: 'success', publishing: result })
       return { result }
-    }
-    catch (error) {
+    } catch (error) {
       if (isSqliteBusyError(error)) {
-        console.warn('[publish-scheduled] skipped — database busy')
-        return { result: { published: 0, skipped: true as const } }
+        log.warn('Scheduled publishing skipped because the database is busy.', {
+          outcome: 'skipped',
+          reason: 'sqlite_busy',
+        })
+        return { result: { published: 0, skipped: 0 } }
       }
+      log.error(error instanceof Error ? error : String(error), {
+        outcome: 'failure',
+      })
       throw error
+    } finally {
+      log.emit()
     }
   },
 })

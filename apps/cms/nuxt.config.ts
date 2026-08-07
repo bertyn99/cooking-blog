@@ -4,11 +4,11 @@ export default defineNuxtConfig({
     port: 3001,
   },
 
-  modules: ['nuxt-auth-utils', 'nuxt-authorization', '@nuxt/ui', '@vueuse/nuxt', 'evlog'],
+  modules: ['nuxt-auth-utils', 'nuxt-authorization', '@nuxt/ui', '@vueuse/nuxt', 'evlog/nuxt'],
 
   runtimeConfig: {
     public: {
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://journalducuistot.fr',
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
     },
     session: {
       maxAge: 60 * 60 * 8,
@@ -84,5 +84,22 @@ export default defineNuxtConfig({
       service: 'journalducuistot-cms',
     },
     include: ['/api/**'],
+    exclude: ['/api/_evlog/ingest'],
+    redact: {
+      paths: [
+        'user.email',
+        'headers.authorization',
+        'headers.cookie',
+        'request.headers.authorization',
+        'request.headers.cookie',
+      ],
+    },
+    strip: ['debug'],
+    sourceLocation: 'dev',
+    transport: {
+      enabled: true,
+      endpoint: '/api/_evlog/ingest',
+      credentials: 'include',
+    },
   },
 })
