@@ -1,3 +1,4 @@
+import { useLogger } from 'evlog'
 import { createStaffUserSchema } from '../../../../shared/validators/staff'
 import { requireAdmin } from '../../../utils/http-auth'
 import { createApiError } from '../../../utils/errors'
@@ -11,11 +12,11 @@ export default defineEventHandler(async (event) => {
     throw createApiError(
       'VALIDATION_ERROR',
       'Données utilisateur invalides.',
-      parsed.error.flatten(),
+      parsed.error.flatten()
     )
   }
 
-  const log = useLogger(event)
+  const log = useLogger(event as Parameters<typeof useLogger>[0])
   const user = await useStaffService(event).create(parsed.data)
   log.set({ staff: { action: 'create', targetUserId: user.id, role: user.role } })
 

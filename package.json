@@ -1,5 +1,6 @@
 {
   "name": "journalducuistot",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {
@@ -32,17 +33,18 @@
   },
   "packageManager": "pnpm@10.33.4",
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260712.1",
+    "@cloudflare/workers-types": "^5.20260804.1",
+    "@distilled.cloud/nuxt": "^0.17.1",
     "@effect/platform-node": "4.0.0-beta.102",
+    "@effect/sql-mysql2": "4.0.0-beta.102",
     "@effect/sql-pg": "4.0.0-beta.102",
-    "alchemy": "2.0.0-beta.67",
+    "alchemy": "catalog:",
     "drizzle-kit": "catalog:",
     "drizzle-orm": "catalog:",
     "effect": "4.0.0-beta.102",
     "typescript": "catalog:"
   },
   "dependencies": {
-    "nuxt": "^4.5.0",
-    "wrangler": "^4.110.0"
+    "nuxt": "^4.5.0"
   }
 }

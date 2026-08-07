@@ -10,6 +10,7 @@ import { getCloudflareEnv } from '../../utils/cloudflare-env'
 import { useGenerationArtifactStore } from './artifact-storage'
 import { useGenerationProgressStore } from './progress'
 import { executeGenerationStep } from './step-runner'
+import { logBackgroundError, logRequestError } from '../../utils/logging'
 import { runInBackground, shouldDeferWorkToBackground } from '../../utils/background-task'
 import {
   GENERATION_REVIEW_EVENT_TYPE,
@@ -38,10 +39,18 @@ export function createContentGenerationService(db: AppDb, event?: H3Event) {
         type: GENERATION_REVIEW_EVENT_TYPE,
         payload,
       })
-    }
-    catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      console.error(`[generation] sendEvent review failed for ${runId}: ${message}`)
+    } catch (error) {
+      const context = {
+        generation: {
+          operation: 'send-review-event',
+          runId,
+        },
+      }
+      if (event) {
+        logRequestError(event, error, context)
+      } else {
+        logBackgroundError('generation-review-event', error, context)
+      }
     }
   }
 
@@ -50,10 +59,12 @@ export function createContentGenerationService(db: AppDb, event?: H3Event) {
       return queries.findById(runId)
     },
 
-    listAwaitingReview(input: {
-      excludeRequestedByUserId?: number | null
-      limit?: number
-    } = {}) {
+    listAwaitingReview(
+      input: {
+        excludeRequestedByUserId?: number | null
+        limit?: number
+      } = {}
+    ) {
       return queries.listAwaitingReview(input)
     },
 
@@ -95,7 +106,7 @@ export function createContentGenerationService(db: AppDb, event?: H3Event) {
       }>(parent.artifactPrefix, 'discover')
 
       const all = discover?.candidates ?? []
-      const selected = all.filter(candidate => candidateIds.includes(candidate.id))
+      const selected = all.filter((candidate) => candidateIds.includes(candidate.id))
       if (selected.length === 0) {
         throw queryConflict('No matching candidates for the given ids')
       }
@@ -139,8 +150,8 @@ export function createContentGenerationService(db: AppDb, event?: H3Event) {
       }
 
       await artifacts.putJson(parent.artifactPrefix, 'selection', {
-        selectedCandidateIds: selected.map(c => c.id),
-        childRunIds: children.map(c => c.id),
+        selectedCandidateIds: selected.map((c) => c.id),
+        childRunIds: children.map((c) => c.id),
         selectedByUserId,
         selectedAt: new Date().toISOString(),
       })
@@ -180,8 +191,7 @@ export function createContentGenerationService(db: AppDb, event?: H3Event) {
             id: runId,
             params: { runId },
           })
-        }
-        catch (error) {
+        } catch (error) {
           // Revising may resume an existing instance via sendEvent only.
           const message = error instanceof Error ? error.message : String(error)
           if (!message.toLowerCase().includes('already')) {
@@ -203,12 +213,13 @@ export function createContentGenerationService(db: AppDb, event?: H3Event) {
       }
 
       if (event && shouldDeferWorkToBackground(event)) {
-        await runInBackground(event, kick)
-      }
-      else {
+        await runInBackground(event, kick, {
+          task: 'generation-fallback',
+          runId,
+        })
+      } else {
         void kick().catch((error: unknown) => {
-          const message = error instanceof Error ? error.message : String(error)
-          console.error(`[generation] fallback kick failed for ${runId}: ${message}`)
+          logBackgroundError('generation-fallback', error, { runId })
         })
       }
 
@@ -223,13 +234,16 @@ export function createContentGenerationService(db: AppDb, event?: H3Event) {
       })
     },
 
-    async reviewRun(runId: string, input: {
-      action: GenerationReviewAction
-      reviewerUserId: number
-      reviewNote?: string | null
-      reason?: string | null
-      focusSteps?: string[] | null
-    }) {
+    async reviewRun(
+      runId: string,
+      input: {
+        action: GenerationReviewAction
+        reviewerUserId: number
+        reviewNote?: string | null
+        reason?: string | null
+        focusSteps?: string[] | null
+      }
+    ) {
       const existing = await queries.findById(runId)
       if (!existing) {
         throw queryNotFound('Generation run not found')
@@ -271,17 +285,13 @@ export function createContentGenerationService(db: AppDb, event?: H3Event) {
             reviewNote: note,
             focusSteps: input.focusSteps,
           })
-          await artifacts.putJson(
-            existing.artifactPrefix,
-            reviewNotesArtifactKey(result.round),
-            {
-              round: result.round,
-              reviewNote: note,
-              focusSteps: input.focusSteps ?? null,
-              reviewerUserId: input.reviewerUserId,
-              at: new Date().toISOString(),
-            },
-          )
+          await artifacts.putJson(existing.artifactPrefix, reviewNotesArtifactKey(result.round), {
+            round: result.round,
+            reviewNote: note,
+            focusSteps: input.focusSteps ?? null,
+            reviewerUserId: input.reviewerUserId,
+            at: new Date().toISOString(),
+          })
           await sendReviewEvent(runId, {
             action: 'request_changes',
             reviewerUserId: input.reviewerUserId,
@@ -314,8 +324,7 @@ export function createContentGenerationService(db: AppDb, event?: H3Event) {
       for (const runId of claimed) {
         try {
           results.push(await this.processRunOnce(runId))
-        }
-        catch (error) {
+        } catch (error) {
           results.push({ runId, error: String(error) })
         }
       }
@@ -331,7 +340,9 @@ export function createContentGenerationService(db: AppDb, event?: H3Event) {
           throw queryNotFound('Generation run not found')
         }
 
-        const nextStep = run.steps?.find(step => step.status === 'pending' || step.status === 'running')
+        const nextStep = run.steps?.find(
+          (step) => step.status === 'pending' || step.status === 'running'
+        )
         if (!nextStep) {
           const now = new Date().toISOString()
 
@@ -353,9 +364,14 @@ export function createContentGenerationService(db: AppDb, event?: H3Event) {
             }
           }
 
-          const nextRound = run.status === 'revising'
-            ? (run.reviewRound && run.reviewRound > 0 ? run.reviewRound + 1 : 2)
-            : (run.reviewRound && run.reviewRound > 0 ? run.reviewRound : 1)
+          const nextRound =
+            run.status === 'revising'
+              ? run.reviewRound && run.reviewRound > 0
+                ? run.reviewRound + 1
+                : 2
+              : run.reviewRound && run.reviewRound > 0
+                ? run.reviewRound
+                : 1
 
           await queries.completeRunAwaitingReview(runId, {
             targetType: run.targetType,
@@ -392,20 +408,27 @@ export function createContentGenerationService(db: AppDb, event?: H3Event) {
         await queries.markStepRunning(nextStep.id, attemptCount, nextStep.startedAt)
 
         try {
-          const linkedIds = nextStep.stepKey === 'assemble'
-            || nextStep.stepKey === 'revise_1'
-            || nextStep.stepKey === 'revise_2'
-            ? await queries.findRunLinkedIds(run.id)
-            : undefined
+          const linkedIds =
+            nextStep.stepKey === 'assemble' ||
+            nextStep.stepKey === 'revise_1' ||
+            nextStep.stepKey === 'revise_2'
+              ? await queries.findRunLinkedIds(run.id)
+              : undefined
 
-          let stepResult = await executeGenerationStep(artifacts, {
-            id: run.id,
-            targetType: run.targetType,
-            articleId: run.articleId,
-            recipeId: run.recipeId,
-            artifactPrefix: run.artifactPrefix,
-            requestedByUserId: run.requestedByUserId,
-          }, nextStep.stepKey, stepDeps, { linkedIds })
+          let stepResult = await executeGenerationStep(
+            artifacts,
+            {
+              id: run.id,
+              targetType: run.targetType,
+              articleId: run.articleId,
+              recipeId: run.recipeId,
+              artifactPrefix: run.artifactPrefix,
+              requestedByUserId: run.requestedByUserId,
+            },
+            nextStep.stepKey,
+            stepDeps,
+            { linkedIds }
+          )
 
           if (stepResult.pendingAssemble) {
             const linked = await queries.applyAssembledDraftAndLinkRun(run.id, {
@@ -444,10 +467,9 @@ export function createContentGenerationService(db: AppDb, event?: H3Event) {
           })
 
           processedSteps.push(nextStep.stepKey)
-        }
-        catch (error) {
-          const softFail = nextStep.stepKey === 'keyword_research'
-            || nextStep.stepKey === 'generate_cover'
+        } catch (error) {
+          const softFail =
+            nextStep.stepKey === 'keyword_research' || nextStep.stepKey === 'generate_cover'
 
           if (softFail) {
             const artifactKey = await artifacts.putJson(run.artifactPrefix, nextStep.stepKey, {

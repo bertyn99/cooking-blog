@@ -28,11 +28,21 @@ export function createApiError(
   code: ApiErrorCode,
   message: string,
   details?: unknown,
-  options?: { why?: string, fix?: string },
+  options?: {
+    status?: number
+    why?: string
+    fix?: string
+    cause?: Error
+    internal?: Record<string, unknown>
+  }
 ) {
   const why = options?.why ?? message
   const fix = options?.fix ?? FIX_HINTS[code]
-  const statusCode = STATUS_BY_CODE[code]
+  const statusCode = options?.status ?? STATUS_BY_CODE[code]
+  const internal = {
+    ...(details === undefined ? {} : { details }),
+    ...options?.internal,
+  }
 
   const clientBody = {
     error: {
@@ -50,7 +60,8 @@ export function createApiError(
     status: statusCode,
     why,
     fix,
-    internal: details === undefined ? undefined : { details },
+    cause: options?.cause,
+    internal: Object.keys(internal).length > 0 ? internal : undefined,
   })
 
   return h3CreateError({

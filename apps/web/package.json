@@ -1,9 +1,10 @@
 {
   "name": "web",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "nuxt build",
+    "build": "nuxt build --preset cloudflare_module",
     "dev": "nuxt dev",
     "dev-ssl": "set NODE_TLS_REJECT_UNAUTHORIZED=0&&nuxt dev",
     "generate": "nuxt generate",
@@ -16,6 +17,7 @@
     "typecheck": "nuxt typecheck"
   },
   "devDependencies": {
+    "@distilled.cloud/nuxt": "^0.17.1",
     "@iconify-json/akar-icons": "^1.2.7",
     "@iconify-json/heroicons": "^1.2.3",
     "@iconify-json/ion": "^1.2.6",
@@ -34,7 +36,7 @@
     "@vueuse/nuxt": "^13.9.0",
     "better-sqlite3": "^12.6.2",
     "nuxt": "catalog:",
-    "nuxt-umami": "^3.2.1",
+    "nuxt-umami": "https://github.com/bgervan/nuxt-umami/releases/download/v3.4.0-bg.2/nuxt-umami-3.4.0.tgz",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "typescript": "catalog:",

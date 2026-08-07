@@ -7,7 +7,7 @@
 1. **French admin UI** — Nuxt UI dashboard for content, media, planning, Strapi import, and maintenance.
 2. **REST API** under `/api/*` — consumed by `apps/web` and by the admin itself.
 
-Persistence: **Drizzle ORM** on SQLite (local libSQL at `.data/db/sqlite.db` in dev; **Cloudflare D1** in production via Nitro `cloudflare_module` preset). Media: **R2** (local bucket binding in dev). Sessions: **nuxt-auth-utils** (sealed cookie, 8h max age). Authorization: **nuxt-authorization** with roles `admin` | `editor` (`shared/abilities.ts`).
+Persistence: **Drizzle ORM** on SQLite (local libSQL at `.data/db/sqlite.db` in dev; **Cloudflare D1** in production via Alchemy `Website.Nuxt`). Media: **R2** (local bucket binding in dev). Sessions: **nuxt-auth-utils** (sealed cookie, 8h max age). Authorization: **nuxt-authorization** with roles `admin` | `editor` (`shared/abilities.ts`).
 
 Replaces Strapi v5 as the system of record; Strapi remains a **migration source** via the import UI and extract services.
 

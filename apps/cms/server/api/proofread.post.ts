@@ -1,3 +1,4 @@
+import { useLogger } from 'evlog'
 import { z } from 'zod'
 import { runEditorProofread } from '../services/ai/editor-proofread'
 import { getClientIp } from '../utils/client-ip'
@@ -5,6 +6,7 @@ import { getCloudflareEnv } from '../utils/cloudflare-env'
 import { createApiError } from '../utils/errors'
 import { requireEditor } from '../utils/http-auth'
 import { useKvStore } from '../utils/kv'
+import { toLogError } from '../utils/logging'
 import { createRequestRateLimiter } from '../utils/rate-limit'
 
 const LIMIT = {
@@ -18,15 +20,17 @@ const bodySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
+  const log = useLogger(event as Parameters<typeof useLogger>[0])
   const session = await requireEditor(event)
   const ip = getClientIp(event)
-  const rate = await createRequestRateLimiter(useKvStore(event), LIMIT)
-    .consume(`${session.user.id}:${ip}`)
+  const rate = await createRequestRateLimiter(useKvStore(event), LIMIT).consume(
+    `${session.user.id}:${ip}`
+  )
   if (!rate.allowed) {
     throw createApiError(
       'FORBIDDEN',
       'Trop de requêtes d’orthographe. Réessayez dans une minute.',
-      { retryAfterSeconds: LIMIT.windowSeconds },
+      { retryAfterSeconds: LIMIT.windowSeconds }
     )
   }
 
@@ -37,37 +41,58 @@ export default defineEventHandler(async (event) => {
 
   const env = getCloudflareEnv(event)
   if (!env?.AI) {
-    throw createApiError(
-      'INTERNAL_ERROR',
-      'Workers AI n’est pas configuré.',
-      undefined,
-      { why: 'Binding AI absent sur cet environnement.' },
-    )
+    const cause = new Error('Workers AI binding is missing')
+    log.error(cause, {
+      proofread: {
+        step: 'resolve-binding',
+        userId: session.user.id,
+      },
+    })
+    throw createApiError('INTERNAL_ERROR', 'Workers AI n’est pas configuré.', undefined, {
+      status: 503,
+      why: 'Le binding Workers AI est absent de cet environnement.',
+      fix: 'Déployez via Alchemy ou activez le binding AI local.',
+      cause,
+      internal: { binding: 'AI' },
+    })
   }
 
   const gatewayId = import.meta.dev
     ? null
-    : (env.CMS_AI_GATEWAY_ID
-      || (typeof useRuntimeConfig(event).cmsAiGatewayId === 'string'
-        ? useRuntimeConfig(event).cmsAiGatewayId as string
-        : null))
+    : env.CMS_AI_GATEWAY_ID ||
+      (typeof useRuntimeConfig(event).cmsAiGatewayId === 'string'
+        ? (useRuntimeConfig(event).cmsAiGatewayId as string)
+        : null)
+
+  log.set({
+    proofread: {
+      userId: session.user.id,
+      inputLength: parsed.data.text.length,
+      provider: 'workers-ai',
+    },
+  })
 
   try {
     const corrections = await runEditorProofread({
       ai: env.AI,
       text: parsed.data.text,
       gatewayId,
-      userId: session.user.id,
+      userId: String(session.user.id),
     })
     return { corrections }
-  }
-  catch (error) {
-    console.error('[proofread] failed', error)
-    throw createApiError(
-      'INTERNAL_ERROR',
-      'Échec de l’analyse orthographique.',
-      undefined,
-      { why: error instanceof Error ? error.message : 'Erreur inconnue' },
-    )
+  } catch (error) {
+    const cause = error instanceof Error ? error : new Error(String(toLogError(error)))
+    log.error(cause, {
+      proofread: {
+        step: 'run-editor-proofread',
+        inputLength: parsed.data.text.length,
+      },
+    })
+    throw createApiError('INTERNAL_ERROR', 'Échec de l’analyse orthographique.', undefined, {
+      status: 502,
+      why: 'Le service Workers AI n’a pas pu analyser le texte.',
+      fix: 'Réessayez dans quelques instants.',
+      cause,
+    })
   }
 })

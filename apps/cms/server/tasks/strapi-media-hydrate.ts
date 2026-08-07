@@ -1,3 +1,4 @@
+import { createLogger } from 'evlog'
 import { z } from 'zod'
 import { getLocalDb } from '../db/client'
 import { hydrateStrapiMedia } from '../services/hydrate-strapi-media'
@@ -20,30 +21,41 @@ export default defineTask({
     description: 'Download remaining Strapi /uploads media and rewrite content URLs',
   },
   async run({ payload }) {
-    const parsed = payloadSchema.safeParse(payload ?? {})
-    if (!parsed.success) {
-      throw new Error(`Invalid strapi-media-hydrate payload: ${parsed.error.message}`)
+    const log = createLogger({ task: 'strapi-media-hydrate' })
+    try {
+      const parsed = payloadSchema.safeParse(payload ?? {})
+      if (!parsed.success) {
+        throw new Error(`Invalid strapi-media-hydrate payload: ${parsed.error.message}`)
+      }
+
+      const config = useRuntimeConfig()
+      if (!config.strapiUrl) {
+        throw new Error('STRAPI_URL is not configured')
+      }
+
+      // Force libSQL for this heavy download job when not explicitly on D1.
+      const db = prefersD1Database() ? useDb() : getLocalDb()
+
+      const result = await hydrateStrapiMedia({
+        db,
+        strapiUrl: config.strapiUrl,
+        strapiApiToken: config.strapiApiToken || undefined,
+        strapiUploadsOrigin: config.strapiUploadsOrigin || undefined,
+        dryRun: parsed.data.dryRun ?? false,
+        slug: parsed.data.slug,
+        delayMs: parsed.data.delayMs,
+        log: (message) => log.info(message),
+      })
+
+      log.set({ outcome: 'success', hydration: result })
+      return { result }
+    } catch (error) {
+      log.error(error instanceof Error ? error : String(error), {
+        outcome: 'failure',
+      })
+      throw error
+    } finally {
+      log.emit()
     }
-
-    const config = useRuntimeConfig()
-    if (!config.strapiUrl) {
-      throw new Error('STRAPI_URL is not configured')
-    }
-
-    // Force libSQL for this heavy download job when not explicitly on D1.
-    const db = prefersD1Database() ? useDb() : getLocalDb()
-
-    const result = await hydrateStrapiMedia({
-      db,
-      strapiUrl: config.strapiUrl,
-      strapiApiToken: config.strapiApiToken || undefined,
-      strapiUploadsOrigin: config.strapiUploadsOrigin || undefined,
-      dryRun: parsed.data.dryRun ?? false,
-      slug: parsed.data.slug,
-      delayMs: parsed.data.delayMs,
-      log: (message) => console.log(`[strapi-media-hydrate] ${message}`),
-    })
-
-    return { result }
   },
 })

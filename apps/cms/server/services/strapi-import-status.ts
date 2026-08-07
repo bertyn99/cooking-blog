@@ -30,11 +30,39 @@ function jobSlugsKey(lockId: string, step: StrapiImportBatchedStep) {
 export async function getStrapiImportStatus(event?: H3Event): Promise<StrapiImportProgress> {
   const store = useKvStore(event)
   const current = await store.get<StrapiImportProgress>(STATUS_KEY)
-  return current ?? {
-    status: 'idle',
+  const progress = current ?? {
+    status: 'idle' as const,
     dryRun: false,
     messages: [],
   }
+
+  // Overnight / crashed imports leave status=running after the lock TTL expires.
+  // Heal to idle so Maintenance + Import UI unlock without a manual reset.
+  if (progress.status === 'running') {
+    const lock = await store.get<StrapiImportLock>(LOCK_KEY)
+    if (!lock || isStaleLock(lock)) {
+      if (lock) {
+        await store.del(LOCK_KEY)
+        if (!useKv(event)) {
+          memoryLockOwner.id = null
+        }
+      }
+      const healed: StrapiImportProgress = {
+        status: 'idle',
+        dryRun: progress.dryRun,
+        messages: [
+          ...progress.messages,
+          'Import interrompu (verrou expiré) — état réinitialisé automatiquement.',
+        ].slice(-200),
+        finishedAt: new Date().toISOString(),
+        error: progress.error ?? 'Import bloqué: verrou expiré sans finalisation.',
+      }
+      await store.set(STATUS_KEY, healed, { ttl: STATUS_TTL })
+      return healed
+    }
+  }
+
+  return progress
 }
 
 export async function setStrapiImportStatus(

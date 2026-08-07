@@ -32,7 +32,10 @@ export const useLoadMeta = (metaOption: MetaOption): MetaData => {
     type: isArticle ? "article" : "website",
     title: metaOption.title,
     description,
-    robots: "index, follow, max-image-preview:large",
+    robots:
+      site.indexable === false
+        ? "noindex, nofollow"
+        : "index, follow, max-image-preview:large",
     keywords,
     ogType: isArticle ? "article" : "website",
     ogLocale: "fr-FR",
