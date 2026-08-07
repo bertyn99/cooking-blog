@@ -7,14 +7,14 @@ export function normalizeStrapiApiBase(url: string): string {
 
 /** Origins to try for `/uploads/…` static files (admin vs public site). */
 export function strapiUploadOrigins(apiBase: string, extraOrigin?: string): string[] {
-  const origins = [
+  const fromEnv = [
     extraOrigin,
+    process.env.STRAPI_UPLOADS_ORIGIN,
+    process.env.NUXT_PUBLIC_SITE_URL,
     normalizeStrapiApiBase(apiBase),
-    'https://admin.journalducuistot.fr',
-    'https://journalducuistot.fr',
   ].filter((value): value is string => Boolean(value?.trim()))
 
-  return [...new Set(origins.map(origin => origin.replace(/\/$/, '')))]
+  return [...new Set(fromEnv.map(origin => origin.replace(/\/$/, '')))]
 }
 
 async function downloadOnce(
@@ -63,7 +63,12 @@ export async function fetchStrapiUploadBinary(
   opts?: { origins: string[], token?: string, timeoutMs?: number, retries?: number },
 ): Promise<ArrayBuffer> {
   const path = relativeUrl.startsWith('/') ? relativeUrl : `/${relativeUrl}`
-  const origins = opts?.origins?.length ? opts.origins : ['https://admin.journalducuistot.fr']
+  const origins = opts?.origins?.length
+    ? opts.origins
+    : strapiUploadOrigins(process.env.STRAPI_URL || '')
+  if (!origins.length) {
+    throw new Error('No Strapi upload origins configured (set STRAPI_URL or pass opts.origins)')
+  }
   const timeoutMs = opts?.timeoutMs ?? 120_000
   const retries = opts?.retries ?? 2
 

@@ -3,6 +3,7 @@ import RSS from "rss";
 import { generateSlug } from "~/utils/format";
 import type { Article, Page, Recipe, SEO } from "~/types/strapiMeta";
 import { serverCmsFind } from "../utils/cms-fetch";
+import { getPublicSiteOrigin } from "../utils/site-url";
 
 function getSeoDescription(seo: SEO[] | SEO | undefined, seoMeta?: SEO) {
   if (seoMeta?.description) return seoMeta.description;
@@ -11,10 +12,11 @@ function getSeoDescription(seo: SEO[] | SEO | undefined, seoMeta?: SEO) {
 }
 
 export default defineEventHandler(async (event) => {
+  const siteOrigin = getPublicSiteOrigin(event);
   const feed = new RSS({
     title: "Journal du cuistot",
-    site_url: "https://journalducuistot.fr",
-    feed_url: `https://journalducuistot.fr/rss.xml`,
+    site_url: siteOrigin,
+    feed_url: `${siteOrigin}/rss.xml`,
   });
 
   const [pagesResponse, articlesResponse, recipesResponse] = await Promise.all([
@@ -39,7 +41,7 @@ export default defineEventHandler(async (event) => {
   for (const doc of pages) {
     feed.item({
       title: doc.title ?? "-",
-      url: `https://journalducuistot.fr${generateSlug(doc.slug ?? "", doc.parent)}`,
+      url: `${siteOrigin}${generateSlug(doc.slug ?? "", doc.parent)}`,
       date: doc.publishedAt ?? new Date().toISOString(),
       description: getSeoDescription(undefined, doc.seoMeta),
     });
@@ -47,7 +49,7 @@ export default defineEventHandler(async (event) => {
   for (const doc of articles) {
     feed.item({
       title: doc.title ?? "-",
-      url: `https://journalducuistot.fr/blog/${doc.category?.slug || "uncategorized"}/${doc.slug}`,
+      url: `${siteOrigin}/blog/${doc.category?.slug || "uncategorized"}/${doc.slug}`,
       date: doc.publishedAt ?? new Date().toISOString(),
       description: getSeoDescription(doc.seo, doc.seoMeta),
     });
@@ -55,7 +57,7 @@ export default defineEventHandler(async (event) => {
   for (const doc of recipes) {
     feed.item({
       title: doc.title ?? "-",
-      url: `https://journalducuistot.fr/recette/${doc.slug}`,
+      url: `${siteOrigin}/recette/${doc.slug}`,
       date: doc.publishedAt ?? new Date().toISOString(),
       description: getSeoDescription(doc.seo, doc.seoMeta),
     });

@@ -7,10 +7,7 @@ import * as Config from 'effect/Config'
 import * as Effect from 'effect/Effect'
 import { CMS_AI_GATEWAY_ID } from '../apps/cms/shared/workers-ai-model.ts'
 
-/** Production custom domains (`stage === prod` only). Zone must exist on the Cloudflare account. */
-const PROD_WEB_HOST = 'journalducuistot.fr'
-const PROD_CMS_HOST = 'admin.journalducuistot.fr'
-const PROD_UMAMI_HOST = 'https://analytics.bertynboulikou.com'
+/** Production custom domains (`stage === prod` only). Set via env — not committed. */
 const CMS_DEV_PORT = 3001
 const WEB_DEV_PORT = 3000
 const CMS_ROOT_DIR = fileURLToPath(new URL('../apps/cms/', import.meta.url))
@@ -56,9 +53,13 @@ export const workers = Effect.fn(function* (input: {
   const stage = yield* Stage
   const isProd = stage === 'prod'
   const isAlchemyDev = yield* Alchemy.ALCHEMY_DEV
-  const prodCmsOrigin = `https://${PROD_CMS_HOST}`
-  const cmsDomain = isProd ? PROD_CMS_HOST : undefined
-  const webDomain = isProd ? PROD_WEB_HOST : undefined
+  const prodWebHost = yield* Config.string('PROD_WEB_HOST').pipe(Config.withDefault(''))
+  const prodCmsHost = yield* Config.string('PROD_CMS_HOST').pipe(Config.withDefault(''))
+  const normalizeHost = (value: string) =>
+    value.replace(/^https?:\/\//, '').replace(/\/$/, '')
+  const prodCmsOrigin = prodCmsHost ? `https://${normalizeHost(prodCmsHost)}` : ''
+  const cmsDomain = isProd && prodCmsHost ? normalizeHost(prodCmsHost) : undefined
+  const webDomain = isProd && prodWebHost ? normalizeHost(prodWebHost) : undefined
 
   // Provision AI Gateway (dashboard logs, caching, rate limits).
   // Nuxt CMS uses Workers AI binding + `CMS_AI_GATEWAY_ID` in `workers-ai-provider` (not Effect `QueryGateway`).
@@ -130,13 +131,20 @@ export const workers = Effect.fn(function* (input: {
   const cmsBaseUrl = cmsOriginOverride._tag === 'Some' ? cmsOriginOverride.value : defaultCmsOrigin
   const cmsPublicUrl =
     cmsPublicOverride._tag === 'Some' ? cmsPublicOverride.value : defaultCmsOrigin
-  const siteUrl = isProd
-    ? `https://${PROD_WEB_HOST}`
-    : Config.string('NUXT_PUBLIC_SITE_URL').pipe(Config.withDefault('http://localhost:3000'))
+  const siteUrlFromEnv = yield* Config.string('NUXT_PUBLIC_SITE_URL').pipe(
+    Config.withDefault('http://localhost:3000'),
+  )
+  const siteUrl =
+    isProd && prodWebHost
+      ? `https://${normalizeHost(prodWebHost)}`
+      : siteUrlFromEnv
   const ogImageSecret = Config.string('NUXT_OG_IMAGE_SECRET').pipe(Config.withDefault(''))
-  // Umami — prod only (preview/local: no id/host → module stays in test mode).
-  const umamiId = isProd ? '54df0335-b527-43b0-9087-35f6331c9bc7' : ''
-  const umamiHost = isProd ? PROD_UMAMI_HOST : ''
+  const umamiId = isProd
+    ? yield* Config.string('NUXT_UMAMI_ID').pipe(Config.withDefault(''))
+    : ''
+  const umamiHost = isProd
+    ? yield* Config.string('NUXT_UMAMI_HOST').pipe(Config.withDefault(''))
+    : ''
 
   const SkewProtection = yield* Cloudflare.KV.Namespace('WebSkewProtection', {})
 
@@ -165,9 +173,8 @@ export const workers = Effect.fn(function* (input: {
       NUXT_OG_IMAGE_SECRET: ogImageSecret,
       STRAPI_URL: Config.string('STRAPI_URL').pipe(Config.withDefault('')),
       NUXT_UMAMI_ID: umamiId,
-      ...(isProd
-        ? { NUXT_UMAMI_HOST: umamiHost }
-        : { NUXT_SITE_INDEXABLE: 'false' }),
+      ...(isProd && umamiHost ? { NUXT_UMAMI_HOST: umamiHost } : {}),
+      ...(isProd ? {} : { NUXT_SITE_INDEXABLE: 'false' }),
     },
     compatibility: WEB_NODE_COMPAT,
     memo: NUXT_MEMO,

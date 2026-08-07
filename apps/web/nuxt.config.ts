@@ -15,7 +15,7 @@ const skewProtectionBundleAssets = Boolean(
   skewProtectionKvNamespaceId !== 'skew-protection-local'
 )
 
-const siteUrl = process.env.NUXT_PUBLIC_SITE_URL || 'https://journalducuistot.fr'
+const siteUrl = process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 const siteOrigin = siteUrl.replace(/\/$/, '')
 const siteName = process.env.NUXT_SITE_NAME || 'Journal du cuistot'
 const siteDescription =
@@ -39,7 +39,7 @@ export default defineNuxtConfig({
       link: [{ rel: 'icon', type: 'image/webp', href: '/img/logo.webp' }],
       /* script: [
         {
-          src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5406721051491594",
+          src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js",
           async: true,
           crossorigin: "anonymous",
           type: "text/partytown",

@@ -64,7 +64,10 @@ async function main() {
   loadEnvFile(resolve(root, '../../.env'))
 
   const { dryRun, slug, delayMs } = parseArgs(process.argv.slice(2))
-  const strapiUrl = process.env.STRAPI_URL || 'https://admin.journalducuistot.fr'
+  const strapiUrl = process.env.STRAPI_URL
+  if (!strapiUrl?.trim()) {
+    throw new Error('STRAPI_URL is required for media hydration')
+  }
   const strapiApiToken = process.env.STRAPI_API_TOKEN || undefined
   const strapiUploadsOrigin = process.env.STRAPI_UPLOADS_ORIGIN || undefined
 
