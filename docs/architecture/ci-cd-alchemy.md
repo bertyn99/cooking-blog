@@ -11,7 +11,9 @@ Automated Cloudflare deploys follow [Alchemy Part 5: CI/CD](https://alchemy.run/
 
 Workflow: `.github/workflows/deploy.yml`. Remote Alchemy state is enabled via `CI=true` (see `alchemy.run.ts`).
 
-**Production domains** (only when `stage === prod`): Web `journalducuistot.fr`, CMS `admin.journalducuistot.fr` — configured in `infra/workers.ts` via Worker `domain`. The `journalducuistot.fr` zone must already be on your Cloudflare account; Alchemy provisions DNS + TLS for those hostnames on deploy.
+**Production domains** (only when `stage === prod`): set GitHub secrets `PROD_WEB_HOST` and `PROD_CMS_HOST` (hostnames only, e.g. `journalducuistot.fr` and `admin.journalducuistot.fr`). They are passed into `pnpm alchemy deploy` from `.github/workflows/deploy.yml`. The zone must already be on your Cloudflare account; Alchemy provisions DNS + TLS on deploy.
+
+**Production analytics (Umami):** `NUXT_UMAMI_ID` and `NUXT_UMAMI_HOST` (prod stage only; same workflow `env` block).
 
 **Preview** uses `*.workers.dev` URLs (no custom domain). Web points at the preview CMS Worker URL.
 
@@ -26,6 +28,10 @@ Set via `pnpm deploy:github` from `.env`, or manually under **Settings → Secre
 | `NUXT_OG_IMAGE_SECRET` | CMS + Web Workers |
 | `STRAPI_URL` | CMS Strapi import — also bound as `NUXT_STRAPI_URL` (Nuxt runtimeConfig override) |
 | `STRAPI_API_TOKEN` | Optional; also bound as `NUXT_STRAPI_API_TOKEN` |
+| `PROD_WEB_HOST` | Prod only — public site hostname (no `https://`) |
+| `PROD_CMS_HOST` | Prod only — CMS hostname |
+| `NUXT_UMAMI_ID` | Prod only — Umami website id |
+| `NUXT_UMAMI_HOST` | Prod only — Umami instance URL (e.g. `https://analytics.example.com`) |
 
 ## One-time setup (from your laptop)
 

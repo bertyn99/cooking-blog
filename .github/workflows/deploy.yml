@@ -36,4 +36,8 @@ jobs:
           NUXT_OG_IMAGE_SECRET: ${{ secrets.NUXT_OG_IMAGE_SECRET }}
           STRAPI_URL: ${{ secrets.STRAPI_URL }}
           STRAPI_API_TOKEN: ${{ secrets.STRAPI_API_TOKEN }}
+          PROD_WEB_HOST: ${{ secrets.PROD_WEB_HOST }}
+          PROD_CMS_HOST: ${{ secrets.PROD_CMS_HOST }}
+          NUXT_UMAMI_ID: ${{ secrets.NUXT_UMAMI_ID }}
+          NUXT_UMAMI_HOST: ${{ secrets.NUXT_UMAMI_HOST }}
           GITHUB_SHA: ${{ github.sha }}
