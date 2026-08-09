@@ -34,7 +34,7 @@ const { data: articles, refresh } = await useAsyncData<StrapiResponse<Article>>(
         pageSize: 7,
       },
     }),
-  { watch: [currentPage] },
+  { watch: [currentPage], deep: false },
 );
 
 const { data: categories } = await useAsyncData(`categories`, () =>

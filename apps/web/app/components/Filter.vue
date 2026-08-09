@@ -15,6 +15,21 @@ const emit = defineEmits<{
   filter: [];
 }>();
 
+const localSearch = ref(searchValue);
+
+watch(
+  () => searchValue,
+  (value) => {
+    if (value !== localSearch.value) {
+      localSearch.value = value;
+    }
+  },
+);
+
+const emitSearchDebounced = useDebounceFn((value: string) => {
+  emit("update:searchValue", value);
+}, 300);
+
 const check = (optionName: string, checked: boolean) => {
   const updatedValue = [...selected];
 
@@ -26,7 +41,9 @@ const check = (optionName: string, checked: boolean) => {
   emit("update:selected", updatedValue);
 };
 const onInput = (e: Event) => {
-  emit("update:searchValue", (e.target as HTMLInputElement).value);
+  const value = (e.target as HTMLInputElement).value;
+  localSearch.value = value;
+  emitSearchDebounced(value);
 };
 </script>
 
@@ -48,7 +65,7 @@ const onInput = (e: Event) => {
         <input
           type="text"
           name="qodef-text-custom_search"
-          :value="searchValue"
+          :value="localSearch"
           @input="onInput"
           placeholder="Que recherchez-vous ?"
           class="inline-block relative py-4 px-6 mx-0 mt-0 mb-5 w-full text-base align-top bg-transparent rounded-none border border-solid appearance-none cursor-text border-zinc-300 focus:border-black focus:bg-transparent focus:text-black"

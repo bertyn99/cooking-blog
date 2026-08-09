@@ -20,7 +20,7 @@ const { data: recipes, refresh } = await useAsyncData<StrapiResponse<Recipe>>(
         pageSize: 16,
       },
     }),
-  { watch: [currentPage] },
+  { watch: [currentPage], deep: false },
 );
 const recetteDescription =
   "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.";

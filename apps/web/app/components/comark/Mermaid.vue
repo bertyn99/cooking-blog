@@ -13,7 +13,7 @@ onMounted(async () => {
   }
 
   const { $mermaid } = useNuxtApp();
-  const mermaid = $mermaid();
+  const mermaid = await $mermaid();
 
   try {
     mermaid.initialize({
@@ -39,7 +39,7 @@ watch(
       return;
     }
     const { $mermaid } = useNuxtApp();
-    const mermaid = $mermaid();
+    const mermaid = await $mermaid();
     try {
       renderError.value = null;
       const { svg } = await mermaid.render(`${diagramId}-w`, props.content.trim());

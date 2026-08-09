@@ -21,8 +21,9 @@ defineProps<{
       height="600"
       :src="url"
       fit="cover"
-      loading="eager"
-      class="aspect-[3/2]"
+      priority
+      fetchpriority="high"
+      class="aspect-[3/2] w-full object-cover"
       sizes="sm:70vw md:51vw lg:41vw"
       :alt="alt"
     />

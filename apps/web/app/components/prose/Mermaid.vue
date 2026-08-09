@@ -12,7 +12,8 @@
   onMounted(async () => {
     show.value = true
     try {
-      $mermaid().initialize({ 
+      const mermaid = await $mermaid()
+      mermaid.initialize({ 
       startOnLoad: true,
       theme: 'default',
       look: 'handDrawn',
@@ -90,7 +91,9 @@
       maxEdges: 1000
     })
     await nextTick()
-    $mermaid().init()
+    await mermaid.run({
+      nodes: document.querySelectorAll('.mermaid'),
+    })
     } catch (error) {
       console.error('Failed to initialize Mermaid:', error)
       show.value = false

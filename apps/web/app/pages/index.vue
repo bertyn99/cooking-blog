@@ -45,7 +45,7 @@ const { data } = await useAsyncData<HomepageData>("homepage-data", async () => {
     articles: articlesResponse.data ?? [],
     recipes: recipesResponse.data ?? [],
   };
-});
+}, { deep: false });
 
 const articles = computed(() => data.value?.articles || []);
 const recipes = computed(() => data.value?.recipes || []);

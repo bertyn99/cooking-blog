@@ -1,7 +1,7 @@
-import type mermaid from 'mermaid'
+import type Mermaid from "mermaid";
 
-declare module '#app' {
-    interface NuxtApp {
-        $mermaid: typeof mermaid
-    }
+declare module "#app" {
+  interface NuxtApp {
+    $mermaid: () => Promise<typeof Mermaid>;
+  }
 }

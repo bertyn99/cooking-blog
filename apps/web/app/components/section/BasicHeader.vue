@@ -1,7 +1,7 @@
-<script setup>
-import { useWindowScroll } from "@vueuse/core";
+<script setup lang="ts">
+import { useThrottleFn, useWindowScroll } from "@vueuse/core";
 
-const { x, y } = useWindowScroll();
+const { y } = useWindowScroll();
 
 const links = [
   {
@@ -62,6 +62,13 @@ const currentRoute = computed(() => route.path);
 
 const heightPadding = computed(() => (currentRoute.value == "/" ? 120 : 80));
 
+const headerScrolled = ref(false);
+const syncHeaderScroll = useThrottleFn(() => {
+  headerScrolled.value = y.value > heightPadding.value;
+}, 100, true);
+
+watch(y, syncHeaderScroll, { immediate: true });
+
 const toggleDropdown = (linkId) => {
   openDropdown.value = openDropdown.value === linkId ? null : linkId;
 };
@@ -73,12 +80,12 @@ const closeDropdown = () => {
 
 <template>
   <header class="w-full h-24 md:transparent fixed top-0 z-20">
-    <nav class="border-gray-200" :class="{ 'bg-gray-100': y > heightPadding || mobileMenuOpen }">
+    <nav class="border-gray-200" :class="{ 'bg-gray-100': headerScrolled || mobileMenuOpen }">
       <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 py-3">
         <NuxtLink href="/" class="flex items-center">
           <h1>
             <span class="sr-only">Journal du Cuistot</span>
-            <nuxt-img preload src="/img/logo.webp" class="h-16 mr-3 object-cover" alt="Logo Journal du cuistot"
+            <nuxt-img preload src="/img/logo.webp" width="64" height="64" class="h-16 w-16 mr-3 object-cover" alt="Logo Journal du cuistot"
               aria-hidden="true" />
           </h1>
         </NuxtLink>

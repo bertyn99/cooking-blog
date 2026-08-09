@@ -85,6 +85,17 @@ export default defineNuxtConfig({
     'nuxt-umami',
   ],
 
+  fonts: {
+    families: [
+      { name: 'Catamaran', provider: 'google' },
+      { name: 'Merriweather', provider: 'google' },
+    ],
+  },
+
+  partytown: {
+    debug: siteEnv === 'development',
+  },
+
   css: ['~/assets/css/index.css'],
 
   vite: {
@@ -313,6 +324,6 @@ export default defineNuxtConfig({
   }, */
 
   devtools: {
-    enabled: true,
+    enabled: siteEnv === 'development',
   },
 })
