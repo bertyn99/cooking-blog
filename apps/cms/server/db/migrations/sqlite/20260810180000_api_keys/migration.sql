@@ -1,4 +1,4 @@
-CREATE TABLE `api_keys` (
+CREATE TABLE IF NOT EXISTS `api_keys` (
 	`id` integer PRIMARY KEY AUTOINCREMENT,
 	`name` text NOT NULL,
 	`key_prefix` text NOT NULL,
@@ -14,5 +14,5 @@ CREATE TABLE `api_keys` (
 	CONSTRAINT `fk_api_keys_created_by_user_id_users_id_fk` FOREIGN KEY (`created_by_user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
 );
 --> statement-breakpoint
-CREATE INDEX `api_keys_prefix_idx` ON `api_keys` (`key_prefix`);--> statement-breakpoint
-CREATE INDEX `api_keys_revoked_idx` ON `api_keys` (`revoked_at`);
+CREATE INDEX IF NOT EXISTS `api_keys_prefix_idx` ON `api_keys` (`key_prefix`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `api_keys_revoked_idx` ON `api_keys` (`revoked_at`);
