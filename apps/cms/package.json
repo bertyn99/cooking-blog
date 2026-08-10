@@ -25,6 +25,7 @@
     "task:strapi-extract": "nitro task run strapi-extract",
     "task:strapi-media-hydrate": "nitro task run strapi-media-hydrate",
     "media:hydrate": "node --import tsx scripts/hydrate-strapi-media.ts",
+    "clone:prod": "node --import tsx scripts/clone-prod.ts",
     "task:generation-process": "nitro task run generation-process"
   },
   "dependencies": {

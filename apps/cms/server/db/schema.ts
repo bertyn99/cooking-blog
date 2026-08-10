@@ -1,3 +1,4 @@
+export * from './schema/api-keys'
 export * from './schema/articles'
 export * from './schema/audit-events'
 export * from './schema/blobs'

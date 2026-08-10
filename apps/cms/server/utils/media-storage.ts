@@ -24,6 +24,8 @@ export interface MediaListResult {
 export interface MediaStorage {
   put(file: File, folderPrefix?: string): Promise<MediaObject>
   putBuffer(pathname: string, data: ArrayBuffer | Buffer, contentType: string): Promise<MediaObject>
+  /** Write bytes as-is (no image optimize) — used by transfer pull. */
+  putRaw(pathname: string, data: ArrayBuffer | Buffer, contentType: string): Promise<MediaObject>
   head(pathname: string): Promise<MediaObject | null>
   get(pathname: string): Promise<{ body: ReadableStream, object: MediaObject } | null>
   del(pathname: string): Promise<void>
@@ -149,6 +151,20 @@ function createR2Storage(bucket: R2Bucket): MediaStorage {
       }
     },
 
+    async putRaw(pathname, data, contentType) {
+      assertSafePathname(pathname)
+      const body = toBuffer(data)
+      const uploaded = await bucket.put(pathname, body, {
+        httpMetadata: { contentType },
+      })
+      return {
+        pathname,
+        contentType,
+        size: body.byteLength,
+        etag: uploaded?.etag,
+      }
+    },
+
     async head(pathname) {
       const object = await bucket.head(pathname)
       if (!object) return null
@@ -245,6 +261,21 @@ function createLocalStorage(): MediaStorage {
       return {
         pathname: outPath,
         contentType: normalized.contentType,
+        size: buffer.byteLength,
+        etag: hash,
+      }
+    },
+
+    async putRaw(pathname, data, contentType) {
+      assertSafePathname(pathname)
+      const full = await resolvePath(pathname)
+      await mkdir(dirname(full), { recursive: true })
+      const buffer = toBuffer(data)
+      await writeFile(full, buffer)
+      const hash = createHash('sha256').update(buffer).digest('hex')
+      return {
+        pathname,
+        contentType,
         size: buffer.byteLength,
         etag: hash,
       }

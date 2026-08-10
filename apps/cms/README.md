@@ -38,7 +38,39 @@ pnpm db:migrate:local
 pnpm db:seed:admin
 pnpm task:seed:admin
 pnpm task:strapi-extract
+pnpm clone:prod              # import prod D1 + media into .data/ (see below)
 ```
+
+## Clone remote CMS data locally (transfer API key)
+
+Pull **articles / recipes / media** (including drafts) into this instance — **no Cloudflare credentials**.
+
+### Admin UI
+
+1. On the **source** CMS: **Clés API & transfert** → create a key with the scopes you need.
+2. On the **destination** CMS (often local): same page → **Pull depuis un CMS distant**  
+   enter origin URL + key (no `.env` required). Use dry-run first; type `IMPORTER` to write.
+
+### CLI
+
+```bash
+pnpm cms:clone:prod -- --origin=https://admin.example.com --key=jdc_…
+pnpm cms:clone:prod -- --scopes=articles,media --dry-run
+```
+
+Origin / key can also come from `CMS_CLONE_CMS_ORIGIN` (or `PROD_CMS_HOST`) and `CMS_TRANSFER_KEY`.
+
+| Variable | Purpose |
+|----------|---------|
+| `CMS_TRANSFER_KEY` | Optional CLI default for `--key` |
+| `CMS_CLONE_CMS_ORIGIN` / `PROD_CMS_HOST` | Optional CLI default for `--origin` |
+| `CMS_TRANSFER_PULL_ENABLED` | Set `0`/`false` to disable source transfer routes |
+| `CMS_TRANSFER_ALLOW_LOCAL_ORIGIN` | Set `1` to allow admin pull from localhost |
+| `CMS_TRANSFER_ALLOW_WORKER_MEDIA` | Set `1` to override the Workers media-pull block (not recommended) |
+| `CMS_API_KEY_PEPPER` | Optional hash pepper (defaults to `NUXT_SESSION_PASSWORD`) |
+
+Transfer routes: `GET /api/transfer/articles|recipes|media` (+ `GET /api/transfer/media/file`).  
+Admin pull: `POST /api/admin/transfer/pull`.
 
 ## Local vs deploy
 

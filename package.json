@@ -6,6 +6,7 @@
   "scripts": {
     "dev:web": "pnpm --filter web dev",
     "dev:cms": "pnpm --filter cms dev",
+    "cms:clone:prod": "pnpm --filter cms clone:prod",
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
     "build:web": "pnpm --filter web build",
