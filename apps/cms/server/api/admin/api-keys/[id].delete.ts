@@ -1,6 +1,6 @@
-import { requireAdmin } from '../../../../utils/http-auth'
-import { createApiError } from '../../../../utils/errors'
-import { useApiKeyService } from '../../../../services/api-key-service'
+import { requireAdmin } from '../../../utils/http-auth'
+import { createApiError } from '../../../utils/errors'
+import { useApiKeyService } from '../../../services/api-key-service'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
