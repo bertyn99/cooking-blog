@@ -149,8 +149,13 @@ export const workers = Effect.fn(function* (input: {
   const SkewProtection = yield* Cloudflare.KV.Namespace('WebSkewProtection', {})
 
   // Deploy-time Nuxt overrides (merge over apps/web/nuxt.config.ts).
-  // Skew assets only when a Cloudflare token is present (same gate as before).
-  const skewBundleAssets = Boolean(process.env.CLOUDFLARE_API_TOKEN)
+  // Skew `bundleAssets` with cloudflare-kv-binding shells out to `wrangler kv put`
+  // once per `_nuxt` asset during Nuxt's nitro `compiled` hook — hangs CI for
+  // tens of minutes. Alchemy memo skips rebuilds via the `input` hash (project
+  // tree + `nuxt` options), not post-build asset bytes — see Website.Nuxt /
+  // @distilled.cloud/nuxt. Off in CI; local `pnpm alchemy deploy` can enable it.
+  const skewBundleAssets =
+    Boolean(process.env.CLOUDFLARE_API_TOKEN) && process.env.CI !== 'true'
   // Former Command.Build forced REDIS_URL='' so nuxt.config does not embed
   // Vercel Redis into the Workers bundle (host `.env` still has REDIS_URL).
   process.env.REDIS_URL = ''

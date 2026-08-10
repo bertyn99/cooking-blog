@@ -11,6 +11,8 @@ Automated Cloudflare deploys follow [Alchemy Part 5: CI/CD](https://alchemy.run/
 
 Workflow: `.github/workflows/deploy.yml`. Remote Alchemy state is enabled via `CI=true` (see `alchemy.run.ts`).
 
+**Skew protection in CI:** `skewProtection.bundleAssets` is disabled when `CI=true` (see `infra/workers.ts` and `apps/web/nuxt.config.ts`). With `cloudflare-kv-binding`, Nuxt SEO stores each previous-build asset via a Wrangler CLI `kv put` during the nitro `compiled` hook — that stalled GitHub Actions for ~1h. Alchemy’s `Website.Nuxt` memo ([Nuxt frontend](https://alchemy.run/cloudflare/frontend/nuxt), [memo / rebuilds](https://alchemy.run/cloudflare/frontend/vite#rebuilds-and-memo)) hashes the project tree + `nuxt` options (`input`), then deploys the Worker script + static assets once per apply — it does **not** re-hash restored `.output/public` chunks to decide rebuilds. Multiple Web builds in one deploy are expected when upstream bindings change (e.g. CMS URL / skew KV id in `nuxt` overrides). The workflow still caches `node_modules/.cache/nuxt-seo` per [Nuxt SEO storage guidance](https://nuxtseo.com/docs/skew-protection/guides/storage-configuration). Runtime skew (polling) remains on; for full KV chunk archival, run `pnpm alchemy deploy` locally with `CI` unset.
+
 **Production domains** (only when `stage === prod`): set GitHub secrets `PROD_WEB_HOST` and `PROD_CMS_HOST` (hostnames only, e.g. `journalducuistot.fr` and `admin.journalducuistot.fr`). They are passed into `pnpm alchemy deploy` from `.github/workflows/deploy.yml`. The zone must already be on your Cloudflare account; Alchemy provisions DNS + TLS on deploy.
 
 **Production analytics (Umami):** `NUXT_UMAMI_ID` and `NUXT_UMAMI_HOST` (prod stage only; same workflow `env` block).
