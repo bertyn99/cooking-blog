@@ -1,14 +1,11 @@
 import { requireApiKey } from '../../../utils/api-key-auth'
-import { useDb } from '../../../utils/db'
-import {
-  createTransferExportQueries,
-  parseMediaTransferPage,
-} from '../../../services/transfer-export'
+import { useQueries } from '../../../utils/db'
+import { parseMediaTransferPage } from '../../../services/transfer-export'
 
 export default defineEventHandler(async (event) => {
   await requireApiKey(event, 'media')
   const { limit, cursor } = parseMediaTransferPage(getQuery(event) as Record<string, unknown>)
-  const page = await createTransferExportQueries(useDb(event)).exportMediaPage({
+  const page = await useQueries(event).transferExport.exportMediaPage({
     cursor,
     limit,
   })

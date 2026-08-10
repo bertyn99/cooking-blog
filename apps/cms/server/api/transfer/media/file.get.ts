@@ -1,8 +1,7 @@
 import { requireApiKey } from '../../../../utils/api-key-auth'
-import { useDb } from '../../../../utils/db'
+import { useQueries } from '../../../../utils/db'
 import { createApiError } from '../../../../utils/errors'
 import { useMediaStorage } from '../../../../utils/media-storage'
-import { createTransferExportQueries } from '../../../../services/transfer-export'
 import { isAllowedMediaAssetPath } from '../../../../shared/image-delivery-policy'
 
 export default defineEventHandler(async (event) => {
@@ -13,7 +12,7 @@ export default defineEventHandler(async (event) => {
     throw createApiError('VALIDATION_ERROR', 'Chemin média invalide.')
   }
 
-  const blob = await createTransferExportQueries(useDb(event)).findBlob(pathname)
+  const blob = await useQueries(event).transferExport.findBlob(pathname)
   if (!blob) {
     throw createApiError('NOT_FOUND', 'Média introuvable dans le catalogue.')
   }

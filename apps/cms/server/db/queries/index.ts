@@ -19,6 +19,7 @@ import { createSiteSettingsQueries } from './site-settings'
 import { createNavigationQueries } from './navigation'
 import { createContentGenerationQueries } from './content-generation'
 import { createApiKeyQueries } from './api-keys'
+import { createTransferExportQueries } from './transfer-export'
 
 /**
  * Single entry point for all Drizzle access in the CMS server.
@@ -46,6 +47,7 @@ export function createDbQueries(db: AppDb) {
     navigation: createNavigationQueries(db),
     contentGeneration: createContentGenerationQueries(db),
     apiKeys: createApiKeyQueries(db),
+    transferExport: createTransferExportQueries(db),
   }
 }
 

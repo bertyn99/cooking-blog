@@ -8,8 +8,7 @@
       width="1920"
       height="1080"
       sizes="100vw"
-      priority
-      fetchpriority="high"
+      :preload="{ fetchPriority: 'high' }"
       class="absolute inset-0 -z-10 h-full w-full object-cover"
     />
 

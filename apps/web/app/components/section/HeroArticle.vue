@@ -21,8 +21,7 @@ defineProps<{
       height="600"
       :src="url"
       fit="cover"
-      priority
-      fetchpriority="high"
+      :preload="{ fetchPriority: 'high' }"
       class="aspect-[3/2] w-full object-cover"
       sizes="sm:70vw md:51vw lg:41vw"
       :alt="alt"
