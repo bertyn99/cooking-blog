@@ -7,6 +7,22 @@ import {
 } from '../../shared/transfer-pull'
 import { sanitizeImportedRow } from '../../server/db/clone/transfer-pull'
 
+describe('isPrivateHostname', () => {
+  it('detects CGNAT and link-local', () => {
+    expect(isPrivateHostname('100.64.1.2')).toBe(true)
+    expect(isPrivateHostname('169.254.1.1')).toBe(true)
+    expect(isPrivateHostname('admin.example.com')).toBe(false)
+  })
+
+  it('blocks IPv4-mapped IPv6 loopback and metadata', () => {
+    expect(isPrivateHostname('[::ffff:127.0.0.1]')).toBe(true)
+    expect(isPrivateHostname('[::ffff:7f00:1]')).toBe(true)
+    expect(isPrivateHostname('[::ffff:169.254.169.254]')).toBe(true)
+    expect(isPrivateHostname('[::ffff:a9fe:a9fe]')).toBe(true)
+    expect(isPrivateHostname('[2001:db8::1]')).toBe(false)
+  })
+})
+
 describe('normalizeCmsOrigin', () => {
   it('normalizes https hosts', () => {
     expect(normalizeCmsOrigin('admin.example.com')).toBe('https://admin.example.com')
@@ -18,20 +34,13 @@ describe('normalizeCmsOrigin', () => {
     expect(() => normalizeCmsOrigin('http://169.254.169.254')).toThrow('ORIGIN_PRIVATE')
     expect(() => normalizeCmsOrigin('http://metadata.google.internal')).toThrow('ORIGIN_PRIVATE')
     expect(() => normalizeCmsOrigin('http://10.0.0.5')).toThrow('ORIGIN_PRIVATE')
+    expect(() => normalizeCmsOrigin('http://[::ffff:127.0.0.1]')).toThrow('ORIGIN_PRIVATE')
     expect(normalizeCmsOrigin('http://localhost:3001', { allowPrivate: true }))
       .toBe('http://localhost:3001')
   })
 
   it('rejects credentials in URL', () => {
     expect(() => normalizeCmsOrigin('https://user:pass@admin.example.com')).toThrow('ORIGIN_INVALID')
-  })
-})
-
-describe('isPrivateHostname', () => {
-  it('detects CGNAT and link-local', () => {
-    expect(isPrivateHostname('100.64.1.2')).toBe(true)
-    expect(isPrivateHostname('169.254.1.1')).toBe(true)
-    expect(isPrivateHostname('admin.example.com')).toBe(false)
   })
 })
 

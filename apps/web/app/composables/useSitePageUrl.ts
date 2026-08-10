@@ -21,8 +21,8 @@ export function useSitePageUrl(path: string): string {
   return absoluteSiteUrl(site.url, path);
 }
 
+/** @deprecated Prefer automatic canonical URLs from `@nuxtjs/seo` (nuxt-seo-utils). */
 export function usePageCanonical(path: string): string {
-  /** @deprecated Prefer automatic canonical URLs from `@nuxtjs/seo` (nuxt-seo-utils). */
   const href = useSitePageUrl(path);
   useHead({
     link: [{ rel: "canonical", href }],

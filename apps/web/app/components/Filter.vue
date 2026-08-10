@@ -30,6 +30,11 @@ const emitSearchDebounced = useDebounceFn((value: string) => {
   emit("update:searchValue", value);
 }, 300);
 
+const flushSearch = () => {
+  emitSearchDebounced.cancel?.();
+  emit("update:searchValue", localSearch.value);
+};
+
 const check = (optionName: string, checked: boolean) => {
   const updatedValue = [...selected];
 
@@ -44,6 +49,10 @@ const onInput = (e: Event) => {
   const value = (e.target as HTMLInputElement).value;
   localSearch.value = value;
   emitSearchDebounced(value);
+};
+const onFilter = () => {
+  flushSearch();
+  emit("filter");
 };
 </script>
 
@@ -131,7 +140,7 @@ const onInput = (e: Event) => {
             border-color 0.2s ease-out 0s;
           box-shadow: none;
         "
-        @click="emit('filter')"
+        @click="onFilter"
       >
         <span class="uppercase align-baseline border-0 tracking-[1.8px]"
           >Filtrer le Resultats</span

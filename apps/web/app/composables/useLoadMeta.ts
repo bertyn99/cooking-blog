@@ -6,7 +6,7 @@ export const useLoadMeta = (metaOption: MetaOption): MetaData => {
   const site = useSiteConfig();
   const origin = siteUrlOrigin(site.url);
   const siteName = site.name;
-  const isProductionEnv = site.env === "production" || site.env === undefined;
+  const isProductionEnv = site.env === "production";
   const brandedTitle = metaOption.title
     ? `${metaOption.title} — ${siteName}`
     : siteName;

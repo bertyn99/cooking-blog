@@ -1,8 +1,8 @@
 CREATE TABLE `api_keys` (
-	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`id` integer PRIMARY KEY AUTOINCREMENT,
 	`name` text NOT NULL,
 	`key_prefix` text NOT NULL,
-	`key_hash` text NOT NULL,
+	`key_hash` text NOT NULL UNIQUE,
 	`scopes` text NOT NULL,
 	`created_by_user_id` integer,
 	`expires_at` text,
@@ -11,8 +11,8 @@ CREATE TABLE `api_keys` (
 	`last_used_ip` text,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	FOREIGN KEY (`created_by_user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE set null
-);--> statement-breakpoint
-CREATE UNIQUE INDEX `api_keys_key_hash_unique` ON `api_keys` (`key_hash`);--> statement-breakpoint
+	CONSTRAINT `fk_api_keys_created_by_user_id_users_id_fk` FOREIGN KEY (`created_by_user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
+);
+--> statement-breakpoint
 CREATE INDEX `api_keys_prefix_idx` ON `api_keys` (`key_prefix`);--> statement-breakpoint
 CREATE INDEX `api_keys_revoked_idx` ON `api_keys` (`revoked_at`);

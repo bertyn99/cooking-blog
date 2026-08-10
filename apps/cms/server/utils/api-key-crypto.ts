@@ -6,11 +6,14 @@ const KEY_BYTES = 32
 const PREFIX_VISIBLE = 12
 
 function pepper(): string {
-  return (
-    process.env.CMS_API_KEY_PEPPER?.trim()
-    || process.env.NUXT_SESSION_PASSWORD?.trim()
-    || 'dev-insecure-api-key-pepper'
-  )
+  const configured
+    = process.env.CMS_API_KEY_PEPPER?.trim()
+      || process.env.NUXT_SESSION_PASSWORD?.trim()
+  if (configured) return configured
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('CMS_API_KEY_PEPPER (or NUXT_SESSION_PASSWORD) is required in production')
+  }
+  return 'dev-insecure-api-key-pepper'
 }
 
 export function hashApiKeySecret(secret: string): string {

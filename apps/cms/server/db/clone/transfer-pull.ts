@@ -26,6 +26,50 @@ const AUTHOR_FK_COLUMNS = new Set([
   'updatedByUserId',
 ])
 
+const REQUEST_TIMEOUT_MS = 30_000
+const MAX_PAGES = 500
+const SAFE_IDENTIFIER = /^[a-z][a-z0-9_]*$/
+const ALLOWED_TABLES = new Set([
+  'articles',
+  'blobs',
+  'categories',
+  'category_articles',
+  'ingredients',
+  'nutrition',
+  'recipe_steps',
+  'recipe_utensils',
+  'recipes',
+  'seo',
+])
+
+function assertSafeIdentifier(kind: string, value: string) {
+  if (!SAFE_IDENTIFIER.test(value)) {
+    throw new Error(`Rejected unsafe ${kind} "${value}"`)
+  }
+}
+
+function assertSafeTable(tableName: string) {
+  assertSafeIdentifier('table', tableName)
+  if (!ALLOWED_TABLES.has(tableName)) {
+    throw new Error(`Rejected unknown table "${tableName}"`)
+  }
+}
+
+function assertSafeColumns(tableName: string, columns: string[]) {
+  for (const column of columns) {
+    assertSafeIdentifier(`column for ${tableName}`, column)
+  }
+}
+
+function nextCursorOrStop(previous: string | null, page: {
+  data: unknown[]
+  meta: PageMeta
+}): string | null {
+  const next = page.meta.nextCursor
+  if (!next || next === previous || page.data.length === 0) return null
+  return next
+}
+
 async function transferFetch(
   opts: TransferClientOptions,
   path: string,
@@ -35,6 +79,7 @@ async function transferFetch(
   const response = await fetch(url, {
     ...init,
     redirect: 'manual',
+    signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     headers: {
       Authorization: `Bearer ${opts.apiKey}`,
       ...init?.headers,
@@ -134,7 +179,9 @@ async function upsertByPrimaryKey(
   },
 ) {
   if (!rows.length) return
+  assertSafeTable(tableName)
   const primaryKey = options?.primaryKey ?? 'id'
+  assertSafeIdentifier('primary key', primaryKey)
 
   for (const row of rows) {
     const prepared = sanitizeImportedRow(row, {
@@ -147,6 +194,7 @@ async function upsertByPrimaryKey(
 
     const columns = Object.keys(prepared)
     if (!columns.length) continue
+    assertSafeColumns(tableName, columns)
 
     if (options?.uniqueSlugLocale) {
       const slug = prepared.slug
@@ -211,10 +259,13 @@ async function deleteSeoForRecipes(db: AppDb, recipeIds: number[]) {
 }
 
 export function createLocalMediaWriter(mediaRoot: string): TransferMediaWriter {
-  return async (pathname, data) => {
+  return async (pathname, data, contentType) => {
     const full = join(mediaRoot, pathname)
     await mkdir(dirname(full), { recursive: true })
     await writeFile(full, data)
+    if (contentType) {
+      await writeFile(`${full}.content-type`, contentType, 'utf8')
+    }
   }
 }
 
@@ -230,11 +281,13 @@ export async function pullTransferToLocal(input: {
   writeMedia?: TransferMediaWriter
   mediaRoot?: string
   limit?: number
+  maxPages?: number
   onProgress?: (message: string) => void
 }): Promise<{ counts: Record<string, number> }> {
   const log = input.onProgress ?? (() => {})
   const dryRun = Boolean(input.client.dryRun)
   const limit = input.limit ?? 50
+  const maxPages = input.maxPages ?? MAX_PAGES
   const writeMedia = input.writeMedia
     ?? createLocalMediaWriter(input.mediaRoot ?? join(process.cwd(), '.data/media'))
   const counts: Record<string, number> = {}
@@ -247,7 +300,13 @@ export async function pullTransferToLocal(input: {
     let cursor: string | null = null
     let total = 0
     let downloaded = 0
+    let pages = 0
     do {
+      pages += 1
+      if (pages > maxPages) {
+        throw new Error(`Transfer media exceeded max pages (${maxPages})`)
+      }
+      const previous = cursor
       const page = await fetchTransferJsonPage<{
         data: Array<Record<string, unknown> & { pathname: string, mimeType?: string | null }>
         meta: PageMeta
@@ -271,7 +330,7 @@ export async function pullTransferToLocal(input: {
         downloaded += page.data.length
       }
       total += page.data.length
-      cursor = page.meta.nextCursor
+      cursor = nextCursorOrStop(previous, page)
       log(`[clone] media +${page.data.length} (total ${total}, files ${downloaded})`)
     } while (cursor)
     counts.media = total
@@ -281,7 +340,13 @@ export async function pullTransferToLocal(input: {
   if (scopes.includes('articles')) {
     let cursor: string | null = null
     let total = 0
+    let pages = 0
     do {
+      pages += 1
+      if (pages > maxPages) {
+        throw new Error(`Transfer articles exceeded max pages (${maxPages})`)
+      }
+      const previous = cursor
       const page = await fetchTransferJsonPage<{
         data: Record<string, unknown>[]
         related: {
@@ -296,18 +361,20 @@ export async function pullTransferToLocal(input: {
           .map(row => Number(row.id))
           .filter(id => Number.isFinite(id))
 
-        await upsertByPrimaryKey(input.db, 'category_articles', page.related.categoryArticles, {
-          uniqueSlugLocale: true,
+        await input.db.transaction(async (tx) => {
+          await upsertByPrimaryKey(tx as AppDb, 'category_articles', page.related.categoryArticles, {
+            uniqueSlugLocale: true,
+          })
+          await upsertByPrimaryKey(tx as AppDb, 'articles', page.data, {
+            uniqueSlugLocale: true,
+            clearCoverBlob,
+          })
+          await deleteSeoForArticles(tx as AppDb, articleIds)
+          await upsertByPrimaryKey(tx as AppDb, 'seo', page.related.seo)
         })
-        await upsertByPrimaryKey(input.db, 'articles', page.data, {
-          uniqueSlugLocale: true,
-          clearCoverBlob,
-        })
-        await deleteSeoForArticles(input.db, articleIds)
-        await upsertByPrimaryKey(input.db, 'seo', page.related.seo)
       }
       total += page.data.length
-      cursor = page.meta.nextCursor
+      cursor = nextCursorOrStop(previous, page)
       log(`[clone] articles +${page.data.length} (total ${total})`)
     } while (cursor)
     counts.articles = total
@@ -316,7 +383,13 @@ export async function pullTransferToLocal(input: {
   if (scopes.includes('recipes')) {
     let cursor: string | null = null
     let total = 0
+    let pages = 0
     do {
+      pages += 1
+      if (pages > maxPages) {
+        throw new Error(`Transfer recipes exceeded max pages (${maxPages})`)
+      }
+      const previous = cursor
       const page = await fetchTransferJsonPage<{
         data: Record<string, unknown>[]
         related: {
@@ -335,24 +408,26 @@ export async function pullTransferToLocal(input: {
           .map(row => Number(row.id))
           .filter(id => Number.isFinite(id))
 
-        await upsertByPrimaryKey(input.db, 'categories', page.related.categories, {
-          uniqueSlugLocale: true,
+        await input.db.transaction(async (tx) => {
+          await upsertByPrimaryKey(tx as AppDb, 'categories', page.related.categories, {
+            uniqueSlugLocale: true,
+          })
+          await upsertByPrimaryKey(tx as AppDb, 'recipes', page.data, {
+            uniqueSlugLocale: true,
+            clearCoverBlob,
+          })
+          // Drop stale children then re-insert current source set.
+          await deleteRecipeChildren(tx as AppDb, recipeIds)
+          await deleteSeoForRecipes(tx as AppDb, recipeIds)
+          await upsertByPrimaryKey(tx as AppDb, 'seo', page.related.seo)
+          await upsertByPrimaryKey(tx as AppDb, 'ingredients', page.related.ingredients)
+          await upsertByPrimaryKey(tx as AppDb, 'recipe_utensils', page.related.utensils)
+          await upsertByPrimaryKey(tx as AppDb, 'nutrition', page.related.nutrition)
+          await upsertByPrimaryKey(tx as AppDb, 'recipe_steps', page.related.steps)
         })
-        await upsertByPrimaryKey(input.db, 'recipes', page.data, {
-          uniqueSlugLocale: true,
-          clearCoverBlob,
-        })
-        // Drop stale children then re-insert current source set.
-        await deleteRecipeChildren(input.db, recipeIds)
-        await deleteSeoForRecipes(input.db, recipeIds)
-        await upsertByPrimaryKey(input.db, 'seo', page.related.seo)
-        await upsertByPrimaryKey(input.db, 'ingredients', page.related.ingredients)
-        await upsertByPrimaryKey(input.db, 'recipe_utensils', page.related.utensils)
-        await upsertByPrimaryKey(input.db, 'nutrition', page.related.nutrition)
-        await upsertByPrimaryKey(input.db, 'recipe_steps', page.related.steps)
       }
       total += page.data.length
-      cursor = page.meta.nextCursor
+      cursor = nextCursorOrStop(previous, page)
       log(`[clone] recipes +${page.data.length} (total ${total})`)
     } while (cursor)
     counts.recipes = total

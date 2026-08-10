@@ -272,6 +272,8 @@ function createLocalStorage(): MediaStorage {
       await mkdir(dirname(full), { recursive: true })
       const buffer = toBuffer(data)
       await writeFile(full, buffer)
+      const metaPath = `${full}.content-type`
+      await writeFile(metaPath, contentType, 'utf8')
       const hash = createHash('sha256').update(buffer).digest('hex')
       return {
         pathname,
@@ -285,11 +287,21 @@ function createLocalStorage(): MediaStorage {
       try {
         const full = await resolvePath(pathname)
         const info = await stat(full)
-        const ext = pathname.split('.').pop()?.toLowerCase()
-        const contentType = ext === 'webp' ? 'image/webp'
-          : ext === 'png' ? 'image/png'
-            : ext === 'gif' ? 'image/gif'
-              : 'image/jpeg'
+        let contentType: string | undefined
+        try {
+          const stored = (await readFile(`${full}.content-type`, 'utf8')).trim()
+          if (stored) contentType = stored
+        }
+        catch {
+          // Metadata-free files keep extension-based inference.
+        }
+        if (!contentType) {
+          const ext = pathname.split('.').pop()?.toLowerCase()
+          contentType = ext === 'webp' ? 'image/webp'
+            : ext === 'png' ? 'image/png'
+              : ext === 'gif' ? 'image/gif'
+                : 'image/jpeg'
+        }
         return {
           pathname,
           contentType,

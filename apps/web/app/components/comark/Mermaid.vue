@@ -12,10 +12,9 @@ onMounted(async () => {
     return;
   }
 
-  const { $mermaid } = useNuxtApp();
-  const mermaid = await $mermaid();
-
   try {
+    const { $mermaid } = useNuxtApp();
+    const mermaid = await $mermaid();
     mermaid.initialize({
       startOnLoad: false,
       theme: "default",
@@ -38,9 +37,9 @@ watch(
     if (!import.meta.client || !container.value || !props.content?.trim()) {
       return;
     }
-    const { $mermaid } = useNuxtApp();
-    const mermaid = await $mermaid();
     try {
+      const { $mermaid } = useNuxtApp();
+      const mermaid = await $mermaid();
       renderError.value = null;
       const { svg } = await mermaid.render(`${diagramId}-w`, props.content.trim());
       container.value.innerHTML = svg;

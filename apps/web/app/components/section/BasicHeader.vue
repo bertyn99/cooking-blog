@@ -67,7 +67,7 @@ const syncHeaderScroll = useThrottleFn(() => {
   headerScrolled.value = y.value > heightPadding.value;
 }, 100, true);
 
-watch(y, syncHeaderScroll, { immediate: true });
+watch([y, heightPadding], () => syncHeaderScroll(), { immediate: true });
 
 const toggleDropdown = (linkId) => {
   openDropdown.value = openDropdown.value === linkId ? null : linkId;

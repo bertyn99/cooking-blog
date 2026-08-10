@@ -36,6 +36,18 @@ export function isPrivateHostname(host: string): boolean {
     return true
   }
   if (normalized.includes(':')) {
+    // IPv4-mapped / IPv4-compatible IPv6 → evaluate the embedded IPv4 address.
+    // WHATWG may normalize [::ffff:127.0.0.1] to [::ffff:7f00:1].
+    const mappedHex = normalized.match(/^::(?:ffff:)?([0-9a-f]{1,4}):([0-9a-f]{1,4})$/i)
+    if (mappedHex) {
+      const high = Number.parseInt(mappedHex[1]!, 16)
+      const low = Number.parseInt(mappedHex[2]!, 16)
+      const ipv4 = [high >> 8, high & 0xFF, low >> 8, low & 0xFF].join('.')
+      return isIpv4OctetPrivate(ipv4)
+    }
+    const mappedDotted = normalized.match(/^::(?:ffff:)?(\d+\.\d+\.\d+\.\d+)$/i)
+    if (mappedDotted) return isIpv4OctetPrivate(mappedDotted[1]!)
+
     // IPv6 unique-local / link-local
     return (
       normalized.startsWith('fc')

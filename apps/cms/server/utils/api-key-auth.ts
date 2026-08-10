@@ -60,7 +60,7 @@ export async function requireApiKey(
   }
 
   // Fire-and-forget usage stamp — do not block the response on write latency.
-  void useQueries(event).apiKeys.touchUsage(row.id, getClientIp(event))
+  void useQueries(event).apiKeys.touchUsage(row.id, getClientIp(event)).catch(() => undefined)
 
   return { ...publicKey, row }
 }

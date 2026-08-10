@@ -1,10 +1,12 @@
 /**
  * Pull CMS content from a remote instance into local `.data/` via transfer API keys.
  *
- *   pnpm clone:prod -- --origin=https://admin.example.com --key=jdc_…
+ * Prefer env for the secret (avoids shell history / `ps` leakage):
+ *   CMS_TRANSFER_KEY=jdc_… pnpm clone:prod -- --origin=https://admin.example.com
  *   pnpm clone:prod -- --dry-run --scopes=articles,media
  *
- * Origin / key can also come from CMS_CLONE_CMS_ORIGIN (or PROD_CMS_HOST) and CMS_TRANSFER_KEY.
+ * Origin can also come from CMS_CLONE_CMS_ORIGIN or PROD_CMS_HOST.
+ * `--key=` remains a fallback when env is inconvenient.
  */
 import { loadCmsCloneEnv } from '../server/db/clone/load-env'
 import { pullTransferToLocal } from '../server/db/clone/transfer-pull'
@@ -91,7 +93,7 @@ async function main() {
   const apiKey = args.apiKey || process.env.CMS_TRANSFER_KEY?.trim()
   if (!apiKey) {
     throw new Error(
-      'Pass --key=jdc_… or set CMS_TRANSFER_KEY. Create the key in the source CMS (Clés API).',
+      'Set CMS_TRANSFER_KEY (preferred) or pass --key=jdc_…. Create the key in the source CMS (Clés API).',
     )
   }
 

@@ -143,9 +143,28 @@ async function revokeKey(row: ApiKeyPublic) {
   }
 }
 
+const { copy: copyToClipboard, isSupported: clipboardSupported } = useClipboard()
+
 async function copySecret() {
-  await navigator.clipboard.writeText(createdSecret.value)
-  toast.add({ title: 'Secret copié', color: 'success' })
+  if (!clipboardSupported.value) {
+    toast.add({
+      title: 'Copie impossible',
+      description: 'Sélectionnez le secret et copiez-le manuellement.',
+      color: 'warning',
+    })
+    return
+  }
+  try {
+    await copyToClipboard(createdSecret.value)
+    toast.add({ title: 'Secret copié', color: 'success' })
+  }
+  catch {
+    toast.add({
+      title: 'Copie impossible',
+      description: 'Sélectionnez le secret et copiez-le manuellement.',
+      color: 'warning',
+    })
+  }
 }
 
 async function runPull() {
