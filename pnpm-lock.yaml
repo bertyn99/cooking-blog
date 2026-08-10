@@ -46,7 +46,7 @@ overrides:
 
 patchedDependencies:
   '@distilled.cloud/nuxt@0.17.1':
-    hash: 70f477aa0d7dd4ff0d64fe778470762af4921b3b19dbd48b2adbe4a537608dbe
+    hash: 87c605e3d495ca9e5f6fe7ffcfd31d9f0b72b4a27eb878475077e6cfaa92fc89
     path: patches/@distilled.cloud__nuxt@0.17.1.patch
 
 importers:
@@ -62,7 +62,7 @@ importers:
         version: 5.20260804.1
       '@distilled.cloud/nuxt':
         specifier: ^0.17.1
-        version: 0.17.1(patch_hash=70f477aa0d7dd4ff0d64fe778470762af4921b3b19dbd48b2adbe4a537608dbe)(@distilled.cloud/cloudflare@1.0.0-rc.2)(@effect/platform-bun@4.0.0-beta.102(effect@4.0.0-beta.102))(@effect/platform-node@4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1))(effect@4.0.0-beta.102)(nuxt@4.5.0(39a5b60aea359d80f6dae8d4ef0ce4fe))(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))
+        version: 0.17.1(patch_hash=87c605e3d495ca9e5f6fe7ffcfd31d9f0b72b4a27eb878475077e6cfaa92fc89)(@distilled.cloud/cloudflare@1.0.0-rc.2)(@effect/platform-bun@4.0.0-beta.102(effect@4.0.0-beta.102))(@effect/platform-node@4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1))(effect@4.0.0-beta.102)(nuxt@4.5.0(39a5b60aea359d80f6dae8d4ef0ce4fe))(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))
       '@effect/platform-node':
         specifier: 4.0.0-beta.102
         version: 4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1)
@@ -171,7 +171,7 @@ importers:
         version: 5.20260712.1
       '@distilled.cloud/nuxt':
         specifier: ^0.17.1
-        version: 0.17.1(patch_hash=70f477aa0d7dd4ff0d64fe778470762af4921b3b19dbd48b2adbe4a537608dbe)(@distilled.cloud/cloudflare@1.0.0-rc.2)(@effect/platform-bun@4.0.0-beta.102(effect@4.0.0-beta.102))(@effect/platform-node@4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1))(effect@4.0.0-beta.102)(nuxt@4.5.0(96c9a12831306dbf3c0a308051d7cbaf))(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))
+        version: 0.17.1(patch_hash=87c605e3d495ca9e5f6fe7ffcfd31d9f0b72b4a27eb878475077e6cfaa92fc89)(@distilled.cloud/cloudflare@1.0.0-rc.2)(@effect/platform-bun@4.0.0-beta.102(effect@4.0.0-beta.102))(@effect/platform-node@4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1))(effect@4.0.0-beta.102)(nuxt@4.5.0(96c9a12831306dbf3c0a308051d7cbaf))(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))
       '@nuxt/eslint-plugin':
         specifier: 'catalog:'
         version: 1.15.2(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3)
@@ -259,7 +259,7 @@ importers:
     devDependencies:
       '@distilled.cloud/nuxt':
         specifier: ^0.17.1
-        version: 0.17.1(patch_hash=70f477aa0d7dd4ff0d64fe778470762af4921b3b19dbd48b2adbe4a537608dbe)(@distilled.cloud/cloudflare@1.0.0-rc.2)(@effect/platform-bun@4.0.0-beta.102(effect@4.0.0-beta.102))(@effect/platform-node@4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1))(effect@4.0.0-beta.102)(nuxt@4.5.0(133916b78b4d7caedebb9e59d45f96aa))(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))
+        version: 0.17.1(patch_hash=87c605e3d495ca9e5f6fe7ffcfd31d9f0b72b4a27eb878475077e6cfaa92fc89)(@distilled.cloud/cloudflare@1.0.0-rc.2)(@effect/platform-bun@4.0.0-beta.102(effect@4.0.0-beta.102))(@effect/platform-node@4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1))(effect@4.0.0-beta.102)(nuxt@4.5.0(133916b78b4d7caedebb9e59d45f96aa))(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))
       '@iconify-json/akar-icons':
         specifier: ^1.2.7
         version: 1.2.7
@@ -10001,7 +10001,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@distilled.cloud/nuxt@0.17.1(patch_hash=70f477aa0d7dd4ff0d64fe778470762af4921b3b19dbd48b2adbe4a537608dbe)(@distilled.cloud/cloudflare@1.0.0-rc.2)(@effect/platform-bun@4.0.0-beta.102(effect@4.0.0-beta.102))(@effect/platform-node@4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1))(effect@4.0.0-beta.102)(nuxt@4.5.0(133916b78b4d7caedebb9e59d45f96aa))(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))':
+  '@distilled.cloud/nuxt@0.17.1(patch_hash=87c605e3d495ca9e5f6fe7ffcfd31d9f0b72b4a27eb878475077e6cfaa92fc89)(@distilled.cloud/cloudflare@1.0.0-rc.2)(@effect/platform-bun@4.0.0-beta.102(effect@4.0.0-beta.102))(@effect/platform-node@4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1))(effect@4.0.0-beta.102)(nuxt@4.5.0(133916b78b4d7caedebb9e59d45f96aa))(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))':
     dependencies:
       '@distilled.cloud/cloudflare-runtime': 0.17.1(@distilled.cloud/cloudflare@1.0.0-rc.2)(@effect/platform-bun@4.0.0-beta.102(effect@4.0.0-beta.102))(@effect/platform-node@4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1))(effect@4.0.0-beta.102)
       '@distilled.cloud/framework-core': 0.17.1(effect@4.0.0-beta.102)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))
@@ -10019,7 +10019,7 @@ snapshots:
       - supports-color
       - vite
 
-  '@distilled.cloud/nuxt@0.17.1(patch_hash=70f477aa0d7dd4ff0d64fe778470762af4921b3b19dbd48b2adbe4a537608dbe)(@distilled.cloud/cloudflare@1.0.0-rc.2)(@effect/platform-bun@4.0.0-beta.102(effect@4.0.0-beta.102))(@effect/platform-node@4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1))(effect@4.0.0-beta.102)(nuxt@4.5.0(39a5b60aea359d80f6dae8d4ef0ce4fe))(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))':
+  '@distilled.cloud/nuxt@0.17.1(patch_hash=87c605e3d495ca9e5f6fe7ffcfd31d9f0b72b4a27eb878475077e6cfaa92fc89)(@distilled.cloud/cloudflare@1.0.0-rc.2)(@effect/platform-bun@4.0.0-beta.102(effect@4.0.0-beta.102))(@effect/platform-node@4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1))(effect@4.0.0-beta.102)(nuxt@4.5.0(39a5b60aea359d80f6dae8d4ef0ce4fe))(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))':
     dependencies:
       '@distilled.cloud/cloudflare-runtime': 0.17.1(@distilled.cloud/cloudflare@1.0.0-rc.2)(@effect/platform-bun@4.0.0-beta.102(effect@4.0.0-beta.102))(@effect/platform-node@4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1))(effect@4.0.0-beta.102)
       '@distilled.cloud/framework-core': 0.17.1(effect@4.0.0-beta.102)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))
@@ -10037,7 +10037,7 @@ snapshots:
       - supports-color
       - vite
 
-  '@distilled.cloud/nuxt@0.17.1(patch_hash=70f477aa0d7dd4ff0d64fe778470762af4921b3b19dbd48b2adbe4a537608dbe)(@distilled.cloud/cloudflare@1.0.0-rc.2)(@effect/platform-bun@4.0.0-beta.102(effect@4.0.0-beta.102))(@effect/platform-node@4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1))(effect@4.0.0-beta.102)(nuxt@4.5.0(96c9a12831306dbf3c0a308051d7cbaf))(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))':
+  '@distilled.cloud/nuxt@0.17.1(patch_hash=87c605e3d495ca9e5f6fe7ffcfd31d9f0b72b4a27eb878475077e6cfaa92fc89)(@distilled.cloud/cloudflare@1.0.0-rc.2)(@effect/platform-bun@4.0.0-beta.102(effect@4.0.0-beta.102))(@effect/platform-node@4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1))(effect@4.0.0-beta.102)(nuxt@4.5.0(96c9a12831306dbf3c0a308051d7cbaf))(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))':
     dependencies:
       '@distilled.cloud/cloudflare-runtime': 0.17.1(@distilled.cloud/cloudflare@1.0.0-rc.2)(@effect/platform-bun@4.0.0-beta.102(effect@4.0.0-beta.102))(@effect/platform-node@4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.10.1))(effect@4.0.0-beta.102)
       '@distilled.cloud/framework-core': 0.17.1(effect@4.0.0-beta.102)(vite@8.1.5(@types/node@22.18.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.44.0)(tsx@4.23.0)(yaml@2.9.0))

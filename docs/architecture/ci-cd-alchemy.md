@@ -11,9 +11,13 @@ Automated Cloudflare deploys follow [Alchemy Part 5: CI/CD](https://alchemy.run/
 
 Workflow: `.github/workflows/deploy.yml`. Remote Alchemy state is enabled via `CI=true` (see `alchemy.run.ts`).
 
-**Skew protection in CI:** `skewProtection.bundleAssets` is disabled when `CI=true` (see `infra/workers.ts` and `apps/web/nuxt.config.ts`). With `cloudflare-kv-binding`, Nuxt SEO stores each previous-build asset via a Wrangler CLI `kv put` during the nitro `compiled` hook — that stalled GitHub Actions for ~1h. Alchemy’s `Website.Nuxt` memo ([Nuxt frontend](https://alchemy.run/cloudflare/frontend/nuxt), [memo / rebuilds](https://alchemy.run/cloudflare/frontend/vite#rebuilds-and-memo)) hashes the project tree + `nuxt` options (`input`), then deploys the Worker script + static assets once per apply.
+**Skew protection:** `bundleAssets` is off unless `SKEW_BUNDLE_ASSETS=1` (see `infra/workers.ts`). With `cloudflare-kv-binding`, Nuxt SEO stores each asset via Wrangler CLI during nitro `compiled` — that stalled Actions for ~1h.
 
-**CI OOM / rebuild loop:** A failed run logged `FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory` (~4 GB) after Alchemy repeatedly rebuilt/uploaded Web in one deploy (converge phase). Mitigations: workflow `NODE_OPTIONS=--max-old-space-size=8192`, and keep Alchemy `Output`s out of `Website.Nuxt`’s `nuxt` overrides (CMS URL via Worker `env` instead; skew `namespaceId` only when `bundleAssets` is on). The workflow still caches `node_modules/.cache/nuxt-seo` per [Nuxt SEO storage guidance](https://nuxtseo.com/docs/skew-protection/guides/storage-configuration). Runtime skew (polling) remains on; for full KV chunk archival, run `pnpm alchemy deploy` locally with `CI` unset.
+**Web rebuild loop / OOM:** Alchemy converge re-applies a Worker when resolved props still look dirty. Nuxt mutates `loadNuxt` override objects in place; those nested objects were shared with Alchemy-tracked Worker props, so every build made the next converge pass see a diff → rebuild until heap OOM (`exit 134`). Fixed by deep-cloning overrides in the `@distilled.cloud/nuxt` patch (`makeNuxtOverrides`). Also: keep Outputs/Effects out of `nuxt` overrides, raise `NODE_OPTIONS=--max-old-space-size=8192` in CI and `pnpm deploy`.
+
+**Node on Actions:** The job uses Node **22** (`actions/setup-node`). The “Node 20 deprecated” line refers to the *action bundles* (checkout/cache), not the Node that runs `alchemy deploy` — the workflow prints/verifies `node -v` and sets `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`.
+
+**Local tip:** Prefer `ALCHEMY_REMOTE_STATE=1 pnpm deploy --stage preview` so local matches CI state. Stale local `.alchemy` from older `Command.Build` stacks can confuse the UI; remote state avoids that.
 
 **Production domains** (only when `stage === prod`): set GitHub secrets `PROD_WEB_HOST` and `PROD_CMS_HOST` (hostnames only, e.g. `journalducuistot.fr` and `admin.journalducuistot.fr`). They are passed into `pnpm alchemy deploy` from `.github/workflows/deploy.yml`. The zone must already be on your Cloudflare account; Alchemy provisions DNS + TLS on deploy.
 

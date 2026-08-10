@@ -8,13 +8,8 @@ const webRoot = fileURLToPath(new URL('.', import.meta.url))
 
 const skewProtectionKvNamespaceId =
   process.env.SKEW_PROTECTION_KV_NAMESPACE_ID || 'skew-protection-local'
-/** KV asset bundling only on non-CI deploy builds (real namespace + token), not local defaults. */
-const skewProtectionBundleAssets = Boolean(
-  process.env.CLOUDFLARE_API_TOKEN &&
-  process.env.CI !== 'true' &&
-  process.env.SKEW_PROTECTION_KV_NAMESPACE_ID &&
-  skewProtectionKvNamespaceId !== 'skew-protection-local'
-)
+/** KV asset bundling only when explicitly opted in (see infra/workers.ts). */
+const skewProtectionBundleAssets = process.env.SKEW_BUNDLE_ASSETS === '1'
 
 const siteUrl = process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 const siteOrigin = siteUrl.replace(/\/$/, '')
