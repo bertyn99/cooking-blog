@@ -11,6 +11,9 @@ concurrency:
 env:
   CI: true
   STAGE: ${{ github.ref == 'refs/heads/main' && 'prod' || 'preview' }}
+  # Nuxt + Nitro cloudflare builds peak above Node's ~4GB default heap;
+  # without this, Alchemy Web rebuilds hit "JavaScript heap out of memory".
+  NODE_OPTIONS: --max-old-space-size=8192
 
 jobs:
   deploy:

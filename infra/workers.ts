@@ -191,21 +191,24 @@ export const workers = Effect.fn(function* (input: {
         url: siteUrl,
         ...(isProd ? {} : { indexable: false }),
       },
-      runtimeConfig: {
-        public: {
-          cmsBaseUrl: cmsPublicUrl,
-          apiBase: cmsPublicUrl,
-        },
-      },
+      // CMS URL / apiBase: prefer Worker `env` (`NUXT_PUBLIC_CMS_BASE_URL`,
+      // `CMS_BASE_URL`) over `nuxt.runtimeConfig`. Putting Outputs inside
+      // `source.options.nuxt` can leave Alchemy's converge loop forever-dirty
+      // (`havePropsChanged` → rebuild → OOM on GHA).
       umami: {
         id: umamiId,
         ...(isProd ? { host: umamiHost } : {}),
       },
       skewProtection: {
         bundleAssets: skewBundleAssets,
-        storage: {
-          namespaceId: SkewProtection.namespaceId,
-        },
+        // namespaceId is only needed for build-time KV asset uploads.
+        ...(skewBundleAssets
+          ? {
+              storage: {
+                namespaceId: SkewProtection.namespaceId,
+              },
+            }
+          : {}),
       },
     },
   })
