@@ -1,6 +1,6 @@
-import { requireApiKey } from '../../../utils/api-key-auth'
-import { useQueries } from '../../../utils/db'
-import { parseTransferPage } from '../../../services/transfer-export'
+import { requireApiKey } from '../../utils/api-key-auth'
+import { useQueries } from '../../utils/db'
+import { parseTransferPage } from '../../services/transfer-export'
 
 export default defineEventHandler(async (event) => {
   await requireApiKey(event, 'articles')

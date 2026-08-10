@@ -1,8 +1,8 @@
-import { requireApiKey } from '../../../../utils/api-key-auth'
-import { useQueries } from '../../../../utils/db'
-import { createApiError } from '../../../../utils/errors'
-import { useMediaStorage } from '../../../../utils/media-storage'
-import { isAllowedMediaAssetPath } from '../../../../shared/image-delivery-policy'
+import { requireApiKey } from '../../../utils/api-key-auth'
+import { useQueries } from '../../../utils/db'
+import { createApiError } from '../../../utils/errors'
+import { useMediaStorage } from '../../../utils/media-storage'
+import { isAllowedMediaAssetPath } from '../../../shared/image-delivery-policy'
 
 export default defineEventHandler(async (event) => {
   await requireApiKey(event, 'media')
