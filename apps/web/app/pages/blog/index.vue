@@ -4,18 +4,16 @@ import type { Article, Category, StrapiResponse } from "~/types/strapiMeta";
 const blogDescription =
   "Articles, astuces et inspiration culinaire sur le Journal du cuistot.";
 
-defineOgImage("Cooking", {
-  headline: "Blog",
-  description: blogDescription,
-});
-useApplySeoMeta({
+useApplyPageSeo({
   title: "Blog",
   description: blogDescription,
   image: "/img/logo.webp",
   url: "/blog",
+  og: {
+    headline: "Blog",
+    description: blogDescription,
+  },
 });
-usePageCanonical("/blog");
-
 const search = ref("");
 const checkedCategories = ref<string[]>([]);
 const currentPage = ref(1);
@@ -36,7 +34,7 @@ const { data: articles, refresh } = await useAsyncData<StrapiResponse<Article>>(
         pageSize: 7,
       },
     }),
-  { watch: [currentPage] },
+  { watch: [currentPage], deep: false },
 );
 
 const { data: categories } = await useAsyncData(`categories`, () =>

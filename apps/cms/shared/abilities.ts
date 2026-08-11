@@ -26,6 +26,11 @@ export const canAccessMaintenance = defineAbility((user: User | null) => {
   return user?.role === 'admin'
 })
 
+/** Create / revoke machine API keys (transfer pull, future integrations). */
+export const canManageApiKeys = defineAbility((user: User | null) => {
+  return user?.role === 'admin'
+})
+
 /**
  * Legacy umbrella for admin-only tooling.
  * Prefer specific abilities (`canPublishContent`, `canAccessImport`, …).

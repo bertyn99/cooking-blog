@@ -66,20 +66,18 @@ const seo = computed(() => page.value?.seoMeta || {});
 
 const pagePath = `/${slugArray.join("/")}`;
 
-useApplySeoMeta({
-    title: titleContent.value || "Journal du cuistot",
+useApplyPageSeo({
+  title: titleContent.value || "Journal du cuistot",
+  description: seo.value?.description || "No description",
+  image: "/img/logo.webp",
+  url: pagePath,
+  keywords: seo.value?.keywords,
+  articleDatePublished: page.value?.publishedAt,
+  articleDateModified: page.value?.updatedAt,
+  og: {
+    headline: titleContent.value,
     description: seo.value?.description || "No description",
-    image: "/img/logo.webp",
-    url: pagePath,
-    keywords: seo.value?.keywords,
-    articleDatePublished: page.value?.publishedAt,
-    articleDateModified: page.value?.updatedAt,
-});
-usePageCanonical(pagePath);
-
-defineOgImage("Cooking", {
-  headline: titleContent.value,
-  description: seo.value?.description,
+  },
 });
 </script>
 

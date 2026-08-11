@@ -1,19 +1,21 @@
-    <template>
-    <div v-if="show" class="mermaid w-full">
-      <slot />
-    </div>
-  </template>
+<template>
+  <div ref="root" v-if="show" class="mermaid w-full">
+    <slot />
+  </div>
+</template>
 
-  <script setup>
-  const show = ref(false)
+<script setup lang="ts">
+const show = ref(false)
+const root = ref<HTMLElement | null>(null)
 
-  const { $mermaid } = useNuxtApp()
+const { $mermaid } = useNuxtApp()
 
-  onMounted(async () => {
-    show.value = true
-    try {
-      $mermaid().initialize({ 
-      startOnLoad: true,
+onMounted(async () => {
+  show.value = true
+  try {
+    const mermaid = await $mermaid()
+    mermaid.initialize({
+      startOnLoad: false,
       theme: 'default',
       look: 'handDrawn',
       fontFamily: 'Catamaran, system-ui, sans-serif',
@@ -24,79 +26,60 @@
         diagramPadding: 20,
         nodeSpacing: 50,
         rankSpacing: 50,
-        curve: 'basis'
+        curve: 'basis',
       },
       themeVariables: {
-        // Main colors - Yellow/Amber palette
-        primaryColor: '#fbbf24',           // Amber-400
-        primaryTextColor: '#92400e',       // Amber-800
-        primaryBorderColor: '#f59e0b',     // Amber-500
-        lineColor: '#f59e0b',              // Amber-500
-        
-        // Background colors - Zinc palette
-        background: '#fafafa',              // Zinc-50
-        secondaryColor: '#fef3c7',         // Amber-100
-        tertiaryColor: '#fefce8',          // Amber-50
-        
-        // Node colors
-        nodeBkg: '#fbbf24',                // Amber-400
-        nodeBorder: '#f59e0b',             // Amber-500
-        clusterBkg: '#fef3c7',             // Amber-100
-        clusterBorder: '#f59e0b',          // Amber-500
-        
-        // Text colors
-        textColor: '#92400e',               // Amber-800
-        titleColor: '#78350f',              // Amber-900
-        labelColor: '#92400e',              // Amber-800
-        
-        // Edge colors
-        edgeLabelBackground: '#fefce8',     // Amber-50
-        edgeLabelColor: '#92400e',          // Amber-800
-        
-        // Special elements
-        noteBkgColor: '#fef3c7',           // Amber-100
-        noteBorderColor: '#f59e0b',        // Amber-500
-        noteTextColor: '#92400e',          // Amber-800
-        
-        // Error states
-        errorBkgColor: '#fee2e2',          // Red-100
-        errorTextColor: '#dc2626',          // Red-600
-        
-        // Additional colors for different node types
-        actorBkg: '#fbbf24',               // Amber-400
-        actorBorder: '#f59e0b',            // Amber-500
-        actorTextColor: '#92400e',         // Amber-800
-        actorLineColor: '#f59e0b',         // Amber-500
-        
-        signalColor: '#f59e0b',            // Amber-500
-        signalTextColor: '#92400e',        // Amber-800
-        
-        labelBoxBkgColor: '#fef3c7',       // Amber-100
-        labelBoxBorderColor: '#f59e0b',    // Amber-500
-        labelTextColor: '#92400e',         // Amber-800
-        
-        loopTextColor: '#92400e',          // Amber-800
-        
-        sectionBkgColor: '#fef3c7',        // Amber-100
-        sectionBkgColor2: '#fefce8',       // Amber-50
-        sectionBkgColor3: '#fbbf24',       // Amber-400
-        sectionBkgColor4: '#f59e0b',       // Amber-500
-        
-        // Grid colors
-        gridColor: '#e5e7eb',              // Gray-200
-        grid2: '#f3f4f6',                  // Gray-100
+        primaryColor: '#fbbf24',
+        primaryTextColor: '#92400e',
+        primaryBorderColor: '#f59e0b',
+        lineColor: '#f59e0b',
+        background: '#fafafa',
+        secondaryColor: '#fef3c7',
+        tertiaryColor: '#fefce8',
+        nodeBkg: '#fbbf24',
+        nodeBorder: '#f59e0b',
+        clusterBkg: '#fef3c7',
+        clusterBorder: '#f59e0b',
+        textColor: '#92400e',
+        titleColor: '#78350f',
+        labelColor: '#92400e',
+        edgeLabelBackground: '#fefce8',
+        edgeLabelColor: '#92400e',
+        noteBkgColor: '#fef3c7',
+        noteBorderColor: '#f59e0b',
+        noteTextColor: '#92400e',
+        errorBkgColor: '#fee2e2',
+        errorTextColor: '#dc2626',
+        actorBkg: '#fbbf24',
+        actorBorder: '#f59e0b',
+        actorTextColor: '#92400e',
+        actorLineColor: '#f59e0b',
+        signalColor: '#f59e0b',
+        signalTextColor: '#92400e',
+        labelBoxBkgColor: '#fef3c7',
+        labelBoxBorderColor: '#f59e0b',
+        labelTextColor: '#92400e',
+        loopTextColor: '#92400e',
+        sectionBkgColor: '#fef3c7',
+        sectionBkgColor2: '#fefce8',
+        sectionBkgColor3: '#fbbf24',
+        sectionBkgColor4: '#f59e0b',
+        gridColor: '#e5e7eb',
+        grid2: '#f3f4f6',
       },
       maxTextSize: 50000,
-      maxEdges: 1000
+      maxEdges: 1000,
     })
     await nextTick()
-    $mermaid().init()
-    } catch (error) {
-      console.error('Failed to initialize Mermaid:', error)
-      show.value = false
-    }
-    
-  })
-
-  
-  </script>
+    if (!root.value) return
+    await mermaid.run({
+      nodes: [root.value],
+      suppressErrors: true,
+    })
+  }
+  catch (error) {
+    console.error('Failed to initialize Mermaid:', error)
+    show.value = false
+  }
+})
+</script>

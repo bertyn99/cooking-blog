@@ -2,18 +2,14 @@
 import { fileURLToPath } from 'node:url'
 import listRedirects from './app/utils/redirect'
 import tailwindcss from '@tailwindcss/vite'
-import { resolveSiteIdentity } from './shared/site-identity'
+import { resolveSiteIdentity, toSchemaOrgIdentity, SITE_AUTHOR_NAME } from './shared/site-identity'
 
 const webRoot = fileURLToPath(new URL('.', import.meta.url))
 
 const skewProtectionKvNamespaceId =
   process.env.SKEW_PROTECTION_KV_NAMESPACE_ID || 'skew-protection-local'
-/** KV asset bundling only on deploy builds (real namespace + token), not local defaults. */
-const skewProtectionBundleAssets = Boolean(
-  process.env.CLOUDFLARE_API_TOKEN &&
-  process.env.SKEW_PROTECTION_KV_NAMESPACE_ID &&
-  skewProtectionKvNamespaceId !== 'skew-protection-local'
-)
+/** KV asset bundling only when explicitly opted in (see infra/workers.ts). */
+const skewProtectionBundleAssets = process.env.SKEW_BUNDLE_ASSETS === '1'
 
 const siteUrl = process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 const siteOrigin = siteUrl.replace(/\/$/, '')
@@ -22,6 +18,19 @@ const siteDescription =
   process.env.NUXT_SITE_DESCRIPTION ||
   "Bienvenue sur le journal du cuistot, un blog de recettes de cuisine d'un globe-trotter"
 const siteIdentity = resolveSiteIdentity({ siteOrigin, siteName })
+const siteEnv =
+  process.env.NUXT_SITE_ENV ||
+  (process.env.NODE_ENV === 'production' ? 'production' : 'development')
+
+function resolveSiteIndexable(): boolean | undefined {
+  if (process.env.NUXT_SITE_INDEXABLE === 'true') {
+    return true
+  }
+  if (process.env.NUXT_SITE_INDEXABLE === 'false') {
+    return false
+  }
+  return undefined
+}
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-20',
@@ -71,6 +80,17 @@ export default defineNuxtConfig({
        ], */
     'nuxt-umami',
   ],
+
+  fonts: {
+    families: [
+      { name: 'Catamaran', provider: 'google' },
+      { name: 'Merriweather', provider: 'google' },
+    ],
+  },
+
+  partytown: {
+    debug: siteEnv === 'development',
+  },
 
   css: ['~/assets/css/index.css'],
 
@@ -133,12 +153,22 @@ export default defineNuxtConfig({
     name: siteName,
     description: siteDescription,
     defaultLocale: 'fr',
-    identity: siteIdentity,
-    indexable: process.env.NUXT_SITE_INDEXABLE !== 'false',
+    trailingSlash: false,
+    env: siteEnv,
+    ...(resolveSiteIndexable() !== undefined
+      ? { indexable: resolveSiteIndexable() }
+      : {}),
+  },
+
+  schemaOrg: {
+    identity: toSchemaOrgIdentity(siteIdentity, siteDescription),
   },
 
   seo: {
+    redirectToCanonicalSiteUrl: siteEnv === 'production',
     meta: {
+      description: siteDescription,
+      author: SITE_AUTHOR_NAME,
       ogLocale: 'fr_FR',
       ogType: 'website',
       twitterCard: 'summary_large_image',
@@ -290,6 +320,6 @@ export default defineNuxtConfig({
   }, */
 
   devtools: {
-    enabled: true,
+    enabled: siteEnv === 'development',
   },
 })

@@ -77,6 +77,12 @@ const links = computed(() => {
         onSelect: () => { open.value = false },
       },
       {
+        label: 'Clés API & transfert',
+        icon: 'i-lucide-key-round',
+        to: '/api-keys',
+        onSelect: () => { open.value = false },
+      },
+      {
         label: 'Import Strapi',
         icon: 'i-lucide-download',
         to: '/import',

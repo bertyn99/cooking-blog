@@ -1,5 +1,8 @@
-/** Schema.org site identity (consumed by nuxt-schema-org via `site.identity`). */
+/** Schema.org site identity (mapped to `schemaOrg.identity` in nuxt.config). */
 export type SiteIdentityType = "Organization" | "Person" | "LocalBusiness";
+
+/** Site author — E-E-A-T meta and Article/Recipe schema. */
+export const SITE_AUTHOR_NAME = "bertyn boulikou";
 
 export interface SiteIdentity {
   type: SiteIdentityType;
@@ -56,4 +59,48 @@ export function resolveSiteIdentity(options: {
   ];
 
   return { type, name, url, logo, sameAs };
+}
+
+/** Shape expected by nuxt-schema-org `schemaOrg.identity`. */
+export function toSchemaOrgIdentity(
+  identity: SiteIdentity,
+  description?: string,
+):
+  | {
+      type: "Person";
+      name: string;
+      url: string;
+      image: string;
+      sameAs: string[];
+      description?: string;
+    }
+  | {
+      type: "Organization" | "LocalBusiness";
+      name: string;
+      url: string;
+      logo: string;
+      sameAs: string[];
+      description?: string;
+    } {
+  const descriptionField = description?.trim() ? { description: description.trim() } : {};
+
+  if (identity.type === "Person") {
+    return {
+      type: "Person",
+      name: identity.name,
+      url: identity.url,
+      image: identity.logo,
+      sameAs: identity.sameAs,
+      ...descriptionField,
+    };
+  }
+
+  return {
+    type: identity.type,
+    name: identity.name,
+    url: identity.url,
+    logo: identity.logo,
+    sameAs: identity.sameAs,
+    ...descriptionField,
+  };
 }

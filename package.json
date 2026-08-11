@@ -6,6 +6,7 @@
   "scripts": {
     "dev:web": "pnpm --filter web dev",
     "dev:cms": "pnpm --filter cms dev",
+    "cms:clone:prod": "pnpm --filter cms clone:prod",
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
     "build:web": "pnpm --filter web build",
@@ -19,8 +20,8 @@
     "fmt:check": "pnpm -r fmt:check",
     "postinstall": "pnpm -r postinstall",
     "alchemy": "alchemy",
-    "deploy": "pnpm alchemy deploy",
-    "deploy:github": "pnpm alchemy deploy stacks/github.ts --profile admin",
+    "deploy": "NODE_OPTIONS=--max-old-space-size=8192 pnpm alchemy deploy",
+    "deploy:github": "NODE_OPTIONS=--max-old-space-size=8192 pnpm alchemy deploy stacks/github.ts --profile admin",
     "deploy:plan": "pnpm alchemy plan",
     "dev:infra": "pnpm alchemy dev",
     "login:alchemy": "pnpm alchemy login",

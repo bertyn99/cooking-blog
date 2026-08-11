@@ -56,6 +56,7 @@ const articleLink = computed(() =>
             ">
             <nuxt-img provider="localImageSharp" :src="cover" width="1300" height="910" fit="cover"
               :alt="post.cover?.alternativeText || post.title"
+              loading="lazy"
               class="block max-w-full h-auto align-middle rounded-none will-change-transform aspect-[13/9] max-h-[500px]"
               sizes="sm:70vw md:50vw lg:30vw" />
           </nuxt-link>

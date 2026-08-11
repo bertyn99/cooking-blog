@@ -24,6 +24,8 @@ export interface MediaListResult {
 export interface MediaStorage {
   put(file: File, folderPrefix?: string): Promise<MediaObject>
   putBuffer(pathname: string, data: ArrayBuffer | Buffer, contentType: string): Promise<MediaObject>
+  /** Write bytes as-is (no image optimize) — used by transfer pull. */
+  putRaw(pathname: string, data: ArrayBuffer | Buffer, contentType: string): Promise<MediaObject>
   head(pathname: string): Promise<MediaObject | null>
   get(pathname: string): Promise<{ body: ReadableStream, object: MediaObject } | null>
   del(pathname: string): Promise<void>
@@ -149,6 +151,20 @@ function createR2Storage(bucket: R2Bucket): MediaStorage {
       }
     },
 
+    async putRaw(pathname, data, contentType) {
+      assertSafePathname(pathname)
+      const body = toBuffer(data)
+      const uploaded = await bucket.put(pathname, body, {
+        httpMetadata: { contentType },
+      })
+      return {
+        pathname,
+        contentType,
+        size: body.byteLength,
+        etag: uploaded?.etag,
+      }
+    },
+
     async head(pathname) {
       const object = await bucket.head(pathname)
       if (!object) return null
@@ -250,15 +266,42 @@ function createLocalStorage(): MediaStorage {
       }
     },
 
+    async putRaw(pathname, data, contentType) {
+      assertSafePathname(pathname)
+      const full = await resolvePath(pathname)
+      await mkdir(dirname(full), { recursive: true })
+      const buffer = toBuffer(data)
+      await writeFile(full, buffer)
+      const metaPath = `${full}.content-type`
+      await writeFile(metaPath, contentType, 'utf8')
+      const hash = createHash('sha256').update(buffer).digest('hex')
+      return {
+        pathname,
+        contentType,
+        size: buffer.byteLength,
+        etag: hash,
+      }
+    },
+
     async head(pathname) {
       try {
         const full = await resolvePath(pathname)
         const info = await stat(full)
-        const ext = pathname.split('.').pop()?.toLowerCase()
-        const contentType = ext === 'webp' ? 'image/webp'
-          : ext === 'png' ? 'image/png'
-            : ext === 'gif' ? 'image/gif'
-              : 'image/jpeg'
+        let contentType: string | undefined
+        try {
+          const stored = (await readFile(`${full}.content-type`, 'utf8')).trim()
+          if (stored) contentType = stored
+        }
+        catch {
+          // Metadata-free files keep extension-based inference.
+        }
+        if (!contentType) {
+          const ext = pathname.split('.').pop()?.toLowerCase()
+          contentType = ext === 'webp' ? 'image/webp'
+            : ext === 'png' ? 'image/png'
+              : ext === 'gif' ? 'image/gif'
+                : 'image/jpeg'
+        }
         return {
           pathname,
           contentType,

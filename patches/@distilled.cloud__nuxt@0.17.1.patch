@@ -1,5 +1,46 @@
+diff --git a/dist/UserConfig.js b/dist/UserConfig.js
+index 55d6676..0d0f47b 100644
+--- a/dist/UserConfig.js
++++ b/dist/UserConfig.js
+@@ -41,18 +41,31 @@ export const isSamePreset = (a, b) => normalizePresetName(a) === normalizePreset
+  * overrides })`. The user's `nuxt.config.ts` remains authoritative for
+  * everything this integration does not own.
+  */
++/**
++ * Deep-clone plain JSON-compatible config before handing it to `loadNuxt`.
++ * Nuxt/c12 mutate override layers in place; Alchemy keeps the same object
++ * graph in Worker props for converge diffs — shared nested refs made every
++ * Website.Nuxt deploy look dirty and rebuild until OOM.
++ */
++const clonePlain = (value) => {
++    if (value === undefined)
++        return undefined;
++    return JSON.parse(JSON.stringify(value));
++};
+ export const makeNuxtOverrides = (input) => {
+-    const userNitro = input.nuxtConfig !== undefined && isPlainObject(input.nuxtConfig["nitro"])
+-        ? input.nuxtConfig["nitro"]
++    // Clone first so later spreads never alias Alchemy-tracked prop objects.
++    const nuxtConfig = clonePlain(input.nuxtConfig);
++    const userNitro = nuxtConfig !== undefined && isPlainObject(nuxtConfig["nitro"])
++        ? nuxtConfig["nitro"]
+         : undefined;
+-    const userRuntimeConfig = input.nuxtConfig !== undefined && isPlainObject(input.nuxtConfig["runtimeConfig"])
+-        ? input.nuxtConfig["runtimeConfig"]
++    const userRuntimeConfig = nuxtConfig !== undefined && isPlainObject(nuxtConfig["runtimeConfig"])
++        ? nuxtConfig["runtimeConfig"]
+         : undefined;
+     const userExternals = isPlainObject(userNitro?.["externals"])
+         ? userNitro["externals"]
+         : undefined;
+     return {
+-        ...input.nuxtConfig,
++        ...nuxtConfig,
+         nitro: {
+             ...userNitro,
+             ...(input.nitroPreset !== undefined ? { preset: input.nitroPreset } : undefined),
 diff --git a/dist/source.js b/dist/source.js
-index eadb13b14ebe3d4c3c7ab410fd8c825bec7c7ffa..bcf7ce29e84506ad74bbd9498d1cda8e81a7784e 100644
+index eadb13b..bcf7ce2 100644
 --- a/dist/source.js
 +++ b/dist/source.js
 @@ -283,6 +283,21 @@ const resolveDevEnvOverrides = (env) => {
@@ -33,8 +74,51 @@ index eadb13b14ebe3d4c3c7ab410fd8c825bec7c7ffa..bcf7ce29e84506ad74bbd9498d1cda8e
                  .pipe(Effect.mapError(wrapFrameworkError));
              return {
                  mode: "server",
+diff --git a/src/UserConfig.ts b/src/UserConfig.ts
+index bee6019..03930f6 100644
+--- a/src/UserConfig.ts
++++ b/src/UserConfig.ts
+@@ -97,20 +97,33 @@ export interface NuxtOverridesInput {
+  * overrides })`. The user's `nuxt.config.ts` remains authoritative for
+  * everything this integration does not own.
+  */
++/**
++ * Deep-clone plain JSON-compatible config before handing it to `loadNuxt`.
++ * Nuxt/c12 mutate override layers in place; Alchemy keeps the same object
++ * graph in Worker props for converge diffs — shared nested refs made every
++ * Website.Nuxt deploy look dirty and rebuild until OOM.
++ */
++const clonePlain = <T>(value: T): T => {
++  if (value === undefined) return value
++  return JSON.parse(JSON.stringify(value)) as T
++}
++
+ export const makeNuxtOverrides = (input: NuxtOverridesInput): Record<string, unknown> => {
++  // Clone first so later spreads never alias Alchemy-tracked prop objects.
++  const nuxtConfig = clonePlain(input.nuxtConfig)
+   const userNitro =
+-    input.nuxtConfig !== undefined && isPlainObject(input.nuxtConfig["nitro"])
+-      ? (input.nuxtConfig["nitro"] as Record<string, unknown>)
++    nuxtConfig !== undefined && isPlainObject(nuxtConfig["nitro"])
++      ? (nuxtConfig["nitro"] as Record<string, unknown>)
+       : undefined;
+   const userRuntimeConfig =
+-    input.nuxtConfig !== undefined && isPlainObject(input.nuxtConfig["runtimeConfig"])
+-      ? (input.nuxtConfig["runtimeConfig"] as Record<string, unknown>)
++    nuxtConfig !== undefined && isPlainObject(nuxtConfig["runtimeConfig"])
++      ? (nuxtConfig["runtimeConfig"] as Record<string, unknown>)
+       : undefined;
+   const userExternals = isPlainObject(userNitro?.["externals"])
+     ? (userNitro["externals"] as Record<string, unknown>)
+     : undefined;
+   return {
+-    ...input.nuxtConfig,
++    ...nuxtConfig,
+     nitro: {
+       ...userNitro,
+       ...(input.nitroPreset !== undefined ? { preset: input.nitroPreset } : undefined),
 diff --git a/src/source.ts b/src/source.ts
-index 42b9eeab9d0d68aa83e4b75162f494e0a5fee38a..93aef318f28edb69a271e77cd6bcff0c48e3c6be 100644
+index 42b9eea..93aef31 100644
 --- a/src/source.ts
 +++ b/src/source.ts
 @@ -507,6 +507,24 @@ const resolveDevEnvOverrides = (

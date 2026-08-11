@@ -1,10 +1,14 @@
 <script lang="ts" setup></script>
 
 <template>
-  <div class="relative isolate overflow-hidden">
-    <nuxt-img
+  <div class="relative isolate min-h-[28rem] overflow-hidden sm:min-h-[32rem] lg:min-h-[36rem]">
+    <NuxtImg
       src="/img/hero.jpg"
       alt=""
+      width="1920"
+      height="1080"
+      sizes="100vw"
+      :preload="{ fetchPriority: 'high' }"
       class="absolute inset-0 -z-10 h-full w-full object-cover"
     />
 

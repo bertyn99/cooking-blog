@@ -6,11 +6,17 @@ on:
 
 concurrency:
   group: deploy-${{ github.ref }}
-  cancel-in-progress: false
+  # Cancel stuck rebuild-loop deploys when a new push lands on the same branch.
+  cancel-in-progress: true
 
 env:
   CI: true
   STAGE: ${{ github.ref == 'refs/heads/main' && 'prod' || 'preview' }}
+  # Nuxt + Nitro cloudflare builds peak above Node's ~4GB default heap.
+  NODE_OPTIONS: --max-old-space-size=8192
+  # Actions themselves (checkout/setup-node) still ship Node-20 entrypoints;
+  # this only silences the runner warning — the job Node is set below to 22.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   deploy:
@@ -26,6 +32,18 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+      - name: Verify Node version
+        run: |
+          node -v
+          major="$(node -p "process.versions.node.split('.')[0]")"
+          test "$major" = "22"
+      - name: Cache Nuxt SEO (skew protection)
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.cache/nuxt-seo
+          key: nuxt-skew-${{ github.sha }}
+          restore-keys: |
+            nuxt-skew-
       - run: pnpm install --frozen-lockfile
       - name: Deploy
         run: pnpm alchemy deploy --stage ${{ env.STAGE }} --yes
@@ -41,3 +59,5 @@ jobs:
           NUXT_UMAMI_ID: ${{ secrets.NUXT_UMAMI_ID }}
           NUXT_UMAMI_HOST: ${{ secrets.NUXT_UMAMI_HOST }}
           GITHUB_SHA: ${{ github.sha }}
+          # Never enable skew KV bundling in CI (wrangler-per-asset + converge risk)
+          SKEW_BUNDLE_ASSETS: '0'

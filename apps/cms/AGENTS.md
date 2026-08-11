@@ -301,11 +301,14 @@ Notable suites: `auth.test.ts`, `calendar.test.ts`, `strapi-import-format.test.t
 pnpm dev:cms              # from repo root — migrate local DB + Nuxt :3001
 pnpm --filter cms db:migrate:local
 pnpm --filter cms db:seed:admin
+pnpm cms:clone:prod        # transfer API pull → apps/cms/.data (admin API key; see README)
 ```
 
 | Variable | Purpose |
 |----------|---------|
 | `NUXT_PUBLIC_SITE_URL` | Public site URL (links, OG defaults) |
+| `CMS_TRANSFER_KEY` | Local clone pull key (from admin **Clés API**) |
+| `CMS_CLONE_CMS_ORIGIN` | Source CMS origin for `cms:clone:prod` |
 | `STRAPI_URL` | Legacy Strapi base for import |
 | `STRAPI_API_TOKEN` | Strapi API token for import |
 | `STRAPI_UPLOADS_ORIGIN` | Optional CDN origin for Strapi uploads during import |

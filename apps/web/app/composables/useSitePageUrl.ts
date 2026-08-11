@@ -1,5 +1,4 @@
-/** Site author used in meta tags and Schema.org. */
-export const SITE_AUTHOR_NAME = "bertyn boulikou";
+export { SITE_AUTHOR_NAME } from "#shared/site-identity";
 
 export function siteUrlOrigin(siteUrl: string): string {
   return siteUrl.replace(/\/$/, "");
@@ -22,6 +21,7 @@ export function useSitePageUrl(path: string): string {
   return absoluteSiteUrl(site.url, path);
 }
 
+/** @deprecated Prefer automatic canonical URLs from `@nuxtjs/seo` (nuxt-seo-utils). */
 export function usePageCanonical(path: string): string {
   const href = useSitePageUrl(path);
   useHead({

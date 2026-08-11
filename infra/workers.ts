@@ -149,11 +149,18 @@ export const workers = Effect.fn(function* (input: {
   const SkewProtection = yield* Cloudflare.KV.Namespace('WebSkewProtection', {})
 
   // Deploy-time Nuxt overrides (merge over apps/web/nuxt.config.ts).
-  // Skew assets only when a Cloudflare token is present (same gate as before).
-  const skewBundleAssets = Boolean(process.env.CLOUDFLARE_API_TOKEN)
+  // Skew `bundleAssets` + cloudflare-kv-binding shells out to one `wrangler kv put`
+  // per asset and also put Outputs into `nuxt` overrides — both caused CI hangs /
+  // converge rebuild loops. Opt in explicitly with SKEW_BUNDLE_ASSETS=1.
+  const skewBundleAssets = process.env.SKEW_BUNDLE_ASSETS === '1'
   // Former Command.Build forced REDIS_URL='' so nuxt.config does not embed
   // Vercel Redis into the Workers bundle (host `.env` still has REDIS_URL).
   process.env.REDIS_URL = ''
+
+  // Resolve Config to plain strings before Website.Nuxt props — leaves Effect
+  // values in env/nuxt can make Alchemy converge treat the Worker as dirty.
+  const ogImageSecretValue = yield* ogImageSecret
+  const strapiUrlValue = yield* Config.string('STRAPI_URL').pipe(Config.withDefault(''))
 
   const Web = yield* Cloudflare.Website.Nuxt('Web', {
     rootDir: WEB_ROOT_DIR,
@@ -170,8 +177,8 @@ export const workers = Effect.fn(function* (input: {
       CMS_BASE_URL: cmsBaseUrl,
       NUXT_PUBLIC_CMS_BASE_URL: cmsPublicUrl,
       NUXT_PUBLIC_SITE_URL: siteUrl,
-      NUXT_OG_IMAGE_SECRET: ogImageSecret,
-      STRAPI_URL: Config.string('STRAPI_URL').pipe(Config.withDefault('')),
+      NUXT_OG_IMAGE_SECRET: ogImageSecretValue,
+      STRAPI_URL: strapiUrlValue,
       NUXT_UMAMI_ID: umamiId,
       ...(isProd && umamiHost ? { NUXT_UMAMI_HOST: umamiHost } : {}),
       ...(isProd ? {} : { NUXT_SITE_INDEXABLE: 'false' }),
@@ -186,21 +193,25 @@ export const workers = Effect.fn(function* (input: {
         url: siteUrl,
         ...(isProd ? {} : { indexable: false }),
       },
-      runtimeConfig: {
-        public: {
-          cmsBaseUrl: cmsPublicUrl,
-          apiBase: cmsPublicUrl,
-        },
-      },
+      // Keep `nuxt` overrides JSON-plain (no Outputs). CMS URL stays on Worker
+      // env (`NUXT_PUBLIC_CMS_BASE_URL`). Deep-clone in @distilled.cloud/nuxt
+      // patch prevents Nuxt from mutating Alchemy-tracked prop objects.
       umami: {
         id: umamiId,
         ...(isProd ? { host: umamiHost } : {}),
       },
       skewProtection: {
         bundleAssets: skewBundleAssets,
-        storage: {
-          namespaceId: SkewProtection.namespaceId,
-        },
+        ...(skewBundleAssets
+          ? {
+              storage: {
+                // Binding id only — namespaceId Output belongs in env binding,
+                // not nuxt overrides (converge loop risk).
+                driver: 'cloudflare-kv-binding',
+                binding: 'SKEW_PROTECTION',
+              },
+            }
+          : {}),
       },
     },
   })

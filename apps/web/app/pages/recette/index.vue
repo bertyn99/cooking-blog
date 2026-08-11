@@ -20,23 +20,23 @@ const { data: recipes, refresh } = await useAsyncData<StrapiResponse<Recipe>>(
         pageSize: 16,
       },
     }),
-  { watch: [currentPage] },
+  { watch: [currentPage], deep: false },
 );
-defineOgImage("Cooking", {
-  headline: "Recettes",
-  description:
-    "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.",
-});
-useApplySeoMeta({
+const recetteDescription =
+  "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.";
+
+useApplyPageSeo({
   title: "Recettes",
-  description:
-    "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.",
+  description: recetteDescription,
   image: "/img/logo.webp",
   url: "/recette",
   keywords: "recettes, cuisine, gastronomie, plats, desserts, entrées",
   author: SITE_AUTHOR_NAME,
+  og: {
+    headline: "Recettes",
+    description: recetteDescription,
+  },
 });
-usePageCanonical("/recette");
 
 const searchWithFilter = () => {
   refresh();

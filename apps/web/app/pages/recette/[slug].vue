@@ -92,7 +92,7 @@ const metaDescription = computed(
     `Recette sur le Journal du cuistot : ${titleContent.value}`,
 );
 
-useApplySeoMeta({
+useApplyPageSeo({
   title: titleContent.value || "Journal du cuistot",
   description: metaDescription.value,
   keywords: seo.value?.keywords,
@@ -101,12 +101,10 @@ useApplySeoMeta({
   author: SITE_AUTHOR_NAME,
   articleDatePublished: recipe.value?.publishedAt,
   articleDateModified: recipe.value?.updatedAt,
-});
-usePageCanonical(pagePath);
-
-defineOgImage("Cooking", {
-  headline: titleContent.value,
-  description: metaDescription.value,
+  og: {
+    headline: titleContent.value,
+    description: metaDescription.value,
+  },
 });
 </script>
 

@@ -49,20 +49,19 @@ const seo = computed(() => page.value?.seoMeta || {});
 
 const categoryPath = `/recette/recettes-${categorySlug}`;
 
-useApplySeoMeta({
-    title: titleContent.value || "Journal du cuistot",
-    description: seo.value?.description || "No description",
-    image: "/img/logo.webp",
-    url: categoryPath,
-    keywords: seo.value?.keywords,
-    author: SITE_AUTHOR_NAME,
-    articleDatePublished: page.value?.publishedAt,
-    articleDateModified: page.value?.updatedAt,
-});
-usePageCanonical(categoryPath);
-defineOgImage("Cooking", {
-  headline: titleContent.value || "Journal du cuistot",
+useApplyPageSeo({
+  title: titleContent.value || "Journal du cuistot",
   description: seo.value?.description || "No description",
+  image: "/img/logo.webp",
+  url: categoryPath,
+  keywords: seo.value?.keywords,
+  author: SITE_AUTHOR_NAME,
+  articleDatePublished: page.value?.publishedAt,
+  articleDateModified: page.value?.updatedAt,
+  og: {
+    headline: titleContent.value || "Journal du cuistot",
+    description: seo.value?.description || "No description",
+  },
 });
 </script>
 

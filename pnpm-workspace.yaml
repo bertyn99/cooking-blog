@@ -4,7 +4,7 @@ packages:
 catalog:
   '@effect/platform-node': '4.0.0-beta.102'
   '@nuxt/eslint-plugin': '^1.15.2'
-  alchemy: '2.0.0-beta.68'
+  alchemy: '2.0.0-beta.70'
   drizzle-kit: '1.0.0-rc.4'
   drizzle-orm: '1.0.0-rc.4'
   effect: '4.0.0-beta.102'
