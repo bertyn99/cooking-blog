@@ -265,18 +265,133 @@ async function deleteSeoForRecipes(db: AppDb, recipeIds: number[]) {
   await db.run(sql`DELETE FROM seo WHERE recipe_id IN (${idList})`)
 }
 
-async function withOptionalTransaction(
+function rowIds(rows: Record<string, unknown>[]): number[] {
+  return rows
+    .map(row => Number(row.id))
+    .filter(id => Number.isFinite(id))
+}
+
+/** Delete rows for parents that are not in the imported keep-set (safe on D1). */
+async function deleteOrphans(
   db: AppDb,
-  transactional: boolean,
-  fn: (writeDb: AppDb) => Promise<void>,
+  tableName: string,
+  parentColumn: string,
+  parentIds: number[],
+  keepIds: number[],
 ) {
-  if (transactional) {
+  assertSafeTable(tableName)
+  assertSafeIdentifier('column', parentColumn)
+  if (!parentIds.length) return
+  const parentList = sql.join(parentIds.map(id => sql`${id}`), sql`, `)
+  if (!keepIds.length) {
+    await db.run(sql`
+      DELETE FROM ${sql.raw(tableName)}
+      WHERE ${sql.raw(`"${parentColumn}"`)} IN (${parentList})
+    `)
+    return
+  }
+  const keepList = sql.join(keepIds.map(id => sql`${id}`), sql`, `)
+  await db.run(sql`
+    DELETE FROM ${sql.raw(tableName)}
+    WHERE ${sql.raw(`"${parentColumn}"`)} IN (${parentList})
+      AND "id" NOT IN (${keepList})
+  `)
+}
+
+async function importArticlePage(
+  db: AppDb,
+  page: {
+    data: Record<string, unknown>[]
+    related: {
+      seo: Record<string, unknown>[]
+      categoryArticles: Record<string, unknown>[]
+    }
+  },
+  options: { clearCoverBlob: boolean, transactional: boolean },
+) {
+  const articleIds = rowIds(page.data)
+  const write = async (writeDb: AppDb) => {
+    await upsertByPrimaryKey(writeDb, 'category_articles', page.related.categoryArticles, {
+      uniqueSlugLocale: true,
+    })
+    await upsertByPrimaryKey(writeDb, 'articles', page.data, {
+      uniqueSlugLocale: true,
+      clearCoverBlob: options.clearCoverBlob,
+    })
+    if (options.transactional) {
+      // Atomic: wipe then re-insert is safe inside a libSQL transaction.
+      await deleteSeoForArticles(writeDb, articleIds)
+      await upsertByPrimaryKey(writeDb, 'seo', page.related.seo)
+      return
+    }
+    // D1: upsert first so a mid-page failure never leaves articles without SEO.
+    await upsertByPrimaryKey(writeDb, 'seo', page.related.seo)
+    await deleteOrphans(writeDb, 'seo', 'article_id', articleIds, rowIds(page.related.seo))
+  }
+
+  if (options.transactional) {
     await db.transaction(async (tx) => {
-      await fn(tx as AppDb)
+      await write(tx as AppDb)
     })
     return
   }
-  await fn(db)
+  await write(db)
+}
+
+async function importRecipePage(
+  db: AppDb,
+  page: {
+    data: Record<string, unknown>[]
+    related: {
+      seo: Record<string, unknown>[]
+      categories: Record<string, unknown>[]
+      ingredients: Record<string, unknown>[]
+      utensils: Record<string, unknown>[]
+      nutrition: Record<string, unknown>[]
+      steps: Record<string, unknown>[]
+    }
+  },
+  options: { clearCoverBlob: boolean, transactional: boolean },
+) {
+  const recipeIds = rowIds(page.data)
+  const write = async (writeDb: AppDb) => {
+    await upsertByPrimaryKey(writeDb, 'categories', page.related.categories, {
+      uniqueSlugLocale: true,
+    })
+    await upsertByPrimaryKey(writeDb, 'recipes', page.data, {
+      uniqueSlugLocale: true,
+      clearCoverBlob: options.clearCoverBlob,
+    })
+    if (options.transactional) {
+      await deleteRecipeChildren(writeDb, recipeIds)
+      await deleteSeoForRecipes(writeDb, recipeIds)
+      await upsertByPrimaryKey(writeDb, 'seo', page.related.seo)
+      await upsertByPrimaryKey(writeDb, 'ingredients', page.related.ingredients)
+      await upsertByPrimaryKey(writeDb, 'recipe_utensils', page.related.utensils)
+      await upsertByPrimaryKey(writeDb, 'nutrition', page.related.nutrition)
+      await upsertByPrimaryKey(writeDb, 'recipe_steps', page.related.steps)
+      return
+    }
+    // D1: upsert replacements first, then prune orphans.
+    await upsertByPrimaryKey(writeDb, 'seo', page.related.seo)
+    await upsertByPrimaryKey(writeDb, 'ingredients', page.related.ingredients)
+    await upsertByPrimaryKey(writeDb, 'recipe_utensils', page.related.utensils)
+    await upsertByPrimaryKey(writeDb, 'nutrition', page.related.nutrition)
+    await upsertByPrimaryKey(writeDb, 'recipe_steps', page.related.steps)
+    await deleteOrphans(writeDb, 'seo', 'recipe_id', recipeIds, rowIds(page.related.seo))
+    await deleteOrphans(writeDb, 'ingredients', 'recipe_id', recipeIds, rowIds(page.related.ingredients))
+    await deleteOrphans(writeDb, 'recipe_utensils', 'recipe_id', recipeIds, rowIds(page.related.utensils))
+    await deleteOrphans(writeDb, 'nutrition', 'recipe_id', recipeIds, rowIds(page.related.nutrition))
+    await deleteOrphans(writeDb, 'recipe_steps', 'recipe_id', recipeIds, rowIds(page.related.steps))
+  }
+
+  if (options.transactional) {
+    await db.transaction(async (tx) => {
+      await write(tx as AppDb)
+    })
+    return
+  }
+  await write(db)
 }
 
 export function createLocalMediaWriter(mediaRoot: string): TransferMediaWriter {
@@ -381,20 +496,9 @@ export async function pullTransferToLocal(input: {
       }>(input.client, '/api/transfer/articles', cursor, limit)
 
       if (!dryRun) {
-        const articleIds = page.data
-          .map(row => Number(row.id))
-          .filter(id => Number.isFinite(id))
-
-        await withOptionalTransaction(input.db, transactionalWrites, async (writeDb) => {
-          await upsertByPrimaryKey(writeDb, 'category_articles', page.related.categoryArticles, {
-            uniqueSlugLocale: true,
-          })
-          await upsertByPrimaryKey(writeDb, 'articles', page.data, {
-            uniqueSlugLocale: true,
-            clearCoverBlob,
-          })
-          await deleteSeoForArticles(writeDb, articleIds)
-          await upsertByPrimaryKey(writeDb, 'seo', page.related.seo)
+        await importArticlePage(input.db, page, {
+          clearCoverBlob,
+          transactional: transactionalWrites,
         })
       }
       total += page.data.length
@@ -428,26 +532,9 @@ export async function pullTransferToLocal(input: {
       }>(input.client, '/api/transfer/recipes', cursor, limit)
 
       if (!dryRun) {
-        const recipeIds = page.data
-          .map(row => Number(row.id))
-          .filter(id => Number.isFinite(id))
-
-        await withOptionalTransaction(input.db, transactionalWrites, async (writeDb) => {
-          await upsertByPrimaryKey(writeDb, 'categories', page.related.categories, {
-            uniqueSlugLocale: true,
-          })
-          await upsertByPrimaryKey(writeDb, 'recipes', page.data, {
-            uniqueSlugLocale: true,
-            clearCoverBlob,
-          })
-          // Drop stale children then re-insert current source set.
-          await deleteRecipeChildren(writeDb, recipeIds)
-          await deleteSeoForRecipes(writeDb, recipeIds)
-          await upsertByPrimaryKey(writeDb, 'seo', page.related.seo)
-          await upsertByPrimaryKey(writeDb, 'ingredients', page.related.ingredients)
-          await upsertByPrimaryKey(writeDb, 'recipe_utensils', page.related.utensils)
-          await upsertByPrimaryKey(writeDb, 'nutrition', page.related.nutrition)
-          await upsertByPrimaryKey(writeDb, 'recipe_steps', page.related.steps)
+        await importRecipePage(input.db, page, {
+          clearCoverBlob,
+          transactional: transactionalWrites,
         })
       }
       total += page.data.length
