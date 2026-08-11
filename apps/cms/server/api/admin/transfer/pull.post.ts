@@ -72,6 +72,7 @@ export default defineEventHandler(async (event) => {
     },
     scopes: parsed.scopes,
     limit: parsed.limit,
+    transactionalWrites: resolveDatabaseSource(event) !== 'd1',
     writeMedia: async (pathname, data, contentType) => {
       await storage.putRaw(pathname, data, contentType)
     },

@@ -27,6 +27,7 @@ const AUTHOR_FK_COLUMNS = new Set([
 ])
 
 const REQUEST_TIMEOUT_MS = 30_000
+const MEDIA_TIMEOUT_MS = 120_000
 const MAX_PAGES = 500
 const SAFE_IDENTIFIER = /^[a-z][a-z0-9_]*$/
 const ALLOWED_TABLES = new Set([
@@ -74,12 +75,13 @@ async function transferFetch(
   opts: TransferClientOptions,
   path: string,
   init?: RequestInit,
+  timeoutMs: number = REQUEST_TIMEOUT_MS,
 ): Promise<Response> {
   const url = `${opts.origin.replace(/\/$/, '')}${path}`
   const response = await fetch(url, {
     ...init,
     redirect: 'manual',
-    signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    signal: init?.signal ?? AbortSignal.timeout(timeoutMs),
     headers: {
       Authorization: `Bearer ${opts.apiKey}`,
       ...init?.headers,
@@ -124,7 +126,12 @@ export async function downloadTransferMediaFile(
   pathname: string,
 ): Promise<{ buffer: ArrayBuffer, contentType: string }> {
   const params = new URLSearchParams({ pathname })
-  const response = await transferFetch(opts, `/api/transfer/media/file?${params}`)
+  const response = await transferFetch(
+    opts,
+    `/api/transfer/media/file?${params}`,
+    undefined,
+    MEDIA_TIMEOUT_MS,
+  )
   if (!response.ok) {
     throw new Error(`media file ${pathname} → HTTP ${response.status}`)
   }
@@ -258,6 +265,20 @@ async function deleteSeoForRecipes(db: AppDb, recipeIds: number[]) {
   await db.run(sql`DELETE FROM seo WHERE recipe_id IN (${idList})`)
 }
 
+async function withOptionalTransaction(
+  db: AppDb,
+  transactional: boolean,
+  fn: (writeDb: AppDb) => Promise<void>,
+) {
+  if (transactional) {
+    await db.transaction(async (tx) => {
+      await fn(tx as AppDb)
+    })
+    return
+  }
+  await fn(db)
+}
+
 export function createLocalMediaWriter(mediaRoot: string): TransferMediaWriter {
   return async (pathname, data, contentType) => {
     const full = join(mediaRoot, pathname)
@@ -282,12 +303,15 @@ export async function pullTransferToLocal(input: {
   mediaRoot?: string
   limit?: number
   maxPages?: number
+  /** D1 does not support SQL transactions — disable on deployed Workers. */
+  transactionalWrites?: boolean
   onProgress?: (message: string) => void
 }): Promise<{ counts: Record<string, number> }> {
   const log = input.onProgress ?? (() => {})
   const dryRun = Boolean(input.client.dryRun)
   const limit = input.limit ?? 50
   const maxPages = input.maxPages ?? MAX_PAGES
+  const transactionalWrites = input.transactionalWrites ?? true
   const writeMedia = input.writeMedia
     ?? createLocalMediaWriter(input.mediaRoot ?? join(process.cwd(), '.data/media'))
   const counts: Record<string, number> = {}
@@ -361,16 +385,16 @@ export async function pullTransferToLocal(input: {
           .map(row => Number(row.id))
           .filter(id => Number.isFinite(id))
 
-        await input.db.transaction(async (tx) => {
-          await upsertByPrimaryKey(tx as AppDb, 'category_articles', page.related.categoryArticles, {
+        await withOptionalTransaction(input.db, transactionalWrites, async (writeDb) => {
+          await upsertByPrimaryKey(writeDb, 'category_articles', page.related.categoryArticles, {
             uniqueSlugLocale: true,
           })
-          await upsertByPrimaryKey(tx as AppDb, 'articles', page.data, {
+          await upsertByPrimaryKey(writeDb, 'articles', page.data, {
             uniqueSlugLocale: true,
             clearCoverBlob,
           })
-          await deleteSeoForArticles(tx as AppDb, articleIds)
-          await upsertByPrimaryKey(tx as AppDb, 'seo', page.related.seo)
+          await deleteSeoForArticles(writeDb, articleIds)
+          await upsertByPrimaryKey(writeDb, 'seo', page.related.seo)
         })
       }
       total += page.data.length
@@ -408,22 +432,22 @@ export async function pullTransferToLocal(input: {
           .map(row => Number(row.id))
           .filter(id => Number.isFinite(id))
 
-        await input.db.transaction(async (tx) => {
-          await upsertByPrimaryKey(tx as AppDb, 'categories', page.related.categories, {
+        await withOptionalTransaction(input.db, transactionalWrites, async (writeDb) => {
+          await upsertByPrimaryKey(writeDb, 'categories', page.related.categories, {
             uniqueSlugLocale: true,
           })
-          await upsertByPrimaryKey(tx as AppDb, 'recipes', page.data, {
+          await upsertByPrimaryKey(writeDb, 'recipes', page.data, {
             uniqueSlugLocale: true,
             clearCoverBlob,
           })
           // Drop stale children then re-insert current source set.
-          await deleteRecipeChildren(tx as AppDb, recipeIds)
-          await deleteSeoForRecipes(tx as AppDb, recipeIds)
-          await upsertByPrimaryKey(tx as AppDb, 'seo', page.related.seo)
-          await upsertByPrimaryKey(tx as AppDb, 'ingredients', page.related.ingredients)
-          await upsertByPrimaryKey(tx as AppDb, 'recipe_utensils', page.related.utensils)
-          await upsertByPrimaryKey(tx as AppDb, 'nutrition', page.related.nutrition)
-          await upsertByPrimaryKey(tx as AppDb, 'recipe_steps', page.related.steps)
+          await deleteRecipeChildren(writeDb, recipeIds)
+          await deleteSeoForRecipes(writeDb, recipeIds)
+          await upsertByPrimaryKey(writeDb, 'seo', page.related.seo)
+          await upsertByPrimaryKey(writeDb, 'ingredients', page.related.ingredients)
+          await upsertByPrimaryKey(writeDb, 'recipe_utensils', page.related.utensils)
+          await upsertByPrimaryKey(writeDb, 'nutrition', page.related.nutrition)
+          await upsertByPrimaryKey(writeDb, 'recipe_steps', page.related.steps)
         })
       }
       total += page.data.length

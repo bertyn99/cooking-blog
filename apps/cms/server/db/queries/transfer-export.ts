@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, inArray, isNull } from 'drizzle-orm'
+import { and, asc, eq, getTableColumns, gt, inArray, isNull } from 'drizzle-orm'
 import type { AppDb } from '../create-db'
 import { articles } from '../schema/articles'
 import { recipes } from '../schema/recipes'
@@ -9,6 +9,13 @@ import { ingredients } from '../schema/ingredients'
 import { recipeUtensils } from '../schema/recipe-utensils'
 import { nutrition } from '../schema/nutrition'
 import { recipeSteps } from '../schema/recipe-steps'
+
+const articleTransferColumns = (({ createdByUserId, updatedByUserId, deletedAt, ...columns }) => columns)(
+  getTableColumns(articles),
+)
+const recipeTransferColumns = (({ createdByUserId, updatedByUserId, deletedAt, ...columns }) => columns)(
+  getTableColumns(recipes),
+)
 
 function nextCursor(ids: number[], limit: number): string | null {
   if (ids.length < limit) return null
@@ -24,7 +31,7 @@ export function createTransferExportQueries(db: AppDb) {
         : and(isNull(articles.deletedAt), gt(articles.id, opts.cursor))
 
       const rows = await db
-        .select()
+        .select(articleTransferColumns)
         .from(articles)
         .where(where)
         .orderBy(asc(articles.id))
@@ -61,7 +68,7 @@ export function createTransferExportQueries(db: AppDb) {
         : and(isNull(recipes.deletedAt), gt(recipes.id, opts.cursor))
 
       const rows = await db
-        .select()
+        .select(recipeTransferColumns)
         .from(recipes)
         .where(where)
         .orderBy(asc(recipes.id))
