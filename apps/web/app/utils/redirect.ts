@@ -16,6 +16,11 @@ const listRedirects: Record<string, NitroRouteConfig> = {
     redirect: { to: '/__sitemap__/recipes.xml', statusCode: 301 },
   },
 
+  // Legacy absolute paths still present in imported markdown.
+  '/articles/**': {
+    redirect: { to: '/blog/**', statusCode: 301 },
+  },
+
   '/techniques-de-cuisine/**': {
     redirect: { to: '/techniques-culinaires/**', statusCode: 301 },
   },

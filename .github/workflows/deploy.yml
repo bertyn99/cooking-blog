@@ -46,7 +46,24 @@ jobs:
             nuxt-skew-
       - run: pnpm install --frozen-lockfile
       - name: Deploy
-        run: pnpm alchemy deploy --stage ${{ env.STAGE }} --yes
+        run: |
+          set -euo pipefail
+          if [ "${STAGE}" = "prod" ]; then
+            if [ -z "${PROD_WEB_HOST:-}" ]; then
+              echo "PROD_WEB_HOST secret is required for prod deploys" >&2
+              exit 1
+            fi
+            # Nuxt bakes site.url at build time from process.env — Alchemy Worker
+            # bindings alone are not enough if nuxt.config defaults to localhost.
+            host="${PROD_WEB_HOST#https://}"
+            host="${host#http://}"
+            host="${host%/}"
+            export NUXT_PUBLIC_SITE_URL="https://${host}"
+            export NUXT_SITE_ENV=production
+            export NUXT_SITE_INDEXABLE=true
+            echo "Prod site URL: ${NUXT_PUBLIC_SITE_URL}"
+          fi
+          pnpm alchemy deploy --stage "${STAGE}" --yes
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

@@ -22,14 +22,34 @@ const siteEnv =
   process.env.NUXT_SITE_ENV ||
   (process.env.NODE_ENV === 'production' ? 'production' : 'development')
 
-function resolveSiteIndexable(): boolean | undefined {
+function isLocalSiteUrl(url: string): boolean {
+  try {
+    const { hostname } = new URL(url)
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.local')
+  }
+  catch {
+    return true
+  }
+}
+
+function resolveSiteIndexable(): boolean {
   if (process.env.NUXT_SITE_INDEXABLE === 'true') {
     return true
   }
   if (process.env.NUXT_SITE_INDEXABLE === 'false') {
     return false
   }
-  return undefined
+  // Never mark localhost (or missing URL) as indexable — that ships noindex + bad canonicals.
+  if (isLocalSiteUrl(siteUrl)) {
+    return false
+  }
+  return siteEnv === 'production'
+}
+
+if (process.env.NODE_ENV === 'production' && isLocalSiteUrl(siteUrl)) {
+  console.warn(
+    '[seo] NUXT_PUBLIC_SITE_URL is localhost during a production build. Canonicals, sitemaps, and robots will be wrong until PROD_WEB_HOST / NUXT_PUBLIC_SITE_URL is set.',
+  )
 }
 
 export default defineNuxtConfig({
@@ -155,9 +175,7 @@ export default defineNuxtConfig({
     defaultLocale: 'fr',
     trailingSlash: false,
     env: siteEnv,
-    ...(resolveSiteIndexable() !== undefined
-      ? { indexable: resolveSiteIndexable() }
-      : {}),
+    indexable: resolveSiteIndexable(),
   },
 
   schemaOrg: {
@@ -280,7 +298,8 @@ export default defineNuxtConfig({
     exclude: ['/preview', '/preview/**', '/api/**', '/images/**'],
     sitemaps: {
       pages: {
-        includeAppSources: true,
+        // CMS handler owns URL list — avoid duplicate `/` from app route discovery.
+        includeAppSources: false,
         sitemapName: 'sitemap-pages.xml',
         sources: ['/api/__sitemap__/urls'],
         exclude: ['/blog', '/blog/**', '/recette', '/recette/**'],
@@ -290,7 +309,7 @@ export default defineNuxtConfig({
         },
       },
       blog: {
-        includeAppSources: true,
+        includeAppSources: false,
         include: ['/blog', '/blog/**'],
         sitemapName: 'sitemap-blog.xml',
         sources: ['/api/__sitemap__/urls'],
@@ -300,7 +319,7 @@ export default defineNuxtConfig({
         },
       },
       recipes: {
-        includeAppSources: true,
+        includeAppSources: false,
         include: ['/recette', '/recette/**'],
         sitemapName: 'sitemap-recipes.xml',
         sources: ['/api/__sitemap__/urls'],

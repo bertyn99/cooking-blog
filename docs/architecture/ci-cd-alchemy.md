@@ -19,7 +19,7 @@ Workflow: `.github/workflows/deploy.yml`. Remote Alchemy state is enabled via `C
 
 **Local tip:** Prefer `ALCHEMY_REMOTE_STATE=1 pnpm deploy --stage preview` so local matches CI state. Stale local `.alchemy` from older `Command.Build` stacks can confuse the UI; remote state avoids that.
 
-**Production domains** (only when `stage === prod`): set GitHub secrets `PROD_WEB_HOST` and `PROD_CMS_HOST` (hostnames only, e.g. `journalducuistot.fr` and `admin.journalducuistot.fr`). They are passed into `pnpm alchemy deploy` from `.github/workflows/deploy.yml`. The zone must already be on your Cloudflare account; Alchemy provisions DNS + TLS on deploy.
+**Production domains** (only when `stage === prod`): set GitHub secrets `PROD_WEB_HOST` and `PROD_CMS_HOST` (hostnames only, e.g. `journalducuistot.fr` and `admin.journalducuistot.fr`). They are passed into `pnpm alchemy deploy` from `.github/workflows/deploy.yml`. The deploy step also exports `NUXT_PUBLIC_SITE_URL=https://$PROD_WEB_HOST` (plus `NUXT_SITE_ENV=production` / `NUXT_SITE_INDEXABLE=true`) so Nuxt does not bake `localhost` into canonicals, sitemaps, or robots. The zone must already be on your Cloudflare account; Alchemy provisions DNS + TLS on deploy.
 
 **Production analytics (Umami):** `NUXT_UMAMI_ID` and `NUXT_UMAMI_HOST` (prod stage only; same workflow `env` block).
 
