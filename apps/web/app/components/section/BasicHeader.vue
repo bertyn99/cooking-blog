@@ -82,12 +82,10 @@ const closeDropdown = () => {
   <header class="w-full h-24 md:transparent fixed top-0 z-20">
     <nav class="border-gray-200" :class="{ 'bg-gray-100': headerScrolled || mobileMenuOpen }">
       <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 py-3">
-        <NuxtLink href="/" class="flex items-center">
-          <h1>
-            <span class="sr-only">Journal du Cuistot</span>
-            <nuxt-img preload src="/img/logo.webp" width="64" height="64" class="h-16 w-16 mr-3 object-cover" alt="Logo Journal du cuistot"
-              aria-hidden="true" />
-          </h1>
+        <NuxtLink href="/" class="flex items-center" aria-label="Journal du Cuistot — Accueil">
+          <span class="sr-only">Journal du Cuistot</span>
+          <nuxt-img preload src="/img/logo.webp" width="64" height="64" class="h-16 w-16 mr-3 object-cover" alt=""
+            aria-hidden="true" />
         </NuxtLink>
         <div class="flex md:order-2 print:hidden">
           <button type="button" data-collapse-toggle="navbar-search" aria-controls="navbar-search" aria-expanded="false"

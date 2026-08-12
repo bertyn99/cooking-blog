@@ -53,13 +53,18 @@ export const workers = Effect.fn(function* (input: {
   const stage = yield* Stage
   const isProd = stage === 'prod'
   const isAlchemyDev = yield* Alchemy.ALCHEMY_DEV
-  const prodWebHost = yield* Config.string('PROD_WEB_HOST').pipe(Config.withDefault(''))
-  const prodCmsHost = yield* Config.string('PROD_CMS_HOST').pipe(Config.withDefault(''))
+  const prodWebHost = (yield* Config.string('PROD_WEB_HOST').pipe(Config.withDefault(''))).trim()
+  const prodCmsHost = (yield* Config.string('PROD_CMS_HOST').pipe(Config.withDefault(''))).trim()
+  if (isProd && !prodWebHost) {
+    throw new Error(
+      'PROD_WEB_HOST is required for stage=prod (hostname only, e.g. journalducuistot.fr). Set the GitHub Actions secret before deploying.',
+    )
+  }
   const normalizeHost = (value: string) =>
     value.replace(/^https?:\/\//, '').replace(/\/$/, '')
   const prodCmsOrigin = prodCmsHost ? `https://${normalizeHost(prodCmsHost)}` : ''
   const cmsDomain = isProd && prodCmsHost ? normalizeHost(prodCmsHost) : undefined
-  const webDomain = isProd && prodWebHost ? normalizeHost(prodWebHost) : undefined
+  const webDomain = isProd ? normalizeHost(prodWebHost) : undefined
 
   // Provision AI Gateway (dashboard logs, caching, rate limits).
   // Nuxt CMS uses Workers AI binding + `CMS_AI_GATEWAY_ID` in `workers-ai-provider` (not Effect `QueryGateway`).
@@ -117,6 +122,7 @@ export const workers = Effect.fn(function* (input: {
       NUXT_STRAPI_URL: strapiUrl,
       STRAPI_API_TOKEN: strapiApiToken,
       NUXT_STRAPI_API_TOKEN: strapiApiToken,
+      PEXELS_API_KEY: Config.string('PEXELS_API_KEY').pipe(Config.withDefault('')),
     },
     crons: [PUBLISH_CRON],
     compatibility: NODE_COMPAT,
@@ -134,10 +140,9 @@ export const workers = Effect.fn(function* (input: {
   const siteUrlFromEnv = yield* Config.string('NUXT_PUBLIC_SITE_URL').pipe(
     Config.withDefault('http://localhost:3000'),
   )
-  const siteUrl =
-    isProd && prodWebHost
-      ? `https://${normalizeHost(prodWebHost)}`
-      : siteUrlFromEnv
+  const siteUrl = isProd
+    ? `https://${normalizeHost(prodWebHost)}`
+    : siteUrlFromEnv
   const ogImageSecret = Config.string('NUXT_OG_IMAGE_SECRET').pipe(Config.withDefault(''))
   const umamiId = isProd
     ? yield* Config.string('NUXT_UMAMI_ID').pipe(Config.withDefault(''))
@@ -181,7 +186,12 @@ export const workers = Effect.fn(function* (input: {
       STRAPI_URL: strapiUrlValue,
       NUXT_UMAMI_ID: umamiId,
       ...(isProd && umamiHost ? { NUXT_UMAMI_HOST: umamiHost } : {}),
-      ...(isProd ? {} : { NUXT_SITE_INDEXABLE: 'false' }),
+      ...(isProd
+        ? {
+            NUXT_SITE_ENV: 'production',
+            NUXT_SITE_INDEXABLE: 'true',
+          }
+        : { NUXT_SITE_INDEXABLE: 'false' }),
     },
     compatibility: WEB_NODE_COMPAT,
     memo: NUXT_MEMO,
@@ -191,7 +201,9 @@ export const workers = Effect.fn(function* (input: {
       },
       site: {
         url: siteUrl,
-        ...(isProd ? {} : { indexable: false }),
+        ...(isProd
+          ? { env: 'production', indexable: true }
+          : { indexable: false }),
       },
       // Keep `nuxt` overrides JSON-plain (no Outputs). CMS URL stays on Worker
       // env (`NUXT_PUBLIC_CMS_BASE_URL`). Deep-clone in @distilled.cloud/nuxt
