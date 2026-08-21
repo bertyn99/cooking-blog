@@ -1,4 +1,4 @@
-import { API_KEY_SCOPES, normalizeApiKeyScopes, type ApiKeyScope } from './api-keys'
+import { TRANSFER_SCOPES, normalizeTransferScopes, type ApiKeyScope } from './api-keys'
 
 export const TRANSFER_PULL_CONFIRM_PHRASE = 'IMPORTER'
 
@@ -100,7 +100,7 @@ export function parseTransferPullInput(
   const record = (body && typeof body === 'object') ? body as Record<string, unknown> : {}
   const originRaw = typeof record.origin === 'string' ? record.origin : ''
   const apiKey = typeof record.apiKey === 'string' ? record.apiKey.trim() : ''
-  const scopes = normalizeApiKeyScopes(record.scopes)
+  const scopes = normalizeTransferScopes(record.scopes)
   const dryRun = record.dryRun === true || record.dryRun === 'true' || record.dryRun === 1
   const confirm = typeof record.confirm === 'string' ? record.confirm.trim() : ''
   const rawLimit = Number.parseInt(String(record.limit ?? 50), 10)
@@ -117,4 +117,4 @@ export function parseTransferPullInput(
   return { origin, apiKey, scopes, dryRun, limit, confirm }
 }
 
-export { API_KEY_SCOPES }
+export { TRANSFER_SCOPES }

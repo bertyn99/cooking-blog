@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 import { sql } from 'drizzle-orm'
 import type { AppDb } from '../create-db'
 import type { ApiKeyScope } from '../../../shared/api-keys'
-import { API_KEY_SCOPES } from '../../../shared/api-keys'
+import { TRANSFER_SCOPES } from '../../../shared/api-keys'
 
 export interface TransferClientOptions {
   origin: string
@@ -430,7 +430,7 @@ export async function pullTransferToLocal(input: {
   const writeMedia = input.writeMedia
     ?? createLocalMediaWriter(input.mediaRoot ?? join(process.cwd(), '.data/media'))
   const counts: Record<string, number> = {}
-  const scopes = API_KEY_SCOPES.filter(scope => input.scopes.includes(scope))
+  const scopes = TRANSFER_SCOPES.filter(scope => input.scopes.includes(scope))
   const importingMedia = scopes.includes('media')
   const clearCoverBlob = !importingMedia
 

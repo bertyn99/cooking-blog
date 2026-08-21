@@ -40,6 +40,7 @@
     "@libsql/client": "latest",
     "@nuxt/test-utils": "4.0.3",
     "@nuxt/ui": "^4.9.0",
+    "@nuxtjs/mcp-toolkit": "^0.19.0",
     "@tanstack/table-core": "^8.21.3",
     "@vueuse/core": "^13.9.0",
     "@vueuse/nuxt": "^13.9.0",

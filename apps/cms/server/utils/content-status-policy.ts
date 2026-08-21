@@ -1,4 +1,5 @@
 import type { User } from '#auth-utils'
+import type { Actor } from './actor'
 import { createApiError } from './errors'
 
 type PublishableStatus = 'draft' | 'published' | 'scheduled'
@@ -40,6 +41,55 @@ function assertAdminStatusTransition(
       },
     )
   }
+}
+
+/** API-key writes: draft-only; reject live rows and publish attempts. */
+export function applyApiKeyDraftPolicy(
+  existing: { status: PublishableStatus },
+  updates: ContentStatusPatch,
+): ContentStatusPatch {
+  if (existing.status !== 'draft') {
+    throw createApiError(
+      'FORBIDDEN',
+      'Ce contenu est publié ou planifié — les agents ne peuvent modifier que des brouillons.',
+      undefined,
+      {
+        why: `Statut actuel : « ${existing.status} ».`,
+        fix: 'Créez un nouveau brouillon ou demandez une republication manuelle.',
+      },
+    )
+  }
+
+  if (updates.status !== undefined && updates.status !== 'draft') {
+    throw createApiError(
+      'FORBIDDEN',
+      'Les clés agent ne peuvent pas publier ou planifier du contenu.',
+      undefined,
+      { fix: 'Enregistrez en brouillon ; un humain publiera ensuite.' },
+    )
+  }
+
+  return { ...updates, status: 'draft' }
+}
+
+/**
+ * Unified status policy for session editors/admins and API-key agents.
+ */
+export function applyContentPolicy(
+  actor: Actor,
+  existing: { status: PublishableStatus, firstPublishedAt?: string | null } | null,
+  updates: ContentStatusPatch,
+): ContentStatusPatch {
+  if (actor.kind === 'apiKey') {
+    const base = existing ?? { status: 'draft' as const, firstPublishedAt: null }
+    return applyApiKeyDraftPolicy(base, updates)
+  }
+
+  if (existing) {
+    return applyContentStatusPolicy(actor.user, existing, updates)
+  }
+
+  return applyInitialContentStatusPolicy(actor.user, updates)
 }
 
 /**
@@ -100,3 +150,4 @@ export function applyInitialContentStatusPolicy(
     { ...updates, status },
   )
 }
+

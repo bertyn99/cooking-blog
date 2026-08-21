@@ -3,7 +3,7 @@ declare module '#auth-utils' {
     id: number
     email: string
     username: string | null
-    role: 'admin' | 'editor'
+    role: 'admin' | 'editor' | 'agent'
     createdAt: string
     updatedAt: string
   }

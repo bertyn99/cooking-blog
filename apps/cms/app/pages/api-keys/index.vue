@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import { API_KEY_SCOPES, API_KEY_SCOPE_LABELS, type ApiKeyScope } from '#shared/api-keys'
-import { TRANSFER_PULL_CONFIRM_PHRASE } from '#shared/transfer-pull'
+import {
+  AGENT_SCOPES,
+  API_KEY_SCOPES,
+  API_KEY_SCOPE_LABELS,
+  TRANSFER_SCOPES,
+  type ApiKeyScope,
+} from '#shared/api-keys'
+import { TRANSFER_PULL_CONFIRM_PHRASE, TRANSFER_SCOPES as PULL_SCOPES } from '#shared/transfer-pull'
 import { getApiErrorMessage } from '#shared/api-error'
 import { DASHBOARD_TABLE_UI } from '~/utils/dashboard-shell'
 
@@ -55,10 +61,20 @@ const createForm = reactive({
 const pullForm = reactive({
   origin: '',
   apiKey: '',
-  scopes: [...API_KEY_SCOPES] as ApiKeyScope[],
+  scopes: [...PULL_SCOPES] as ApiKeyScope[],
   dryRun: true,
   confirm: '',
 })
+
+const transferScopeItems = TRANSFER_SCOPES.map(scope => ({
+  label: API_KEY_SCOPE_LABELS[scope],
+  value: scope,
+}))
+
+const agentScopeItems = AGENT_SCOPES.map(scope => ({
+  label: API_KEY_SCOPE_LABELS[scope],
+  value: scope,
+}))
 
 const scopeItems = API_KEY_SCOPES.map(scope => ({
   label: API_KEY_SCOPE_LABELS[scope],
@@ -314,9 +330,9 @@ async function runPull() {
 
         <UCheckboxGroup
           v-model="pullForm.scopes"
-          legend="Contenu à importer"
+          legend="Contenu à importer (transfert)"
           variant="card"
-          :items="scopeItems"
+          :items="transferScopeItems"
         />
 
         <UCheckbox
@@ -366,9 +382,15 @@ async function runPull() {
           </UFormField>
           <UCheckboxGroup
             v-model="createForm.scopes"
-            legend="Droits"
+            legend="Transfert (lecture distante)"
             variant="card"
-            :items="scopeItems"
+            :items="transferScopeItems"
+          />
+          <UCheckboxGroup
+            v-model="createForm.scopes"
+            legend="Agent (brouillons + MCP)"
+            variant="card"
+            :items="agentScopeItems"
           />
           <UFormField
             label="Expiration (optionnel)"

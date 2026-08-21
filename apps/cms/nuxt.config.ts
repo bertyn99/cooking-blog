@@ -4,7 +4,23 @@ export default defineNuxtConfig({
     port: 3001,
   },
 
-  modules: ['nuxt-auth-utils', 'nuxt-authorization', '@nuxt/ui', '@vueuse/nuxt', 'evlog/nuxt'],
+  modules: ['nuxt-auth-utils', 'nuxt-authorization', '@nuxt/ui', '@vueuse/nuxt', 'evlog/nuxt', '@nuxtjs/mcp-toolkit'],
+
+  mcp: {
+    name: 'Journal du Cuistot CMS',
+    description: 'Draft-only articles, recipes, and pages for Journal du Cuistot.',
+    instructions: [
+      'All writes are drafts. Never publish. 403 means the row is live — stop.',
+      'List and get may return published rows (writable=false). Do not update those.',
+      'List categories before setting categoryId. Locale fr. Comark markdown.',
+      'Use start-generation-run for notes-to-new-draft; CRUD for precise edits on drafts.',
+    ].join(' '),
+    route: '/mcp',
+    sessions: false,
+    security: {
+      allowedOrigins: '*',
+    },
+  },
 
   runtimeConfig: {
     public: {
@@ -24,6 +40,8 @@ export default defineNuxtConfig({
     nuxtSeoProApiKey: process.env.NUXT_SEO_PRO_API_KEY || '',
     /** Cloudflare AI Gateway id for Workers AI (`workers-ai-provider` gateway option). */
     cmsAiGatewayId: process.env.CMS_AI_GATEWAY_ID || 'jdc-cms-ai',
+    /** Pexels API key for Stock tab (server-only). */
+    pexelsApiKey: process.env.PEXELS_API_KEY || '',
   },
 
   css: ['~/assets/css/main.css'],
@@ -77,13 +95,18 @@ export default defineNuxtConfig({
         'Cache-Control': 'private, no-store, must-revalidate',
       },
     },
+    '/mcp': {
+      headers: {
+        'Cache-Control': 'private, no-store, must-revalidate',
+      },
+    },
   },
 
   evlog: {
     env: {
       service: 'journalducuistot-cms',
     },
-    include: ['/api/**'],
+    include: ['/api/**', '/mcp'],
     exclude: ['/api/_evlog/ingest'],
     redact: {
       paths: [

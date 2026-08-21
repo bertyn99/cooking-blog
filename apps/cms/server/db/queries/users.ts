@@ -3,7 +3,9 @@ import type { AppDb } from '../create-db'
 import { schema } from '../create-db'
 import type { StaffUserPublic } from '../../shared/staff'
 
-export type UserRole = 'admin' | 'editor'
+import { AGENT_USER_EMAIL } from '../seed/agent'
+
+export type UserRole = 'admin' | 'editor' | 'agent'
 
 function toStaffPublic(row: typeof schema.users.$inferSelect): StaffUserPublic {
   return {
@@ -116,6 +118,10 @@ export function createUserQueries(db: AppDb) {
     ) {
       const existing = await this.findById(id)
       if (!existing) return null
+
+      if (existing.role === 'agent' || existing.email === AGENT_USER_EMAIL) {
+        return null
+      }
 
       const now = new Date().toISOString()
       const nextActive = patch.isActive ?? existing.isActive

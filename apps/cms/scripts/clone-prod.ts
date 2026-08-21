@@ -12,11 +12,7 @@ import { loadCmsCloneEnv } from '../server/db/clone/load-env'
 import { pullTransferToLocal } from '../server/db/clone/transfer-pull'
 import { getLocalDb } from '../server/db/client'
 import { migrateLocalDb } from '../server/db/migrate-local'
-import {
-  API_KEY_SCOPES,
-  normalizeApiKeyScopes,
-  type ApiKeyScope,
-} from '../shared/api-keys'
+import { TRANSFER_SCOPES, normalizeTransferScopes, type ApiKeyScope } from '../shared/api-keys'
 import { normalizeCmsOrigin } from '../shared/transfer-pull'
 
 interface CloneArgs {
@@ -29,7 +25,7 @@ interface CloneArgs {
 
 function parseArgs(argv: string[]): CloneArgs {
   let dryRun = false
-  let scopes = [...API_KEY_SCOPES] as ApiKeyScope[]
+  let scopes = [...TRANSFER_SCOPES] as ApiKeyScope[]
   let limit = 50
   let origin: string | undefined
   let apiKey: string | undefined
@@ -40,7 +36,7 @@ function parseArgs(argv: string[]): CloneArgs {
       continue
     }
     if (arg.startsWith('--scopes=')) {
-      scopes = normalizeApiKeyScopes(
+      scopes = normalizeTransferScopes(
         arg.slice('--scopes='.length).split(',').map(part => part.trim()),
       )
       continue

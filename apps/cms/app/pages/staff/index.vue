@@ -65,7 +65,18 @@ const roleItems = [
 const roleColor = {
   admin: 'primary',
   editor: 'neutral',
+  agent: 'info',
 } as const
+
+function roleLabel(role: StaffUserPublic['role']) {
+  if (role === 'admin') return 'Administrateur'
+  if (role === 'agent') return 'Agent (système)'
+  return 'Éditeur'
+}
+
+function isSystemAgent(row: StaffUserPublic) {
+  return row.role === 'agent'
+}
 
 const columns: TableColumn<StaffUserPublic>[] = [
   { accessorKey: 'email', header: 'Email' },
@@ -73,7 +84,7 @@ const columns: TableColumn<StaffUserPublic>[] = [
   {
     accessorKey: 'role',
     header: 'Rôle',
-    cell: ({ row }) => row.original.role === 'admin' ? 'Administrateur' : 'Éditeur',
+    cell: ({ row }) => roleLabel(row.original.role),
   },
   {
     accessorKey: 'isActive',
@@ -203,7 +214,7 @@ function isSelf(row: StaffUserPublic) {
       >
         <template #role-cell="{ row }">
           <UBadge :color="roleColor[row.original.role]" variant="subtle">
-            {{ row.original.role === 'admin' ? 'Admin' : 'Éditeur' }}
+            {{ roleLabel(row.original.role) }}
           </UBadge>
         </template>
 
@@ -214,7 +225,10 @@ function isSelf(row: StaffUserPublic) {
         </template>
 
         <template #actions-cell="{ row }">
-          <div class="flex flex-wrap justify-end gap-1">
+          <div v-if="isSystemAgent(row.original)" class="text-muted text-sm text-right">
+            Compte système
+          </div>
+          <div v-else class="flex flex-wrap justify-end gap-1">
             <UButton
               size="xs"
               variant="ghost"

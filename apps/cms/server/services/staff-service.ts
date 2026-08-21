@@ -46,6 +46,10 @@ export function createStaffService(db: AppDb, event: H3Event) {
         throw createApiError('NOT_FOUND', 'Utilisateur introuvable.')
       }
 
+      if (existing.role === 'agent') {
+        throw createApiError('FORBIDDEN', 'Le compte agent système ne peut pas être modifié.')
+      }
+
       if (input.role === 'editor' && existing.role === 'admin') {
         const otherAdmins = await users.countActiveAdmins(targetId)
         if (otherAdmins === 0) {

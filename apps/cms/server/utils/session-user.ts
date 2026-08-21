@@ -59,6 +59,10 @@ export async function resolveDbBackedUser(event: H3Event): Promise<User | null> 
     )
   }
 
+  if (row.role === 'agent') {
+    return null
+  }
+
   const freshUser = toSessionUser(row)
   session.user = freshUser
   return freshUser

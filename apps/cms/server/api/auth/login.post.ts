@@ -60,6 +60,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  if (user.role === 'agent') {
+    throw createApiError('FORBIDDEN', 'Ce compte système ne peut pas se connecter.')
+  }
+
   await limiter.reset(ip)
 
   const log = useLogger(event as Parameters<typeof useLogger>[0])

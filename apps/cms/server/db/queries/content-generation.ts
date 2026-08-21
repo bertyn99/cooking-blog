@@ -106,6 +106,15 @@ async function applyAssembledDraft(
 
   if (input.targetType === 'article') {
     if (input.articleId) {
+      const existing = await db
+        .select({ id: schema.articles.id, status: schema.articles.status })
+        .from(schema.articles)
+        .where(eq(schema.articles.id, input.articleId))
+        .get()
+      if (!existing || existing.status !== 'draft') {
+        throw queryConflict('Cannot assemble into a published or missing article')
+      }
+
       await db
         .update(schema.articles)
         .set({
@@ -165,6 +174,15 @@ async function applyAssembledDraft(
     : undefined
 
   if (input.recipeId) {
+    const existing = await db
+      .select({ id: schema.recipes.id, status: schema.recipes.status })
+      .from(schema.recipes)
+      .where(eq(schema.recipes.id, input.recipeId))
+      .get()
+    if (!existing || existing.status !== 'draft') {
+      throw queryConflict('Cannot assemble into a published or missing recipe')
+    }
+
     const recipes = createRecipeQueries(db)
     await recipes.updateWithRelations(input.recipeId, recipePatch, recipeRelations ?? {})
     return { recipeId: input.recipeId }

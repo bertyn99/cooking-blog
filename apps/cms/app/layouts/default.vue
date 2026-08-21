@@ -83,6 +83,12 @@ const links = computed(() => {
         onSelect: () => { open.value = false },
       },
       {
+        label: 'Journal MCP',
+        icon: 'i-lucide-bot',
+        to: '/mcp-logs',
+        onSelect: () => { open.value = false },
+      },
+      {
         label: 'Import Strapi',
         icon: 'i-lucide-download',
         to: '/import',
