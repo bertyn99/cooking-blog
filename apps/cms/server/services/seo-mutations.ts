@@ -1,13 +1,13 @@
 import { z } from 'zod'
 import type { H3Event } from 'h3'
-import { createApiError, fromQueryError } from '../../../utils/errors'
-import { useDb, useQueries } from '../../../utils/db'
-import type { SeoContentType } from '../../../db/queries/seo'
-import type { Actor } from '../../../utils/actor'
-import { actorApiKeyId, actorUserId } from '../../../utils/actor'
-import { applyApiKeyDraftPolicy } from '../../../utils/content-status-policy'
-import { recordContentAudit } from '../../../services/content-audit'
-import type { MutationMeta } from '../../../services/article-mutations'
+import { createApiError, fromQueryError } from '../utils/errors'
+import { useDb, useQueries } from '../utils/db'
+import type { SeoContentType } from '../db/queries/seo'
+import type { Actor } from '../utils/actor'
+import { actorApiKeyId, actorUserId } from '../utils/actor'
+import { applyApiKeyDraftPolicy } from '../utils/content-status-policy'
+import { recordContentAudit } from './content-audit'
+import type { MutationMeta } from './article-mutations'
 
 const socialMetaSchema = z.object({
   socialNetwork: z.enum(['Facebook', 'Twitter']),
