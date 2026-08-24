@@ -31,6 +31,12 @@ export interface MediaFileMetadata {
   orientation?: number
   software?: string
   colorSpace?: string
+  /** Stock import source (e.g. `pexels`) for dedupe and attribution. */
+  stockProvider?: 'pexels'
+  /** Provider-native id, e.g. `123` for Pexels photo id. */
+  stockExternalId?: string
+  /** AI generation prompt snippet (truncated) when source is Workers AI. */
+  aiPrompt?: string
 }
 
 export interface MediaDetailField {
