@@ -7,7 +7,7 @@ import {
   buildRecipeDetailQueryWhere,
   type RecipesQueryOptions,
 } from './_shared/builders/recipes'
-import { mergeConditions, applyPublishedScope, localeFilter } from './_shared/filters'
+import { mergeConditions, applyPublishedScope, localeFilter, statusFilter } from './_shared/filters'
 import { reorderByIds } from './_shared/list-page'
 import { reserveUniqueSlugInLocale } from './_shared/reserve-slug'
 import { recipes } from '../schema/recipes'
@@ -41,6 +41,7 @@ function buildRecipesListSqlWhere(opts: RecipeListOptions) {
       ? inArray(recipes.categoryId, opts.filters.categoryIds)
       : undefined,
     localeFilter(recipes, opts.filters?.locale),
+    statusFilter(recipes, opts.filters?.status),
     searchTerm
       ? or(like(recipes.title, searchTerm), like(recipes.slug, searchTerm))
       : undefined,
@@ -64,7 +65,7 @@ export function createRecipeQueries(db: AppDb) {
         .select({ id: recipes.id })
         .from(schema.recipes)
         .where(where)
-        .orderBy(desc(recipes.publishedAt))
+        .orderBy(opts.isAuthenticated ? desc(recipes.updatedAt) : desc(recipes.publishedAt))
         .limit(opts.pagination.limit)
         .offset(opts.pagination.offset)
         .all()

@@ -5,7 +5,14 @@ export type RecipeRelation = (typeof RECIPES_RELATIONS)[number]
 
 export interface RecipesQueryOptions {
   include: string[]
-  filters?: { slug?: string; categoryId?: number; categoryIds?: number[]; locale?: string; search?: string }
+  filters?: {
+    slug?: string
+    categoryId?: number
+    categoryIds?: number[]
+    locale?: string
+    search?: string
+    status?: 'draft' | 'published' | 'scheduled'
+  }
   isAuthenticated: boolean
 }
 
@@ -18,6 +25,13 @@ export function buildRecipesQueryWhere(opts: RecipesQueryOptions): RecipesQueryF
   if (opts.filters?.slug) filters.push({ slug: opts.filters.slug })
   if (opts.filters?.categoryId) filters.push({ categoryId: opts.filters.categoryId })
   if (opts.filters?.locale) filters.push({ locale: opts.filters.locale })
+  if (opts.filters?.status) filters.push({ status: opts.filters.status })
+  if (opts.filters?.search) {
+    const term = `%${opts.filters.search}%`
+    filters.push({
+      OR: [{ title: { like: term } }, { slug: { like: term } }],
+    })
+  }
 
   if (filters.length === 0) return undefined
   if (filters.length === 1) return filters[0]
