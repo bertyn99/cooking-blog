@@ -1,11 +1,11 @@
 import { extractToolNames } from '@nuxtjs/mcp-toolkit/server'
-import { tryResolveWriteActor } from '../../utils/write-auth'
-import { createRequestRateLimiter } from '../../utils/rate-limit'
-import { useKvStore } from '../../utils/kv'
-import { getClientIp } from '../../utils/client-ip'
-import { useDb } from '../../utils/db'
-import { recordContentAudit } from '../../services/content-audit'
-import { actorApiKeyId, actorUserId } from '../../utils/actor'
+import { tryResolveWriteActor } from '../utils/write-auth'
+import { createRequestRateLimiter } from '../utils/rate-limit'
+import { useKvStore } from '../utils/kv'
+import { getClientIp } from '../utils/client-ip'
+import { useDb } from '../utils/db'
+import { recordContentAudit } from '../services/content-audit'
+import { actorApiKeyId, actorUserId } from '../utils/actor'
 import { isMcpReadToolName, mcpKillSwitchOff } from './utils/enabled'
 
 const MCP_RATE = {
@@ -16,7 +16,7 @@ const MCP_RATE = {
 
 export default defineMcpHandler({
   middleware: async (event, next) => {
-    if (mcpKillSwitchOff()) {
+    if (mcpKillSwitchOff(event)) {
       return next()
     }
 
@@ -36,17 +36,17 @@ export default defineMcpHandler({
 
     if (actor?.kind === 'apiKey') {
       const tools = await extractToolNames(event)
-      for (const tool of tools) {
-        if (!isMcpReadToolName(tool)) continue
-        await recordContentAudit(useDb(event), {
+      const reads = tools.filter(isMcpReadToolName)
+      await Promise.all(reads.map(tool =>
+        recordContentAudit(useDb(event), {
           actorUserId: actorUserId(actor),
           actorApiKeyId: actorApiKeyId(actor),
           action: 'mcp.tool',
           entityType: 'mcp',
           entityId: tool,
           metadata: { tool, kind: 'read' },
-        }).catch(() => undefined)
-      }
+        }).catch(() => undefined),
+      ))
     }
 
     return response

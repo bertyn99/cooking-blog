@@ -1,28 +1,19 @@
-import { z } from 'zod'
 import { useQueries } from '../../utils/db'
-import { requireActorFromContext } from '../../utils/write-auth'
-import { mcpWriteToolEnabled } from '../utils/enabled'
+import { requireMcpTool } from '../utils/actor'
+import { mcpContentToolEnabled } from '../utils/enabled'
+import { MCP_READ_ONLY, mcpListInput, mcpPagination } from '../utils/payload'
 
 export default defineMcpTool({
-  description: 'List article categories (blog taxonomy)',
-  inputSchema: {
-    locale: z.string().default('fr').describe('Locale filter'),
-    page: z.number().int().min(1).default(1),
-    pageSize: z.number().int().min(1).max(100).default(50),
-  },
-  enabled: event => mcpWriteToolEnabled(event, 'articles'),
+  description: 'List article categories (blog taxonomy). Call before setting categoryId on an article.',
+  annotations: MCP_READ_ONLY,
+  inputSchema: mcpListInput,
+  enabled: event => mcpContentToolEnabled(event, 'articles'),
   handler: async ({ locale, page, pageSize }) => {
-    requireActorFromContext(useEvent(), 'articles')
-    const { categoryArticles } = useQueries(useEvent())
-    return categoryArticles.listPage({
+    const { event } = requireMcpTool('articles')
+    return useQueries(event).categoryArticles.listPage({
       locale,
       scope: 'admin',
-      pagination: {
-        page,
-        pageSize,
-        offset: (page - 1) * pageSize,
-        limit: pageSize,
-      },
+      pagination: mcpPagination(page, pageSize),
     })
   },
 })

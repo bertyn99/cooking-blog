@@ -1,30 +1,19 @@
-import { z } from 'zod'
 import { validateBody } from '../../utils/validate'
-import { requireActorFromContext } from '../../utils/write-auth'
 import {
   createRecipeMutation,
   createRecipeSchema,
 } from '../../services/recipe-mutations'
-import { mcpWriteToolEnabled } from '../utils/enabled'
+import { requireMcpTool } from '../utils/actor'
+import { mcpContentToolEnabled } from '../utils/enabled'
+import { MCP_CREATE, mcpCreateRecipeInput } from '../utils/payload'
 
 export default defineMcpTool({
-  description: 'Create a draft recipe',
-  annotations: { readOnlyHint: false, idempotentHint: false },
-  inputSchema: {
-    title: z.string().min(1),
-    intro: z.string().optional(),
-    excerpt: z.string().optional(),
-    categoryId: z.number().optional(),
-    locale: z.string().default('fr'),
-    prepTimeMinutes: z.number().int().positive().optional(),
-    cookTimeMinutes: z.number().int().positive().optional(),
-    servings: z.number().int().positive().optional(),
-    difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
-  },
-  enabled: event => mcpWriteToolEnabled(event, 'recipes'),
+  description: 'Create a draft recipe (intro, ingredients, steps, utensils, nutrition). Never publishes.',
+  annotations: MCP_CREATE,
+  inputSchema: mcpCreateRecipeInput,
+  enabled: event => mcpContentToolEnabled(event, 'recipes'),
   handler: async (input) => {
-    const event = useEvent()
-    const actor = requireActorFromContext(event, 'recipes')
+    const { event, actor } = requireMcpTool('recipes')
     const data = validateBody(createRecipeSchema, { ...input, status: 'draft' })
     return createRecipeMutation(event, actor, data, { tool: 'create-recipe' })
   },

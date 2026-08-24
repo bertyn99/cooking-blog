@@ -1,25 +1,24 @@
-import { z } from 'zod'
 import { useQueries } from '../../utils/db'
 import { createApiError } from '../../utils/errors'
-import { requireActorFromContext } from '../../utils/write-auth'
-import { mcpWriteToolEnabled } from '../utils/enabled'
+import { requireMcpTool } from '../utils/actor'
+import { mcpContentToolEnabled } from '../utils/enabled'
+import { MCP_READ_ONLY, mcpIdInput, withWritable } from '../utils/payload'
 
 export default defineMcpTool({
-  description: 'Get one recipe by id (includes writable flag)',
-  inputSchema: {
-    id: z.number().int().positive(),
-  },
-  enabled: event => mcpWriteToolEnabled(event, 'recipes'),
+  description: 'Get one recipe by id (ingredients, steps, nutrition, utensils). Check writable before update.',
+  annotations: MCP_READ_ONLY,
+  inputSchema: mcpIdInput,
+  enabled: event => mcpContentToolEnabled(event, 'recipes'),
   handler: async ({ id }) => {
-    requireActorFromContext(useEvent(), 'recipes')
-    const { recipes } = useQueries(useEvent())
-    const row = await recipes.findById(id, ['category', 'ingredients', 'steps', 'nutrition', 'seo'], 'admin')
+    const { event } = requireMcpTool('recipes')
+    const row = await useQueries(event).recipes.findById(
+      id,
+      'admin',
+      ['category', 'ingredients', 'steps', 'nutrition', 'utensils', 'seo'],
+    )
     if (!row) {
       throw createApiError('NOT_FOUND', 'Recette introuvable.')
     }
-    return {
-      ...row,
-      writable: row.status === 'draft',
-    }
+    return withWritable(row)
   },
 })

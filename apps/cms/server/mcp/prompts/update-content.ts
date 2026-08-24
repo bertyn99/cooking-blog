@@ -1,12 +1,8 @@
-import { mcpWriteToolEnabled } from '../utils/enabled'
+import { mcpAnyContentToolEnabled } from '../utils/enabled'
 
 export default defineMcpPrompt({
   description: 'Mettre à jour un brouillon existant (vérifie writable)',
-  enabled: (event) => {
-    return mcpWriteToolEnabled(event, 'articles')
-      || mcpWriteToolEnabled(event, 'recipes')
-      || mcpWriteToolEnabled(event, 'pages')
-  },
+  enabled: event => mcpAnyContentToolEnabled(event, ['articles', 'recipes', 'pages']),
   messages: () => [{
     role: 'user',
     content: {

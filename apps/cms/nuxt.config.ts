@@ -42,6 +42,8 @@ export default defineNuxtConfig({
     cmsAiGatewayId: process.env.CMS_AI_GATEWAY_ID || 'jdc-cms-ai',
     /** Pexels API key for Stock tab (server-only). */
     pexelsApiKey: process.env.PEXELS_API_KEY || '',
+    /** Kill switch for `/mcp` (`0` / `false` / `off` = empty catalog). Default on. */
+    cmsMcpEnabled: process.env.CMS_MCP_ENABLED || '1',
   },
 
   css: ['~/assets/css/main.css'],

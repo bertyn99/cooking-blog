@@ -1,26 +1,22 @@
-import { z } from 'zod'
 import { validateBody } from '../../utils/validate'
-import { requireActorFromContext } from '../../utils/write-auth'
 import {
   updateArticleMutation,
   updateArticleSchema,
 } from '../../services/article-mutations'
-import { mcpWriteToolEnabled } from '../utils/enabled'
+import { requireMcpTool } from '../utils/actor'
+import { mcpContentToolEnabled } from '../utils/enabled'
+import { MCP_UPDATE, mcpIdInput, mcpUpdateArticleInput } from '../utils/payload'
 
 export default defineMcpTool({
-  description: 'Update a draft article only (403 if published)',
-  annotations: { readOnlyHint: false, idempotentHint: true },
+  description: 'Update a draft article only (403 if published or scheduled)',
+  annotations: MCP_UPDATE,
   inputSchema: {
-    id: z.number().int().positive(),
-    title: z.string().min(1).optional(),
-    content: z.string().optional(),
-    excerpt: z.string().optional(),
-    categoryId: z.number().optional(),
+    ...mcpIdInput,
+    ...mcpUpdateArticleInput,
   },
-  enabled: event => mcpWriteToolEnabled(event, 'articles'),
+  enabled: event => mcpContentToolEnabled(event, 'articles'),
   handler: async ({ id, ...patch }) => {
-    const event = useEvent()
-    const actor = requireActorFromContext(event, 'articles')
+    const { event, actor } = requireMcpTool('articles')
     const data = validateBody(updateArticleSchema, patch)
     return updateArticleMutation(event, actor, id, data, { tool: 'update-article' })
   },

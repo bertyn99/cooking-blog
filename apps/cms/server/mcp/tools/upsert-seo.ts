@@ -1,32 +1,22 @@
 import { z } from 'zod'
 import { validateBody } from '../../utils/validate'
-import { requireActorFromContext } from '../../utils/write-auth'
 import { seoBodySchema, upsertSeoMutation } from '../../services/seo-mutations'
-import { mcpWriteToolEnabled } from '../utils/enabled'
+import { requireMcpTool } from '../utils/actor'
+import { mcpAnyContentToolEnabled } from '../utils/enabled'
+import { MCP_UPDATE, contentTypeToScope } from '../utils/payload'
 
 export default defineMcpTool({
-  description: 'Upsert SEO metadata for a draft article, recipe, or page',
+  description: 'Upsert SEO metadata for a draft article, recipe, or page (403 if the target is live)',
+  annotations: MCP_UPDATE,
   inputSchema: {
-    contentType: z.enum(['article', 'recipe', 'page']),
-    contentId: z.number().int().positive(),
-    description: z.string().optional(),
-    keywords: z.string().optional(),
-    canonicalUrl: z.string().optional(),
-    metaRobots: z.string().optional(),
+    contentType: z.enum(['article', 'recipe', 'page']).describe('Target collection'),
+    contentId: z.number().int().positive().describe('Target row id'),
+    ...seoBodySchema.shape,
   },
-  enabled: (event) => {
-    return mcpWriteToolEnabled(event, 'articles')
-      || mcpWriteToolEnabled(event, 'recipes')
-      || mcpWriteToolEnabled(event, 'pages')
-  },
+  enabled: event => mcpAnyContentToolEnabled(event, ['articles', 'recipes', 'pages']),
   handler: async ({ contentType, contentId, ...seo }) => {
-    const event = useEvent()
-    const scope = contentType === 'article'
-      ? 'articles'
-      : contentType === 'recipe'
-        ? 'recipes'
-        : 'pages'
-    const actor = requireActorFromContext(event, scope)
+    const scope = contentTypeToScope(contentType)
+    const { event, actor } = requireMcpTool(scope)
     const body = validateBody(seoBodySchema, seo)
     return upsertSeoMutation(event, actor, contentType, contentId, body, { tool: 'upsert-seo' })
   },

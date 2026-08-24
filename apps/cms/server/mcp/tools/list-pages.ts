@@ -1,28 +1,31 @@
 import { z } from 'zod'
 import { useQueries } from '../../utils/db'
-import { requireActorFromContext } from '../../utils/write-auth'
-import { mcpWriteToolEnabled } from '../utils/enabled'
+import { requireMcpTool } from '../utils/actor'
+import { mcpContentToolEnabled } from '../utils/enabled'
+import {
+  MCP_READ_ONLY,
+  mcpListInput,
+  mcpPagination,
+  withWritableList,
+} from '../utils/payload'
 
 export default defineMcpTool({
-  description: 'List CMS pages (all statuses)',
+  description: 'List CMS pages (all statuses). Each row includes writable.',
+  annotations: MCP_READ_ONLY,
   inputSchema: {
-    locale: z.string().default('fr'),
-    page: z.number().int().min(1).default(1),
-    pageSize: z.number().int().min(1).max(50).default(20),
+    ...mcpListInput,
+    parentId: z.number().int().positive().optional().describe('Filter by parent page id'),
   },
-  enabled: event => mcpWriteToolEnabled(event, 'pages'),
-  handler: async ({ locale, page, pageSize }) => {
-    requireActorFromContext(useEvent(), 'pages')
-    const { pages } = useQueries(useEvent())
-    return pages.listPage({
+  enabled: event => mcpContentToolEnabled(event, 'pages'),
+  handler: async ({ locale, page, pageSize, parentId }) => {
+    const { event } = requireMcpTool('pages')
+    const result = await useQueries(event).pages.listPage({
       isAuthenticated: true,
+      include: ['parent'],
       locale,
-      pagination: {
-        page,
-        pageSize,
-        offset: (page - 1) * pageSize,
-        limit: pageSize,
-      },
+      filters: parentId ? { parentId } : undefined,
+      pagination: mcpPagination(page, pageSize),
     })
+    return withWritableList(result)
   },
 })

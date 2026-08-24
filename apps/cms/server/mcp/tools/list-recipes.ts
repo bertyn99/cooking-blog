@@ -1,31 +1,30 @@
-import { z } from 'zod'
 import { useQueries } from '../../utils/db'
-import { requireActorFromContext } from '../../utils/write-auth'
-import { mcpWriteToolEnabled } from '../utils/enabled'
+import { requireMcpTool } from '../utils/actor'
+import { mcpContentToolEnabled } from '../utils/enabled'
+import {
+  MCP_READ_ONLY,
+  mcpContentStatusInput,
+  mcpListInput,
+  mcpPagination,
+  withWritableList,
+} from '../utils/payload'
 
 export default defineMcpTool({
-  description: 'List recipes (all statuses)',
+  description: 'List recipes (all statuses, category only). Use get-recipe for ingredients/steps. Each row includes writable.',
+  annotations: MCP_READ_ONLY,
   inputSchema: {
-    locale: z.string().default('fr'),
-    page: z.number().int().min(1).default(1),
-    pageSize: z.number().int().min(1).max(50).default(20),
-    search: z.string().optional(),
-    status: z.enum(['draft', 'published', 'scheduled']).optional(),
+    ...mcpListInput,
+    ...mcpContentStatusInput,
   },
-  enabled: event => mcpWriteToolEnabled(event, 'recipes'),
+  enabled: event => mcpContentToolEnabled(event, 'recipes'),
   handler: async ({ locale, page, pageSize, search, status }) => {
-    requireActorFromContext(useEvent(), 'recipes')
-    const { recipes } = useQueries(useEvent())
-    return recipes.listPage({
+    const { event } = requireMcpTool('recipes')
+    const result = await useQueries(event).recipes.listPage({
       isAuthenticated: true,
-      include: ['category', 'ingredients', 'steps'],
+      include: ['category'],
       filters: { locale, search, status },
-      pagination: {
-        page,
-        pageSize,
-        offset: (page - 1) * pageSize,
-        limit: pageSize,
-      },
+      pagination: mcpPagination(page, pageSize),
     })
+    return withWritableList(result)
   },
 })

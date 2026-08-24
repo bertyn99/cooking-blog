@@ -1,25 +1,20 @@
-import { z } from 'zod'
 import { useQueries } from '../../utils/db'
 import { createApiError } from '../../utils/errors'
-import { requireActorFromContext } from '../../utils/write-auth'
-import { mcpWriteToolEnabled } from '../utils/enabled'
+import { requireMcpTool } from '../utils/actor'
+import { mcpContentToolEnabled } from '../utils/enabled'
+import { MCP_READ_ONLY, mcpIdInput, withWritable } from '../utils/payload'
 
 export default defineMcpTool({
-  description: 'Get one page by id (includes writable flag)',
-  inputSchema: {
-    id: z.number().int().positive(),
-  },
-  enabled: event => mcpWriteToolEnabled(event, 'pages'),
+  description: 'Get one page by id (seoMeta + parent). Check writable before update.',
+  annotations: MCP_READ_ONLY,
+  inputSchema: mcpIdInput,
+  enabled: event => mcpContentToolEnabled(event, 'pages'),
   handler: async ({ id }) => {
-    requireActorFromContext(useEvent(), 'pages')
-    const { pages } = useQueries(useEvent())
-    const row = await pages.findById(id, ['seo'], 'admin')
+    const { event } = requireMcpTool('pages')
+    const row = await useQueries(event).pages.findById(id, ['seoMeta', 'parent'], 'admin')
     if (!row) {
-      throw createApiError('NOT_FOUND', 'Page not found')
+      throw createApiError('NOT_FOUND', 'Page introuvable.')
     }
-    return {
-      ...row,
-      writable: row.status === 'draft',
-    }
+    return withWritable(row)
   },
 })

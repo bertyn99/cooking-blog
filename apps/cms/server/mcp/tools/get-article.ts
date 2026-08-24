@@ -1,25 +1,20 @@
-import { z } from 'zod'
 import { useQueries } from '../../utils/db'
 import { createApiError } from '../../utils/errors'
-import { requireActorFromContext } from '../../utils/write-auth'
-import { mcpWriteToolEnabled } from '../utils/enabled'
+import { requireMcpTool } from '../utils/actor'
+import { mcpContentToolEnabled } from '../utils/enabled'
+import { MCP_READ_ONLY, mcpIdInput, withWritable } from '../utils/payload'
 
 export default defineMcpTool({
-  description: 'Get one article by id (includes writable=false when published)',
-  inputSchema: {
-    id: z.number().int().positive(),
-  },
-  enabled: event => mcpWriteToolEnabled(event, 'articles'),
+  description: 'Get one article by id. Check writable before update (false when live).',
+  annotations: MCP_READ_ONLY,
+  inputSchema: mcpIdInput,
+  enabled: event => mcpContentToolEnabled(event, 'articles'),
   handler: async ({ id }) => {
-    requireActorFromContext(useEvent(), 'articles')
-    const { articles } = useQueries(useEvent())
-    const row = await articles.findById(id, ['category', 'seo'], 'admin')
+    const { event } = requireMcpTool('articles')
+    const row = await useQueries(event).articles.findById(id, ['category', 'seo'], 'admin')
     if (!row) {
       throw createApiError('NOT_FOUND', 'Article introuvable.')
     }
-    return {
-      ...row,
-      writable: row.status === 'draft',
-    }
+    return withWritable(row)
   },
 })
