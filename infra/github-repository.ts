@@ -1,15 +1,20 @@
 import { execSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import { loadEnvFile } from 'node:process'
+import { fileURLToPath } from 'node:url'
 import * as Effect from 'effect/Effect'
 
-/** Load repo-root `.env` into `process.env` (Alchemy CLI does not do this automatically). */
+const ROOT_ENV = join(fileURLToPath(new URL('../.env', import.meta.url)))
+
+/** Load repo-root `.env` even when `alchemy` is invoked from `apps/*`. */
 export function loadProjectEnv(): void {
-  if (!existsSync('.env')) {
+  const envPath = existsSync(ROOT_ENV) ? ROOT_ENV : existsSync('.env') ? '.env' : null
+  if (!envPath) {
     return
   }
   try {
-    loadEnvFile('.env')
+    loadEnvFile(envPath)
   } catch {
     // Missing or unreadable — ignore.
   }

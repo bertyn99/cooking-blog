@@ -301,6 +301,8 @@ Notable suites: `auth.test.ts`, `calendar.test.ts`, `strapi-import-format.test.t
 
 ## COMMANDS & ENV
 
+**Do not rewrite `dev` / `deploy` scripts in any `package.json`.** They already work. Login, sqlite, Alchemy cwd, or “monorepo single-stack” failures are **not** a reason to change them. Local libSQL for a repo-root process is `.data/db/sqlite.db` (copy from `apps/cms/.data/db/sqlite.db` if missing). Alchemy with bindings is `pnpm dev:infra` — leave `dev` as committed.
+
 ```bash
 pnpm dev:cms              # from repo root — migrate local DB + Nuxt :3001
 pnpm --filter cms db:migrate:local
@@ -356,9 +358,7 @@ Structured via `createApiError` (`server/utils/errors.ts`); query modules throw 
 
 Public site fetches CMS JSON over HTTP (`NUXT_PUBLIC_CMS_BASE_URL`, default `http://localhost:3001`). Web proxies CMS images via its own `server/routes/images` and utilities under `apps/web/server/utils/`. Content shape should stay aligned with [cms-strapi-schema-audit.md](../../docs/architecture/cms-strapi-schema-audit.md).
 
-## ANTI-PATTERNS
-
-- **Do not use `$fetch` in SSR admin pages for authenticated APIs** — use `$api` / `useRequestFetch`.
+- **Do not rewrite `dev` / `deploy` scripts in `package.json`** — they already work. Do not “fix” Alchemy cwd, sqlite paths, or monorepo layout by changing them. Missing root `.data/db/sqlite.db` → copy `apps/cms/.data/db/sqlite.db`. Bindings → `pnpm dev:infra`.
 - **Do not bypass populate allowlists** — unknown `include` relations are stripped in `buildWithObject`.
 - **Do not assume editors can publish** — check role or use admin test account.
 - **README legacy note:** Auth is session-based (nuxt-auth-utils), not standalone JWT cookies for the admin UI.

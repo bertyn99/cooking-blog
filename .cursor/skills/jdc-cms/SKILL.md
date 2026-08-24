@@ -17,10 +17,10 @@ Mint a key in the CMS admin under **Clés API & transfert** with scopes:
 ## Rules
 
 1. **Draft-only writes** — agents never publish. `403` on live rows means stop; do not retry with publish.
-2. **Read published content** — `list-*` / `get-*` return all statuses. Check `writable: false` before updates.
-3. **Comark markdown** — body fields use Comark (same as the CMS editor).
+2. **Read published content** — `list-*` / `get-*` return all statuses and a `writable` flag. Do not update when `writable` is false.
+3. **Comark markdown** — article `content` and recipe `intro` use Comark. Recipe `ingredients[]` / `steps[]` / `utensils[]` are structured fields, not markdown dumps.
 4. **Locale `fr`** unless specified otherwise.
-5. **Categories first** — call `list-article-categories` or `list-recipe-categories` before setting `categoryId`.
+5. **Categories first** — call `list-article-categories` or `list-recipe-categories` before setting `categoryId`. Cover images: `list-media` → `coverBlobPathname`.
 6. **Generation** — `start-generation-run` always creates a **new** draft from pasted markdown (no `articleId`/`recipeId`).
 7. **Human publish** — after draft + SEO, stop; an editor publishes in the admin UI.
 

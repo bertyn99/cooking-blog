@@ -1,25 +1,25 @@
 packages:
-  - 'apps/*'
+  - "apps/*"
 
 catalog:
-  '@effect/platform-node': '4.0.0-beta.102'
-  '@nuxt/eslint-plugin': '^1.15.2'
-  alchemy: '2.0.0-beta.70'
-  drizzle-kit: '1.0.0-rc.4'
-  drizzle-orm: '1.0.0-rc.4'
-  effect: '4.0.0-beta.102'
-  nuxt: '^4.4.5'
-  oxfmt: '^0.58.0'
-  oxlint: '^1.73.0'
-  typescript: '6.0.3'
-  vitest: '^4.1.6'
-  vue: 'latest'
-  vue-tsc: '^3.2.9'
-  zod: 'latest'
+  "@effect/platform-node": "4.0.0-beta.102"
+  "@nuxt/eslint-plugin": "^1.15.2"
+  alchemy: "2.0.0-beta.70"
+  drizzle-kit: "1.0.0-rc.4"
+  drizzle-orm: "1.0.0-rc.4"
+  effect: "4.0.0-beta.102"
+  nuxt: "^4.5.0"
+  oxfmt: "^0.58.0"
+  oxlint: "^1.73.0"
+  typescript: "6.0.3"
+  vitest: "^4.1.6"
+  vue: "latest"
+  vue-tsc: "^3.2.9"
+  zod: "latest"
 
 ignoredBuiltDependencies:
-  - '@parcel/watcher'
-  - '@tailwindcss/oxide'
+  - "@parcel/watcher"
+  - "@tailwindcss/oxide"
   - esbuild
   - sharp
   - unrs-resolver
@@ -29,10 +29,10 @@ onlyBuiltDependencies:
   - workerd
 
 overrides:
-  '@effect/platform-bun': 4.0.0-beta.102
-  '@effect/platform-node': 4.0.0-beta.102
-  '@effect/sql-pg': 4.0.0-beta.102
+  "@effect/platform-bun": 4.0.0-beta.102
+  "@effect/platform-node": 4.0.0-beta.102
+  "@effect/sql-pg": 4.0.0-beta.102
   effect: 4.0.0-beta.102
   typescript: 6.0.3
 patchedDependencies:
-  '@distilled.cloud/nuxt@0.17.1': patches/@distilled.cloud__nuxt@0.17.1.patch
+  "@distilled.cloud/nuxt@0.17.1": patches/@distilled.cloud__nuxt@0.17.1.patch

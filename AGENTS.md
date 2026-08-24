@@ -155,6 +155,9 @@ defineOgImageComponent('Cooking', { headline, description });
 - **Global CSS** (`app/assets/css/index.css`): `--ui-header-height: 24rem`, body uses `bg-neutral-50 font-[catamaran]`, headings use Merriweather with `scroll-mt` calc for sticky header offset.
 
 ## COMMANDS
+
+**Do not change `dev` / `deploy` in any `package.json`.** They work. Do not rewrite them to “fix” Alchemy, sqlite, or the monorepo.
+
 ```bash
 pnpm install          # shamefully-hoist=true required
 pnpm dev              # http://localhost:3000 (HTTP)
