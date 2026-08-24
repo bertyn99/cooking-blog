@@ -1,8 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { fileURLToPath } from 'node:url'
-import listRedirects from './app/utils/redirect'
+import listRedirects from './app/utils/redirect.ts'
 import tailwindcss from '@tailwindcss/vite'
-import { resolveSiteIdentity, toSchemaOrgIdentity, SITE_AUTHOR_NAME } from './shared/site-identity'
+import { resolveSiteIdentity, toSchemaOrgIdentity, SITE_AUTHOR_NAME } from './shared/site-identity.ts'
 
 const webRoot = fileURLToPath(new URL('.', import.meta.url))
 

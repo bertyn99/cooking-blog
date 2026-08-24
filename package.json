@@ -29,7 +29,7 @@
     "state:alchemy:logs": "pnpm alchemy cloudflare state logs"
   },
   "engines": {
-    "node": ">=22",
+    "node": ">=22.19",
     "pnpm": ">=9"
   },
   "packageManager": "pnpm@10.33.4",

@@ -1,19 +1,13 @@
 import type { H3Event } from 'h3'
 import { logBackgroundError, type LogContext } from './logging'
+import { getCloudflareRuntime } from './cloudflare-env'
 
 type CloudflareExecutionContext = {
   waitUntil?: (promise: Promise<unknown>) => void
 }
 
-function getCloudflareContext(event: H3Event) {
-  return (
-    event.context.cloudflare as
-      | {
-          context?: CloudflareExecutionContext
-          waitUntil?: (promise: Promise<unknown>) => void
-        }
-      | undefined
-  )?.context
+function getCloudflareContext(event: H3Event): CloudflareExecutionContext | undefined {
+  return getCloudflareRuntime(event)?.context
 }
 
 /**

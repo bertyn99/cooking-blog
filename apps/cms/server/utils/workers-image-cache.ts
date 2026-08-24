@@ -1,20 +1,14 @@
 import type { H3Event } from 'h3'
 import { imageDeliveryCacheTags } from '../../shared/image-delivery-policy'
 import { runInBackground } from './background-task'
+import { getCloudflareRuntime } from './cloudflare-env'
 
 export interface WorkersCachePurge {
   purge(options: { tags?: string[]; prefixes?: string[] }): Promise<unknown>
 }
 
 function getWorkersCache(event: H3Event): WorkersCachePurge | undefined {
-  const ctx = (
-    event.context.cloudflare as
-      | {
-          context?: { cache?: WorkersCachePurge }
-        }
-      | undefined
-  )?.context
-  const cache = ctx?.cache
+  const cache = getCloudflareRuntime(event)?.context?.cache
   if (cache && typeof cache.purge === 'function') {
     return cache
   }
