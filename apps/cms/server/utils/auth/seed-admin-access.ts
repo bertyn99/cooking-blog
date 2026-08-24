@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 
 function readSeedSecretFromRequest(event: H3Event): string | undefined {
   const headerSecret = event.req.headers.get('x-admin-seed-secret')

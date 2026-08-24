@@ -1,5 +1,5 @@
-import type { H3Event } from 'h3'
-import { getHeader } from 'h3'
+import type { H3Event } from 'nitro/h3'
+import { getHeader } from 'nitro/h3'
 import { buildIpxImagePath, parseIpxImagePath } from '../../../cms/shared/ipx-image-path'
 import { toCmsStoragePath } from '../../shared/media-public-path'
 

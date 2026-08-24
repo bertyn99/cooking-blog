@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 
 /** Canonical public site origin (no trailing slash) for RSS and absolute URLs. */
 export function getPublicSiteOrigin(event?: H3Event): string {

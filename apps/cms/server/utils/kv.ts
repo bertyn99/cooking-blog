@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import type { createSiteSettingsQueries } from '../db/queries/site-settings'
 import { getCloudflareEnv } from './cloudflare-env'
 import { prefersD1Database, useQueries } from './db'

@@ -1,4 +1,4 @@
-import { getRequestURL } from 'h3'
+import { getRequestURL } from 'nitro/h3'
 
 /**
  * Workers Cache (Alchemy `cache` on the CMS worker) must not store API JSON —

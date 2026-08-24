@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import { usePublishingService } from '../../services/publishing-service'
 import type { PublishableContentType } from '../content-types'
 import { isPublishableContentType } from '../content-types'

@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import { createD1Db, type AppDb } from '../db/create-db'
 import { createDbQueries } from '../db/queries'
 import { getCloudflareEnv } from './cloudflare-env'

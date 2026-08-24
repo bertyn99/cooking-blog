@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import type { StrapiReachabilityCache } from '../../shared/strapi-import'
 import { createStrapiClient } from './extract/strapi-client'
 import { useKvStore } from '../utils/kv'

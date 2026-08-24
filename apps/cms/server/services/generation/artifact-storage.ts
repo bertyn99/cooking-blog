@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import type { GenerationStepKey } from '../../db/queries/content-generation'
 import { useR2 } from '../../utils/r2'
 

@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import type { PublishActorContext } from '../db/queries/publishing'
 import { createPublishingQueries } from '../db/queries/publishing'
 import type { AppDb } from '../db/create-db'

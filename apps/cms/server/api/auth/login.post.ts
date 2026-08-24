@@ -6,7 +6,7 @@ import { createRateLimiter } from '../../utils/rate-limit'
 import { createApiError } from '../../utils/errors'
 import { useKvStore } from '../../utils/kv'
 import { useQueries } from '../../utils/db'
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 
 const LOGIN_LIMIT = {
   prefix: 'login:fail',

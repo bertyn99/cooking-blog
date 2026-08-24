@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { createEvent } from 'h3'
+import { createEvent } from 'nitro/h3'
 import {
   canSeedAdminWithoutSecret,
   hasValidAdminSeedSecret,

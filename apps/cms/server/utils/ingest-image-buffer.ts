@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import type { MediaFileMetadata } from '../../shared/media-file-metadata'
 import { MEDIA_UPLOAD_ROOT } from '../../shared/media-paths'
 import { extractImageFileMetadata } from './extract-image-metadata'

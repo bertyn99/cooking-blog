@@ -1,5 +1,5 @@
 import { and, eq, inArray } from 'drizzle-orm'
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import { schema } from '../db/create-db'
 import { useDb } from './db'
 

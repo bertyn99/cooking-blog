@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import type { GenerationStepKey } from '../../db/queries/content-generation'
 import { useKvStore, type KvStore } from '../../utils/kv'
 

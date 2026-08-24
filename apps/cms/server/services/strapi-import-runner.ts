@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import type { StrapiImportContinuation, StrapiImportRunBody } from '../../shared/strapi-import'
 import { runStrapiImport } from './extract/orchestrator'
 import {

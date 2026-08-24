@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import type { z } from 'zod'
 import { createArticleSchema, updateArticleSchema } from '../utils/validations/articles'
 import { slugifyString } from '../utils/slug'

@@ -1,4 +1,4 @@
-import type { NitroRouteConfig } from 'nitropack';
+import type { NitroRouteConfig } from 'nitro/types';
 
 /** CMS page slugs that 301 elsewhere — omit from sitemap to avoid duplicate signals. */
 export const SITEMAP_EXCLUDED_PAGE_PATHS = new Set([

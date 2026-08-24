@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import exifr from 'exifr'
 import type { MediaFileMetadata } from '../../shared/media-file-metadata'
 import { useMediaStorage } from './media-storage'

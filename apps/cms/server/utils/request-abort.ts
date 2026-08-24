@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 
 const MEDIA_GENERATE_TIMEOUT_MS = 120_000
 

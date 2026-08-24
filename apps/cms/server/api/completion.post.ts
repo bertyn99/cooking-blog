@@ -1,6 +1,6 @@
 import { generateText, streamText } from 'ai'
 import { Readable } from 'node:stream'
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import { useLogger } from 'evlog'
 import { z } from 'zod'
 import { EDITOR_COMPLETION_MODES } from '../../shared/editor-completion-modes'

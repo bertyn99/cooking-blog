@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 
 /** Client IP for rate limiting (Cloudflare Workers prefer cf-connecting-ip). */
 export function getClientIp(event: H3Event): string {

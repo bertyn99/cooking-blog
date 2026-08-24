@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import type { z } from 'zod'
 import { createRecipeSchema, updateRecipeSchema } from '../utils/validations/recipes'
 import type { RecipeUpdatePatch } from '../db/queries/recipes'

@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import { createCalendarQueries, type CalendarQueryOptions } from '../db/queries/calendar'
 import type { AppDb } from '../db/create-db'
 import { useDb } from '../utils/db'

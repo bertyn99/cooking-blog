@@ -1,4 +1,4 @@
-import { getRequestURL } from 'h3'
+import { getRequestURL } from 'nitro/h3'
 
 const ADMIN_HTML_CACHE = 'private, no-store, must-revalidate'
 

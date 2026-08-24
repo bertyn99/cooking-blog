@@ -1,4 +1,4 @@
-import { createError as h3CreateError } from 'h3'
+import { createError as h3CreateError } from 'nitro/h3'
 import { createError as evlogCreateError } from 'evlog'
 import { isQueryError, type QueryErrorCode } from '../db/query-errors'
 import type { ApiErrorCode } from '../../shared/api-error'

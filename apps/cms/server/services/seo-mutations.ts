@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import { createApiError, fromQueryError } from '../utils/errors'
 import { useDb, useQueries } from '../utils/db'
 import type { SeoContentType } from '../db/queries/seo'

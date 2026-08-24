@@ -1,5 +1,5 @@
 import { generateText, Output } from 'ai'
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import { WORKERS_AI_MODEL } from '../../../shared/workers-ai-model'
 import type { GenerationTargetType } from '../../db/queries/content-generation'
 import { getCloudflareEnv } from '../../utils/cloudflare-env'

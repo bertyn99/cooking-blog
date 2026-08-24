@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Event } from 'nitro/h3'
 import type { CloudflareBindings, WorkersCachePurge } from '../types/cloudflare'
 
 /** Shape of the Cloudflare runtime object attached to the request (env + ExecutionContext). */
