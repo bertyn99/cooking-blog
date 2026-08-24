@@ -9,5 +9,5 @@ export default defineEventHandler((event) => {
   if (!path.startsWith('/api/')) {
     return
   }
-  setHeader(event, 'Cache-Control', 'private, no-store, must-revalidate')
+  event.res.headers.set('Cache-Control', 'private, no-store, must-revalidate')
 })

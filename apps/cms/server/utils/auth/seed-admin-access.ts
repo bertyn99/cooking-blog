@@ -1,13 +1,12 @@
-import { getHeader } from 'h3'
 import type { H3Event } from 'h3'
 
 function readSeedSecretFromRequest(event: H3Event): string | undefined {
-  const headerSecret = getHeader(event, 'x-admin-seed-secret')
+  const headerSecret = event.req.headers.get('x-admin-seed-secret')
   if (headerSecret) {
     return headerSecret
   }
 
-  const authorization = getHeader(event, 'authorization')
+  const authorization = event.req.headers.get('authorization')
   if (authorization?.startsWith('Bearer ')) {
     return authorization.slice('Bearer '.length).trim()
   }

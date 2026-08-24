@@ -17,5 +17,5 @@ export default defineEventHandler((event) => {
   if (/\.[^/]+$/.test(path)) {
     return
   }
-  setHeader(event, 'Cache-Control', ADMIN_HTML_CACHE)
+  event.res.headers.set('Cache-Control', ADMIN_HTML_CACHE)
 })

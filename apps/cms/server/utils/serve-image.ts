@@ -1,5 +1,4 @@
 import type { H3Event } from 'h3'
-import { getHeader } from 'h3'
 import {
   hasImageTransformOps,
   parseIpxImagePath,
@@ -77,7 +76,7 @@ export async function serveCmsImage(event: H3Event, fullPath: string) {
       sourceBuffer,
       contentType,
       deliveryOps,
-      { acceptHeader: getHeader(event, 'accept') },
+      { acceptHeader: event.req.headers.get('accept') ?? undefined },
     )
     if (transformed) {
       body = bufferToStream(transformed.buffer)
