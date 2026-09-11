@@ -3,7 +3,7 @@
     "jdc-cms": {
       "url": "http://localhost:3001/mcp",
       "headers": {
-        "Authorization": "Bearer ${env:CMS_API_KEY}"
+        "Authorization": "Bearer jdc_YOUR_LOCAL_API_KEY"
       }
     }
   }

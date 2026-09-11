@@ -2,6 +2,7 @@ import { validateQuery } from '../../utils/validate'
 import { parsePagination } from '../../utils/pagination'
 import { PAGES_RELATIONS } from '../../db/queries/_shared/builders/pages'
 import { useQueries } from '../../utils/db'
+import { isPrivilegedContentRead } from '../../utils/preview-auth'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -13,7 +14,7 @@ export default defineEventHandler(async (event) => {
   )
   const locale = (query.locale as string) || undefined
   const pagination = parsePagination(query as Record<string, string>)
-  const session = await getUserSession(event)
+  const isAuthenticated = await isPrivilegedContentRead(event)
 
   const slug = (query.slug as string) || undefined
   const parentSlug = (query.parentSlug as string) || undefined
@@ -37,7 +38,7 @@ export default defineEventHandler(async (event) => {
       slug: slug || undefined,
       parentId,
     },
-    isAuthenticated: !!session.user,
+    isAuthenticated,
     pagination,
   })
 })

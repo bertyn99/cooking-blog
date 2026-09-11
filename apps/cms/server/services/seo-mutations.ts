@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { H3Event } from 'nitro/h3'
+import type { H3Event } from 'h3'
 import { createApiError, fromQueryError } from '../utils/errors'
 import { useDb, useQueries } from '../utils/db'
 import type { SeoContentType } from '../db/queries/seo'
@@ -38,7 +38,7 @@ async function assertSeoTargetDraft(
   if (contentType === 'article') {
     const row = await queries.articles.findRowById(contentId)
     if (!row) throw createApiError('NOT_FOUND', 'Article introuvable.')
-    applyApiKeyDraftPolicy(row, {})
+    applyApiKeyDraftPolicy(row, {}, 'in-place')
     return
   }
   if (contentType === 'recipe') {
@@ -49,7 +49,7 @@ async function assertSeoTargetDraft(
   }
   const row = await queries.pages.findRowById(contentId)
   if (!row) throw createApiError('NOT_FOUND', 'Page not found')
-  applyApiKeyDraftPolicy(row, {})
+  applyApiKeyDraftPolicy(row, {}, 'in-place')
 }
 
 export async function upsertSeoMutation(

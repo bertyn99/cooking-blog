@@ -287,6 +287,7 @@ export default defineNuxtConfig({
       url: siteUrl,
       identity: siteIdentity,
     },
+    cmsPreviewToken: process.env.CMS_PREVIEW_TOKEN || (process.env.NODE_ENV === 'production' ? '' : 'local-preview'),
     public: {
       language: 'fr-FR', // prefer more explicit language codes like `en-AU` over `en`
       cmsBaseUrl: process.env.NUXT_PUBLIC_CMS_BASE_URL || 'http://localhost:3001',

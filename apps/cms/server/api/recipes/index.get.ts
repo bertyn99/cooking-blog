@@ -2,11 +2,11 @@ import { parsePagination } from '../../utils/pagination'
 import { useQueries } from '../../utils/db'
 import { serializeRecipeForScope } from '../../utils/serialize-content'
 import { resolveRecipeCategoryIds } from '../../utils/resolve-category-ids'
+import { isPrivilegedContentRead } from '../../utils/preview-auth'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const session = await getUserSession(event)
-  const isAuthenticated = !!session.user
+  const isAuthenticated = await isPrivilegedContentRead(event)
   const scope = isAuthenticated ? 'admin' : 'public'
   const { recipes } = useQueries(event)
 

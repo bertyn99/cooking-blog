@@ -123,6 +123,13 @@ export const workers = Effect.fn(function* (input: {
       STRAPI_API_TOKEN: strapiApiToken,
       NUXT_STRAPI_API_TOKEN: strapiApiToken,
       PEXELS_API_KEY: Config.string('PEXELS_API_KEY').pipe(Config.withDefault('')),
+      CMS_PREVIEW_TOKEN: Config.string('CMS_PREVIEW_TOKEN').pipe(Config.withDefault('')),
+      ...(isProd && prodCmsHost
+        ? { NUXT_PUBLIC_CMS_BASE_URL: `https://${normalizeHost(prodCmsHost)}` }
+        : {}),
+      ...(isProd && prodWebHost
+        ? { NUXT_PUBLIC_SITE_URL: `https://${normalizeHost(prodWebHost)}` }
+        : {}),
     },
     crons: [PUBLISH_CRON],
     compatibility: NODE_COMPAT,
@@ -182,6 +189,7 @@ export const workers = Effect.fn(function* (input: {
       CMS_BASE_URL: cmsBaseUrl,
       NUXT_PUBLIC_CMS_BASE_URL: cmsPublicUrl,
       NUXT_PUBLIC_SITE_URL: siteUrl,
+      CMS_PREVIEW_TOKEN: Config.string('CMS_PREVIEW_TOKEN').pipe(Config.withDefault('')),
       NUXT_OG_IMAGE_SECRET: ogImageSecretValue,
       STRAPI_URL: strapiUrlValue,
       NUXT_UMAMI_ID: umamiId,

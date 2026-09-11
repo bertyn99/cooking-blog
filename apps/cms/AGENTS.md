@@ -325,9 +325,10 @@ pnpm cms:clone:prod        # transfer API pull → apps/cms/.data (admin API key
 | Cloudflare bindings | `DB` (D1), `Media` (R2), `Cache` (KV), `AI` (Workers AI), `CMS_AI_GATEWAY_ID` (`jdc-cms-ai`) — see `nuxt.config.ts` nitro.cloudflare; image architecture [ADR-006](../../docs/architecture/adr-006-image-delivery-cloudflare.md) |
 | `CMS_AI_GATEWAY_ID` | Cloudflare AI Gateway id for Workers AI (`workers-ai-provider`); default `jdc-cms-ai` |
 | `CMS_MCP_ENABLED` | Kill switch for in-process MCP at `/mcp` (default on). Off = empty tool catalog. |
-| `CMS_API_KEY` | Agent key with `write` + content scopes — used in `.cursor/mcp.json` (see `.cursor/mcp.json.example`). |
+| `CMS_PREVIEW_TOKEN` | Shared secret so `apps/web` `/preview` can load drafts from the CMS. Local default `local-preview`. |
+| `CMS_API_KEY` | Optional local helper for scripts. Cursor MCP uses a **personal** key in gitignored `.cursor/mcp.json` (copy `.cursor/mcp.json.example`). |
 
-**Agent MCP (Cursor / Claude):** In-process server via `@nuxtjs/mcp-toolkit` at `/mcp`. Mint a key in **Clés API** with `write` + `articles`/`recipes`/`pages`/`media`. All writes are drafts attributed to the seeded `agent@journalducuistot.internal` user; audit trail in **Journal MCP** (`/mcp-logs`). Skill: `.cursor/skills/jdc-cms/SKILL.md`.
+**Agent MCP (Cursor / Claude):** In-process server via `@nuxtjs/mcp-toolkit` at `/mcp`. Mint a key in **Clés API** with `write` + `articles`/`recipes`/`pages`/`media`, then put it in local `.cursor/mcp.json` (copy the example; the real file is gitignored). Articles and pages may be edited in any status (never published via MCP). Tools return `previewUrl` for `/preview?type=&slug=`. Audit trail in **Journal MCP** (`/mcp-logs`). Skill: `.cursor/skills/jdc-cms/SKILL.md`.
 
 
 **Media picker AI (Stock + IA tabs):** Image generation uses Vercel AI SDK `generateImage` + `workers-ai-provider` through gateway `jdc-cms-ai`. Catalog models (`google/nano-banana-2`, `bytedance/seedream-5-pro`) require **Unified Billing** enabled on the AI Gateway (Cloudflare dashboard → AI Gateway → `jdc-cms-ai` → Settings). Flux fallback (`@cf/black-forest-labs/flux-2-klein-9b`) uses the Workers AI binding only. Stock and AI outputs are always ingested to R2 before TipTap — never hotlink Pexels or ephemeral CDN URLs.

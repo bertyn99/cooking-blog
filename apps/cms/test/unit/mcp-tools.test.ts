@@ -45,6 +45,7 @@ describe('mcp payload helpers', () => {
     expect(withWritable({ id: 1, status: 'draft' }).writable).toBe(true)
     expect(withWritable({ id: 2, status: 'published' }).writable).toBe(false)
     expect(withWritable({ id: 3, status: 'scheduled' }).writable).toBe(false)
+    expect(withWritable({ id: 4, status: 'published' }, { liveEditable: true }).writable).toBe(true)
   })
 
   it('maps list rows', () => {
@@ -53,6 +54,7 @@ describe('mcp payload helpers', () => {
       meta: { page: 1 },
     })
     expect(result.data.map(row => row.writable)).toEqual([true, false])
+    expect(withWritableList(result, { liveEditable: true }).data.map(row => row.writable)).toEqual([true, true])
   })
 
   it('maps content types to write scopes', () => {

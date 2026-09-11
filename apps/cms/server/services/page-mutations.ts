@@ -1,4 +1,4 @@
-import type { H3Event } from 'nitro/h3'
+import type { H3Event } from 'h3'
 import type { z } from 'zod'
 import { createPageSchema, updatePageSchema } from '../utils/validations/pages'
 import { slugifyString } from '../utils/slug'
@@ -90,10 +90,15 @@ export async function updatePageMutation(
     }
   }
 
-  const statusFields = applyContentPolicy(actor, existing, {
-    status: body.status,
-    scheduledAt: body.scheduledAt,
-  })
+  const statusFields = applyContentPolicy(
+    actor,
+    existing,
+    {
+      status: body.status,
+      scheduledAt: body.scheduledAt,
+    },
+    { apiKeyMode: 'in-place' },
+  )
 
   const now = new Date().toISOString()
   const userId = actorUserId(actor)

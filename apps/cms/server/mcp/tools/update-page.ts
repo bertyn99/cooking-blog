@@ -4,11 +4,12 @@ import {
   updatePageSchema,
 } from '../../services/page-mutations'
 import { requireMcpTool } from '../utils/actor'
+import { mcpPageResult } from '../utils/content-result'
 import { mcpContentToolEnabled } from '../utils/enabled'
 import { MCP_UPDATE, mcpIdInput, mcpUpdatePageInput } from '../utils/payload'
 
 export default defineMcpTool({
-  description: 'Update a draft page only (403 if published)',
+  description: 'Update a CMS page in any status. Does not publish or unpublish. Returns previewUrl.',
   annotations: MCP_UPDATE,
   inputSchema: {
     ...mcpIdInput,
@@ -18,6 +19,7 @@ export default defineMcpTool({
   handler: async ({ id, ...patch }) => {
     const { event, actor } = requireMcpTool('pages')
     const data = validateBody(updatePageSchema, patch)
-    return updatePageMutation(event, actor, id, data, { tool: 'update-page' })
+    await updatePageMutation(event, actor, id, data, { tool: 'update-page' })
+    return mcpPageResult(event, id)
   },
 })

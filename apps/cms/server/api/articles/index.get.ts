@@ -3,12 +3,12 @@ import { parsePagination } from '../../utils/pagination'
 import { useQueries } from '../../utils/db'
 import { serializeArticleForScope } from '../../utils/serialize-content'
 import { resolveArticleCategoryIds } from '../../utils/resolve-category-ids'
+import { isPrivilegedContentRead } from '../../utils/preview-auth'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const { articles } = useQueries(event)
-  const session = await getUserSession(event)
-  const isAuthenticated = !!session.user
+  const isAuthenticated = await isPrivilegedContentRead(event)
   const scope = isAuthenticated ? 'admin' : 'public'
 
   const include = parseInclude(query as Record<string, unknown>)

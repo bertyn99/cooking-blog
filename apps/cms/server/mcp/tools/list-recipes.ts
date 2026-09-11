@@ -6,11 +6,11 @@ import {
   mcpContentStatusInput,
   mcpListInput,
   mcpPagination,
-  withWritableList,
 } from '../utils/payload'
+import { mapMcpList } from '../utils/preview'
 
 export default defineMcpTool({
-  description: 'List recipes (all statuses, category only). Use get-recipe for ingredients/steps. Each row includes writable.',
+  description: 'List recipes (all statuses, category only). Use get-recipe for ingredients/steps. Each row includes writable and previewUrl.',
   annotations: MCP_READ_ONLY,
   inputSchema: {
     ...mcpListInput,
@@ -25,6 +25,6 @@ export default defineMcpTool({
       filters: { locale, search, status },
       pagination: mcpPagination(page, pageSize),
     })
-    return withWritableList(result)
+    return mapMcpList(event, 'recipe', result)
   },
 })

@@ -4,17 +4,19 @@ import {
   createRecipeSchema,
 } from '../../services/recipe-mutations'
 import { requireMcpTool } from '../utils/actor'
+import { mcpRecipeResult } from '../utils/content-result'
 import { mcpContentToolEnabled } from '../utils/enabled'
 import { MCP_CREATE, mcpCreateRecipeInput } from '../utils/payload'
 
 export default defineMcpTool({
-  description: 'Create a draft recipe (intro, ingredients, steps, utensils, nutrition). Never publishes.',
+  description: 'Create a draft recipe (intro, ingredients, steps, utensils, nutrition). Never publishes. Returns previewUrl.',
   annotations: MCP_CREATE,
   inputSchema: mcpCreateRecipeInput,
   enabled: event => mcpContentToolEnabled(event, 'recipes'),
   handler: async (input) => {
     const { event, actor } = requireMcpTool('recipes')
     const data = validateBody(createRecipeSchema, { ...input, status: 'draft' })
-    return createRecipeMutation(event, actor, data, { tool: 'create-recipe' })
+    const created = await createRecipeMutation(event, actor, data, { tool: 'create-recipe' })
+    return mcpRecipeResult(event, created.id)
   },
 })

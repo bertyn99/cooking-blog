@@ -8,10 +8,11 @@ export default defineNuxtConfig({
 
   mcp: {
     name: 'Journal du Cuistot CMS',
-    description: 'Draft-only articles, recipes, and pages for Journal du Cuistot.',
+    description: 'Articles, recipes, and pages for Journal du Cuistot. Agents never publish.',
     instructions: [
-      'All writes are drafts. Never publish. 403 means the row is live — stop.',
-      'List and get may return published rows (writable=false). Do not update those.',
+      'Never publish, unpublish, or schedule.',
+      'Articles and pages: update in any status; writable is always true. Recipes: draft-only (403 if live).',
+      'After create/update, give the human previewUrl. Never publish, unpublish, or schedule.',
       'List categories before setting categoryId. Locale fr. Comark markdown.',
       'Use start-generation-run for notes-to-new-draft; CRUD for precise edits on drafts.',
     ].join(' '),
@@ -44,6 +45,8 @@ export default defineNuxtConfig({
     pexelsApiKey: process.env.PEXELS_API_KEY || '',
     /** Kill switch for `/mcp` (`0` / `false` / `off` = empty catalog). Default on. */
     cmsMcpEnabled: process.env.CMS_MCP_ENABLED || '1',
+    /** Shared with apps/web so `/preview` can load drafts. Empty in production unless set. */
+    cmsPreviewToken: process.env.CMS_PREVIEW_TOKEN || (process.env.NODE_ENV === 'production' ? '' : 'local-preview'),
   },
 
   css: ['~/assets/css/main.css'],

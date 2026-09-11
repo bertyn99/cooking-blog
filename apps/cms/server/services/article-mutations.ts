@@ -1,4 +1,4 @@
-import type { H3Event } from 'nitro/h3'
+import type { H3Event } from 'h3'
 import type { z } from 'zod'
 import { createArticleSchema, updateArticleSchema } from '../utils/validations/articles'
 import { slugifyString } from '../utils/slug'
@@ -81,10 +81,15 @@ export async function updateArticleMutation(
     throw createApiError('NOT_FOUND', 'Article introuvable.')
   }
 
-  const statusFields = applyContentPolicy(actor, existing, {
-    status: data.status,
-    scheduledAt: data.scheduledAt,
-  })
+  const statusFields = applyContentPolicy(
+    actor,
+    existing,
+    {
+      status: data.status,
+      scheduledAt: data.scheduledAt,
+    },
+    { apiKeyMode: 'in-place' },
+  )
 
   const userId = actorUserId(actor)
   const updates: Record<string, unknown> = {

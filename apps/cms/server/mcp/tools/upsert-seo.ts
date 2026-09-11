@@ -6,7 +6,7 @@ import { mcpAnyContentToolEnabled } from '../utils/enabled'
 import { MCP_UPDATE, contentTypeToScope } from '../utils/payload'
 
 export default defineMcpTool({
-  description: 'Upsert SEO metadata for a draft article, recipe, or page (403 if the target is live)',
+  description: 'Upsert SEO metadata for an article, recipe, or page. Articles and pages may be live; recipes must be drafts. Returns the SEO row.',
   annotations: MCP_UPDATE,
   inputSchema: {
     contentType: z.enum(['article', 'recipe', 'page']).describe('Target collection'),

@@ -6,11 +6,11 @@ import {
   MCP_READ_ONLY,
   mcpListInput,
   mcpPagination,
-  withWritableList,
 } from '../utils/payload'
+import { mapMcpList } from '../utils/preview'
 
 export default defineMcpTool({
-  description: 'List CMS pages (all statuses). Each row includes writable.',
+  description: 'List CMS pages (all statuses). writable is true for every row. Each row includes previewUrl.',
   annotations: MCP_READ_ONLY,
   inputSchema: {
     ...mcpListInput,
@@ -26,6 +26,6 @@ export default defineMcpTool({
       filters: parentId ? { parentId } : undefined,
       pagination: mcpPagination(page, pageSize),
     })
-    return withWritableList(result)
+    return mapMcpList(event, 'page', result, { liveEditable: true })
   },
 })

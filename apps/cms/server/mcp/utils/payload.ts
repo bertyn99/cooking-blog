@@ -47,14 +47,22 @@ export function mcpPagination(page: number, pageSize: number) {
   }
 }
 
-export function withWritable<T extends { status: string }>(row: T) {
-  return { ...row, writable: row.status === 'draft' }
+export interface WritableOptions {
+  /** Articles/pages: MCP may update live rows in place. Recipes stay draft-only. */
+  liveEditable?: boolean
 }
 
-export function withWritableList<T extends { status: string }>(result: { data: T[], meta: unknown }) {
+export function withWritable<T extends { status: string }>(row: T, opts?: WritableOptions) {
+  return { ...row, writable: Boolean(opts?.liveEditable) || row.status === 'draft' }
+}
+
+export function withWritableList<T extends { status: string }>(
+  result: { data: T[], meta: unknown },
+  opts?: WritableOptions,
+) {
   return {
     ...result,
-    data: result.data.map(withWritable),
+    data: result.data.map(row => withWritable(row, opts)),
   }
 }
 
