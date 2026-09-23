@@ -1,29 +1,26 @@
 import { generateSlug } from "~/utils/format";
 import type { Article, Page, Recipe } from "~/types/strapiMeta";
-import { serverCmsFind } from "../utils/cms-fetch";
+import { serverCmsFindAll } from "../utils/sitemap-cms";
 
 export default defineEventHandler(async () => {
   try {
-    const [pagesResponse, articlesResponse, recipesResponse] = await Promise.all([
-      serverCmsFind<Page>("pages", {
-        populate: ["parent"],
-        pagination: { page: 1, pageSize: 100 },
+    const [pages, articles, recipes] = await Promise.all([
+      serverCmsFindAll<Page>("pages", {
+        include: ["parent"],
       }),
-      serverCmsFind<Article>("articles", {
-        populate: ["category"],
-        pagination: { page: 1, pageSize: 100 },
+      serverCmsFindAll<Article>("articles", {
+        include: ["category"],
       }),
-      serverCmsFind<Recipe>("recipes", {
-        pagination: { page: 1, pageSize: 100 },
-      }),
+      serverCmsFindAll<Recipe>("recipes"),
     ]);
 
-    const pages = pagesResponse.data || [];
-    const articles = articlesResponse.data || [];
-    const recipes = recipesResponse.data || [];
-
     return {
-      pages: pages.map((doc) => generateSlug(doc.slug ?? "", doc.parent)),
+      pages: [
+        "/",
+        ...pages
+          .filter((doc) => !("isHome" in doc && doc.isHome))
+          .map((doc) => generateSlug(doc.slug ?? "", doc.parent)),
+      ],
       articles: articles.map(
         (doc) => `/blog/${doc.category?.slug || "uncategorized"}/${doc.slug}`,
       ),

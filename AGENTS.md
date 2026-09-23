@@ -92,18 +92,19 @@ cooking-blog/
 
 ## CONVENTIONS
 
-### Strapi fetch idiom (every page)
+### CMS fetch idiom (every page)
 ```ts
-const { find } = useStrapi();
-const { data } = await useAsyncData<T>('cache-key', () =>
-  find<T>('collection', {
-    filters: { slug: { $eq: route.params.slug } },
-    populate: ['cover', 'category', 'seo'],
-    pagination: { page: 0, pageSize: 1 },  // ⚠ zero-indexed
+const cms = useCms();
+const { data } = await useAsyncData('cache-key', () =>
+  cms.articles({
+    slug: route.params.slug as string,
+    include: ['cover', 'category', 'seo'],
+    page: 1,
+    pageSize: 1,
   })
 );
 ```
-Always wrap `useCms().find()` in `useAsyncData` with a unique cache key. Type every call with the matching type from `~/types/strapiMeta.d.ts`. (`useStrapi` is a deprecated alias.)
+Always wrap `useCms()` calls in `useAsyncData` with a unique cache key. Query keys match the CMS GET handlers (`slug`, `slugs`, `isHome`, `include`, `page`, `pageSize`) — not Strapi `$eq` filters. Page payloads use `~/types/cms`. (`useStrapi` is a deprecated alias.)
 
 ### SEO triple-call (every content page)
 ```ts

@@ -1,5 +1,3 @@
-import { getRequestURL } from 'nitro/h3'
-
 const ADMIN_HTML_CACHE = 'private, no-store, must-revalidate'
 
 /**
@@ -17,5 +15,5 @@ export default defineEventHandler((event) => {
   if (/\.[^/]+$/.test(path)) {
     return
   }
-  event.res.headers.set('Cache-Control', ADMIN_HTML_CACHE)
+  setHeader(event, 'Cache-Control', ADMIN_HTML_CACHE)
 })

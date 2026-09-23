@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import type { Recipe } from "~/types/strapiMeta";
 
-const { find } = useCms();
+const cms = useCms();
 
 const { data: recipes } = useAsyncData("lates-recipes", () => {
-  return find<Recipe>("recipes", {
-    sort: ["id:desc"],
-    pagination: { pageSize: 3 },
-    populate: "*",
+  return cms.recipes({
+    include: ["cover", "category"],
+    pageSize: 3,
+    page: 1,
   });
 });
 </script>

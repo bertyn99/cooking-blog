@@ -3,6 +3,7 @@ import { parsePagination } from '../../utils/pagination'
 import { PAGES_RELATIONS } from '../../db/queries/_shared/builders/pages'
 import { useQueries } from '../../utils/db'
 import { isPrivilegedContentRead } from '../../utils/preview-auth'
+import { parseOptionalBoolean } from '../../utils/query-params'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -18,6 +19,7 @@ export default defineEventHandler(async (event) => {
 
   const slug = (query.slug as string) || undefined
   const parentSlug = (query.parentSlug as string) || undefined
+  const isHome = parseOptionalBoolean(query.isHome)
   let parentId: number | undefined
 
   if (parentSlug) {
@@ -37,6 +39,7 @@ export default defineEventHandler(async (event) => {
     filters: {
       slug: slug || undefined,
       parentId,
+      isHome,
     },
     isAuthenticated,
     pagination,

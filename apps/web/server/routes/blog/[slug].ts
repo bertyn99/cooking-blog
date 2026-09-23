@@ -13,27 +13,36 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  let response;
   try {
-    const response = await serverCmsFind<Article>("articles", {
-      filters: { slug: { $eq: articleSlug } },
-      populate: ["category"],
-      pagination: { page: 1, pageSize: 1 },
+    response = await serverCmsFind<Article>("articles", {
+      slug: articleSlug,
+      include: ["category"],
+      page: 1,
+      pageSize: 1,
     });
-
-    if (response.data && response.data.length > 0) {
-      const articleData = response.data[0];
-      const categorySlug = articleData?.category?.slug?.trim() || "uncategorized";
-      return sendRedirect(event, `/blog/${categorySlug}/${articleSlug}`, 301);
+  } catch (error) {
+    const statusCode
+      = typeof error === "object" && error && "statusCode" in error
+        ? Number((error as { statusCode: number }).statusCode)
+        : 500;
+    if (statusCode === 404) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "Article not found",
+      });
     }
-
-    throw createError({
-      statusCode: 404,
-      statusMessage: "Article not found",
-    });
-  } catch {
-    throw createError({
-      statusCode: 404,
-      statusMessage: "Article not found",
-    });
+    throw error;
   }
+
+  if (response.data && response.data.length > 0) {
+    const articleData = response.data[0];
+    const categorySlug = articleData?.category?.slug?.trim() || "uncategorized";
+    return sendRedirect(event, `/blog/${categorySlug}/${articleSlug}`, 301);
+  }
+
+  throw createError({
+    statusCode: 404,
+    statusMessage: "Article not found",
+  });
 });

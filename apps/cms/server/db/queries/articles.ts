@@ -20,7 +20,11 @@ export function buildArticlesListSqlWhere(opts: ArticleListOptions) {
       scope: opts.isAuthenticated ? 'admin' : 'public',
       includeDeleted: opts.includeDeleted,
     }),
-    opts.filters?.slug ? eq(articles.slug, opts.filters.slug) : undefined,
+    opts.filters?.slugs?.length
+      ? inArray(articles.slug, opts.filters.slugs)
+      : opts.filters?.slug
+        ? eq(articles.slug, opts.filters.slug)
+        : undefined,
     opts.filters?.categoryId ? eq(articles.categoryId, opts.filters.categoryId) : undefined,
     opts.filters?.categoryIds?.length
       ? inArray(articles.categoryId, opts.filters.categoryIds)

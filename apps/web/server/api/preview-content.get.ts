@@ -1,4 +1,4 @@
-import { buildCmsListUrl, type CmsFilters } from '~/utils/cms-client'
+import { serverCmsFind } from '../utils/cms-fetch'
 
 const PREVIEW_TYPES = ['article', 'page', 'recipe'] as const
 type PreviewType = (typeof PREVIEW_TYPES)[number]
@@ -7,27 +7,12 @@ function isPreviewType(value: string): value is PreviewType {
   return (PREVIEW_TYPES as readonly string[]).includes(value)
 }
 
-function collectionForType(type: PreviewType): string {
-  switch (type) {
-    case 'article':
-      return 'articles'
-    case 'page':
-      return 'pages'
-    case 'recipe':
-      return 'recipes'
-    default: {
-      const _exhaustive: never = type
-      return _exhaustive
-    }
-  }
-}
-
-function populateForType(type: PreviewType): string[] {
+function includeForType(type: PreviewType): string[] {
   switch (type) {
     case 'article':
       return ['cover', 'category', 'seo']
     case 'page':
-      return ['content', 'seoMeta', 'parent']
+      return ['seoMeta', 'parent']
     case 'recipe':
       return ['cover', 'category', 'nutrition', 'ingredients', 'utensils', 'seo']
     default: {
@@ -48,32 +33,27 @@ export default defineEventHandler(async (event) => {
 
   const slugParts = slug.split('/').filter(Boolean)
   const isNested = slugParts.length > 1
-  const first = isNested ? slugParts[0] : null
   const leaf = isNested ? slugParts[slugParts.length - 1]! : slug
-
-  const filters: CmsFilters = { slug: { $eq: leaf } }
-  if (type === 'article' && first) {
-    filters.category = { slug: { $eq: first } }
-  }
-  if (type === 'page' && first) {
-    filters.parent = { slug: { $eq: first } }
-  }
+  const parentSlug = isNested ? slugParts[slugParts.length - 2] : undefined
+  const categorySlug = isNested ? slugParts[0] : undefined
 
   const config = useRuntimeConfig(event)
-  const baseUrl = String(config.public.cmsBaseUrl || config.public.apiBase || 'http://localhost:3001').replace(/\/$/, '')
   const token = String(config.cmsPreviewToken || '').trim()
   const headers: Record<string, string> = {}
   if (token) {
     headers['x-cms-preview-token'] = token
   }
 
-  const url = buildCmsListUrl(baseUrl, collectionForType(type), {
-    filters,
-    populate: populateForType(type),
-    pagination: { page: 1, pageSize: 1 },
-  })
+  const collection = type === 'article' ? 'articles' : type === 'page' ? 'pages' : 'recipes'
+  const response = await serverCmsFind(collection, {
+    slug: leaf,
+    ...(type === 'article' && categorySlug ? { categorySlug } : {}),
+    ...(type === 'page' && parentSlug ? { parentSlug } : {}),
+    include: includeForType(type),
+    page: 1,
+    pageSize: 1,
+  }, headers)
 
-  const response = await $fetch<{ data?: unknown[] }>(url, { headers })
   const row = response.data?.[0]
   if (!row) {
     throw createError({ statusCode: 404, statusMessage: 'Content not found' })

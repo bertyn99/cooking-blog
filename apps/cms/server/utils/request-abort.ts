@@ -1,4 +1,4 @@
-import type { H3Event } from 'nitro/h3'
+import type { H3Event } from 'h3'
 
 const MEDIA_GENERATE_TIMEOUT_MS = 120_000
 
@@ -11,11 +11,7 @@ export function resolveRequestAbortSignal(
   timeoutMs = MEDIA_GENERATE_TIMEOUT_MS,
 ): AbortSignal {
   const timeoutSignal = AbortSignal.timeout(timeoutMs)
-  // `event.req` is the web Request under Nitro v3 (has `.signal` for client disconnect)
-  // and the Node IncomingMessage under v2; fall back to `event.node.req` for older runtimes.
-  const requestSignal =
-    (event.req as { signal?: AbortSignal } | undefined)?.signal ??
-    (event.node?.req as { signal?: AbortSignal } | undefined)?.signal
+  const requestSignal = (event.node?.req as { signal?: AbortSignal } | undefined)?.signal
 
   if (requestSignal && typeof AbortSignal.any === 'function') {
     return AbortSignal.any([timeoutSignal, requestSignal])

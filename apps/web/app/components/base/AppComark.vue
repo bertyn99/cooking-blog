@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { AppComark as ComarkRoot } from "~/utils/app-comark";
+import { ArticleMarkdown as ComarkRoot } from "~/utils/markdown/article-markdown";
 
 defineProps<{
   markdown: string;
@@ -8,5 +8,5 @@ defineProps<{
 </script>
 
 <template>
-  <ComarkRoot :markdown="markdown" :class="class" />
+  <ComarkRoot :value="markdown" :class="class" />
 </template>

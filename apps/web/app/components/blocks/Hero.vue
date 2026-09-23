@@ -1,0 +1,30 @@
+<script lang="ts" setup>
+defineOptions({ inheritAttrs: false })
+
+const props = withDefaults(
+  defineProps<{
+    image?: string
+  }>(),
+  {
+    image: '/img/hero.jpg',
+  },
+)
+</script>
+
+<template>
+  <div class="relative isolate min-h-[28rem] overflow-hidden sm:min-h-[32rem] lg:min-h-[36rem]">
+    <NuxtImg
+      :src="props.image"
+      alt=""
+      width="1920"
+      height="1080"
+      sizes="100vw"
+      :preload="{ fetchPriority: 'high' }"
+      class="absolute inset-0 -z-10 h-full w-full object-cover"
+    />
+
+    <div class="mx-auto max-w-7xl py-32 px-14 sm:py-48 lg:py-56">
+      <Carrousel />
+    </div>
+  </div>
+</template>

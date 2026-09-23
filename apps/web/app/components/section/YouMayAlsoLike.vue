@@ -6,24 +6,28 @@ const { category, typeContent } = defineProps<{
   typeContent: "articles" | "recipes";
 }>();
 
-const { find } = useCms();
+const cms = useCms();
+const categorySlug = computed(() => category.trim() || undefined);
 
 const { data: content } = await useAsyncData(
-  `you-may-like-${typeContent}-${category}`,
+  () => `you-may-like-${typeContent}-${categorySlug.value ?? "latest"}`,
   async () => {
     if (typeContent === "articles") {
-      return find<Article>(typeContent, {
-        filters: { category: { $eq: category } },
-        populate: "*",
-        pagination: { pageSize: 3 },
+      return cms.articles({
+        categorySlug: categorySlug.value,
+        include: ["cover", "category"],
+        pageSize: 3,
+        page: 1,
       });
     }
-    return find<Recipe>(typeContent, {
-      filters: { category: { $eq: category } },
-      populate: "*",
-      pagination: { pageSize: 3 },
+    return cms.recipes({
+      categorySlug: categorySlug.value,
+      include: ["cover", "category"],
+      pageSize: 3,
+      page: 1,
     });
   },
+  { watch: [categorySlug, () => typeContent] },
 );
 </script>
 
@@ -51,3 +55,4 @@ const { data: content } = await useAsyncData(
     <ArticleList v-else :articles="(content?.data as Article[]) ?? []" />
   </section>
 </template>
+

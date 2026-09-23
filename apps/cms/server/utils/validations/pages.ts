@@ -10,6 +10,7 @@ export const createPageSchema = z.object({
   parentId: z.number().nullable().optional(),
   locale: z.string().default('fr'),
   localeGroupId: z.string().optional(),
+  isHome: z.boolean().optional(),
   status: pageStatusSchema.optional(),
   scheduledAt: z.string().optional(),
 })

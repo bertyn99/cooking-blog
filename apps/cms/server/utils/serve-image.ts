@@ -1,4 +1,4 @@
-import type { H3Event } from 'nitro/h3'
+import type { H3Event } from 'h3'
 import {
   hasImageTransformOps,
   parseIpxImagePath,
@@ -76,7 +76,7 @@ export async function serveCmsImage(event: H3Event, fullPath: string) {
       sourceBuffer,
       contentType,
       deliveryOps,
-      { acceptHeader: event.req.headers.get('accept') ?? undefined },
+      { acceptHeader: getHeader(event, 'accept') },
     )
     if (transformed) {
       body = bufferToStream(transformed.buffer)

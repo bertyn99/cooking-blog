@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import type { Article, Category, StrapiResponse } from "~/types/strapiMeta";
+import type { Article, Category } from "~/types/strapiMeta";
+import type { CmsListResponse } from "~/types/cms";
 
 const blogDescription =
   "Articles, astuces et inspiration culinaire sur le Journal du cuistot.";
@@ -17,29 +18,25 @@ useApplyPageSeo({
 const search = ref("");
 const checkedCategories = ref<string[]>([]);
 const currentPage = ref(1);
-const { find } = useCms();
+const cms = useCms();
 
-const { data: articles, refresh } = await useAsyncData<StrapiResponse<Article>>(
+const { data: articles, refresh } = await useAsyncData<CmsListResponse<Article>>(
   `articles`,
   () =>
-    find<Article>(`articles`, {
-      filters: {
-        title: { $contains: search.value },
-        category: { name: { $in: checkedCategories.value } },
-      },
-      sort: ["firstPublishedAt:desc"],
-      populate: "*",
-      pagination: {
-        page: currentPage.value,
-        pageSize: 7,
-      },
+    cms.articles({
+      search: search.value || undefined,
+      categoryNames: checkedCategories.value.length ? checkedCategories.value : undefined,
+      include: ["cover", "category", "seo"],
+      page: currentPage.value,
+      pageSize: 7,
     }),
   { watch: [currentPage], deep: false },
 );
 
-const { data: categories } = await useAsyncData(`categories`, () =>
-  find<Category>(`category-articles`, {
-    pagination: { page: 1, pageSize: 100 },
+const { data: categories } = await useAsyncData(`blog-article-categories`, () =>
+  cms.articleCategories({
+    page: 1,
+    pageSize: 100,
   }),
 );
 

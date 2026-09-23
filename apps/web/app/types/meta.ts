@@ -30,6 +30,7 @@ export type MetaOption = {
   url: string;
   author?: string;
   keywords?: string;
+  robots?: string;
   articleDatePublished?: string;
   articleDateModified?: string;
 };

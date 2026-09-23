@@ -3,7 +3,11 @@ import type { z } from 'zod'
 import { createPageSchema, updatePageSchema } from '../utils/validations/pages'
 import { slugifyString } from '../utils/slug'
 import { useDb, useQueries } from '../utils/db'
-import { createApiError } from '../utils/errors'
+import { createApiError, fromQueryError } from '../utils/errors'
+import {
+  isPageHomeUniqueConstraint,
+  isPageSlugUniqueConstraint,
+} from '../utils/sqlite-constraint'
 import { authorshipOnCreate, authorshipOnUpdate } from '../utils/content-authorship'
 import { applyContentPolicy } from '../utils/content-status-policy'
 import type { Actor } from '../utils/actor'
@@ -13,6 +17,26 @@ import type { MutationMeta } from './article-mutations'
 
 type CreatePageInput = z.infer<typeof createPageSchema>
 type UpdatePageInput = z.infer<typeof updatePageSchema>
+
+function assertHomePageRules(isHome: boolean | undefined, parentId: number | null | undefined) {
+  if (!isHome) return
+  if (parentId != null) {
+    throw createApiError(
+      'VALIDATION_ERROR',
+      'La page d’accueil ne peut pas avoir de page parente.',
+    )
+  }
+}
+
+function mapPageUniqueConstraint(error: unknown): never {
+  if (isPageHomeUniqueConstraint(error)) {
+    throw createApiError('CONFLICT', 'Une page d’accueil existe déjà pour cette langue.')
+  }
+  if (isPageSlugUniqueConstraint(error)) {
+    throw createApiError('CONFLICT', 'Une page avec ce slug existe déjà pour cette langue.')
+  }
+  fromQueryError(error)
+}
 
 export async function createPageMutation(
   event: H3Event,
@@ -27,18 +51,21 @@ export async function createPageMutation(
   })
   const status = statusPatch.status ?? 'draft'
 
+  assertHomePageRules(body.isHome, body.parentId ?? null)
+
   const baseSlug = slugifyString(body.name)
   const slug = await pages.reserveUniqueSlug(baseSlug, body.locale)
   const now = new Date().toISOString()
   const userId = actorUserId(actor)
 
-  const page = await pages.insert({
+  const values = {
     name: body.name,
     title: body.title ?? null,
     slug,
     content: body.content ?? null,
     excerpt: body.excerpt ?? null,
-    parentId: body.parentId ?? null,
+    parentId: body.isHome ? null : (body.parentId ?? null),
+    isHome: body.isHome ?? false,
     status,
     locale: body.locale,
     localeGroupId: body.localeGroupId ?? null,
@@ -48,7 +75,17 @@ export async function createPageMutation(
     ...authorshipOnCreate(userId),
     createdAt: now,
     updatedAt: now,
-  })
+  }
+
+  let page
+  try {
+    page = body.isHome
+      ? await pages.insertAsHome(values)
+      : await pages.insert(values)
+  }
+  catch (error) {
+    mapPageUniqueConstraint(error)
+  }
 
   if (!page) {
     throw createApiError('INTERNAL_ERROR', 'Failed to create page')
@@ -100,15 +137,27 @@ export async function updatePageMutation(
     { apiKeyMode: 'in-place' },
   )
 
+  const nextParentId = body.parentId !== undefined ? body.parentId : existing.parentId
+  const nextIsHome = body.isHome !== undefined ? body.isHome : existing.isHome
+  assertHomePageRules(nextIsHome ? true : undefined, nextParentId ?? null)
+
+  if (existing.isHome && body.isHome === false) {
+    throw createApiError(
+      'VALIDATION_ERROR',
+      'Désignez une autre page d’accueil d’abord.',
+    )
+  }
+
   const now = new Date().toISOString()
   const userId = actorUserId(actor)
-
-  const updated = await pages.updateById(id, {
+  const locale = body.locale ?? existing.locale
+  const patch = {
     name: body.name,
     title: body.title,
     content: body.content,
     excerpt: body.excerpt,
-    parentId: body.parentId,
+    parentId: nextIsHome ? null : body.parentId,
+    isHome: body.isHome,
     locale: body.locale,
     localeGroupId: body.localeGroupId,
     ...(body.status !== undefined
@@ -121,10 +170,20 @@ export async function updatePageMutation(
       : {}),
     ...authorshipOnUpdate(userId),
     updatedAt: now,
-  })
+  }
+
+  let updated
+  try {
+    updated = nextIsHome
+      ? await pages.updateAsHome(id, locale, patch)
+      : await pages.updateById(id, patch)
+  }
+  catch (error) {
+    mapPageUniqueConstraint(error)
+  }
 
   if (!updated) {
-    throw createApiError('INTERNAL_ERROR', 'Failed to update page')
+    throw createApiError('NOT_FOUND', 'Page not found')
   }
 
   await recordContentAudit(useDb(event), {

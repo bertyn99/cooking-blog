@@ -17,6 +17,7 @@ export interface McpContentLinkInput {
   status: string
   categorySlug?: string | null
   parent?: NestedPageParent | null
+  isHome?: boolean
 }
 
 export interface McpContentLinks {
@@ -42,8 +43,8 @@ export function buildMcpContentLinks(input: McpContentLinkInput): McpContentLink
       break
     }
     case 'page': {
-      publicPath = pagePublicPath(input.slug, input.parent)
-      previewSlug = publicPath.replace(/^\//, '')
+      publicPath = pagePublicPath(input.slug, input.parent, { isHome: input.isHome })
+      previewSlug = publicPath === '/' ? input.slug : publicPath.replace(/^\//, '')
       break
     }
     case 'recipe': {
@@ -70,6 +71,7 @@ export function withMcpContentLinks<T extends {
   status: string
   category?: { slug?: string } | null
   parent?: NestedPageParent | null
+  isHome?: boolean
 }>(
   event: H3Event,
   kind: McpPreviewKind,
@@ -85,6 +87,7 @@ export function withMcpContentLinks<T extends {
       status: row.status,
       categorySlug: row.category?.slug,
       parent: row.parent ?? null,
+      isHome: row.isHome,
     }),
   }
 }
@@ -94,6 +97,7 @@ export function mapMcpList<T extends {
   status: string
   category?: { slug?: string } | null
   parent?: NestedPageParent | null
+  isHome?: boolean
 }>(
   event: H3Event,
   kind: McpPreviewKind,

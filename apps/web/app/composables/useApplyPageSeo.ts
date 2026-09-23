@@ -11,13 +11,20 @@ export type PageSeoOptions = MetaOption & {
  * Page-level SEO: meta tags (via site config) + optional OG image component.
  * Canonical URLs and default OG/Twitter tags are handled by `@nuxtjs/seo` (nuxt-seo-utils).
  */
-export function useApplyPageSeo(options: PageSeoOptions) {
-  useApplySeoMeta(options);
+export function useApplyPageSeo(options: MaybeRefOrGetter<PageSeoOptions>) {
+  const seoOptions = computed(() => {
+    const value = toValue(options)
+    const { og: _og, ...meta } = value
+    return meta
+  })
 
-  if (options.og) {
+  useApplySeoMeta(seoOptions)
+
+  const og = computed(() => toValue(options).og)
+  if (og.value) {
     defineOgImage("Cooking", {
-      headline: options.og.headline,
-      description: options.og.description,
-    });
+      headline: computed(() => toValue(options).og?.headline ?? ""),
+      description: computed(() => toValue(options).og?.description ?? ""),
+    })
   }
 }

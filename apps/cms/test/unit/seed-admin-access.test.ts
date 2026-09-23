@@ -1,9 +1,17 @@
+import type { H3Event } from 'h3'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { createEvent } from 'nitro/h3'
 import {
   canSeedAdminWithoutSecret,
   hasValidAdminSeedSecret,
 } from '../../server/utils/auth/seed-admin-access'
+
+function mockEvent(headers: Record<string, string>): H3Event {
+  return {
+    node: {
+      req: { headers },
+    },
+  } as H3Event
+}
 
 describe('seed-admin access', () => {
   beforeEach(() => {
@@ -28,19 +36,13 @@ describe('seed-admin access', () => {
   })
 
   it('validates x-admin-seed-secret', () => {
-    const event = createEvent({
-      path: '/api/auth/seed-admin',
-      headers: { 'x-admin-seed-secret': 'test-secret' },
-    })
+    const event = mockEvent({ 'x-admin-seed-secret': 'test-secret' })
     expect(hasValidAdminSeedSecret(event)).toBe(true)
   })
 
   it('rejects seed secret when env unset', () => {
     vi.stubEnv('ADMIN_SEED_SECRET', '')
-    const event = createEvent({
-      path: '/api/auth/seed-admin',
-      headers: { 'x-admin-seed-secret': 'anything' },
-    })
+    const event = mockEvent({ 'x-admin-seed-secret': 'anything' })
     expect(hasValidAdminSeedSecret(event)).toBe(false)
   })
 })

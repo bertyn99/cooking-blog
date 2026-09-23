@@ -2,8 +2,9 @@ import type { MetaData, MetaOption } from "~/types/meta";
 import { absoluteSiteUrl, siteUrlOrigin } from "~/composables/useSitePageUrl";
 import { formatOpenGraphDateTime } from "~/utils/open-graph-date";
 
-export const useLoadMeta = (metaOption: MetaOption): MetaData => {
-  const site = useSiteConfig();
+type SiteMeta = ReturnType<typeof useSiteConfig>;
+
+function loadMeta(metaOption: MetaOption, site: SiteMeta): MetaData {
   const origin = siteUrlOrigin(site.url);
   const siteName = site.name;
   const isProductionEnv = site.env === "production";
@@ -36,11 +37,13 @@ export const useLoadMeta = (metaOption: MetaOption): MetaData => {
     robots:
       site.indexable === false
         ? "noindex, nofollow"
-        : site.indexable === true
-          ? "index, follow, max-image-preview:large"
-          : !isProductionEnv
-            ? "noindex, nofollow"
-            : "index, follow, max-image-preview:large",
+        : metaOption.robots
+          ? metaOption.robots
+          : site.indexable === true
+            ? "index, follow, max-image-preview:large"
+            : !isProductionEnv
+              ? "noindex, nofollow"
+              : "index, follow, max-image-preview:large",
     keywords,
     ogType: isArticle ? "article" : "website",
     ogLocale: "fr-FR",
@@ -70,29 +73,34 @@ export const useLoadMeta = (metaOption: MetaOption): MetaData => {
   }
 
   return metaData;
+}
+
+export const useLoadMeta = (metaOption: MetaOption): MetaData => {
+  return loadMeta(metaOption, useSiteConfig());
 };
 
-export const useApplySeoMeta = (metaOption: MetaOption) => {
-  const meta = useLoadMeta(metaOption);
-  const {
-    articleDatePublished,
-    articleDateModified,
-    ...rest
-  } = meta;
-
-  const filtered = Object.fromEntries(
-    Object.entries(rest).filter(
-      ([, value]) => value !== undefined && value !== "",
-    ),
-  ) as Parameters<typeof useSeoMeta>[0];
+export const useApplySeoMeta = (metaOption: MaybeRefOrGetter<MetaOption>) => {
+  const site = useSiteConfig();
+  const meta = computed(() => loadMeta(toValue(metaOption), site));
 
   useSeoMeta({
-    ...filtered,
-    ...(articleDatePublished
-      ? { articlePublishedTime: articleDatePublished }
-      : {}),
-    ...(articleDateModified
-      ? { articleModifiedTime: articleDateModified }
-      : {}),
+    title: () => meta.value.title,
+    description: () => meta.value.description,
+    robots: () => meta.value.robots,
+    keywords: () => meta.value.keywords,
+    author: () => meta.value.author,
+    ogType: () => meta.value.ogType,
+    ogLocale: () => meta.value.ogLocale,
+    ogUrl: () => meta.value.ogUrl,
+    ogSiteName: () => meta.value.ogSite_name,
+    ogTitle: () => meta.value.ogTitle,
+    ogDescription: () => meta.value.ogDescription,
+    ogImage: () => meta.value.ogImage,
+    twitterCard: () => meta.value.twitterCard,
+    twitterTitle: () => meta.value.twitterTitle,
+    twitterDescription: () => meta.value.twitterDescription,
+    twitterImage: () => meta.value.twitterImage,
+    articlePublishedTime: () => meta.value.articleDatePublished,
+    articleModifiedTime: () => meta.value.articleDateModified,
   });
 };

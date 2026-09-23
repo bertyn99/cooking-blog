@@ -1,5 +1,5 @@
 import { formatCoverUrlFromSource, buildCoverUrlTrace } from "~/composables/useFormatCover";
-import { buildCmsListUrl } from "~/utils/cms-client";
+import { serverCmsFind } from "../../utils/cms-fetch";
 
 /** Dev-only: compare CMS cover fields → public `/images` URL → CMS fetch URL. */
 export default defineEventHandler(async (event) => {
@@ -15,18 +15,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: "Missing slug query param" });
   }
 
-  const config = useRuntimeConfig(event);
-  const baseUrl = String(config.public.cmsBaseUrl || config.public.apiBase || "http://localhost:3001").replace(
-    /\/$/,
-    "",
-  );
-  const url = buildCmsListUrl(baseUrl, type, {
-    filters: { slug: { $eq: slug } },
-    populate: "*",
-    pagination: { page: 1, pageSize: 1 },
+  const response = await serverCmsFind<Record<string, unknown>>(type, {
+    slug,
+    include: "*",
+    page: 1,
+    pageSize: 1,
   });
-
-  const response = await $fetch<{ data?: Record<string, unknown>[] }>(url);
   const row = response.data?.[0];
   if (!row) {
     throw createError({ statusCode: 404, statusMessage: "Content not found" });

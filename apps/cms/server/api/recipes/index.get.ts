@@ -3,6 +3,7 @@ import { useQueries } from '../../utils/db'
 import { serializeRecipeForScope } from '../../utils/serialize-content'
 import { resolveRecipeCategoryIds } from '../../utils/resolve-category-ids'
 import { isPrivilegedContentRead } from '../../utils/preview-auth'
+import { parseCsvParam } from '../../utils/query-params'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -21,14 +22,17 @@ export default defineEventHandler(async (event) => {
     slug: query.categorySlug as string | undefined,
   })
 
+  const slugs = parseCsvParam(query.slugs)
   const filters = {
-    slug: query.slug as string | undefined,
+    slug: slugs?.length ? undefined : (query.slug as string | undefined),
+    slugs,
     categoryId: query.categoryId ? Number.parseInt(query.categoryId as string, 10) : undefined,
     categoryIds: categoryIds?.length ? categoryIds : undefined,
     locale: query.locale as string | undefined,
     search: (query.search as string) || undefined,
   }
   if (!filters.slug) delete filters.slug
+  if (!filters.slugs?.length) delete filters.slugs
   if (Number.isNaN(filters.categoryId as number)) delete filters.categoryId
   if (!filters.search) delete filters.search
 

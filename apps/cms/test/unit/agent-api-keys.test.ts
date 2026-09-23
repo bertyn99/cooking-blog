@@ -12,7 +12,8 @@ import {
 describe('api key scopes (agent MCP)', () => {
   it('includes transfer and agent scopes in API_KEY_SCOPES', () => {
     expect(TRANSFER_SCOPES).toEqual(['articles', 'recipes', 'media'])
-    expect(AGENT_SCOPES).toEqual(['pages', 'write'])
+    expect(AGENT_SCOPES).toEqual(['articles', 'recipes', 'pages', 'write'])
+    expect(API_KEY_SCOPES).toEqual(['articles', 'recipes', 'media', 'pages', 'write'])
     expect(API_KEY_SCOPES).toContain('write')
     expect(API_KEY_SCOPES).toContain('pages')
   })
@@ -30,7 +31,8 @@ describe('api key scopes (agent MCP)', () => {
   it('write scope checks', () => {
     expect(apiKeyHasWriteScope(['articles', 'write'])).toBe(true)
     expect(apiKeyHasWriteScope(['articles'])).toBe(false)
-    expect(apiKeyHasContentWriteScope(['write', 'recipes'], 'recipes')).toBe(true)
-    expect(apiKeyHasContentWriteScope(['write', 'articles'], 'recipes')).toBe(false)
+    expect(apiKeyHasContentWriteScope(['write', 'recipes', 'pages'], 'recipes')).toBe(true)
+    expect(apiKeyHasContentWriteScope(['write', 'recipes', 'pages'], 'pages')).toBe(true)
+    expect(apiKeyHasContentWriteScope(['write', 'pages'], 'recipes')).toBe(false)
   })
 })

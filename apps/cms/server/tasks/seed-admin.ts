@@ -2,6 +2,7 @@ import { createLogger } from 'evlog'
 import { seedAdmin } from '../db/seed/admin'
 import { seedAgentUser } from '../db/seed/agent'
 import { resolveSeedAdminInput, seedAdminPayloadSchema } from '../db/seed/defaults'
+import { ensureEditorDefaults, ensureHomePage } from '../services/ensure-home-page'
 import { useDb } from '../utils/db'
 
 export default defineTask({
@@ -20,6 +21,8 @@ export default defineTask({
       const db = useDb()
       const result = await seedAdmin(db, resolveSeedAdminInput(parsed.data))
       const agent = await seedAgentUser(db)
+      await ensureEditorDefaults(db)
+      await ensureHomePage(db)
 
       log.set({
         outcome: result.skipped ? 'skipped' : 'success',

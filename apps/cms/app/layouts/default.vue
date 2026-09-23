@@ -100,6 +100,12 @@ const links = computed(() => {
         to: '/maintenance',
         onSelect: () => { open.value = false },
       },
+      {
+        label: 'Paramètres',
+        icon: 'i-lucide-settings',
+        to: '/settings',
+        onSelect: () => { open.value = false },
+      },
     )
   }
 
@@ -107,11 +113,6 @@ const links = computed(() => {
     label: 'Site public',
     icon: 'i-lucide-external-link',
     to: 'https://journalducuistot.fr',
-    target: '_blank',
-  }, {
-    label: 'Documentation Nuxt UI',
-    icon: 'i-lucide-book-open',
-    to: 'https://ui.nuxt.com',
     target: '_blank',
   }]
 

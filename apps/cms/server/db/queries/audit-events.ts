@@ -4,6 +4,14 @@ import { schema } from '../create-db'
 
 export function createAuditEventQueries(db: AppDb) {
   return {
+    detachApiKeyActor(apiKeyId: number) {
+      return db
+        .update(schema.auditEvents)
+        .set({ actorApiKeyId: null })
+        .where(eq(schema.auditEvents.actorApiKeyId, apiKeyId))
+        .run()
+    },
+
     async listMcpLogs(options: {
       page: number
       pageSize: number

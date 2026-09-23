@@ -10,6 +10,10 @@ describe('public-site-paths', () => {
     })).toBe('/root/mid/leaf')
   })
 
+  it('uses / for the home page', () => {
+    expect(pagePublicPath('accueil', null, { isHome: true })).toBe('/')
+  })
+
   it('builds article and recipe paths', () => {
     expect(articlePublicPath('mon-article', 'desserts')).toBe('/blog/desserts/mon-article')
     expect(articlePublicPath('mon-article')).toBe('/blog/uncategorized/mon-article')

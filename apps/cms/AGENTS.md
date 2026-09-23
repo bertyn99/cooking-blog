@@ -122,7 +122,7 @@ apps/cms/
 |-----------|--------------|----------------|
 | `ContentArticleForm` | Articles | title, slug, markdown, blog category, cover, SEO; **deferred media** on create (`useDeferredArticleMedia`) |
 | `ContentRecipeForm` | Recipes | intro, steps markdown, difficulty, time, ingredients, utensils, nutrition, recipe category, cover, SEO |
-| `ContentPageForm` | Pages | name, title, markdown, parent, locale, public path preview (`pagePublicPath`) |
+| `ContentPageForm` | Pages | name, title, **PageWorkspace** (canvas + markdown + inspector), parent, `isHome`, locale, public path preview (`pagePublicPath`, `/` when home) |
 | `ContentCategoryForm` | Categories | blog vs recipe type, slug, optional cover |
 
 ### Planning & media

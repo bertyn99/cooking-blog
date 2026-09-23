@@ -1,9 +1,11 @@
-import type { H3Event } from 'nitro/h3'
+import type { H3Event } from 'h3'
 import { useQueries } from '../utils/db'
 import { createApiError } from '../utils/errors'
 import {
   generateApiKeySecret,
+  isApiKeyExpired,
   parseCreateApiKeyBody,
+  parseUpdateApiKeyScopesBody,
   toPublicApiKey,
 } from '../utils/api-key-crypto'
 
@@ -33,7 +35,7 @@ export function useApiKeyService(event: H3Event) {
       if (parsed.scopes.length === 0) {
         throw createApiError(
           'VALIDATION_ERROR',
-          'Sélectionnez au moins un droit (articles, recipes, media).',
+          'Sélectionnez au moins un droit (articles, recipes, pages, media, write).',
         )
       }
 
@@ -54,10 +56,94 @@ export function useApiKeyService(event: H3Event) {
       }
     },
 
+    async updateScopes(id: number, body: unknown) {
+      const scopes = parseUpdateApiKeyScopesBody(body)
+      if (scopes.length === 0) {
+        throw createApiError(
+          'VALIDATION_ERROR',
+          'Sélectionnez au moins un droit (articles, recipes, pages, media, write).',
+        )
+      }
+
+      const existing = await queries.apiKeys.findById(id)
+      if (!existing) {
+        throw createApiError('NOT_FOUND', 'Clé introuvable.')
+      }
+      if (existing.revokedAt) {
+        throw createApiError(
+          'FORBIDDEN',
+          'Impossible de modifier une clé révoquée.',
+          undefined,
+          { fix: 'Créez une nouvelle clé avec les droits souhaités.' },
+        )
+      }
+
+      const row = await queries.apiKeys.updateScopes(id, scopes)
+      if (!row) {
+        throw createApiError('NOT_FOUND', 'Clé introuvable ou déjà révoquée.')
+      }
+      return toPublicApiKey(row)
+    },
+
     async revoke(id: number) {
       const row = await queries.apiKeys.revoke(id)
       if (!row) {
         throw createApiError('NOT_FOUND', 'Clé introuvable ou déjà révoquée.')
+      }
+      return toPublicApiKey(row)
+    },
+
+    async regenerate(id: number) {
+      const existing = await queries.apiKeys.findById(id)
+      if (!existing) {
+        throw createApiError('NOT_FOUND', 'Clé introuvable.')
+      }
+      if (existing.revokedAt) {
+        throw createApiError(
+          'FORBIDDEN',
+          'Impossible de régénérer une clé révoquée.',
+          undefined,
+          { fix: 'Créez une nouvelle clé ou supprimez cette entrée révoquée.' },
+        )
+      }
+      if (isApiKeyExpired(existing.expiresAt)) {
+        throw createApiError('FORBIDDEN', 'Impossible de régénérer une clé expirée.')
+      }
+
+      const generated = generateApiKeySecret()
+      const row = await queries.apiKeys.rotateSecret(
+        id,
+        generated.keyPrefix,
+        generated.keyHash,
+      )
+      if (!row) {
+        throw createApiError('NOT_FOUND', 'Clé introuvable ou déjà révoquée.')
+      }
+
+      return {
+        key: toPublicApiKey(row),
+        secret: generated.secret,
+      }
+    },
+
+    async purgeRevoked(id: number) {
+      const existing = await queries.apiKeys.findById(id)
+      if (!existing) {
+        throw createApiError('NOT_FOUND', 'Clé introuvable.')
+      }
+      if (!existing.revokedAt) {
+        throw createApiError(
+          'FORBIDDEN',
+          'Seules les clés révoquées peuvent être supprimées.',
+          undefined,
+          { fix: 'Révoquez la clé avant de la supprimer définitivement.' },
+        )
+      }
+
+      await queries.auditEvents.detachApiKeyActor(id)
+      const row = await queries.apiKeys.deleteRevoked(id)
+      if (!row) {
+        throw createApiError('NOT_FOUND', 'Clé introuvable ou non révoquée.')
       }
       return toPublicApiKey(row)
     },

@@ -26,6 +26,11 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+      /** Public admin origin (MCP, API). Falls back to request origin in the UI when unset. */
+      cmsBaseUrl:
+        process.env.NUXT_PUBLIC_CMS_BASE_URL
+        || process.env.CMS_BASE_URL
+        || '',
     },
     session: {
       maxAge: 60 * 60 * 8,

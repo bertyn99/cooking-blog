@@ -158,13 +158,18 @@ export default defineNuxtConfig({
 
   components: [
     {
+      path: '~/components/blocks',
+      prefix: 'Block',
+      pathPrefix: true,
+      global: false,
+    },
+    {
       path: '~/components',
-      ignore: ['prose/**'],
+      ignore: ['prose/**', 'blocks/**'],
     },
     {
       global: true,
       path: '~/components/prose',
-      /*  pathPrefix: false, */
     },
   ],
 

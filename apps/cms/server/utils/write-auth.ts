@@ -1,4 +1,4 @@
-import type { H3Event } from 'nitro/h3'
+import type { H3Event } from 'h3'
 import type { ApiKeyScope, ContentWriteScope } from '../../shared/api-keys'
 import {
   apiKeyHasContentWriteScope,
@@ -32,7 +32,7 @@ function transferPullEnabled(): boolean {
 }
 
 function bearerPresent(event: H3Event): boolean {
-  return parseBearerToken(event.req.headers.get('authorization') ?? undefined) !== null
+  return parseBearerToken(getHeader(event, 'authorization')) !== null
 }
 
 async function lookupApiKey(event: H3Event, token: string): Promise<AuthenticatedApiKey | null> {
@@ -50,7 +50,7 @@ async function lookupApiKey(event: H3Event, token: string): Promise<Authenticate
 
 /** Hash lookup + expiry + usage stamp. No scope gate. */
 export async function tryResolveApiKey(event: H3Event): Promise<AuthenticatedApiKey | null> {
-  const token = parseBearerToken(event.req.headers.get('authorization') ?? undefined)
+  const token = parseBearerToken(getHeader(event, 'authorization'))
   if (!token) return null
   return lookupApiKey(event, token)
 }

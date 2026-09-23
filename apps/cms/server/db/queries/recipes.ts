@@ -35,7 +35,11 @@ function buildRecipesListSqlWhere(opts: RecipeListOptions) {
     ...applyPublishedScope(recipes, {
       scope: opts.isAuthenticated ? 'admin' : 'public',
     }),
-    opts.filters?.slug ? eq(recipes.slug, opts.filters.slug) : undefined,
+    opts.filters?.slugs?.length
+      ? inArray(recipes.slug, opts.filters.slugs)
+      : opts.filters?.slug
+        ? eq(recipes.slug, opts.filters.slug)
+        : undefined,
     opts.filters?.categoryId ? eq(recipes.categoryId, opts.filters.categoryId) : undefined,
     opts.filters?.categoryIds?.length
       ? inArray(recipes.categoryId, opts.filters.categoryIds)

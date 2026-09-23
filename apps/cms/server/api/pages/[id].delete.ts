@@ -22,6 +22,13 @@ export default defineEventHandler(async (event) => {
     throw createApiError('VALIDATION_ERROR', 'Page is already deleted')
   }
 
+  if (existing.isHome) {
+    throw createApiError(
+      'VALIDATION_ERROR',
+      'Impossible de supprimer la page d’accueil. Désignez une autre page d’accueil d’abord.',
+    )
+  }
+
   const deletedAt = await pages.softDelete(id)
 
   return { data: { id, deletedAt } }

@@ -26,9 +26,9 @@ function isIntentionallyNoindex(robots?: string | null): boolean {
 
 export default defineSitemapEventHandler(async (): Promise<SitemapUrlInput[]> => {
   const [pages, articles, recipes] = await Promise.all([
-    serverCmsFindAll<Page>("pages", { populate: ["parent", "seoMeta"] }),
-    serverCmsFindAll<Article>("articles", { populate: ["category", "seo"] }),
-    serverCmsFindAll<Recipe>("recipes", { populate: ["cover", "seo"] }),
+    serverCmsFindAll<Page>("pages", { include: ["parent", "seoMeta"] }),
+    serverCmsFindAll<Article>("articles", { include: ["category", "seo"] }),
+    serverCmsFindAll<Recipe>("recipes", { include: ["cover", "seo"] }),
   ]);
 
   const urls: SitemapUrlInput[] = [
@@ -54,6 +54,9 @@ export default defineSitemapEventHandler(async (): Promise<SitemapUrlInput[]> =>
 
   for (const doc of pages) {
     if (!doc.slug?.trim()) {
+      continue;
+    }
+    if ("isHome" in doc && doc.isHome) {
       continue;
     }
     const loc = generateSlug(doc.slug, doc.parent);

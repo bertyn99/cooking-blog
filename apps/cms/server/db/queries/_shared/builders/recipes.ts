@@ -7,6 +7,7 @@ export interface RecipesQueryOptions {
   include: string[]
   filters?: {
     slug?: string
+    slugs?: string[]
     categoryId?: number
     categoryIds?: number[]
     locale?: string
@@ -22,7 +23,12 @@ export function buildRecipesQueryWhere(opts: RecipesQueryOptions): RecipesQueryF
   if (!opts.isAuthenticated) {
     filters.push({ status: 'published' }, { deletedAt: { isNull: true } })
   }
-  if (opts.filters?.slug) filters.push({ slug: opts.filters.slug })
+  if (opts.filters?.slugs?.length) {
+    filters.push({ slug: { in: opts.filters.slugs } })
+  }
+  else if (opts.filters?.slug) {
+    filters.push({ slug: opts.filters.slug })
+  }
   if (opts.filters?.categoryId) filters.push({ categoryId: opts.filters.categoryId })
   if (opts.filters?.locale) filters.push({ locale: opts.filters.locale })
   if (opts.filters?.status) filters.push({ status: opts.filters.status })

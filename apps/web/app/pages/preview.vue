@@ -4,7 +4,8 @@ definePageMeta({ layout: "content" });
 
 <script lang="ts" setup>
 import { useGenerateSchemaArianne } from "~/composables/useGenerateSchemaArianne";
-import type { Article, Page, Recipe } from "~/types/strapiMeta";
+import type { Article, Recipe } from "~/types/strapiMeta";
+import type { CmsPage } from "~/types/cms";
 
 const route = useRoute();
 const { slug, type } = route.query;
@@ -36,7 +37,7 @@ const cacheKey = `preview-${contentType}-${contentSlug}`;
 
 const { data: payload, error: fetchError } = await useAsyncData(
   cacheKey,
-  () => $fetch<{ type: string, data: Page | Recipe | Article }>("/api/preview-content", {
+  () => $fetch<{ type: string, data: CmsPage | Recipe | Article }>("/api/preview-content", {
     query: { type: contentType, slug: contentSlug },
   }),
 );
@@ -62,7 +63,7 @@ const titleContent = computed(() => content.value?.title || "No title");
 const seo = computed(() => {
   const value = content.value;
   if (!value || !("seo" in value)) {
-    return "seoMeta" in (value || {}) ? (value as Page).seoMeta || {} : {};
+    return "seoMeta" in (value || {}) ? (value as CmsPage).seoMeta || {} : {};
   }
   const seoValue = value.seo;
   return Array.isArray(seoValue) ? seoValue[0] || {} : seoValue || {};
@@ -110,7 +111,7 @@ const ariane = (() => {
   <div class="max-w-7xl mx-auto px-4 py-8">
     <div v-if="contentType === 'page'">
       <SchemaOrgBreadcrumb v-if="ariane" :itemListElement="ariane" />
-      <BasePageBody :content="(content as Page)?.content" />
+      <BasePageBody :content="(content as CmsPage)?.content" />
     </div>
 
     <div v-else-if="contentType === 'recipe'">

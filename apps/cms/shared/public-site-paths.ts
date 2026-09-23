@@ -5,8 +5,16 @@ export interface NestedPageParent {
 
 /**
  * Public site path for a CMS page (matches journalducuistot.fr catch-all routing).
+ * Home pages are always `/`.
  */
-export function pagePublicPath(slug: string, parent?: NestedPageParent | null): string {
+export function pagePublicPath(
+  slug: string,
+  parent?: NestedPageParent | null,
+  options?: { isHome?: boolean },
+): string {
+  if (options?.isHome) {
+    return '/'
+  }
   if (!parent?.slug) {
     return `/${slug}`
   }

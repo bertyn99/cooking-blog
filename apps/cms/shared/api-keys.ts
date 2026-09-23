@@ -1,11 +1,15 @@
 /** Pull/clone scopes — content readable via `/api/transfer/*`. */
 export const TRANSFER_SCOPES = ['articles', 'recipes', 'media'] as const
 
-/** Agent write scopes — draft mutations + MCP (not transfer-pull). */
-export const AGENT_SCOPES = ['pages', 'write'] as const
+/**
+ * Agent MCP / draft REST scopes.
+ * Content types must be combined with `write` for tools to appear.
+ * Overlaps transfer on articles/recipes (same scope string, two jobs).
+ */
+export const AGENT_SCOPES = ['articles', 'recipes', 'pages', 'write'] as const
 
-/** All selectable scopes when creating a key in the admin UI. */
-export const API_KEY_SCOPES = [...TRANSFER_SCOPES, ...AGENT_SCOPES] as const
+/** All selectable scopes when creating a key in the admin UI (unique). */
+export const API_KEY_SCOPES = ['articles', 'recipes', 'media', 'pages', 'write'] as const
 
 export type TransferScope = (typeof TRANSFER_SCOPES)[number]
 export type AgentScope = (typeof AGENT_SCOPES)[number]
@@ -18,6 +22,14 @@ export const API_KEY_SCOPE_LABELS: Record<ApiKeyScope, string> = {
   recipes: 'Recettes (transfert — tous statuts)',
   media: 'Médias (transfert — métadonnées + fichiers)',
   pages: 'Pages (agent — brouillons uniquement)',
+  write: 'Écriture agent (MCP + API REST brouillons)',
+}
+
+/** Labels in the Agent checkbox group (articles/recipes are MCP + drafts, not clone-only). */
+export const AGENT_SCOPE_LABELS: Record<AgentScope, string> = {
+  articles: 'Articles (agent — brouillons + MCP)',
+  recipes: 'Recettes (agent — brouillons + MCP)',
+  pages: 'Pages (agent — brouillons + MCP)',
   write: 'Écriture agent (MCP + API REST brouillons)',
 }
 

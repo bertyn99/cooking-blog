@@ -7,7 +7,7 @@
     "dev:web": "pnpm --filter web dev",
     "dev:cms": "pnpm --filter cms dev",
     "cms:clone:prod": "pnpm --filter cms clone:prod",
-    "dev": "pnpm -r --parallel dev",
+    "dev": "alchemy dev",
     "build": "pnpm -r build",
     "build:web": "pnpm --filter web build",
     "build:cms": "pnpm --filter cms build",
@@ -34,18 +34,20 @@
   },
   "packageManager": "pnpm@10.33.4",
   "devDependencies": {
+    "@alchemy.run/frontend-frameworks": "2.0.0-beta.74",
     "@cloudflare/workers-types": "^5.20260804.1",
     "@distilled.cloud/nuxt": "^0.17.1",
-    "@effect/platform-node": "4.0.0-beta.102",
-    "@effect/sql-mysql2": "4.0.0-beta.102",
-    "@effect/sql-pg": "4.0.0-beta.102",
+    "@effect/platform-node": "4.0.0-rc.111",
+    "@effect/sql-mysql2": "4.0.0-rc.111",
+    "@effect/sql-pg": "4.0.0-rc.111",
     "alchemy": "catalog:",
     "drizzle-kit": "catalog:",
     "drizzle-orm": "catalog:",
-    "effect": "4.0.0-beta.102",
+    "effect": "4.0.0-rc.111",
     "typescript": "catalog:"
   },
   "dependencies": {
-    "nuxt": "^4.5.0"
+    "nuxt": "catalog:"
   }
 }
+
