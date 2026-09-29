@@ -28,6 +28,7 @@ const {
   removeBlock,
   moveBlock,
   updateSectionProps,
+  updateSectionSlots,
   updateProseMarkdown,
 } = usePageDocument(content, { active: canvasActive })
 
@@ -99,16 +100,18 @@ const previewUrl = computed(() => {
       v-model="content"
     />
 
-    <PageBuilderPageCanvas
-      v-else
-      :blocks="document.blocks"
-      :palette="palette"
-      :loading="parsing"
-      @insert="onInsert"
-      @remove="removeBlock"
-      @move="(id, dir) => moveBlock(id, dir)"
-      @update-props="(block, next) => updateSectionProps(block, next)"
-      @update-prose="(id, markdown) => updateProseMarkdown(id, markdown)"
-    />
+    <PageBuilderMediaPickerHost v-else>
+      <PageBuilderPageCanvas
+        :blocks="document.blocks"
+        :palette="palette"
+        :loading="parsing"
+        @insert="onInsert"
+        @remove="removeBlock"
+        @move="(id, dir) => moveBlock(id, dir)"
+        @update-props="(block, next) => updateSectionProps(block, next)"
+        @update-slots="(block, next) => updateSectionSlots(block, next)"
+        @update-prose="(id, markdown) => updateProseMarkdown(id, markdown)"
+      />
+    </PageBuilderMediaPickerHost>
   </div>
 </template>

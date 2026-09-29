@@ -15,13 +15,33 @@ const props = withDefaults(defineProps<{
   height: 600,
 })
 
-const nuxtImg = resolveComponent('NuxtImg')
-const tag = computed(() => (typeof nuxtImg === 'string' ? 'img' : nuxtImg))
+const nuxtApp = useNuxtApp()
+const hasNuxtImage = computed(() => '$img' in nuxtApp)
 
-/** Public `/img` and CMS `/images` URLs stay as-is; web media keys use localImageSharp. */
+const tag = computed(() => {
+  if (!hasNuxtImage.value) return 'img'
+  const nuxtImg = resolveComponent('NuxtImg')
+  return typeof nuxtImg === 'string' ? 'img' : nuxtImg
+})
+
+const resolvedSrc = computed(() => {
+  const src = props.src || ''
+  if (!src.startsWith('/img/')) return src
+  const site = String(useRuntimeConfig().public.siteUrl || '').replace(/\/$/, '')
+  if (!site || !import.meta.client) return src
+  try {
+    const siteOrigin = new URL(site, window.location.origin).origin
+    if (siteOrigin !== window.location.origin) return `${site}${src}`
+  }
+  catch {
+    return src
+  }
+  return src
+})
+
 const imageProvider = computed(() => {
-  const src = props.src
-  if (!src || typeof nuxtImg === 'string') return undefined
+  const src = resolvedSrc.value
+  if (!src || !hasNuxtImage.value) return undefined
   if (/^(https?:)?\/\//.test(src) || src.startsWith('/') || src.startsWith('blob:')) {
     return undefined
   }
@@ -33,7 +53,7 @@ const imageProvider = computed(() => {
   <component
     :is="tag"
     v-if="src"
-    :src="src"
+    :src="resolvedSrc"
     :alt="alt"
     :title="title"
     :width="width"

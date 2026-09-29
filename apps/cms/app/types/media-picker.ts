@@ -28,7 +28,7 @@ export interface StockSearchResponse {
   hasMore: boolean
 }
 
-export type MediaPickerTab = 'library' | 'stock' | 'ai'
+export type MediaPickerTab = 'library' | 'site' | 'stock' | 'ai'
 
 export type StockOrientation = 'landscape' | 'portrait' | 'square'
 

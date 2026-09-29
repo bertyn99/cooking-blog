@@ -1,40 +1,25 @@
 <script setup lang="ts">
-import { useCanvasEditorProps } from '../../shared/content-editor/canvas-editor'
+import { catalogEntryForTag } from '../../shared/content-blocks/catalog'
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(defineProps<{
   image?: string
+  alt?: string
 }>(), {
   image: '/img/hero.jpg',
+  alt: '',
 })
 
 const emit = defineEmits<{
   'update:props': [Record<string, string>]
 }>()
-
-const { draft, persist, schedulePersist } = useCanvasEditorProps(
-  props,
-  ['image'] as const,
-  emit,
-)
 </script>
 
 <template>
-  <UCard :ui="{ body: 'space-y-3 p-4' }">
-    <p class="text-sm font-medium">
-      Bannière
-    </p>
-    <p class="text-xs text-muted">
-      Grande image d’accroche, comme sur le site.
-    </p>
-    <UFormField label="Image">
-      <UInput
-        v-model="draft.image"
-        placeholder="/img/hero.jpg"
-        @update:model-value="schedulePersist"
-        @blur="persist"
-      />
-    </UFormField>
-  </UCard>
+  <BlockPropsForm
+    :definition="catalogEntryForTag('hero')"
+    :values="props"
+    @update:values="emit('update:props', $event)"
+  />
 </template>

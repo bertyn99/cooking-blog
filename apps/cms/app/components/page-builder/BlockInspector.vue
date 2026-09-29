@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import {
-  catalogEntryForTag,
-  editorComponentName,
-  isSectionBlockTag,
-} from '#shared/content-blocks'
+import { catalogEntryForTag } from '#shared/content-blocks'
 import type { SectionBlock } from '~/composables/usePageDocument'
 
 const props = defineProps<{
@@ -12,98 +8,115 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   updateProps: [props: Record<string, string>]
+  updateSlots: [slots: Record<string, string>]
 }>()
 
 const def = computed(() => catalogEntryForTag(props.block.tag))
 
-const editorView = computed(() => {
-  if (!isSectionBlockTag(props.block.tag)) return null
-  const resolved = resolveComponent(editorComponentName(props.block.tag))
-  return typeof resolved === 'string' ? null : resolved
-})
-
+const slotDraft = reactive<Record<string, string>>({})
 const PERSIST_DEBOUNCE_MS = 300
-const draft = reactive<Record<string, string>>({})
-let persistTimer: ReturnType<typeof setTimeout> | undefined
+let slotTimer: ReturnType<typeof setTimeout> | undefined
 
-function syncDraft() {
-  for (const key of def.value.allowedProps) {
-    draft[key] = String(props.block.props[key] ?? def.value.defaultProps[key] ?? '')
+function slotStored(name: string, fallback?: string): string {
+  const stored = props.block.slots[name]
+  if (stored?.trim()) return stored
+  return fallback ?? ''
+}
+
+function syncSlots() {
+  for (const slot of def.value.slots) {
+    slotDraft[slot.name] = slotStored(slot.name, slot.default)
   }
 }
 
-function snapshot(): Record<string, string> {
+function persistSlots() {
+  if (slotTimer) {
+    clearTimeout(slotTimer)
+    slotTimer = undefined
+  }
   const next: Record<string, string> = {}
-  for (const key of def.value.allowedProps) {
-    next[key] = draft[key] ?? ''
+  for (const slot of def.value.slots) {
+    next[slot.name] = slotDraft[slot.name] ?? ''
   }
-  return next
-}
-
-function isUnchanged(next: Record<string, string>): boolean {
-  return def.value.allowedProps.every((key) => {
-    const current = String(props.block.props[key] ?? def.value.defaultProps[key] ?? '')
-    return (next[key] ?? '') === current
+  const unchanged = def.value.slots.every((slot) => {
+    return (next[slot.name] ?? '') === (props.block.slots[slot.name] ?? '')
   })
+  if (unchanged) return
+  emit('updateSlots', next)
 }
 
-function persist() {
-  if (persistTimer) {
-    clearTimeout(persistTimer)
-    persistTimer = undefined
-  }
-  const next = snapshot()
-  if (isUnchanged(next)) return
-  emit('updateProps', next)
-}
-
-function schedulePersist() {
-  if (persistTimer) clearTimeout(persistTimer)
-  persistTimer = setTimeout(persist, PERSIST_DEBOUNCE_MS)
+function scheduleSlotPersist() {
+  if (slotTimer) clearTimeout(slotTimer)
+  slotTimer = setTimeout(persistSlots, PERSIST_DEBOUNCE_MS)
 }
 
 watch(
   () => props.block.id,
   (_id, prevId) => {
-    if (prevId) persist()
-    syncDraft()
+    if (prevId) persistSlots()
+    syncSlots()
   },
   { immediate: true },
 )
 
 onBeforeUnmount(() => {
-  persist()
+  persistSlots()
 })
 </script>
 
 <template>
-  <component
-    :is="editorView"
-    v-if="editorView"
-    v-bind="block.props"
-    @update:props="emit('updateProps', $event)"
-  />
-  <UCard
-    v-else-if="def.allowedProps.length"
-    :ui="{ body: 'space-y-3 p-4' }"
-  >
-    <p class="text-sm font-medium">
-      {{ def.label }}
-    </p>
-    <p class="text-xs text-muted">
-      {{ def.description }}
-    </p>
-    <UFormField
-      v-for="key in def.allowedProps"
-      :key="key"
-      :label="key"
-    >
-      <UInput
-        v-model="draft[key]"
-        :placeholder="String(def.defaultProps[key] ?? '')"
-        @update:model-value="schedulePersist"
-        @blur="persist"
+  <UCard :ui="{ body: 'space-y-4 p-4' }">
+    <div class="flex flex-wrap items-center gap-2">
+      <UIcon
+        :name="def.icon"
+        class="size-4 text-muted"
       />
-    </UFormField>
+      <p class="text-sm font-medium text-highlighted">
+        {{ def.label }}
+      </p>
+      <BlockPropBadges
+        :fields="def.fields"
+        :values="block.props"
+      />
+    </div>
+
+    <BlockPropsForm
+      :key="block.id"
+      :definition="def"
+      :values="block.props"
+      :show-heading="false"
+      @update:values="emit('updateProps', $event)"
+    />
+
+    <div
+      v-if="def.slots.length"
+      class="space-y-3 border-t border-default pt-3"
+    >
+      <div
+        v-for="slot in def.slots"
+        :key="slot.name"
+        class="space-y-1.5"
+      >
+        <p class="font-mono text-[11px] text-muted">
+          # {{ slot.label }}
+        </p>
+        <UInput
+          v-if="slot.input === 'text'"
+          v-model="slotDraft[slot.name]"
+          :placeholder="slot.placeholder"
+          @update:model-value="scheduleSlotPersist"
+          @blur="persistSlots"
+        />
+        <UTextarea
+          v-else
+          v-model="slotDraft[slot.name]"
+          autoresize
+          :rows="3"
+          :placeholder="slot.placeholder || 'Texte du slot'"
+          @update:model-value="scheduleSlotPersist"
+          @blur="persistSlots"
+        />
+      </div>
+    </div>
   </UCard>
 </template>

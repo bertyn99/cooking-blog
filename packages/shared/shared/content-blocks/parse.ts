@@ -2,6 +2,7 @@ import { parseMarkdown } from 'comark'
 import { renderMarkdown } from 'comark/render'
 import type { MarkdownDocument } from 'comark'
 import { catalogEntryForTag, isLiftedBlockTag, type LiftedBlockTag } from './catalog'
+import { resolveSectionProps } from './schema'
 import { createBlockId, type PageBlock, type PageDocument, type ProseRegion, type SectionBlock } from './document'
 
 type AstNode = MarkdownDocument['nodes'][number]
@@ -92,16 +93,13 @@ export async function parsePageContent(markdown: string): Promise<PageDocument> 
     if (lifted) {
       await flushProse()
       const def = catalogEntryForTag(lifted)
+      const parsedProps = attrsToProps(nodeAttrs(current), def.allowedProps)
       const section: SectionBlock = {
         id: createBlockId('section', index++, lifted),
         kind: 'section',
         tag: lifted,
-        props: attrsToProps(nodeAttrs(current), def.allowedProps),
-        slots: {},
-      }
-      if (lifted !== 'image') {
-        const slotMarkdown = await extractSlotMarkdown(current)
-        if (slotMarkdown) section.slots.default = slotMarkdown
+        props: resolveSectionProps(def.fields, parsedProps),
+        slots: lifted === 'image' ? {} : await extractSlots(current),
       }
       blocks.push(section)
       continue
@@ -113,15 +111,43 @@ export async function parsePageContent(markdown: string): Promise<PageDocument> 
   return { blocks }
 }
 
-async function extractSlotMarkdown(node: AstNode): Promise<string> {
-  if (node.length <= 2) return ''
-  const tail = node.slice(2)
-  if (tail.length === 1 && typeof tail[0] === 'string') {
-    return tail[0].trim()
+async function childrenToMarkdown(children: unknown[]): Promise<string> {
+  const childNodes = children.filter(isAstNode)
+  if (childNodes.length > 0) {
+    return (await nodesToMarkdown(childNodes)).trim()
   }
-  const childNodes = tail.filter(isAstNode)
-  if (childNodes.length === 0) return ''
-  return nodesToMarkdown(childNodes)
+  return children
+    .filter((child): child is string => typeof child === 'string')
+    .join('')
+    .trim()
+}
+
+function isNamedTemplate(node: AstNode): boolean {
+  return node[0] === 'template' && typeof nodeAttrs(node).name === 'string'
+}
+
+async function extractSlots(node: AstNode): Promise<Record<string, string>> {
+  const slots: Record<string, string> = {}
+  if (node.length <= 2) return slots
+
+  const tail = node.slice(2)
+  const templates = tail.filter((child): child is AstNode => isAstNode(child) && isNamedTemplate(child))
+  const rest = tail.filter(child => !(isAstNode(child) && isNamedTemplate(child)))
+
+  for (const template of templates) {
+    const name = String(nodeAttrs(template).name || 'default')
+    const markdown = await childrenToMarkdown(template.slice(2))
+    if (markdown) slots[name] = markdown
+  }
+
+  if (rest.length > 0) {
+    const markdown = await childrenToMarkdown(rest)
+    if (markdown) {
+      slots.default = slots.default ? `${slots.default}\n\n${markdown}` : markdown
+    }
+  }
+
+  return slots
 }
 
 export function assertPageDocument(doc: PageDocument): void {

@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import {
   assertPageDocument,
+  catalogEntryForTag,
+  fieldKindMeta,
   nextUnusedBlockId,
   parsePageContent,
   pageContentRoundTrip,
+  propCountLabel,
+  PUBLIC_SITE_IMAGES,
   serializePageDocument,
+  uniqueFieldKinds,
+  visibleFields,
 } from '@journalducuistot/shared/content-blocks'
 
 describe('parsePageContent', () => {
@@ -84,7 +90,7 @@ Astuce
     const doc = await parsePageContent(md)
     expect(doc.blocks[0]).toMatchObject({ kind: 'section', tag: 'hero' })
     if (doc.blocks[0]?.kind !== 'section') throw new Error('expected section')
-    expect(doc.blocks[0].props).toEqual({ image: '/img/hero.jpg' })
+    expect(doc.blocks[0].props).toEqual({ image: '/img/hero.jpg', alt: '' })
     const out = await serializePageDocument(doc)
     expect(out).not.toContain('onclick')
   })
@@ -115,6 +121,34 @@ Astuce
     expect(collision).toBe('section-4-hero')
   })
 
+  it('parses named Comark slots into the section tree', async () => {
+    const md = `::hero{image="/img/hero.jpg"}
+#default
+Accroche
+::
+
+::callout{type="tip"}
+#default
+Astuce
+::`
+
+    const doc = await parsePageContent(md)
+    expect(doc.blocks[0]).toMatchObject({
+      kind: 'section',
+      tag: 'hero',
+      slots: { default: 'Accroche' },
+    })
+    expect(doc.blocks[1]).toMatchObject({
+      kind: 'section',
+      tag: 'callout',
+      props: { type: 'tip' },
+      slots: { default: 'Astuce' },
+    })
+    const round = await serializePageDocument(doc)
+    expect(round).toContain('Accroche')
+    expect(round).toContain('::callout{type="tip"}')
+  })
+
   it('escapes quotes, braces and newlines in section attrs', async () => {
     const doc = await parsePageContent('::hero{image="/img/hero.jpg"}\n::')
     const block = doc.blocks[0]
@@ -123,5 +157,44 @@ Astuce
     const out = await serializePageDocument(doc)
     expect(out).toContain('image="say \\"hi\\"\\}\\n/img/x.jpg"')
     expect(out).not.toMatch(/image="[^"]*\n/)
+  })
+})
+
+describe('content block field schema', () => {
+  it('counts visible props and unique input kinds', () => {
+    const recipe = catalogEntryForTag('recipe-list')
+    const latest = visibleFields(recipe.fields, { source: 'latest', limit: '4' })
+    expect(latest.map(field => field.key)).toEqual(['source', 'limit'])
+    expect(propCountLabel(latest.length)).toBe('2 props')
+    expect(uniqueFieldKinds(latest).map(kind => kind.label)).toEqual(['Liste', 'Nombre'])
+
+    const byCategory = visibleFields(recipe.fields, { source: 'category' })
+    expect(byCategory.map(field => field.key)).toContain('category')
+    expect(byCategory.map(field => field.key)).not.toContain('slugs')
+  })
+
+  it('labels media and text kinds for Studio badges', () => {
+    const hero = catalogEntryForTag('hero')
+    expect(uniqueFieldKinds(hero.fields)).toEqual([
+      { kind: 'media', label: 'Média', icon: 'i-lucide-image' },
+      { kind: 'text', label: 'Texte', icon: 'i-lucide-type' },
+    ])
+    expect(propCountLabel(hero.fields.length)).toBe('2 props')
+    expect(fieldKindMeta('color')).toMatchObject({ label: 'Couleur', icon: 'i-lucide-palette' })
+    expect(fieldKindMeta('text').label).toBe('Texte')
+  })
+
+  it('lists public site images for the Studio site tab', () => {
+    expect(PUBLIC_SITE_IMAGES.some(item => item.src === '/img/hero.jpg')).toBe(true)
+    expect(PUBLIC_SITE_IMAGES[0]?.alt.length).toBeGreaterThan(0)
+  })
+
+  it('applies catalog defaults when hero has no image attr', async () => {
+    const doc = await parsePageContent('::hero\n::')
+    expect(doc.blocks[0]).toMatchObject({
+      kind: 'section',
+      tag: 'hero',
+      props: { image: '/img/hero.jpg', alt: '' },
+    })
   })
 })

@@ -39,11 +39,29 @@ function serializeSectionBlock(block: SectionBlock): string {
   const def = catalogEntryForTag(block.tag)
   const attrs = serializeProps(block, def)
   const open = attrs ? `::${block.tag}{${attrs}}` : `::${block.tag}`
-  const defaultSlot = block.slots.default?.trim()
-  if (defaultSlot) {
-    return `${open}\n${defaultSlot}\n::`
+  const slotNames = Object.keys(block.slots).filter(name => block.slots[name]?.trim())
+  if (slotNames.length === 0) {
+    return `${open}\n::`
   }
-  return `${open}\n::`
+  const namedOnly = slotNames.filter(name => name !== 'default')
+  if (namedOnly.length === 0) {
+    return `${open}\n${block.slots.default!.trim()}\n::`
+  }
+  const ordered = [
+    ...def.slots.map(slot => slot.name),
+    ...slotNames.filter(name => !def.slots.some(slot => slot.name === name)),
+  ]
+  const seen = new Set<string>()
+  const chunks: string[] = [open]
+  for (const name of ordered) {
+    if (seen.has(name)) continue
+    seen.add(name)
+    const markdown = block.slots[name]?.trim()
+    if (!markdown) continue
+    chunks.push(`#${name}`, markdown)
+  }
+  chunks.push('::')
+  return chunks.join('\n')
 }
 
 export async function serializePageDocument(doc: PageDocument): Promise<string> {

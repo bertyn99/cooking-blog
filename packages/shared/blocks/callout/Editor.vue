@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { catalogEntryForTag } from '../../shared/content-blocks/catalog'
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
+import BlockPropBadges from '../../app/components/BlockPropBadges.vue'
 
 const props = defineProps(nodeViewProps)
 
@@ -44,6 +46,8 @@ const typeItems = (Object.keys(typeMeta) as CalloutType[]).map(value => ({
 }))
 
 const meta = computed(() => typeMeta[type.value] ?? typeMeta.info)
+const calloutFields = catalogEntryForTag('callout').fields
+const calloutValues = computed(() => ({ type: type.value }))
 </script>
 
 <template>
@@ -68,6 +72,10 @@ const meta = computed(() => typeMeta[type.value] ?? typeMeta.info)
         <span class="text-xs font-semibold tracking-tight text-highlighted">
           Encadré
         </span>
+        <BlockPropBadges
+          :fields="calloutFields"
+          :values="calloutValues"
+        />
         <USelect
           v-model="type"
           :items="typeItems"

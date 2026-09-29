@@ -56,6 +56,21 @@ export default defineNuxtModule<ModuleOptions>({
         filePath: resolve('./app/components/BlockSimpleChrome.vue'),
       })
     }
+
+    if (surfaces.has('editor') || surfaces.has('simple')) {
+      addComponent({
+        name: 'BlockPropBadges',
+        filePath: resolve('./app/components/BlockPropBadges.vue'),
+      })
+      addComponent({
+        name: 'BlockPropsForm',
+        filePath: resolve('./app/components/BlockPropsForm.vue'),
+      })
+      addComponent({
+        name: 'BlockMediaField',
+        filePath: resolve('./app/components/BlockMediaField.vue'),
+      })
+    }
   },
 })
 

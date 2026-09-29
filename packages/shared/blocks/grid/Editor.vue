@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
+import { catalogEntryForTag } from '../../shared/content-blocks/catalog'
 import { clampGridCols, syncGridColumnCount } from '../../shared/content-editor/grid-columns'
+import BlockPropBadges from '../../app/components/BlockPropBadges.vue'
 
 const props = defineProps(nodeViewProps)
 
@@ -106,6 +108,11 @@ watch(colCount, scheduleApplyGridLayout)
             </p>
           </div>
         </div>
+        <BlockPropBadges
+          class="hidden sm:flex"
+          :fields="catalogEntryForTag('grid').fields"
+          :values="{ cols: colCount }"
+        />
 
         <div
           class="ml-auto inline-flex items-center rounded-lg bg-elevated p-0.5 ring-1 ring-default"

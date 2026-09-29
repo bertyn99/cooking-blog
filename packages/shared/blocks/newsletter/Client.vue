@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import JdcPublicSurface from '../../app/components/JdcPublicSurface.vue'
+import { catalogEntryForTag } from '../../shared/content-blocks/catalog'
 
 defineOptions({ inheritAttrs: false })
 
 const formId = useId()
+const slots = catalogEntryForTag('newsletter').slots
+
+function slotFallback(name: string): string {
+  return slots.find(slot => slot.name === name)?.default ?? ''
+}
 </script>
 
 <template>
@@ -14,11 +20,15 @@ const formId = useId()
       >
         <div class="max-w-xl text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl lg:col-span-7">
           <h2 class="inline sm:block lg:inline xl:block">
-            Tu veux recevoir les dernières recettes ?
+            <slot name="title">
+              {{ slotFallback('title') }}
+            </slot>
           </h2>
           {{ ' ' }}
           <p class="inline sm:block lg:inline xl:block">
-            Inscris-toi à notre newsletter pour ne rien rater !
+            <slot name="subtitle">
+              {{ slotFallback('subtitle') }}
+            </slot>
           </p>
         </div>
         <form
@@ -36,7 +46,7 @@ const formId = useId()
               type="email"
               autocomplete="email"
               required
-              placeholder="Enter your email"
+              placeholder="Votre e-mail"
               size="lg"
               class="min-w-0 flex-auto"
               :ui="{
@@ -45,11 +55,14 @@ const formId = useId()
             />
             <UButton
               type="submit"
-              label="Inscrire-toi"
               color="primary"
               size="lg"
               class="flex-none rounded-md bg-yellow-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500"
-            />
+            >
+              <slot name="button">
+                {{ slotFallback('button') }}
+              </slot>
+            </UButton>
           </div>
           <p class="mt-4 text-sm leading-6 text-gray-900">
             Vous pouvez vous désinscrire à tout moment. Pour plus d'informations, consultez notre

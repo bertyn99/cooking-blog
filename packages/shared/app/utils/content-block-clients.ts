@@ -59,3 +59,33 @@ export function buildProseBlockClients(): Record<string, Component> {
   }
   return components
 }
+
+function kebabFromSimplePath(path: string): string | null {
+  const match = path.match(/\/blocks\/([^/]+)\/Simple\.vue$/)
+  return match?.[1] ?? null
+}
+
+/** Canvas Vue simple map: `hero` → `blocks/hero/Simple.vue`. */
+export function buildContentBlockSimples(): Record<string, Component> {
+  const modules = import.meta.glob<{ default: Component }>(
+    '../../blocks/*/Simple.vue',
+    { eager: true },
+  )
+
+  const components: Record<string, Component> = {}
+
+  for (const [path, mod] of Object.entries(modules)) {
+    const kebab = kebabFromSimplePath(path)
+    if (!kebab || !mod.default) continue
+    components[kebab] = mod.default
+  }
+
+  return components
+}
+
+export {
+  JdcMediaPickerKey,
+  type JdcMediaPickCurrent,
+  type JdcMediaPickResult,
+  type JdcMediaPickerApi,
+} from './jdc-media-picker'

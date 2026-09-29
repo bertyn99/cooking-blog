@@ -13,14 +13,11 @@ const emit = defineEmits<{
   remove: [id: string]
   move: [id: string, direction: -1 | 1]
   updateProps: [block: SectionBlock, props: Record<string, string>]
+  updateSlots: [block: SectionBlock, slots: Record<string, string>]
   updateProse: [id: string, markdown: string]
 }>()
 
 const selectedId = shallowRef<string | null>(null)
-
-const selectedBlock = computed(() =>
-  props.blocks.find(block => block.id === selectedId.value) ?? null,
-)
 
 watch(
   () => props.blocks.map(block => block.id).join(','),
@@ -103,15 +100,11 @@ function selectBlock(id: string) {
             :block="block"
             :selected="selectedId === block.id"
             @update-prose="(id, markdown) => emit('updateProse', id, markdown)"
+            @update-slots="(next) => block.kind === 'section' && emit('updateSlots', block, next)"
+            @update-props="(next) => block.kind === 'section' && emit('updateProps', block, next)"
           />
         </div>
       </div>
-
-      <PageBuilderBlockInspector
-        v-if="selectedBlock?.kind === 'section'"
-        :block="selectedBlock"
-        @update-props="(next) => emit('updateProps', selectedBlock, next)"
-      />
     </div>
   </div>
 </template>

@@ -9,11 +9,13 @@ const props = withDefaults(defineProps<{
   selectedPathname?: string | null
   selectOnUpload?: boolean
   deferUpload?: boolean
+  includeSite?: boolean
 }>(), {
   title: 'Bibliothèque médias',
   selectedPathname: null,
   selectOnUpload: true,
   deferUpload: false,
+  includeSite: false,
 })
 
 const emit = defineEmits<{
@@ -57,6 +59,9 @@ const tabItems = computed(() => {
   const items: { label: string, value: MediaPickerTab, disabled?: boolean }[] = [
     { label: 'Bibliothèque', value: 'library' },
   ]
+  if (props.includeSite) {
+    items.push({ label: 'Site', value: 'site' })
+  }
   if (capabilities.value.stock) {
     items.push({ label: 'Stock', value: 'stock' })
   }
@@ -126,9 +131,11 @@ function updateFooterFromSelection() {
   }
   footerStatus.value = activeTab.value === 'stock'
     ? 'Recherchez une photo libre de droits'
-    : activeTab.value === 'ai'
-      ? 'Décrivez l’image à générer'
-      : 'Sélectionnez une image dans la grille'
+    : activeTab.value === 'site'
+      ? 'Choisissez une image du dossier public'
+      : activeTab.value === 'ai'
+        ? 'Décrivez l’image à générer'
+        : 'Sélectionnez une image dans la grille'
 }
 
 watch([pendingPathname, pendingLocal, stockAttribution, activeTab, busy], updateFooterFromSelection)
@@ -224,7 +231,9 @@ async function onAiGenerated(pathname: string) {
 
 watch(open, async (isOpen) => {
   if (isOpen) {
-    activeTab.value = 'library'
+    activeTab.value = props.includeSite && props.selectedPathname?.startsWith('/img/')
+      ? 'site'
+      : 'library'
     clearPending()
     pendingPathname.value = props.selectedPathname
     await loadCapabilities()
@@ -341,6 +350,13 @@ function onCancel() {
             @select-local="onLibrarySelectLocal"
             @busy="(value) => { busy = value; busyLabel = value ? 'Compression…' : '' }"
             @confirm="confirmSelection"
+          />
+
+          <ContentMediaPickerSiteTab
+            v-if="includeSite"
+            v-show="activeTab === 'site'"
+            :selected-src="pendingPathname"
+            @select="onLibrarySelect"
           />
 
           <ContentMediaPickerStockTab

@@ -1,13 +1,19 @@
 <script setup lang="ts">
+import { catalogEntryForTag } from '../../shared/content-blocks/catalog'
+
 defineOptions({ inheritAttrs: false })
+
+const emptyValues: Record<string, string | number | boolean> = {}
+
+const emit = defineEmits<{
+  'update:props': [Record<string, string>]
+}>()
 </script>
 
 <template>
-  <UAlert
-    color="neutral"
-    variant="subtle"
-    icon="i-lucide-mail"
-    title="Newsletter"
-    description="Aucun réglage. L’apparence suit le site public."
+  <BlockPropsForm
+    :definition="catalogEntryForTag('newsletter')"
+    :values="emptyValues"
+    @update:values="emit('update:props', $event)"
   />
 </template>

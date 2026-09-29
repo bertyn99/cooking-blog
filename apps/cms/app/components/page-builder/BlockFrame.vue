@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { PageBlock } from '~/composables/usePageDocument'
-import { PAGE_BLOCK_CATALOG, simpleComponentName } from '#shared/content-blocks'
+import { buildContentBlockSimples } from '@journalducuistot/shared/markdown'
 import { PreviewMarkdown } from '~/utils/markdown/preview-markdown'
 
 const PERSIST_DEBOUNCE_MS = 300
+const simpleViews = buildContentBlockSimples()
 
 const props = defineProps<{
   block: PageBlock
@@ -12,23 +13,30 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   updateProse: [id: string, markdown: string]
+  updateSlots: [slots: Record<string, string>]
+  updateProps: [props: Record<string, string>]
 }>()
-
-const def = computed(() => {
-  if (props.block.kind !== 'section') return null
-  return PAGE_BLOCK_CATALOG.find(item => item.tag === props.block.tag)
-})
 
 const simpleView = computed(() => {
   if (props.block.kind !== 'section') return null
-  const resolved = resolveComponent(simpleComponentName(props.block.tag))
-  return typeof resolved === 'string' ? null : resolved
+  return simpleViews[props.block.tag] ?? null
 })
 
 const slotMarkdown = computed(() => {
   if (props.block.kind !== 'section') return ''
   return props.block.slots.default ?? ''
 })
+
+const extraSlots = computed(() => {
+  if (props.block.kind !== 'section') return []
+  return Object.entries(props.block.slots)
+    .filter(([name, markdown]) => name !== 'default' && markdown.trim())
+    .map(([name, markdown]) => ({ name, markdown }))
+})
+
+function onSlotValues(next: Record<string, string>) {
+  emit('updateSlots', next)
+}
 
 const proseDraft = shallowRef(props.block.kind === 'prose' ? props.block.markdown : '')
 let persistTimer: ReturnType<typeof setTimeout> | undefined
@@ -65,56 +73,58 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <UCard
-    :ui="{ body: 'p-3' }"
+  <div
+    class="rounded-lg"
     :class="selected ? 'ring-2 ring-primary' : ''"
   >
-    <div class="flex items-start gap-2">
-      <UIcon
-        v-if="def"
-        :name="def.icon"
-        class="mt-0.5 size-5 text-muted"
+    <component
+      :is="simpleView"
+      v-if="block.kind === 'section' && simpleView"
+      v-bind="block.props"
+      :expanded="selected"
+      :values="block.props"
+      :slot-values="block.slots"
+      @update:slot-values="onSlotValues"
+      @update:values="emit('updateProps', $event)"
+    >
+      <PreviewMarkdown
+        v-if="slotMarkdown.trim()"
+        :value="slotMarkdown"
       />
-      <div class="min-w-0 flex-1">
-        <p class="font-medium">
-          {{ def?.label ?? (block.kind === 'prose' ? 'Texte' : block.kind) }}
-        </p>
-        <component
-          :is="simpleView"
-          v-if="block.kind === 'section' && simpleView"
-          v-bind="block.props"
-          class="mt-2"
-        >
-          <PreviewMarkdown
-            v-if="slotMarkdown.trim()"
-            :value="slotMarkdown"
-          />
-        </component>
-        <p
-          v-else-if="block.kind === 'section'"
-          class="text-xs text-muted font-mono"
-        >
-          ::{{ block.tag }}
-        </p>
-        <div
-          v-else
-          class="mt-2 space-y-2"
-        >
-          <PreviewMarkdown
-            v-if="proseDraft.trim()"
-            :value="proseDraft"
-          />
-          <UTextarea
-            v-model="proseDraft"
-            autoresize
-            :rows="3"
-            placeholder="Markdown"
-            @click.stop
-            @update:model-value="schedulePersist"
-            @blur="flushProse(block.id)"
-          />
-        </div>
-      </div>
+      <template
+        v-for="slot in extraSlots"
+        :key="slot.name"
+        #[slot.name]
+      >
+        <PreviewMarkdown :value="slot.markdown" />
+      </template>
+    </component>
+    <p
+      v-else-if="block.kind === 'section'"
+      class="px-3 py-2 font-mono text-xs text-muted"
+    >
+      ::{{ block.tag }}
+    </p>
+    <div
+      v-else
+      class="space-y-2 rounded-lg border border-default/70 p-3"
+    >
+      <p class="text-sm font-medium text-highlighted">
+        Texte
+      </p>
+      <PreviewMarkdown
+        v-if="proseDraft.trim()"
+        :value="proseDraft"
+      />
+      <UTextarea
+        v-model="proseDraft"
+        autoresize
+        :rows="3"
+        placeholder="Markdown"
+        @click.stop
+        @update:model-value="schedulePersist"
+        @blur="flushProse(block.id)"
+      />
     </div>
-  </UCard>
+  </div>
 </template>

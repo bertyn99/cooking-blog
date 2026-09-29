@@ -118,6 +118,17 @@ export function usePageDocument(content: Ref<string>, options: { active: Ref<boo
     await persistToMarkdown()
   }
 
+  async function updateSectionSlots(block: SectionBlock, slots: Record<string, string>) {
+    discardInFlightParse()
+    document.value = {
+      blocks: document.value.blocks.map((item) => {
+        if (item.id !== block.id || item.kind !== 'section') return item
+        return { ...item, slots: { ...slots } }
+      }),
+    }
+    await persistToMarkdown()
+  }
+
   async function updateProseMarkdown(id: string, markdown: string) {
     discardInFlightParse()
     document.value = {
@@ -141,6 +152,7 @@ export function usePageDocument(content: Ref<string>, options: { active: Ref<boo
     removeBlock,
     moveBlock,
     updateSectionProps,
+    updateSectionSlots,
     updateProseMarkdown,
   }
 }
