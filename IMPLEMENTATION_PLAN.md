@@ -103,7 +103,7 @@ export function useDb(event: H3Event) {
 
 **Spike required**: [Alchemy Nuxt page](https://v2.alchemy.run/cloudflare/frontend/nuxt) states Nuxt SSR is not yet a first-class Alchemy resource. Validate `nuxt build` (cloudflare preset) → `Cloudflare.Worker` with D1/R2 bindings before full migration. Fallback: Alchemy provisions resources; Nitro deploys separately until Nuxt support lands.
 
-**v1 → v2**: If any v1 Alchemy code exists, read [Migrating from v1](https://v2.alchemy.run/migrating-from-v1). Use `alchemy login` (profiles in `~/.alchemy/profiles.json`) — do NOT export `CLOUDFLARE_API_TOKEN` in docs/runbooks.
+**v1 → v2**: If any v1 Alchemy code exists, read [Migrating from v1](https://v2.alchemy.run/migrating-from-v1). Use `alchemy profile edit` (profiles under `~/.alchemy/profiles/<name>/`) — do NOT export `CLOUDFLARE_API_TOKEN` in docs/runbooks.
 
 #### Comark (replaces @nuxtjs/mdc for content rendering)
 
@@ -394,7 +394,7 @@ Critical Path: **T0 → T-ALCHEMY → T3 → T-EXTRACT → T8 → T13 → T14 �
   - Remove `@nuxthub/core` from `apps/cms`; replace all `hub:db` / `hub:blob` / `hub:kv` with `useDb(event)` + R2/KV via `event.context.cloudflare.env`
   - Both apps: `nitro.preset: 'cloudflare_module'`, `compatibility.flags: ['nodejs_compat']`
   - Root scripts: `"deploy": "alchemy deploy"`, `"dev:infra": "alchemy dev"`
-  - Auth: `alchemy login` (profiles) — document in README, never hardcode CF tokens
+  - Auth: `alchemy profile edit` (profiles) — document in README, never hardcode CF tokens
   - Migrations: `Drizzle.Schema` in stack OR `drizzle-kit generate` → `infra/migrations/`
 
   **References**:
@@ -1331,8 +1331,8 @@ pnpm --filter cms test                    # CMS unit tests
 pnpm --filter web test                    # Web unit tests (when added)
 
 # Alchemy (confirm with team before deploy)
-alchemy login                             # once per machine
-alchemy deploy                            # provisions D1 + R2 + KV
+alchemy profile edit                      # once per machine (or: pnpm login:alchemy)
+alchemy deploy --stage preview            # provisions D1 + R2 + KV (never omit --stage)
 
 # CMS API health (cms on :3001)
 curl http://localhost:3001/api/health     # Expected: { status: 'ok' } + DB ping

@@ -53,8 +53,8 @@ export const workers = Effect.fn(function* (input: {
   const stage = yield* Stage
   const isProd = stage === 'prod'
   const isAlchemyDev = yield* Alchemy.ALCHEMY_DEV
-  const prodWebHost = (yield* Config.string('PROD_WEB_HOST').pipe(Config.withDefault(''))).trim()
-  const prodCmsHost = (yield* Config.string('PROD_CMS_HOST').pipe(Config.withDefault(''))).trim()
+  const prodWebHost = (yield* Config.String('PROD_WEB_HOST').pipe(Config.withDefault(''))).trim()
+  const prodCmsHost = (yield* Config.String('PROD_CMS_HOST').pipe(Config.withDefault(''))).trim()
   if (isProd && !prodWebHost) {
     throw new Error(
       'PROD_WEB_HOST is required for stage=prod (hostname only, e.g. journalducuistot.fr). Set the GitHub Actions secret before deploying.',
@@ -81,8 +81,8 @@ export const workers = Effect.fn(function* (input: {
   })
 
   // Nuxt runtimeConfig only picks up NUXT_* env at runtime on Workers.
-  const strapiUrl = Config.string('STRAPI_URL').pipe(Config.withDefault(''))
-  const strapiApiToken = Config.string('STRAPI_API_TOKEN').pipe(Config.withDefault(''))
+  const strapiUrl = Config.String('STRAPI_URL').pipe(Config.withDefault(''))
+  const strapiApiToken = Config.String('STRAPI_API_TOKEN').pipe(Config.withDefault(''))
 
   // Website.Nuxt builds via @distilled.cloud/nuxt (cloudflare_module) and
   // runs Nuxt's own dev server under `alchemy dev` with bindings on
@@ -112,18 +112,18 @@ export const workers = Effect.fn(function* (input: {
       Media: input.Media,
       Cache: input.Cache,
       AI: Cloudflare.Workers.AI(),
-      CMS_AI_GATEWAY_ID: Config.string('CMS_AI_GATEWAY_ID').pipe(
+      CMS_AI_GATEWAY_ID: Config.String('CMS_AI_GATEWAY_ID').pipe(
         Config.withDefault(CMS_AI_GATEWAY_ID)
       ),
       ...(isAlchemyDev ? {} : { CONTENT_GENERATION: ContentGeneration }),
-      NUXT_SESSION_PASSWORD: Config.string('NUXT_SESSION_PASSWORD'),
-      NUXT_OG_IMAGE_SECRET: Config.string('NUXT_OG_IMAGE_SECRET').pipe(Config.withDefault('')),
+      NUXT_SESSION_PASSWORD: Config.String('NUXT_SESSION_PASSWORD'),
+      NUXT_OG_IMAGE_SECRET: Config.String('NUXT_OG_IMAGE_SECRET').pipe(Config.withDefault('')),
       STRAPI_URL: strapiUrl,
       NUXT_STRAPI_URL: strapiUrl,
       STRAPI_API_TOKEN: strapiApiToken,
       NUXT_STRAPI_API_TOKEN: strapiApiToken,
-      PEXELS_API_KEY: Config.string('PEXELS_API_KEY').pipe(Config.withDefault('')),
-      CMS_PREVIEW_TOKEN: Config.string('CMS_PREVIEW_TOKEN').pipe(Config.withDefault('')),
+      PEXELS_API_KEY: Config.String('PEXELS_API_KEY').pipe(Config.withDefault('')),
+      CMS_PREVIEW_TOKEN: Config.String('CMS_PREVIEW_TOKEN').pipe(Config.withDefault('')),
       ...(isProd && prodCmsHost
         ? { NUXT_PUBLIC_CMS_BASE_URL: `https://${normalizeHost(prodCmsHost)}` }
         : {}),
@@ -131,31 +131,33 @@ export const workers = Effect.fn(function* (input: {
         ? { NUXT_PUBLIC_SITE_URL: `https://${normalizeHost(prodWebHost)}` }
         : {}),
     },
-    crons: [PUBLISH_CRON],
+    // beta.78 forwards Worker crons into Vite/dev; skip locally so scheduled
+    // publish does not fire every 5 minutes during `alchemy dev`.
+    ...(isAlchemyDev ? {} : { crons: [PUBLISH_CRON] }),
     compatibility: NODE_COMPAT,
     memo: NUXT_MEMO,
   })
 
   // Prod → custom CMS host; preview / local → Cms.url (workers.dev or alchemy.dev localhost).
-  const cmsOriginOverride = yield* Config.string('CMS_BASE_URL').pipe(Config.option)
-  const cmsPublicOverride = yield* Config.string('NUXT_PUBLIC_CMS_BASE_URL').pipe(Config.option)
+  const cmsOriginOverride = yield* Config.String('CMS_BASE_URL').pipe(Config.option)
+  const cmsPublicOverride = yield* Config.String('NUXT_PUBLIC_CMS_BASE_URL').pipe(Config.option)
   const cmsWorkerOrigin = Output.map(Cms.url, (url) => url ?? 'http://localhost:3001')
   const defaultCmsOrigin = isProd ? prodCmsOrigin : cmsWorkerOrigin
   const cmsBaseUrl = cmsOriginOverride._tag === 'Some' ? cmsOriginOverride.value : defaultCmsOrigin
   const cmsPublicUrl =
     cmsPublicOverride._tag === 'Some' ? cmsPublicOverride.value : defaultCmsOrigin
-  const siteUrlFromEnv = yield* Config.string('NUXT_PUBLIC_SITE_URL').pipe(
+  const siteUrlFromEnv = yield* Config.String('NUXT_PUBLIC_SITE_URL').pipe(
     Config.withDefault('http://localhost:3000'),
   )
   const siteUrl = isProd
     ? `https://${normalizeHost(prodWebHost)}`
     : siteUrlFromEnv
-  const ogImageSecret = Config.string('NUXT_OG_IMAGE_SECRET').pipe(Config.withDefault(''))
+  const ogImageSecret = Config.String('NUXT_OG_IMAGE_SECRET').pipe(Config.withDefault(''))
   const umamiId = isProd
-    ? yield* Config.string('NUXT_UMAMI_ID').pipe(Config.withDefault(''))
+    ? yield* Config.String('NUXT_UMAMI_ID').pipe(Config.withDefault(''))
     : ''
   const umamiHost = isProd
-    ? yield* Config.string('NUXT_UMAMI_HOST').pipe(Config.withDefault(''))
+    ? yield* Config.String('NUXT_UMAMI_HOST').pipe(Config.withDefault(''))
     : ''
 
   const SkewProtection = yield* Cloudflare.KV.Namespace('WebSkewProtection', {})
@@ -172,7 +174,7 @@ export const workers = Effect.fn(function* (input: {
   // Resolve Config to plain strings before Website.Nuxt props — leaves Effect
   // values in env/nuxt can make Alchemy converge treat the Worker as dirty.
   const ogImageSecretValue = yield* ogImageSecret
-  const strapiUrlValue = yield* Config.string('STRAPI_URL').pipe(Config.withDefault(''))
+  const strapiUrlValue = yield* Config.String('STRAPI_URL').pipe(Config.withDefault(''))
 
   const Web = yield* Cloudflare.Website.Nuxt('Web', {
     rootDir: WEB_ROOT_DIR,
@@ -189,7 +191,7 @@ export const workers = Effect.fn(function* (input: {
       CMS_BASE_URL: cmsBaseUrl,
       NUXT_PUBLIC_CMS_BASE_URL: cmsPublicUrl,
       NUXT_PUBLIC_SITE_URL: siteUrl,
-      CMS_PREVIEW_TOKEN: Config.string('CMS_PREVIEW_TOKEN').pipe(Config.withDefault('')),
+      CMS_PREVIEW_TOKEN: Config.String('CMS_PREVIEW_TOKEN').pipe(Config.withDefault('')),
       NUXT_OG_IMAGE_SECRET: ogImageSecretValue,
       STRAPI_URL: strapiUrlValue,
       NUXT_UMAMI_ID: umamiId,

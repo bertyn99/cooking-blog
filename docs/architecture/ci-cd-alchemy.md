@@ -9,7 +9,7 @@ Automated Cloudflare deploys follow [Alchemy Part 5: CI/CD](https://alchemy.run/
 | Push to `main` | `prod` | `pnpm alchemy deploy --stage prod` |
 | Push to `dev` | `preview` | `pnpm alchemy deploy --stage preview` |
 
-Workflow: `.github/workflows/deploy.yml`. Remote Alchemy state is enabled via `CI=true` (see `alchemy.run.ts`).
+Workflow: `.github/workflows/deploy.yml`. Remote Alchemy state is enabled via `CI=true` (see `alchemy.run.ts`). Alchemy 2.0.0-beta.77+ resolves stage as `--stage` → `$ALCHEMY_STAGE` → `live_$USER` (`dev_$USER` for `alchemy dev`). The workflow sets both `STAGE` (shell prod-host checks) and `ALCHEMY_STAGE`, and still passes `--stage` explicitly. Never run a bare `pnpm alchemy deploy` — it would provision `live_$USER`.
 
 **Skew protection:** `bundleAssets` is off unless `SKEW_BUNDLE_ASSETS=1` (see `infra/workers.ts`). With `cloudflare-kv-binding`, Nuxt SEO stores each asset via Wrangler CLI during nitro `compiled` — that stalled Actions for ~1h.
 
@@ -17,7 +17,7 @@ Workflow: `.github/workflows/deploy.yml`. Remote Alchemy state is enabled via `C
 
 **Node on Actions:** The job uses Node **22** (`actions/setup-node`). The “Node 20 deprecated” line refers to the *action bundles* (checkout/cache), not the Node that runs `alchemy deploy` — the workflow prints/verifies `node -v` and sets `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`.
 
-**Local tip:** Prefer `ALCHEMY_REMOTE_STATE=1 pnpm deploy --stage preview` so local matches CI state. Stale local `.alchemy` from older `Command.Build` stacks can confuse the UI; remote state avoids that.
+**Local tip:** Set `ALCHEMY_PROFILE` in repo-root `.env` (day-to-day profile, e.g. `bertyn`) so `pnpm dev` / `pnpm alchemy deploy` do not fall back to `default`. Prefer `ALCHEMY_REMOTE_STATE=1 pnpm deploy --stage preview` so local matches CI state. Stale local `.alchemy` from older `Command.Build` stacks can confuse the UI; remote state avoids that.
 
 **Production domains** (only when `stage === prod`): set GitHub secrets `PROD_WEB_HOST` and `PROD_CMS_HOST` (hostnames only, e.g. `journalducuistot.fr` and `admin.journalducuistot.fr`). They are passed into `pnpm alchemy deploy` from `.github/workflows/deploy.yml`. The deploy step also exports `NUXT_PUBLIC_SITE_URL=https://$PROD_WEB_HOST` (plus `NUXT_SITE_ENV=production` / `NUXT_SITE_INDEXABLE=true`) so Nuxt does not bake `localhost` into canonicals, sitemaps, or robots. The zone must already be on your Cloudflare account; Alchemy provisions DNS + TLS on deploy.
 
@@ -49,7 +49,7 @@ Set via `pnpm deploy:github` from `.env`, or manually under **Settings → Secre
    ```bash
    pnpm login:alchemy --profile admin
    ```
-   Use Global API Key or a token with User/Account **API Tokens Write**. Do not use `admin` for day-to-day deploys.
+   (`login:alchemy` maps to `alchemy profile edit`. Profiles live under `~/.alchemy/profiles/<name>/`, not a single `profiles.json`.) Use Global API Key or a token with User/Account **API Tokens Write**. Do not use `admin` for day-to-day deploys.
 
 3. **GitHub stack** — Mint CI token and push repository secrets from `.env`:
    ```bash

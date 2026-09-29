@@ -12,6 +12,9 @@ concurrency:
 env:
   CI: true
   STAGE: ${{ github.ref == 'refs/heads/main' && 'prod' || 'preview' }}
+  # Alchemy 2.0.0-beta.77+ reads ALCHEMY_STAGE (STAGE is ignored). Keep both:
+  # STAGE for this workflow's prod-host checks, ALCHEMY_STAGE for the CLI fallback.
+  ALCHEMY_STAGE: ${{ github.ref == 'refs/heads/main' && 'prod' || 'preview' }}
   # Nuxt + Nitro cloudflare builds peak above Node's ~4GB default heap.
   NODE_OPTIONS: --max-old-space-size=8192
   # Actions themselves (checkout/setup-node) still ship Node-20 entrypoints;

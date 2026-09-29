@@ -1,7 +1,7 @@
 import { execSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { loadEnvFile } from 'node:process'
+import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import * as Effect from 'effect/Effect'
 
@@ -14,7 +14,8 @@ export function loadProjectEnv(): void {
     return
   }
   try {
-    loadEnvFile(envPath)
+    const loadEnvFile = (process as { loadEnvFile?: (path: string) => void }).loadEnvFile
+    loadEnvFile?.(envPath)
   } catch {
     // Missing or unreadable — ignore.
   }

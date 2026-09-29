@@ -31,6 +31,7 @@
   "dependencies": {
     "@ai-sdk/mcp": "^2.0.16",
     "@ai-sdk/vue": "^4.0.48",
+    "@comark/vue": "^0.7.0",
     "@iconify-json/lucide": "^1.2.116",
     "@iconify-json/simple-icons": "^1.2.89",
     "@jsquash/jpeg": "^1.6.0",
@@ -39,7 +40,7 @@
     "@jsquash/webp": "^1.5.0",
     "@libsql/client": "latest",
     "@nuxt/test-utils": "4.0.3",
-    "@nuxt/ui": "^4.11.0",
+    "@nuxt/ui": "^4.11.2",
     "@nuxtjs/mcp-toolkit": "^0.19.0",
     "@tanstack/table-core": "^8.21.3",
     "@vueuse/core": "^13.9.0",
@@ -58,7 +59,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@alchemy.run/frontend-frameworks": "2.0.0-beta.74",
+    "@alchemy.run/frontend-frameworks": "catalog:",
     "@cloudflare/workers-types": "^5.20260712.1",
     "@distilled.cloud/nuxt": "^0.17.1",
     "@nuxt/eslint-plugin": "catalog:",
