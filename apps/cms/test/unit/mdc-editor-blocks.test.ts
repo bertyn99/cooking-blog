@@ -170,6 +170,44 @@ describe('createMdcContainerMarkdownSpec', () => {
   })
 })
 
+describe('section block markdown spec', () => {
+  function createNode(type: string, attrs: Record<string, unknown>, content: unknown) {
+    return { type, attrs, content }
+  }
+
+  it('parses and serializes empty hero containers', () => {
+    const spec = createMdcContainerMarkdownSpec({
+      nodeName: 'hero',
+      content: 'none',
+      allowedAttributes: ['image'],
+      defaultAttributes: { image: '/img/hero.jpg' },
+    })
+
+    const src = '::hero{image="/img/hero.jpg"}\n::'
+    const token = spec.markdownTokenizer.tokenize(src, [], {
+      blockTokens: () => [],
+      inlineTokens: () => [],
+    }) as { type: string, attributes: Record<string, unknown>, tokens: unknown[] }
+
+    expect(token.type).toBe('hero')
+    expect(token.attributes.image).toBe('/img/hero.jpg')
+    expect(token.tokens).toEqual([])
+
+    const parsed = spec.parseMarkdown(token, {
+      parseChildren: () => [],
+      parseInline: () => [],
+      createNode,
+    }) as { type: string, attrs: Record<string, unknown>, content: unknown[] }
+    expect(parsed.content).toEqual([])
+
+    const md = spec.renderMarkdown(
+      { attrs: { image: '/img/hero.jpg' }, content: [] },
+      { renderChildren: () => '' },
+    )
+    expect(md).toBe('::hero{image="/img/hero.jpg"}\n::')
+  })
+})
+
 describe('extractOrphanPublicImagePaths', () => {
   it('finds /images/… that are not /images/uploads/', () => {
     const text = `

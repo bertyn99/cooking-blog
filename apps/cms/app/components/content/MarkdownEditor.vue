@@ -322,6 +322,16 @@ const imageBubbleItems = (editor: Editor): EditorToolbarItem[][] => [
 function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFocus: () => boolean } }) {
   return editor.isActive('image') && view.hasFocus()
 }
+
+const editorExtensions = computed(() => [
+  ContentImage,
+  ContentCallout,
+  ContentGridColumn,
+  ContentGrid,
+  completionExtension,
+  aiHighlightExtension,
+])
+
 </script>
 
 <template>
@@ -353,12 +363,12 @@ function imageBubbleShouldShow({ editor, view }: { editor: Editor, view: { hasFo
           link: { openOnClick: false },
         }"
         :image="false"
-        :extensions="[ContentImage, ContentCallout, ContentGridColumn, ContentGrid, completionExtension, aiHighlightExtension]"
+        :extensions="editorExtensions"
         :ui="{
           root: 'flex min-h-0 flex-1 flex-col',
           content: 'min-h-0 flex-1',
           base: [
-            preview ? 'pointer-events-none opacity-90' : '',
+            preview ? 'pointer-events-none' : '',
             embedded ? '!px-4 !pt-4 !pb-6 sm:!px-5' : '',
           ].filter(Boolean).join(' '),
         }"
