@@ -2,21 +2,10 @@ import { eq, and, isNull } from 'drizzle-orm'
 import type { AppDb } from '../db/create-db'
 import { pages } from '../db/schema/pages'
 import { siteSettings } from '../db/schema/site-settings'
+import { HOME_PAGE_MARKDOWN } from '@journalducuistot/shared/content-blocks'
 import { EDITOR_PAGE_DEFAULT_VIEW_KEY } from '../../shared/site-settings-keys'
 import { createPageQueries } from '../db/queries/pages'
 import { isPageSlugUniqueConstraint } from '../utils/sqlite-constraint'
-
-const HOME_MARKDOWN = `::hero{image="/img/hero.jpg"}
-::
-
-::newsletter
-::
-
-::recipe-list{source="latest" limit="4"}
-::
-
-::article-list{source="latest" limit="5"}
-::`
 
 export async function ensureEditorDefaults(db: AppDb) {
   const existing = await db
@@ -71,7 +60,7 @@ export async function ensureHomePage(db: AppDb) {
         name: 'Accueil',
         title: 'Accueil',
         slug: 'accueil',
-        content: HOME_MARKDOWN,
+        content: HOME_PAGE_MARKDOWN,
         parentId: null,
         isHome: true,
         status: 'published',

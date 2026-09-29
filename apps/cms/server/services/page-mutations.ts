@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3'
 import type { z } from 'zod'
+import { resolveNewPageContent } from '@journalducuistot/shared/content-blocks'
 import { createPageSchema, updatePageSchema } from '../utils/validations/pages'
 import { slugifyString } from '../utils/slug'
 import { useDb, useQueries } from '../utils/db'
@@ -62,7 +63,7 @@ export async function createPageMutation(
     name: body.name,
     title: body.title ?? null,
     slug,
-    content: body.content ?? null,
+    content: resolveNewPageContent(body.content),
     excerpt: body.excerpt ?? null,
     parentId: body.isHome ? null : (body.parentId ?? null),
     isHome: body.isHome ?? false,

@@ -6,6 +6,7 @@ import { pageFiliationLabel, type PageHierarchyNode } from '#shared/page-hierarc
 import { pagePublicPath } from '#shared/public-site-paths'
 import type { ContentStatus, PaginatedResponse } from '~/types/cms'
 import type { EditorNavSection } from '~/types/content-editor'
+import { DEFAULT_NEW_PAGE_MARKDOWN } from '@journalducuistot/shared/content-blocks'
 
 const schema = z.object({
   name: z.string().min(1, 'Nom requis'),
@@ -45,7 +46,7 @@ const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 const state = reactive<Schema>({
   name: props.initial?.name ?? '',
   title: props.initial?.title ?? '',
-  content: props.initial?.content ?? '',
+  content: props.initial?.content ?? (props.pageId ? '' : DEFAULT_NEW_PAGE_MARKDOWN),
   parentId: props.initial?.parentId ?? null,
   isHome: Boolean((props.initial as { isHome?: boolean } | undefined)?.isHome),
   locale: props.initial?.locale ?? 'fr',

@@ -9,7 +9,8 @@ import { mcpContentToolEnabled } from '../utils/enabled'
 import { MCP_CREATE, mcpCreatePageInput } from '../utils/payload'
 
 export default defineMcpTool({
-  description: 'Create a draft CMS page. Never publishes. Returns previewUrl.',
+  description:
+    'Create a draft CMS page with Comark section blocks (hero, prose, newsletter by default when content is omitted). Never publishes. Returns previewUrl.',
   annotations: MCP_CREATE,
   inputSchema: mcpCreatePageInput,
   enabled: event => mcpContentToolEnabled(event, 'pages'),

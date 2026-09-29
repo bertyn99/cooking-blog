@@ -7,6 +7,7 @@ import {
   parsePageContent,
   pageContentRoundTrip,
   propCountLabel,
+  DEFAULT_NEW_PAGE_MARKDOWN,
   PUBLIC_SITE_IMAGES,
   serializePageDocument,
   uniqueFieldKinds,
@@ -187,6 +188,12 @@ describe('content block field schema', () => {
   it('lists public site images for the Studio site tab', () => {
     expect(PUBLIC_SITE_IMAGES.some(item => item.src === '/img/hero.jpg')).toBe(true)
     expect(PUBLIC_SITE_IMAGES[0]?.alt.length).toBeGreaterThan(0)
+  })
+
+  it('parses the default new-page seed for MCP and admin create', async () => {
+    const doc = await parsePageContent(DEFAULT_NEW_PAGE_MARKDOWN)
+    const tags = doc.blocks.map(block => block.kind === 'section' ? block.tag : block.kind)
+    expect(tags).toEqual(['hero', 'prose', 'newsletter'])
   })
 
   it('applies catalog defaults when hero has no image attr', async () => {

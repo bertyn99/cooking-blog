@@ -21,10 +21,11 @@ Mint a key in the CMS admin under **Clés API & transfert** with scopes:
 3. **Recipes** — still draft-only. `writable=false` or `403` means the recipe is live; do not update it.
 4. **Preview** — create/update/get/list return `previewUrl` (site `/preview?type=&slug=`). `publicUrl` is set only when `status=published`. Always give the human `previewUrl` after a change.
 5. **Comark markdown** — article `content` and recipe `intro` use Comark. Recipe `ingredients[]` / `steps[]` / `utensils[]` are structured fields, not markdown dumps.
-6. **Locale `fr`** unless specified otherwise.
-7. **Categories first** — call `list-article-categories` or `list-recipe-categories` before setting `categoryId`. Cover images: `list-media` → `coverBlobPathname`.
-8. **Generation** — `start-generation-run` always creates a **new** draft from pasted markdown (no `articleId`/`recipeId`).
-9. **Human publish** — after edits + SEO, stop unless the user asked only for content changes; an editor publishes in the admin UI.
+6. **Pages** — `create-page` needs `name` (required). Omit `content` to get the default page-builder seed (`::hero`, intro prose, `::newsletter`). Use `update-page` with Comark section blocks (`::hero`, `::recipe-list`, etc.) and named slots (`#title` under a section). Never set `isHome` unless the human asked for a new homepage.
+7. **Locale `fr`** unless specified otherwise.
+8. **Categories first** — call `list-article-categories` or `list-recipe-categories` before setting `categoryId`. Cover images: `list-media` → `coverBlobPathname`.
+9. **Generation** — `start-generation-run` always creates a **new** draft from pasted markdown (no `articleId`/`recipeId`).
+10. **Human publish** — after edits + SEO, stop unless the user asked only for content changes; an editor publishes in the admin UI.
 
 ## MCP vs REST
 
