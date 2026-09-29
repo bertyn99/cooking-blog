@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-const { content } = defineProps<{
+const { content, fullBleed = false } = defineProps<{
   content?: string | null;
+  fullBleed?: boolean;
 }>();
 
 const markdown = computed(() =>
@@ -14,5 +15,6 @@ const markdown = computed(() =>
     :markdown="markdown"
     tag="article"
     variant="page"
+    :full-bleed="fullBleed"
   />
 </template>

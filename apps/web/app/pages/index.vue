@@ -15,15 +15,15 @@ const { data: homepage } = await useAsyncData(
         isHome: true,
         include: ["seoMeta"],
         page: 1,
-        pageSize: 1,
+        pageSize: 20,
       });
-      page = home.data?.[0] ?? null;
+      page = home.data?.find(item => item.isHome) ?? null;
     }
     catch {
       page = null;
     }
 
-    const useCmsHome = Boolean(page?.content && page.status === "published");
+    const useCmsHome = Boolean(page?.isHome && page.content && page.status === "published");
     if (useCmsHome) {
       return { page, articles: [] as Article[], recipes: [] as Recipe[] };
     }
@@ -52,7 +52,7 @@ const { data: homepage } = await useAsyncData(
 
 const homePage = computed(() => homepage.value?.page ?? null);
 const useCmsHome = computed(
-  () => Boolean(homePage.value?.content && homePage.value.status === "published"),
+  () => Boolean(homePage.value?.isHome && homePage.value.content && homePage.value.status === "published"),
 );
 const articles = computed(() => homepage.value?.articles ?? []);
 const recipes = computed(() => homepage.value?.recipes ?? []);
@@ -81,7 +81,7 @@ useApplyPageSeo(computed(() => ({
   <SchemaOrgBreadcrumb :itemListElement="[{ name: 'Accueil', item: '/' }]" />
 
   <template v-if="useCmsHome && homePage?.content">
-    <BasePageBody :content="homePage.content" />
+    <BasePageBody :content="homePage.content" full-bleed />
   </template>
 
   <template v-else>

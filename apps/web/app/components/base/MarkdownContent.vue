@@ -1,12 +1,14 @@
 <script lang="ts" setup>
 import { sanitizePublicMarkdown } from "~/utils/sanitize-markdown";
 
-const { markdown, tag = "div", variant = "article" } = defineProps<{
+const { markdown, tag = "div", variant = "article", fullBleed = false } = defineProps<{
   markdown: string;
   tag?: string;
   class?: string;
   /** `page` enables CMS section blocks; `article` is blog/recipe prose only. */
   variant?: "article" | "page";
+  /** Landing sections span the viewport. Prose columns stay for long-form pages. */
+  fullBleed?: boolean;
 }>();
 
 const safeMarkdown = computed(() => sanitizePublicMarkdown(markdown));
@@ -17,8 +19,8 @@ const safeMarkdown = computed(() => sanitizePublicMarkdown(markdown));
     <component
       :is="tag"
       v-if="safeMarkdown"
-      class="w-full prose md:prose-lg lg:prose-xl max-w-4xl"
-      :class="$props.class"
+      class="w-full"
+      :class="[fullBleed ? 'max-w-none' : 'prose md:prose-lg lg:prose-xl max-w-4xl', $props.class]"
     >
       <BasePageComark v-if="variant === 'page'" :markdown="safeMarkdown" />
       <BaseAppComark v-else :markdown="safeMarkdown" />
