@@ -1,10 +1,16 @@
 import type { Ref } from 'vue'
-import { parsePageContent } from '#shared/content-blocks/parse'
-import { serializePageDocument } from '#shared/content-blocks/serialize'
-import type { PageBlock, PageDocument, SectionBlock } from '#shared/content-blocks/document'
-import { nextUnusedBlockId } from '#shared/content-blocks/document'
-import { defaultSectionMarkdown } from '#shared/content-blocks/insert'
-import { isSectionBlockTag, PAGE_BLOCK_CATALOG, type SectionBlockTag } from '#shared/content-blocks/catalog'
+import {
+  defaultSectionMarkdown,
+  isLiftedBlockTag,
+  nextUnusedBlockId,
+  PAGE_BLOCK_CATALOG,
+  parsePageContent,
+  serializePageDocument,
+  type LiftedBlockTag,
+  type PageBlock,
+  type PageDocument,
+  type SectionBlock,
+} from '#shared/content-blocks'
 
 const PARSE_DEBOUNCE_MS = 200
 
@@ -68,7 +74,7 @@ export function usePageDocument(content: Ref<string>, options: { active: Ref<boo
     content.value = serialized
   }
 
-  async function insertSection(tag: SectionBlockTag) {
+  async function insertSection(tag: LiftedBlockTag) {
     discardInFlightParse()
     const snippet = defaultSectionMarkdown(tag)
     const parsed = await parsePageContent(snippet)
@@ -139,5 +145,5 @@ export function usePageDocument(content: Ref<string>, options: { active: Ref<boo
   }
 }
 
-export { isSectionBlockTag }
-export type { PageBlock, PageDocument, SectionBlock, SectionBlockTag }
+export { isLiftedBlockTag }
+export type { PageBlock, PageDocument, SectionBlock, LiftedBlockTag }

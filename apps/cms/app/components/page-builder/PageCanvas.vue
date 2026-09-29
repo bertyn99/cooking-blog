@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PageBlockDefinition } from '#shared/content-blocks/catalog'
+import type { PageBlockDefinition } from '#shared/content-blocks'
 import type { PageBlock, SectionBlock } from '~/composables/usePageDocument'
 
 const props = defineProps<{

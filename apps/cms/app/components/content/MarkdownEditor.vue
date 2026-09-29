@@ -30,6 +30,13 @@ const pickerMode = ref<'insert' | 'replace'>('insert')
 const activeEditor = shallowRef<Editor | null>(null)
 const editorComponentRef = useTemplateRef('editorComponentRef')
 
+watch(preview, (isPreview) => {
+  if (!isPreview) return
+  linkPickerOpen.value = false
+  mediaPickerOpen.value = false
+  imageSettingsOpen.value = false
+})
+
 const {
   extension: completionExtension,
   highlightExtension: aiHighlightExtension,
@@ -343,12 +350,34 @@ const editorExtensions = computed(() => [
     ]"
   >
     <ClientOnly>
+      <div
+        v-if="preview"
+        class="flex min-h-0 flex-1 flex-col"
+      >
+        <div
+          class="flex flex-wrap items-center gap-1 border-b border-default bg-elevated/55 px-2 py-2 sm:px-3"
+          :class="embedded ? 'sticky top-0 z-[1] backdrop-blur-sm' : ''"
+        >
+          <UButton
+            class="ml-auto shrink-0"
+            size="xs"
+            color="primary"
+            variant="soft"
+            icon="i-lucide-pencil"
+            aria-label="Modifier"
+            @click="preview = false"
+          >
+            <span class="hidden sm:inline">Modifier</span>
+          </UButton>
+        </div>
+        <ContentMarkdownPreview :markdown="model" />
+      </div>
       <UEditor
+        v-show="!preview"
         ref="editorComponentRef"
         v-slot="{ editor }"
         v-model="model"
         content-type="markdown"
-        :editable="!preview"
         placeholder="Rédigez le contenu…"
         class="w-full"
         :class="embedded ? 'min-h-[20rem]' : 'min-h-[22rem]'"
@@ -367,14 +396,11 @@ const editorExtensions = computed(() => [
         :ui="{
           root: 'flex min-h-0 flex-1 flex-col',
           content: 'min-h-0 flex-1',
-          base: [
-            preview ? 'pointer-events-none' : '',
-            embedded ? '!px-4 !pt-4 !pb-6 sm:!px-5' : '',
-          ].filter(Boolean).join(' '),
+          base: embedded ? '!px-4 !pt-4 !pb-6 sm:!px-5' : '',
         }"
       >
         <DragHandle
-          v-if="editor && !preview"
+          v-if="editor"
           :editor="editor"
           :nested="{
             allowedContainers: ['gridColumn'],
@@ -395,13 +421,9 @@ const editorExtensions = computed(() => [
 
         <div
           class="flex flex-wrap items-center gap-1 border-b border-default bg-elevated/55 px-2 py-2 sm:px-3"
-          :class="[
-            preview ? 'opacity-70' : '',
-            embedded ? 'sticky top-0 z-[1] backdrop-blur-sm' : '',
-          ]"
+          :class="embedded ? 'sticky top-0 z-[1] backdrop-blur-sm' : ''"
         >
           <UEditorToolbar
-            v-if="!preview"
             :editor="editor"
             :items="fixedToolbarItems"
             layout="fixed"
@@ -450,7 +472,6 @@ const editorExtensions = computed(() => [
           </UEditorToolbar>
 
           <UButton
-            v-if="!preview"
             class="ml-auto shrink-0"
             size="xs"
             color="neutral"
@@ -461,22 +482,9 @@ const editorExtensions = computed(() => [
           >
             <span class="hidden sm:inline">Aperçu</span>
           </UButton>
-          <UButton
-            v-else
-            class="ml-auto shrink-0"
-            size="xs"
-            color="primary"
-            variant="soft"
-            icon="i-lucide-pencil"
-            aria-label="Modifier"
-            @click="preview = false"
-          >
-            <span class="hidden sm:inline">Modifier</span>
-          </UButton>
         </div>
 
         <UEditorToolbar
-          v-if="!preview"
           :editor="editor"
           :items="bubbleToolbarItems"
           layout="bubble"
@@ -484,7 +492,6 @@ const editorExtensions = computed(() => [
         />
 
         <UEditorToolbar
-          v-if="!preview"
           :editor="editor"
           :items="imageBubbleItems(editor)"
           layout="bubble"

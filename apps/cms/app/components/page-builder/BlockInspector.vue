@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { catalogEntryForTag } from '#shared/content-blocks/catalog'
+import {
+  catalogEntryForTag,
+  editorComponentName,
+  isSectionBlockTag,
+} from '#shared/content-blocks'
 import type { SectionBlock } from '~/composables/usePageDocument'
-
-const PERSIST_DEBOUNCE_MS = 300
 
 const props = defineProps<{
   block: SectionBlock
@@ -14,6 +16,13 @@ const emit = defineEmits<{
 
 const def = computed(() => catalogEntryForTag(props.block.tag))
 
+const editorView = computed(() => {
+  if (!isSectionBlockTag(props.block.tag)) return null
+  const resolved = resolveComponent(editorComponentName(props.block.tag))
+  return typeof resolved === 'string' ? null : resolved
+})
+
+const PERSIST_DEBOUNCE_MS = 300
 const draft = reactive<Record<string, string>>({})
 let persistTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -65,36 +74,31 @@ watch(
 onBeforeUnmount(() => {
   persist()
 })
-
-const sourceItems = [
-  { label: 'Derniers', value: 'latest' },
-  { label: 'Catégorie', value: 'category' },
-  { label: 'Slugs', value: 'slugs' },
-]
 </script>
 
 <template>
-  <UCard v-if="def.allowedProps.length" :ui="{ body: 'p-4 space-y-3' }">
+  <component
+    :is="editorView"
+    v-if="editorView"
+    v-bind="block.props"
+    @update:props="emit('updateProps', $event)"
+  />
+  <UCard
+    v-else-if="def.allowedProps.length"
+    :ui="{ body: 'space-y-3 p-4' }"
+  >
     <p class="text-sm font-medium">
       {{ def.label }}
     </p>
     <p class="text-xs text-muted">
       {{ def.description }}
     </p>
-
     <UFormField
       v-for="key in def.allowedProps"
       :key="key"
       :label="key"
     >
-      <USelect
-        v-if="key === 'source'"
-        v-model="draft[key]"
-        :items="sourceItems"
-        @update:model-value="persist"
-      />
       <UInput
-        v-else
         v-model="draft[key]"
         :placeholder="String(def.defaultProps[key] ?? '')"
         @update:model-value="schedulePersist"

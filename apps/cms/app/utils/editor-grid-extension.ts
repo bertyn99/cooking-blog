@@ -1,6 +1,6 @@
 import { mergeAttributes, Node } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
-import GridNodeView from '~/components/content/editor/GridNodeView.vue'
+import GridNodeView from '@journalducuistot/shared/blocks/grid/Editor.vue'
 import {
   clampGridCols,
   syncGridColumnCount,

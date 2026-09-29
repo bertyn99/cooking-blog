@@ -1,10 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  devServer: {
-    port: 3001,
-  },
+  modules: ['@journalducuistot/shared', 'nuxt-auth-utils', 'nuxt-authorization', '@nuxt/ui', '@vueuse/nuxt', 'evlog/nuxt', '@nuxtjs/mcp-toolkit'],
 
-  modules: ['nuxt-auth-utils', 'nuxt-authorization', '@nuxt/ui', '@vueuse/nuxt', 'evlog/nuxt', '@nuxtjs/mcp-toolkit'],
+  jdcContent: {
+    surfaces: ['client', 'editor', 'simple'],
+  },
 
   mcp: {
     name: 'Journal du Cuistot CMS',

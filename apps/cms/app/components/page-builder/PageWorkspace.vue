@@ -4,7 +4,7 @@ import {
   parsePageEditorDefaultView,
   type PageEditorDefaultView,
 } from '#shared/site-settings-keys'
-import { isSectionBlockTag } from '#shared/content-blocks/catalog'
+import { isLiftedBlockTag } from '#shared/content-blocks'
 import { usePageDocument } from '~/composables/usePageDocument'
 
 const content = defineModel<string>({ required: true })
@@ -56,7 +56,7 @@ watch(
 )
 
 async function onInsert(tag: string) {
-  if (!isSectionBlockTag(tag)) return
+  if (!isLiftedBlockTag(tag)) return
   await insertSection(tag)
 }
 

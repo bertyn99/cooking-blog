@@ -1,6 +1,6 @@
 import { mergeAttributes, Node } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
-import CalloutNodeView from '~/components/content/editor/CalloutNodeView.vue'
+import CalloutNodeView from '@journalducuistot/shared/blocks/callout/Editor.vue'
 import { createMdcContainerMarkdownSpec } from '~/utils/editor-mdc-container'
 
 declare module '@tiptap/core' {

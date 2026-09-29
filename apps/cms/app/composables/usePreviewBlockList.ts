@@ -8,6 +8,12 @@ export type PreviewListItem = {
   title: string
   slug: string
   coverBlobPathname?: string | null
+  cover?: { pathname?: string } | null
+  time?: number | null
+  difficulty?: string | null
+  category?: { name?: string, slug?: string } | null
+  seoMeta?: { description?: string } | null
+  content?: string | null
 }
 
 function parseLimit(raw: string | number | undefined, fallback: number): number {
@@ -46,7 +52,7 @@ export function usePreviewRecipeList(props: {
       const result = await $api<PaginatedResponse<PreviewListItem>>('/api/recipes', {
         query: {
           ...listQuery(props.source, props.category, props.slugs),
-          include: 'cover',
+          include: 'cover,category',
           page: 1,
           pageSize: limit.value,
         },
@@ -79,7 +85,7 @@ export function usePreviewArticleList(props: {
       const result = await $api<PaginatedResponse<PreviewListItem>>('/api/articles', {
         query: {
           ...listQuery(props.source, props.category, props.slugs),
-          include: 'cover',
+          include: 'cover,category',
           page: 1,
           pageSize: limit.value,
         },

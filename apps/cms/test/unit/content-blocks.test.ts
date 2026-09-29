@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { nextUnusedBlockId } from '../../shared/content-blocks/document'
-import { assertPageDocument, parsePageContent } from '../../shared/content-blocks/parse'
-import { pageContentRoundTrip, serializePageDocument } from '../../shared/content-blocks/serialize'
+import {
+  assertPageDocument,
+  nextUnusedBlockId,
+  parsePageContent,
+  pageContentRoundTrip,
+  serializePageDocument,
+} from '@journalducuistot/shared/content-blocks'
 
 describe('parsePageContent', () => {
   it('parses section blocks and prose regions', async () => {
@@ -21,6 +25,38 @@ Texte **gras**.
     expect(doc.blocks[1]?.kind).toBe('prose')
     expect(doc.blocks[2]).toMatchObject({ kind: 'section', tag: 'recipe-list' })
     assertPageDocument(doc)
+  })
+
+  it('lifts grid, callout and markdown images out of prose', async () => {
+    const md = `::hero{image="/img/hero.jpg"}
+::
+
+[**lien**](/blog/x)
+
+::grid{cols="2"}
+Gauche
+::
+
+![Un plat](/img/hero.jpg "4:3")
+
+::callout{type="tip"}
+Astuce
+::
+`
+
+    const doc = await parsePageContent(md)
+    const tags = doc.blocks.map(block => block.kind === 'section' ? block.tag : block.kind)
+    expect(tags).toEqual(['hero', 'prose', 'grid', 'image', 'callout'])
+    const image = doc.blocks.find(block => block.kind === 'section' && block.tag === 'image')
+    expect(image).toMatchObject({
+      kind: 'section',
+      tag: 'image',
+      props: { src: '/img/hero.jpg', alt: 'Un plat', title: '4:3' },
+    })
+    const round = await serializePageDocument(doc)
+    expect(round).toContain('![Un plat](/img/hero.jpg "4:3")')
+    expect(round).toContain('::grid{cols="2"}')
+    expect(round).toContain('::callout{type="tip"}')
   })
 
   it('round-trips homepage seed markdown', async () => {

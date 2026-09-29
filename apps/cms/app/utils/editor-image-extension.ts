@@ -1,7 +1,7 @@
 import { mergeAttributes } from '@tiptap/core'
 import Image from '@tiptap/extension-image'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
-import ImageNodeView from '~/components/content/editor/ImageNodeView.vue'
+import ImageNodeView from '@journalducuistot/shared/blocks/image/Editor.vue'
 import {
   contentImageClassList,
   isLikelyBrokenContentImageSrc,

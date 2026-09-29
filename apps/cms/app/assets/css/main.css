@@ -1,8 +1,7 @@
 @import "tailwindcss" theme(static);
 @import "@nuxt/ui";
 
-@layer components {
-  .cms-markdown-editor--embedded [data-slot="content"] {
+.cms-markdown-editor--embedded [data-slot="content"] {
     min-height: 18rem;
   }
 
@@ -225,7 +224,6 @@
     background-size: 220% 100%;
     animation: ai-review-shimmer 1.15s ease-in-out infinite;
   }
-}
 
 @keyframes ai-review-shimmer {
   0% {

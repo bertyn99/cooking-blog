@@ -1,4 +1,1 @@
-export * from './catalog'
-export * from './document'
-export { assertPageDocument, parsePageContent } from './parse'
-export { serializePageDocument, pageContentRoundTrip } from './serialize'
+export * from '@journalducuistot/shared/content-blocks'

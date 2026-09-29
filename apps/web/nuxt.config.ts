@@ -1,7 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { fileURLToPath } from 'node:url'
 import listRedirects from './app/utils/redirect.ts'
-import tailwindcss from '@tailwindcss/vite'
 import { resolveSiteIdentity, toSchemaOrgIdentity, SITE_AUTHOR_NAME } from './shared/site-identity.ts'
 
 const webRoot = fileURLToPath(new URL('.', import.meta.url))
@@ -78,6 +77,8 @@ export default defineNuxtConfig({
   },
 
   modules: [
+    '@journalducuistot/shared',
+    '@nuxt/ui',
     '@nuxtjs/seo',
     'nuxt-ai-ready',
     'nuxt-skew-protection',
@@ -114,8 +115,13 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/index.css'],
 
-  vite: {
-    plugins: [tailwindcss()],
+  ui: {
+    colorMode: false,
+    fonts: false,
+  },
+
+  jdcContent: {
+    surfaces: ['client'],
   },
 
   routeRules: {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PageBlock } from '~/composables/usePageDocument'
-import { PAGE_BLOCK_CATALOG } from '#shared/content-blocks/catalog'
+import { PAGE_BLOCK_CATALOG, simpleComponentName } from '#shared/content-blocks'
+import { PreviewMarkdown } from '~/utils/markdown/preview-markdown'
 
 const PERSIST_DEBOUNCE_MS = 300
 
@@ -16,6 +17,17 @@ const emit = defineEmits<{
 const def = computed(() => {
   if (props.block.kind !== 'section') return null
   return PAGE_BLOCK_CATALOG.find(item => item.tag === props.block.tag)
+})
+
+const simpleView = computed(() => {
+  if (props.block.kind !== 'section') return null
+  const resolved = resolveComponent(simpleComponentName(props.block.tag))
+  return typeof resolved === 'string' ? null : resolved
+})
+
+const slotMarkdown = computed(() => {
+  if (props.block.kind !== 'section') return ''
+  return props.block.slots.default ?? ''
 })
 
 const proseDraft = shallowRef(props.block.kind === 'prose' ? props.block.markdown : '')
@@ -67,19 +79,41 @@ onBeforeUnmount(() => {
         <p class="font-medium">
           {{ def?.label ?? (block.kind === 'prose' ? 'Texte' : block.kind) }}
         </p>
-        <p v-if="block.kind === 'section'" class="text-xs text-muted font-mono">
+        <component
+          :is="simpleView"
+          v-if="block.kind === 'section' && simpleView"
+          v-bind="block.props"
+          class="mt-2"
+        >
+          <PreviewMarkdown
+            v-if="slotMarkdown.trim()"
+            :value="slotMarkdown"
+          />
+        </component>
+        <p
+          v-else-if="block.kind === 'section'"
+          class="text-xs text-muted font-mono"
+        >
           ::{{ block.tag }}
         </p>
-        <UTextarea
+        <div
           v-else
-          v-model="proseDraft"
-          autoresize
-          :rows="3"
-          class="mt-2"
-          @click.stop
-          @update:model-value="schedulePersist"
-          @blur="flushProse(block.id)"
-        />
+          class="mt-2 space-y-2"
+        >
+          <PreviewMarkdown
+            v-if="proseDraft.trim()"
+            :value="proseDraft"
+          />
+          <UTextarea
+            v-model="proseDraft"
+            autoresize
+            :rows="3"
+            placeholder="Markdown"
+            @click.stop
+            @update:model-value="schedulePersist"
+            @blur="flushProse(block.id)"
+          />
+        </div>
       </div>
     </div>
   </UCard>

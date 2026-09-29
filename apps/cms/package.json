@@ -32,6 +32,7 @@
     "@ai-sdk/mcp": "^2.0.16",
     "@ai-sdk/vue": "^4.0.48",
     "@comark/vue": "^0.7.0",
+    "@journalducuistot/shared": "workspace:*",
     "@iconify-json/lucide": "^1.2.116",
     "@iconify-json/simple-icons": "^1.2.89",
     "@jsquash/jpeg": "^1.6.0",
