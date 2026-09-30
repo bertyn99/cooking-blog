@@ -5,8 +5,7 @@ import { resolveSiteIdentity, toSchemaOrgIdentity, SITE_AUTHOR_NAME } from './sh
 
 const webRoot = fileURLToPath(new URL('.', import.meta.url))
 
-const skewProtectionKvNamespaceId =
-  process.env.SKEW_PROTECTION_KV_NAMESPACE_ID || 'skew-protection-local'
+
 /** KV asset bundling only when explicitly opted in (see infra/workers.ts). */
 const skewProtectionBundleAssets = process.env.SKEW_BUNDLE_ASSETS === '1'
 
@@ -259,11 +258,11 @@ export default defineNuxtConfig({
   skewProtection: {
     updateStrategy: 'polling',
     bundleAssets: skewProtectionBundleAssets,
-    storage: {
-      driver: 'cloudflare-kv-binding',
-      binding: 'SKEW_PROTECTION',
-      namespaceId: skewProtectionKvNamespaceId,
-    },
+    // No build-time storage override: the module defaults to fs at
+    // node_modules/.cache/nuxt-seo/skew-protection (cached in CI via
+    // actions/cache). 'cloudflare-kv-binding' with a namespaceId falls back
+    // to the wrangler CLI driver, which is not installed — wrangler-free by
+    // design under Alchemy (infra/workers.ts).
   },
 
   experimental: {
