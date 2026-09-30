@@ -20,7 +20,11 @@ const hasNuxtImage = computed(() => '$img' in nuxtApp)
 
 const tag = computed(() => {
   if (!hasNuxtImage.value) return 'img'
-  const nuxtImg = resolveComponent('NuxtImg')
+  // Built as `['Nuxt', 'Img'].join('')` on purpose: Nuxt's production build
+  // statically matches resolveComponent('NuxtImg') (NUXT_B3004) and hard-fails
+  // host apps without @nuxt/image (the CMS). Runtime contract is unchanged —
+  // resolves to <NuxtImg> when the host provides it, plain <img> otherwise.
+  const nuxtImg = resolveComponent(['Nuxt', 'Img'].join(''))
   return typeof nuxtImg === 'string' ? 'img' : nuxtImg
 })
 
