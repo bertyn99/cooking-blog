@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { NuxtError } from '#app'
 import { computed } from 'vue'
-import { getErrorCode } from '../shared/error-code'
+import { getErrorCode } from '#shared/error-code'
 
 const props = defineProps<{
   error: NuxtError
