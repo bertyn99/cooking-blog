@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+
 export default defineNuxtConfig({
   modules: ['@journalducuistot/shared', 'nuxt-auth-utils', 'nuxt-authorization', '@nuxt/ui', '@vueuse/nuxt', 'evlog/nuxt', '@nuxtjs/mcp-toolkit'],
-
   jdcContent: {
     surfaces: ['client', 'editor', 'simple'],
   },
@@ -17,7 +17,9 @@ export default defineNuxtConfig({
       'Use start-generation-run for notes-to-new-draft; CRUD for precise edits on drafts.',
     ].join(' '),
     route: '/mcp',
-    sessions: false,
+    // Stateful transport (MCP-Session-Id + SSE) with per-session state via
+    // useMcpSession(). Persisted through the unstorage driver below.
+    sessions: { enabled: true },
     security: {
       allowedOrigins: '*',
     },
@@ -97,6 +99,26 @@ export default defineNuxtConfig({
     },
   },
 
+
+  nitro: {
+    // MCP sessions persist to KV through unstorage — see
+    // https://mcp-toolkit.nuxt.dev/advanced/sessions#custom-storage-driver.
+    // `Cache` is the KV namespace already bound by Alchemy (infra/workers.ts);
+    // the base prefix keeps session keys away from other Cache users.
+    storage: {
+      'mcp:sessions': {
+        driver: 'cloudflare-kv-binding',
+        binding: 'Cache',
+        base: 'mcp:sessions',
+      },
+    },
+    // nitro's base-worker preset forces noExternals: true, which refuses to
+    // bundle deps importing cloudflare:* runtime modules (the `agents` SDK
+    // behind @nuxtjs/mcp-toolkit's Cloudflare transport). The output stays
+    // ESM (`cloudflare_module`), so those imports must stay external — the
+    // Workers runtime provides cloudflare:workers/workflows/email natively.
+    noExternals: false,
+  },
   compatibilityDate: '2025-01-15',
 
   routeRules: {
