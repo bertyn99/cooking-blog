@@ -1,4 +1,26 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { fileURLToPath } from 'node:url'
+
+/**
+ * Map `cloudflare:*` runtime module imports onto local shims.
+ *
+ * workerd provides these modules natively and the deployed worker runs with
+ * `nodejs_compat`, but nitro's base-worker preset forces `noExternals`, and
+ * its no-externals resolver throws on `cloudflare:*` when the import comes
+ * from a node_modules dependency (`agents`, behind @nuxtjs/mcp-toolkit's
+ * Cloudflare transport). Redirecting to real shim files (which re-export the
+ * runtime modules through a computed dynamic specifier — see
+ * `server/shims/`) keeps nitro's single-script bundling intact.
+ */
+const cloudflareRuntimeModulesPlugin = {
+  name: 'jdc-cms:cloudflare-runtime-modules',
+  resolveId(id: string) {
+    if (id === 'cloudflare:workers' || id === 'cloudflare:workflows' || id === 'cloudflare:email') {
+      return { id: fileURLToPath(new URL(`./server/shims/cloudflare-${id.slice('cloudflare:'.length)}.mjs`, import.meta.url)), external: false }
+    }
+    return null
+  },
+}
 
 export default defineNuxtConfig({
   modules: ['@journalducuistot/shared', 'nuxt-auth-utils', 'nuxt-authorization', '@nuxt/ui', '@vueuse/nuxt', 'evlog/nuxt', '@nuxtjs/mcp-toolkit'],
@@ -112,20 +134,8 @@ export default defineNuxtConfig({
         base: 'mcp:sessions',
       },
     },
-    // nitro's base-worker preset forces noExternals: true, which refuses to
-    // bundle deps importing cloudflare:* runtime modules (the `agents` SDK
-    // behind @nuxtjs/mcp-toolkit's Cloudflare transport). Flipping noExternals
-    // off alone makes nitro's externals plugin externalize every node_modules
-    // dep into server/node_modules — which a single-script Workers upload
-    // cannot serve. So: inline everything EXCEPT cloudflare:* (the Workers
-    // runtime provides those natively) and mark them external.
-    noExternals: false,
-    externals: {
-      inline: [/^(?!cloudflare:)/],
-      external: [/^cloudflare:/],
-    },
     rollupConfig: {
-      external: [/^cloudflare:/],
+      plugins: [cloudflareRuntimeModulesPlugin],
     },
   },
   compatibilityDate: '2025-01-15',
