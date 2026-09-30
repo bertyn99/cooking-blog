@@ -114,10 +114,19 @@ export default defineNuxtConfig({
     },
     // nitro's base-worker preset forces noExternals: true, which refuses to
     // bundle deps importing cloudflare:* runtime modules (the `agents` SDK
-    // behind @nuxtjs/mcp-toolkit's Cloudflare transport). The output stays
-    // ESM (`cloudflare_module`), so those imports must stay external — the
-    // Workers runtime provides cloudflare:workers/workflows/email natively.
+    // behind @nuxtjs/mcp-toolkit's Cloudflare transport). Flipping noExternals
+    // off alone makes nitro's externals plugin externalize every node_modules
+    // dep into server/node_modules — which a single-script Workers upload
+    // cannot serve. So: inline everything EXCEPT cloudflare:* (the Workers
+    // runtime provides those natively) and mark them external.
     noExternals: false,
+    externals: {
+      inline: [/^(?!cloudflare:)/],
+      external: [/^cloudflare:/],
+    },
+    rollupConfig: {
+      external: [/^cloudflare:/],
+    },
   },
   compatibilityDate: '2025-01-15',
 
