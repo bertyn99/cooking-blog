@@ -1,0 +1,12 @@
+-- Placeholder for migration `20260810165704_low_cammi`.
+--
+-- This migration was applied to the remote D1 database on 2026-08-10 but the
+-- folder was later renamed locally to `20260810180000_api_keys` (same schema
+-- change, regenerated timestamp). Alchemy's bookkeeping conversion refuses to
+-- run while a recorded migration has no matching local folder, so this
+-- comment-only placeholder restores the name match.
+--
+-- Contents are intentionally inert: the remote row is marked applied by name
+-- during the drizzle_migrations -> __alchemy_migrations conversion and is
+-- never re-executed. Do not add statements here; schema changes belong in
+-- new, forward-only migrations.
