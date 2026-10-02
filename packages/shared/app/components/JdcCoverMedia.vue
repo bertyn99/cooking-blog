@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { buildPublicDeliveryImagePath, toPublicMediaKey } from '../../shared/media-delivery-path'
+
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(defineProps<{
@@ -9,26 +11,25 @@ const props = withDefaults(defineProps<{
   height?: number
   sizes?: string
   imgClass?: string
+  priority?: boolean
 }>(), {
   alt: '',
   width: 800,
   height: 600,
+  priority: false,
 })
 
-const nuxtApp = useNuxtApp()
-const hasNuxtImage = computed(() => '$img' in nuxtApp)
+const NuxtImg = resolveComponent('NuxtImg')
+const hasNuxtImg = typeof NuxtImg !== 'string'
 
-const tag = computed(() => {
-  if (!hasNuxtImage.value) return 'img'
-  // Built as `['Nuxt', 'Img'].join('')` on purpose: Nuxt's production build
-  // statically matches resolveComponent('NuxtImg') (NUXT_B3004) and hard-fails
-  // host apps without @nuxt/image (the CMS). Runtime contract is unchanged —
-  // resolves to <NuxtImg> when the host provides it, plain <img> otherwise.
-  const nuxtImg = resolveComponent(['Nuxt', 'Img'].join(''))
-  return typeof nuxtImg === 'string' ? 'img' : nuxtImg
+const isStaticOrRemote = computed(() => {
+  const src = props.src || ''
+  return src.startsWith('/img/')
+    || src.startsWith('blob:')
+    || /^(https?:)?\/\//.test(src)
 })
 
-const resolvedSrc = computed(() => {
+const resolvedStaticSrc = computed(() => {
   const src = props.src || ''
   if (!src.startsWith('/img/')) return src
   const site = String(useRuntimeConfig().public.siteUrl || '').replace(/\/$/, '')
@@ -43,29 +44,57 @@ const resolvedSrc = computed(() => {
   return src
 })
 
-const imageProvider = computed(() => {
-  const src = resolvedSrc.value
-  if (!src || !hasNuxtImage.value) return undefined
-  if (/^(https?:)?\/\//.test(src) || src.startsWith('/') || src.startsWith('blob:')) {
-    return undefined
+const publicKey = computed(() => {
+  const src = props.src || ''
+  if (!src) return ''
+  if (src.startsWith('/images/')) {
+    const idx = src.lastIndexOf('/')
+    return src.slice(idx + 1)
   }
-  return 'localImageSharp'
+  return toPublicMediaKey(src)
+})
+
+const useOptimizedCmsImage = computed(() =>
+  hasNuxtImg && Boolean(props.src) && !isStaticOrRemote.value,
+)
+
+const imgSrc = computed(() => {
+  if (!props.src) return ''
+  if (isStaticOrRemote.value) return resolvedStaticSrc.value
+  if (useOptimizedCmsImage.value) return publicKey.value
+  return buildPublicDeliveryImagePath(props.src, {
+    width: props.width,
+    height: props.height,
+    fit: 'cover',
+    format: 'webp',
+  })
+})
+
+const imgBind = computed(() => {
+  if (useOptimizedCmsImage.value) {
+    return {
+      provider: 'localImageSharp',
+      format: 'webp',
+      fit: 'cover',
+      ...(props.priority ? { preload: { fetchPriority: 'high' as const } } : {}),
+    }
+  }
+  return props.priority ? { fetchpriority: 'high' } : {}
 })
 </script>
 
 <template>
   <component
-    :is="tag"
-    v-if="src"
-    :src="resolvedSrc"
+    :is="useOptimizedCmsImage ? NuxtImg : 'img'"
+    v-if="src && imgSrc"
+    :src="imgSrc"
     :alt="alt"
     :title="title"
     :width="width"
     :height="height"
     :sizes="sizes"
-    :provider="imageProvider"
-    :format="imageProvider ? 'webp' : undefined"
-    loading="lazy"
+    :loading="priority ? 'eager' : 'lazy'"
     :class="imgClass"
+    v-bind="imgBind"
   />
 </template>

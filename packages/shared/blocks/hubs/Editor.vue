@@ -4,15 +4,15 @@ import { catalogEntryForTag } from '../../shared/content-blocks/catalog'
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(defineProps<{
-  image?: string
-  alt?: string
-  ctaHref?: string
-  ctaSecondaryHref?: string
+  recipesHref?: string
+  techniquesHref?: string
+  africaHref?: string
+  journalHref?: string
 }>(), {
-  image: '/img/hero.jpg',
-  alt: '',
-  ctaHref: '/recette',
-  ctaSecondaryHref: '/blog',
+  recipesHref: '/recette',
+  techniquesHref: '/techniques-culinaires',
+  africaHref: '/recettes-du-monde',
+  journalHref: '/blog',
 })
 
 const emit = defineEmits<{
@@ -22,7 +22,7 @@ const emit = defineEmits<{
 
 <template>
   <BlockPropsForm
-    :definition="catalogEntryForTag('hero')"
+    :definition="catalogEntryForTag('hubs')"
     :values="props"
     @update:values="emit('update:props', $event)"
   />
