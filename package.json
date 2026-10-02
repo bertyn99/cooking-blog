@@ -7,7 +7,7 @@
     "dev:web": "pnpm --filter web dev",
     "dev:cms": "pnpm --filter cms dev",
     "cms:clone:prod": "pnpm --filter cms clone:prod",
-    "dev": "pnpm -r --parallel dev",
+    "dev": "alchemy dev",
     "build": "pnpm -r build",
     "build:web": "pnpm --filter web build",
     "build:cms": "pnpm --filter cms build",
@@ -24,28 +24,30 @@
     "deploy:github": "NODE_OPTIONS=--max-old-space-size=8192 pnpm alchemy deploy stacks/github.ts --profile admin",
     "deploy:plan": "pnpm alchemy plan",
     "dev:infra": "pnpm alchemy dev",
-    "login:alchemy": "pnpm alchemy login",
-    "bootstrap:alchemy": "pnpm alchemy cloudflare bootstrap",
-    "state:alchemy:logs": "pnpm alchemy cloudflare state logs"
+    "login:alchemy": "pnpm alchemy profile edit",
+    "bootstrap:alchemy": "pnpm alchemy provider cloudflare bootstrap",
+    "state:alchemy:logs": "pnpm alchemy provider cloudflare state logs"
   },
   "engines": {
-    "node": ">=22",
+    "node": ">=22.19",
     "pnpm": ">=9"
   },
   "packageManager": "pnpm@10.33.4",
   "devDependencies": {
+    "@alchemy.run/frontend-frameworks": "catalog:",
     "@cloudflare/workers-types": "^5.20260804.1",
     "@distilled.cloud/nuxt": "^0.17.1",
-    "@effect/platform-node": "4.0.0-beta.102",
-    "@effect/sql-mysql2": "4.0.0-beta.102",
-    "@effect/sql-pg": "4.0.0-beta.102",
+    "@effect/platform-node": "catalog:",
+    "@effect/sql-mysql2": "4.0.0-rc.117",
+    "@effect/sql-pg": "4.0.0-rc.117",
     "alchemy": "catalog:",
     "drizzle-kit": "catalog:",
     "drizzle-orm": "catalog:",
-    "effect": "4.0.0-beta.102",
+    "effect": "catalog:",
     "typescript": "catalog:"
   },
   "dependencies": {
-    "nuxt": "^4.5.0"
+    "nuxt": "catalog:"
   }
 }
+

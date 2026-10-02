@@ -1,15 +1,20 @@
 <script lang="ts" setup>
-import type { StrapiContentBlock } from "~/types/strapiMeta";
-
-const { content } = defineProps<{
-  content?: string | StrapiContentBlock[] | null;
+const { content, fullBleed = false } = defineProps<{
+  content?: string | null;
+  fullBleed?: boolean;
 }>();
 
-const markdown = computed(() => (typeof content === "string" ? content : ""));
-const zones = computed(() => (Array.isArray(content) ? content : []));
+const markdown = computed(() =>
+  typeof content === "string" && content.length > 0 ? content : "",
+);
 </script>
 
 <template>
-  <BaseMarkdownContent v-if="markdown" :markdown="markdown" tag="article" />
-  <BaseContentDisplay v-else-if="zones.length" :content="zones" />
+  <BaseMarkdownContent
+    v-if="markdown"
+    :markdown="markdown"
+    tag="article"
+    variant="page"
+    :full-bleed="fullBleed"
+  />
 </template>

@@ -83,5 +83,5 @@ const seo = computed(() => article?.seo || {});
 
     <BaseMarkdownContent :markdown="content" tag="article" class="max-w-4xl" />
     <LazyCta />
-    <LazySectionYouMayAlsoLike :category="String(categoryRecipe.id ?? '')" type-content="articles" />
+    <LazySectionYouMayAlsoLike :category="categoryRecipe.slug ?? ''" type-content="articles" />
 </template>

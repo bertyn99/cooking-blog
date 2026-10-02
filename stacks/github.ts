@@ -92,7 +92,7 @@ export default Alchemy.Stack(
     ] as const
 
     for (const name of optionalSecrets) {
-      const secret = yield* Config.redacted(name).pipe(Config.option)
+      const secret = yield* Config.Redacted(name).pipe(Config.option)
       if (secret._tag === 'Some') {
         yield* GitHub.Secret(name.toLowerCase().replaceAll('_', '-'), {
           owner,

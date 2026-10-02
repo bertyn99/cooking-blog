@@ -1,14 +1,60 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { fileURLToPath } from 'node:url'
+
+/**
+ * Map `cloudflare:*` runtime module imports onto local shims.
+ *
+ * workerd provides these modules natively and the deployed worker runs with
+ * `nodejs_compat`, but nitro's base-worker preset forces `noExternals`, and
+ * its no-externals resolver throws on `cloudflare:*` when the import comes
+ * from a node_modules dependency (`agents`, behind @nuxtjs/mcp-toolkit's
+ * Cloudflare transport). Redirecting to real shim files (which re-export the
+ * runtime modules through a computed dynamic specifier — see
+ * `server/shims/`) keeps nitro's single-script bundling intact.
+ */
+const cloudflareRuntimeModulesPlugin = {
+  name: 'jdc-cms:cloudflare-runtime-modules',
+  resolveId(id: string) {
+    if (id === 'cloudflare:workers' || id === 'cloudflare:workflows' || id === 'cloudflare:email') {
+      return { id: fileURLToPath(new URL(`./server/shims/cloudflare-${id.slice('cloudflare:'.length)}.mjs`, import.meta.url)), external: false }
+    }
+    return null
+  },
+}
+
 export default defineNuxtConfig({
-  devServer: {
-    port: 3001,
+  modules: ['@journalducuistot/shared', 'nuxt-auth-utils', 'nuxt-authorization', '@nuxt/ui', '@vueuse/nuxt', 'evlog/nuxt', '@nuxtjs/mcp-toolkit'],
+  jdcContent: {
+    surfaces: ['client', 'editor', 'simple'],
   },
 
-  modules: ['nuxt-auth-utils', 'nuxt-authorization', '@nuxt/ui', '@vueuse/nuxt', 'evlog/nuxt'],
+  mcp: {
+    name: 'Journal du Cuistot CMS',
+    description: 'Articles, recipes, and pages for Journal du Cuistot. Agents never publish.',
+    instructions: [
+      'Never publish, unpublish, or schedule.',
+      'Articles and pages: update in any status; writable is always true. Recipes: draft-only (403 if live).',
+      'After create/update, give the human previewUrl. Never publish, unpublish, or schedule.',
+      'List categories before setting categoryId. Locale fr. Comark markdown.',
+      'Use start-generation-run for notes-to-new-draft; CRUD for precise edits on drafts.',
+    ].join(' '),
+    route: '/mcp',
+    // Stateful transport (MCP-Session-Id + SSE) with per-session state via
+    // useMcpSession(). Persisted through the unstorage driver below.
+    sessions: { enabled: true },
+    security: {
+      allowedOrigins: '*',
+    },
+  },
 
   runtimeConfig: {
     public: {
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+      /** Public admin origin (MCP, API). Falls back to request origin in the UI when unset. */
+      cmsBaseUrl:
+        process.env.NUXT_PUBLIC_CMS_BASE_URL
+        || process.env.CMS_BASE_URL
+        || '',
     },
     session: {
       maxAge: 60 * 60 * 8,
@@ -24,6 +70,12 @@ export default defineNuxtConfig({
     nuxtSeoProApiKey: process.env.NUXT_SEO_PRO_API_KEY || '',
     /** Cloudflare AI Gateway id for Workers AI (`workers-ai-provider` gateway option). */
     cmsAiGatewayId: process.env.CMS_AI_GATEWAY_ID || 'jdc-cms-ai',
+    /** Pexels API key for Stock tab (server-only). */
+    pexelsApiKey: process.env.PEXELS_API_KEY || '',
+    /** Kill switch for `/mcp` (`0` / `false` / `off` = empty catalog). Default on. */
+    cmsMcpEnabled: process.env.CMS_MCP_ENABLED || '1',
+    /** Shared with apps/web so `/preview` can load drafts. Empty in production unless set. */
+    cmsPreviewToken: process.env.CMS_PREVIEW_TOKEN || (process.env.NODE_ENV === 'production' ? '' : 'local-preview'),
   },
 
   css: ['~/assets/css/main.css'],
@@ -69,10 +121,32 @@ export default defineNuxtConfig({
     },
   },
 
+
+  nitro: {
+    // MCP sessions persist to KV through unstorage — see
+    // https://mcp-toolkit.nuxt.dev/advanced/sessions#custom-storage-driver.
+    // `Cache` is the KV namespace already bound by Alchemy (infra/workers.ts);
+    // the base prefix keeps session keys away from other Cache users.
+    storage: {
+      'mcp:sessions': {
+        driver: 'cloudflare-kv-binding',
+        binding: 'Cache',
+        base: 'mcp:sessions',
+      },
+    },
+    rollupConfig: {
+      plugins: [cloudflareRuntimeModulesPlugin],
+    },
+  },
   compatibilityDate: '2025-01-15',
 
   routeRules: {
     '/api/**': {
+      headers: {
+        'Cache-Control': 'private, no-store, must-revalidate',
+      },
+    },
+    '/mcp': {
       headers: {
         'Cache-Control': 'private, no-store, must-revalidate',
       },
@@ -83,7 +157,7 @@ export default defineNuxtConfig({
     env: {
       service: 'journalducuistot-cms',
     },
-    include: ['/api/**'],
+    include: ['/api/**', '/mcp'],
     exclude: ['/api/_evlog/ingest'],
     redact: {
       paths: [

@@ -23,9 +23,9 @@ export interface MediaListResult {
 
 export interface MediaStorage {
   put(file: File, folderPrefix?: string): Promise<MediaObject>
-  putBuffer(pathname: string, data: ArrayBuffer | Buffer, contentType: string): Promise<MediaObject>
+  putBuffer(pathname: string, data: ArrayBuffer | Buffer | Uint8Array, contentType: string): Promise<MediaObject>
   /** Write bytes as-is (no image optimize) — used by transfer pull. */
-  putRaw(pathname: string, data: ArrayBuffer | Buffer, contentType: string): Promise<MediaObject>
+  putRaw(pathname: string, data: ArrayBuffer | Buffer | Uint8Array, contentType: string): Promise<MediaObject>
   head(pathname: string): Promise<MediaObject | null>
   get(pathname: string): Promise<{ body: ReadableStream, object: MediaObject } | null>
   del(pathname: string): Promise<void>
@@ -96,14 +96,20 @@ function buildPathname(filename: string, folderPrefix?: string) {
   return `${base}${randomUUID()}-${sanitizeFilename(filename)}`
 }
 
+export function buildMediaPathname(filename: string, folderPrefix?: string) {
+  return buildPathname(filename, folderPrefix)
+}
+
 function assertSafePathname(pathname: string) {
   if (!pathname.startsWith(UPLOAD_PREFIX) || pathname.includes('..')) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid media path' })
   }
 }
 
-function toBuffer(data: ArrayBuffer | Buffer): Buffer {
-  return data instanceof Buffer ? data : Buffer.from(new Uint8Array(data))
+function toBuffer(data: ArrayBuffer | Buffer | Uint8Array): Buffer {
+  if (data instanceof Buffer) return data
+  if (data instanceof Uint8Array) return Buffer.from(data)
+  return Buffer.from(new Uint8Array(data))
 }
 
 function strapiUrlToPathname(url: string) {

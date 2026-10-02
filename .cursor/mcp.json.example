@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "jdc-cms": {
+      "url": "http://localhost:3001/mcp",
+      "headers": {
+        "Authorization": "Bearer jdc_YOUR_LOCAL_API_KEY"
+      }
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull } from 'drizzle-orm'
+import { and, desc, eq, isNotNull, isNull } from 'drizzle-orm'
 import type { AppDb } from '../create-db'
 import { apiKeys } from '../schema/api-keys'
 import type { ApiKeyScope } from '../../../shared/api-keys'
@@ -66,6 +66,43 @@ export function createApiKeyQueries(db: AppDb) {
         })
         .where(eq(apiKeys.id, id))
         .run()
+    },
+
+    /** Update scopes — active keys only. */
+    updateScopes(id: number, scopes: ApiKeyScope[]) {
+      const now = new Date().toISOString()
+      return db
+        .update(apiKeys)
+        .set({ scopes, updatedAt: now })
+        .where(and(eq(apiKeys.id, id), isNull(apiKeys.revokedAt)))
+        .returning()
+        .get()
+    },
+
+    /** Rotate secret material — active keys only. Scopes and metadata are unchanged. */
+    rotateSecret(id: number, keyPrefix: string, keyHash: string) {
+      const now = new Date().toISOString()
+      return db
+        .update(apiKeys)
+        .set({
+          keyPrefix,
+          keyHash,
+          lastUsedAt: null,
+          lastUsedIp: null,
+          updatedAt: now,
+        })
+        .where(and(eq(apiKeys.id, id), isNull(apiKeys.revokedAt)))
+        .returning()
+        .get()
+    },
+
+    /** Hard-delete a revoked key row. */
+    deleteRevoked(id: number) {
+      return db
+        .delete(apiKeys)
+        .where(and(eq(apiKeys.id, id), isNotNull(apiKeys.revokedAt)))
+        .returning()
+        .get()
     },
   }
 }

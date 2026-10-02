@@ -4,8 +4,8 @@ definePageMeta({ layout: "content" });
 
 <script lang="ts" setup>
 import { useGenerateSchemaArianne } from "~/composables/useGenerateSchemaArianne";
-import type { CmsFilters } from "~/utils/cms-client";
-import type { Article, Page, Recipe } from "~/types/strapiMeta";
+import type { Article, Recipe } from "~/types/strapiMeta";
+import type { CmsPage } from "~/types/cms";
 
 const route = useRoute();
 const { slug, type } = route.query;
@@ -33,65 +33,24 @@ const isNestedSlug = slugParts.length > 1;
 const categorySlug: string | null = isNestedSlug && slugParts[0] ? slugParts[0] : null;
 const articleSlug: string = isNestedSlug && slugParts[1] ? slugParts[1] : contentSlug;
 
-const { find } = useCms();
 const cacheKey = `preview-${contentType}-${contentSlug}`;
 
-const { data: content, error: fetchError } = await useAsyncData<Page | Recipe | Article | null>(
+const { data: payload, error: fetchError } = await useAsyncData(
   cacheKey,
-  async () => {
-    try {
-      if (contentType === "page") {
-        const filters: CmsFilters = { slug: { $eq: articleSlug } };
-        if (isNestedSlug && categorySlug) {
-          filters.parent = { slug: { $eq: categorySlug } };
-        }
-        const result = await find<Page>("pages", {
-          filters,
-          pagination: { page: 0, pageSize: 1 },
-          populate: {
-            content: true,
-            seoMeta: true,
-            parent: { fields: ["slug"] },
-          },
-        });
-        return result.data?.[0] ?? null;
-      }
-
-      if (contentType === "recipe") {
-        const result = await find<Recipe>("recipes", {
-          filters: { slug: { $eq: articleSlug } },
-          populate: ["cover", "category", "nutrition", "ingredients", "utensils", "seo"],
-          pagination: { page: 0, pageSize: 1 },
-        });
-        return result.data?.[0] ?? null;
-      }
-
-      if (contentType === "article") {
-        const filters: CmsFilters = { slug: { $eq: articleSlug } };
-        if (isNestedSlug && categorySlug) {
-          filters.category = { slug: { $eq: categorySlug } };
-        }
-        const result = await find<Article>("articles", {
-          filters,
-          populate: ["cover", "category", "seo", "surround"],
-          pagination: { page: 0, pageSize: 1 },
-        });
-        return result.data?.[0] ?? null;
-      }
-
-      return null;
-    } catch {
-      return null;
-    }
-  },
+  () => $fetch<{ type: string, data: CmsPage | Recipe | Article }>("/api/preview-content", {
+    query: { type: contentType, slug: contentSlug },
+  }),
 );
 
 if (fetchError.value) {
+  const status = (fetchError.value as { statusCode?: number }).statusCode || 500;
   throw createError({
-    statusCode: 500,
-    statusMessage: "Error fetching preview content",
+    statusCode: status === 404 ? 404 : 500,
+    statusMessage: status === 404 ? "Content not found" : "Error fetching preview content",
   });
 }
+
+const content = computed(() => payload.value?.data ?? null);
 
 if (!content.value) {
   throw createError({
@@ -104,7 +63,7 @@ const titleContent = computed(() => content.value?.title || "No title");
 const seo = computed(() => {
   const value = content.value;
   if (!value || !("seo" in value)) {
-    return "seoMeta" in (value || {}) ? (value as Page).seoMeta || {} : {};
+    return "seoMeta" in (value || {}) ? (value as CmsPage).seoMeta || {} : {};
   }
   const seoValue = value.seo;
   return Array.isArray(seoValue) ? seoValue[0] || {} : seoValue || {};
@@ -152,7 +111,7 @@ const ariane = (() => {
   <div class="max-w-7xl mx-auto px-4 py-8">
     <div v-if="contentType === 'page'">
       <SchemaOrgBreadcrumb v-if="ariane" :itemListElement="ariane" />
-      <BasePageBody :content="(content as Page)?.content" />
+      <BasePageBody :content="(content as CmsPage)?.content" />
     </div>
 
     <div v-else-if="contentType === 'recipe'">

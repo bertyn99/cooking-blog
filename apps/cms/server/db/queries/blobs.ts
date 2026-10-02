@@ -146,5 +146,16 @@ export function createBlobQueries(db: AppDb) {
         set: onConflict,
       })
     },
+
+    findByStockExternal(provider: string, externalId: string) {
+      return db
+        .select()
+        .from(schema.blobs)
+        .where(and(
+          sql`json_extract(${schema.blobs.fileMetadata}, '$.stockProvider') = ${provider}`,
+          sql`json_extract(${schema.blobs.fileMetadata}, '$.stockExternalId') = ${externalId}`,
+        ))
+        .get()
+    },
   }
 }

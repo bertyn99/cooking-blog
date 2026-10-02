@@ -46,7 +46,7 @@ Legacy root-level `app/`, `server/`, and `layers/` directories may still exist d
 | Rendering | Nuxt SSR, ISR route rules, French UI |
 | Content fetch | `useStrapi()` adapter → HTTP to CMS (`runtimeConfig.public.cmsBaseUrl`) |
 | SEO | `@nuxtjs/seo`, sitemap, OG images, schema.org |
-| Markdown | `@nuxtjs/mdc` today; **Comark** planned. Articles + pages store **markdown strings** in CMS — no Strapi dynamic zones in DB ([ADR-005](./adr-005-page-content-markdown-not-dynamic-zones.md)) |
+| Markdown | `@nuxtjs/mdc` today; **Comark** planned. Articles + pages store **markdown strings** in CMS — no Strapi dynamic zones in DB ([ADR-005](./adr-005-page-content-markdown-not-dynamic-zones.md)). **Page builder** ([ADR-007](./adr-007-page-builder-comark.md)) |
 | Server routes | Sitemap sources, RSS, legacy `/blog/:slug` redirects |
 | Database | **None** — consumes JSON over HTTP only |
 

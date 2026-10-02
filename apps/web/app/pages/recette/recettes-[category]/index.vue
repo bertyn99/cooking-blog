@@ -4,40 +4,46 @@ definePageMeta({ layout: "content" });
 
 <script lang="ts" setup>
 import { useGenerateSchemaArianne } from "~/composables/useGenerateSchemaArianne";
-import type { Page } from "~/types/strapiMeta";
+import type { CmsPage } from "~/types/cms";
 
-const {
-  params: { category },
-} = useRoute();
+const route = useRoute();
 
-const categorySlug = Array.isArray(category) ? category[0] : category;
+const categorySlug = computed(() => {
+  const category = route.params.category;
+  return Array.isArray(category) ? category[0] : category;
+});
 
-if (!categorySlug || categorySlug === " ") {
+if (!categorySlug.value || categorySlug.value === " ") {
   throw createError({ statusCode: 404, statusMessage: "Category Page Not Found" });
 }
 
-const { find } = useCms();
-const { data: page } = await useAsyncData<Page | null>(
-  `page-recettes-category-${categorySlug}`,
+const cms = useCms();
+const ariane = computed(() => useGenerateSchemaArianne(categorySlug.value ?? ""));
+const { data: page, status } = await useAsyncData<CmsPage | null>(
+  () => `page-recettes-category-${categorySlug.value}`,
   async () => {
-    const result = await find<Page>("pages", {
-      filters: {
-        slug: { $eq: `recettes-${categorySlug}` },
-        parent: {
-          slug: { $eq: "recette" },
-        },
-      },
-      populate: ["content", "seoMeta", "parent"],
-      pagination: {
-        page: 0,
-        pageSize: 1,
-      },
+    const slug = Array.isArray(route.params.category) ? route.params.category[0] : route.params.category;
+    if (!slug) return null;
+    const result = await cms.pages({
+      slug: `recettes-${slug}`,
+      parentSlug: "recette",
+      include: ["seoMeta", "parent"],
+      page: 1,
+      pageSize: 1,
     });
     return result.data[0] ?? null;
   },
+  { watch: [categorySlug] },
 );
 
-const ariane = useGenerateSchemaArianne(categorySlug);
+watch([page, status], ([next, currentStatus]) => {
+  if (currentStatus === "pending") return;
+  if (!next) {
+    showError({ statusCode: 404, statusMessage: "Page Not Found" });
+    return;
+  }
+  clearError();
+}, { immediate: true });
 
 if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
@@ -47,13 +53,13 @@ const pageContent = computed(() => page.value?.content);
 const titleContent = computed(() => page.value?.title || "No title");
 const seo = computed(() => page.value?.seoMeta || {});
 
-const categoryPath = `/recette/recettes-${categorySlug}`;
+const categoryPath = computed(() => `/recette/recettes-${categorySlug.value}`);
 
-useApplyPageSeo({
+useApplyPageSeo(computed(() => ({
   title: titleContent.value || "Journal du cuistot",
   description: seo.value?.description || "No description",
   image: "/img/logo.webp",
-  url: categoryPath,
+  url: categoryPath.value,
   keywords: seo.value?.keywords,
   author: SITE_AUTHOR_NAME,
   articleDatePublished: page.value?.publishedAt,
@@ -62,7 +68,7 @@ useApplyPageSeo({
     headline: titleContent.value || "Journal du cuistot",
     description: seo.value?.description || "No description",
   },
-});
+})));
 </script>
 
 <template>

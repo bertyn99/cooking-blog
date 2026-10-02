@@ -14,7 +14,7 @@ export type MdcContainerMarkdownOptions = {
   name?: string
   defaultAttributes?: Record<string, unknown>
   allowedAttributes?: string[]
-  content?: 'block' | 'inline'
+  content?: 'block' | 'inline' | 'none'
 }
 
 /** Parse `type="tip" cols=2` (quoted or bare values). */
@@ -78,10 +78,13 @@ export function createMdcContainerMarkdownSpec(options: MdcContainerMarkdownOpti
       parseInline: (tokens: unknown[]) => unknown
       createNode: (type: string, attrs: Record<string, unknown>, content: unknown) => unknown
     }) => {
+      const attrs = { ...defaultAttributes, ...token.attributes }
+      if (content === 'none') {
+        return h.createNode(nodeName, attrs, [])
+      }
       const nodeContent = content === 'block'
         ? h.parseChildren(token.tokens || [])
         : h.parseInline(token.tokens || [])
-      const attrs = { ...defaultAttributes, ...token.attributes }
       return h.createNode(nodeName, attrs, nodeContent)
     },
 
@@ -131,7 +134,7 @@ export function createMdcContainerMarkdownSpec(options: MdcContainerMarkdownOpti
               const fullMatch = src.slice(0, position + matchPos + match[0].length)
 
               let contentTokens: unknown[] = []
-              if (matchedContent) {
+              if (matchedContent && content !== 'none') {
                 if (content === 'block') {
                   contentTokens = lexer.blockTokens(rawContent)
                   contentTokens.forEach((token) => {
@@ -179,7 +182,13 @@ export function createMdcContainerMarkdownSpec(options: MdcContainerMarkdownOpti
       const filteredAttrs = filterAttributes(node.attrs || {})
       const attrs = serializeMdcAttributes(filteredAttrs)
       const attrString = attrs ? `{${attrs}}` : ''
+      if (content === 'none') {
+        return `::${blockName}${attrString}\n::`
+      }
       const renderedContent = h.renderChildren(node.content || [], '\n\n')
+      if (!renderedContent.trim()) {
+        return `::${blockName}${attrString}\n::`
+      }
       return `::${blockName}${attrString}\n\n${renderedContent}\n\n::`
     },
   }

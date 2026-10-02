@@ -6,12 +6,14 @@ import { pageFiliationLabel, type PageHierarchyNode } from '#shared/page-hierarc
 import { pagePublicPath } from '#shared/public-site-paths'
 import type { ContentStatus, PaginatedResponse } from '~/types/cms'
 import type { EditorNavSection } from '~/types/content-editor'
+import { DEFAULT_NEW_PAGE_MARKDOWN } from '@journalducuistot/shared/content-blocks'
 
 const schema = z.object({
   name: z.string().min(1, 'Nom requis'),
   title: z.string().optional(),
   content: z.string().default(''),
   parentId: z.number().nullable().optional(),
+  isHome: z.boolean().default(false),
   locale: z.string().min(1, 'Langue requise'),
 })
 
@@ -44,8 +46,9 @@ const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 const state = reactive<Schema>({
   name: props.initial?.name ?? '',
   title: props.initial?.title ?? '',
-  content: props.initial?.content ?? '',
+  content: props.initial?.content ?? (props.pageId ? '' : DEFAULT_NEW_PAGE_MARKDOWN),
   parentId: props.initial?.parentId ?? null,
+  isHome: Boolean((props.initial as { isHome?: boolean } | undefined)?.isHome),
   locale: props.initial?.locale ?? 'fr',
 })
 
@@ -56,6 +59,15 @@ watch(
   (name) => {
     if (!props.pageId && name.trim()) {
       slugDisplay.value = slugifyString(name)
+    }
+  },
+)
+
+watch(
+  () => state.isHome,
+  (isHome) => {
+    if (isHome) {
+      state.parentId = null
     }
   },
 )
@@ -100,7 +112,7 @@ const publicPathPreview = computed(() => {
         parent: selectedParentPage.value.parent ?? null,
       }
     : null
-  return pagePublicPath(slug, parentForPath)
+  return pagePublicPath(slug, parentForPath, { isHome: state.isHome })
 })
 
 const filiationPreview = computed(() => {
@@ -184,7 +196,8 @@ async function savePage(): Promise<number | undefined> {
     name: state.name.trim(),
     title: state.title?.trim() || undefined,
     content: state.content || undefined,
-    parentId: state.parentId ?? null,
+    parentId: state.isHome ? null : (state.parentId ?? null),
+    isHome: state.isHome,
     locale: state.locale.trim() || 'fr',
   }
 
@@ -308,10 +321,15 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
           </div>
 
           <ContentPageParentRelationField
+            v-if="!state.isHome"
             v-model="state.parentId"
             :pages="pageOptions ?? []"
             :exclude-page-id="pageId"
           />
+
+          <UFormField name="isHome" class="mt-4">
+            <UCheckbox v-model="state.isHome" label="Page d’accueil du site (URL /)" />
+          </UFormField>
         </div>
       </ContentEditorSurface>
 
@@ -334,7 +352,12 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
           name="content"
           :ui="{ label: 'hidden', wrapper: 'm-0' }"
         >
-          <ContentMarkdownEditor v-model="state.content" />
+          <PageBuilderPageWorkspace
+            v-model="state.content"
+            :slug="slugDisplay"
+            :is-home="state.isHome"
+            :public-path="publicPathPreview"
+          />
         </UFormField>
       </ContentEditorSection>
 

@@ -1,13 +1,11 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { fileURLToPath } from 'node:url'
-import listRedirects from './app/utils/redirect'
-import tailwindcss from '@tailwindcss/vite'
-import { resolveSiteIdentity, toSchemaOrgIdentity, SITE_AUTHOR_NAME } from './shared/site-identity'
+import listRedirects from './app/utils/redirect.ts'
+import { resolveSiteIdentity, toSchemaOrgIdentity, SITE_AUTHOR_NAME } from './shared/site-identity.ts'
 
 const webRoot = fileURLToPath(new URL('.', import.meta.url))
 
-const skewProtectionKvNamespaceId =
-  process.env.SKEW_PROTECTION_KV_NAMESPACE_ID || 'skew-protection-local'
+
 /** KV asset bundling only when explicitly opted in (see infra/workers.ts). */
 const skewProtectionBundleAssets = process.env.SKEW_BUNDLE_ASSETS === '1'
 
@@ -78,6 +76,8 @@ export default defineNuxtConfig({
   },
 
   modules: [
+    '@journalducuistot/shared',
+    '@nuxt/ui',
     '@nuxtjs/seo',
     'nuxt-ai-ready',
     'nuxt-skew-protection',
@@ -114,8 +114,13 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/index.css'],
 
-  vite: {
-    plugins: [tailwindcss()],
+  ui: {
+    colorMode: false,
+    fonts: false,
+  },
+
+  jdcContent: {
+    surfaces: ['client'],
   },
 
   routeRules: {
@@ -158,13 +163,18 @@ export default defineNuxtConfig({
 
   components: [
     {
+      path: '~/components/blocks',
+      prefix: 'Block',
+      pathPrefix: true,
+      global: false,
+    },
+    {
       path: '~/components',
-      ignore: ['prose/**'],
+      ignore: ['prose/**', 'blocks/**'],
     },
     {
       global: true,
       path: '~/components/prose',
-      /*  pathPrefix: false, */
     },
   ],
 
@@ -248,11 +258,11 @@ export default defineNuxtConfig({
   skewProtection: {
     updateStrategy: 'polling',
     bundleAssets: skewProtectionBundleAssets,
-    storage: {
-      driver: 'cloudflare-kv-binding',
-      binding: 'SKEW_PROTECTION',
-      namespaceId: skewProtectionKvNamespaceId,
-    },
+    // No build-time storage override: the module defaults to fs at
+    // node_modules/.cache/nuxt-seo/skew-protection (cached in CI via
+    // actions/cache). 'cloudflare-kv-binding' with a namespaceId falls back
+    // to the wrangler CLI driver, which is not installed — wrangler-free by
+    // design under Alchemy (infra/workers.ts).
   },
 
   experimental: {
@@ -287,6 +297,7 @@ export default defineNuxtConfig({
       url: siteUrl,
       identity: siteIdentity,
     },
+    cmsPreviewToken: process.env.CMS_PREVIEW_TOKEN || (process.env.NODE_ENV === 'production' ? '' : 'local-preview'),
     public: {
       language: 'fr-FR', // prefer more explicit language codes like `en-AU` over `en`
       cmsBaseUrl: process.env.NUXT_PUBLIC_CMS_BASE_URL || 'http://localhost:3001',

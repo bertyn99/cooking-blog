@@ -1,4 +1,4 @@
-import { sql, isNull } from 'drizzle-orm'
+import { sql, isNull, and, eq } from 'drizzle-orm'
 import { sqliteTable, text, integer, uniqueIndex, index } from 'drizzle-orm/sqlite-core'
 import type { AnySQLiteColumn } from 'drizzle-orm/sqlite-core'
 import { users } from './users'
@@ -17,6 +17,7 @@ export const pages = sqliteTable('pages', {
   scheduledAt: text('scheduled_at'),
   locale: text('locale').default('fr').notNull(),
   localeGroupId: text('locale_group_id'),
+  isHome: integer('is_home', { mode: 'boolean' }).default(false).notNull(),
   version: integer('version').default(1).notNull(),
   createdByUserId: integer('created_by_user_id').references(() => users.id, { onDelete: 'set null' }),
   updatedByUserId: integer('updated_by_user_id').references(() => users.id, { onDelete: 'set null' }),
@@ -30,4 +31,7 @@ export const pages = sqliteTable('pages', {
   index('pages_locale_group_idx').on(table.localeGroupId),
   index('pages_parent_id_idx').on(table.parentId),
   index('pages_deleted_at_idx').on(table.deletedAt),
+  uniqueIndex('pages_is_home_locale_active_idx')
+    .on(table.locale)
+    .where(and(eq(table.isHome, true), isNull(table.deletedAt))),
 ])

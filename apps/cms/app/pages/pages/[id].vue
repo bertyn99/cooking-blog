@@ -21,6 +21,7 @@ interface PageDetail {
   slug: string
   content: string | null
   parentId: number | null
+  isHome: boolean
   locale: string
   status: string
   parent?: PageParentNode | null
@@ -49,7 +50,9 @@ const layoutSubtitle = computed(() => {
   if (!page.value) {
     return undefined
   }
-  const path = pagePublicPath(page.value.slug, page.value.parent ?? null)
+  const path = pagePublicPath(page.value.slug, page.value.parent ?? null, {
+    isHome: page.value.isHome,
+  })
   const filiation = pageFiliationLabel(page.value.parent ?? null)
   if (filiation === 'Page racine') {
     return path
@@ -68,6 +71,7 @@ const layoutSubtitle = computed(() => {
   >
     <ContentPageForm
       v-if="page"
+      :key="page.id"
       :page-id="page.id"
       :initial="{
         name: page.name,
@@ -75,6 +79,7 @@ const layoutSubtitle = computed(() => {
         slug: page.slug,
         content: page.content ?? undefined,
         parentId: page.parentId,
+        isHome: page.isHome,
         locale: page.locale,
         status: page.status,
         parent: page.parent ?? null,

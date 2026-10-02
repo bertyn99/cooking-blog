@@ -15,8 +15,7 @@ export const database = Effect.gen(function* () {
   const schema = yield* cmsSchema
 
   const DB = yield* Cloudflare.D1.Database('DB', {
-    migrationsDir: schema.out,
-    migrationsTable: 'drizzle_migrations',
+    migrations: schema,
     primaryLocationHint: 'weur',
   })
 

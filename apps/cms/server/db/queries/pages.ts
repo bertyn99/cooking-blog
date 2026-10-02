@@ -1,4 +1,4 @@
-import { and, eq, sql, desc } from 'drizzle-orm'
+import { and, eq, sql, desc, isNull, ne } from 'drizzle-orm'
 import type { AppDb } from '../create-db'
 import { pages } from '../schema/pages'
 import { paginateResult } from '../../utils/pagination'
@@ -10,6 +10,7 @@ import {
 import { mergeConditions, applyPublishedScope, localeFilter } from './_shared/filters'
 import { reorderByIds } from './_shared/list-page'
 import { reserveUniqueSlugInLocale } from './_shared/reserve-slug'
+import { queryInternal } from '../query-errors'
 
 export interface PageListOptions extends PagesQueryOptions {
   pagination: { offset: number, limit: number, page: number, pageSize: number }
@@ -24,6 +25,7 @@ function buildPagesListSqlWhere(opts: PageListOptions) {
     localeFilter(pages, opts.locale),
     opts.filters?.slug ? eq(pages.slug, opts.filters.slug) : undefined,
     opts.filters?.parentId ? eq(pages.parentId, opts.filters.parentId) : undefined,
+    opts.filters?.isHome !== undefined ? eq(pages.isHome, opts.filters.isHome) : undefined,
   )
 }
 
@@ -144,6 +146,78 @@ export function createPageQueries(db: AppDb) {
         .set({ deletedAt: now, updatedAt: now })
         .where(eq(pages.id, id))
         .then(() => now)
+    },
+
+    async clearHomeFlagInLocale(locale: string, exceptPageId?: number) {
+      const conditions = [
+        eq(pages.locale, locale),
+        eq(pages.isHome, true),
+        isNull(pages.deletedAt),
+      ]
+      if (exceptPageId != null) {
+        conditions.push(ne(pages.id, exceptPageId))
+      }
+      await db
+        .update(pages)
+        .set({ isHome: false, updatedAt: new Date().toISOString() })
+        .where(and(...conditions))
+    },
+
+    async insertAsHome(values: typeof pages.$inferInsert) {
+      const now = new Date().toISOString()
+      return db.transaction(async (tx) => {
+        await tx
+          .update(pages)
+          .set({ isHome: false, updatedAt: now })
+          .where(and(
+            eq(pages.locale, values.locale),
+            eq(pages.isHome, true),
+            isNull(pages.deletedAt),
+          ))
+        const rows = await tx
+          .insert(pages)
+          .values({ ...values, isHome: true, parentId: null })
+          .returning()
+        return rows[0]
+      })
+    },
+
+    async updateAsHome(
+      id: number,
+      locale: string,
+      values: Partial<typeof pages.$inferInsert>,
+    ) {
+      const now = new Date().toISOString()
+      return db.transaction(async (tx) => {
+        const current = await tx
+          .select({ id: pages.id })
+          .from(pages)
+          .where(and(eq(pages.id, id), isNull(pages.deletedAt)))
+          .get()
+        if (!current) {
+          return undefined
+        }
+
+        await tx
+          .update(pages)
+          .set({ isHome: false, updatedAt: now })
+          .where(and(
+            eq(pages.locale, locale),
+            eq(pages.isHome, true),
+            isNull(pages.deletedAt),
+            ne(pages.id, id),
+          ))
+        const rows = await tx
+          .update(pages)
+          .set({ ...values, isHome: true, parentId: null, updatedAt: now })
+          .where(and(eq(pages.id, id), isNull(pages.deletedAt)))
+          .returning()
+        const updated = rows[0]
+        if (!updated) {
+          throw queryInternal('Impossible de définir la page d’accueil.')
+        }
+        return updated
+      })
     },
   }
 }

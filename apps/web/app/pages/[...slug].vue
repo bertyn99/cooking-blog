@@ -4,81 +4,90 @@ definePageMeta({ layout: "content" });
 
 <script lang="ts" setup>
 import { useGenerateSchemaArianne } from "~/composables/useGenerateSchemaArianne";
-import type { CmsFilters } from "~/utils/cms-client";
-import type { Page } from "~/types/strapiMeta";
+import type { CmsPage } from "~/types/cms";
 
-const {
-  params: { slug },
-} = useRoute();
+const route = useRoute();
+const cms = useCms();
 
-const slugArray = Array.isArray(slug) ? slug : slug ? [slug] : [];
+function slugPartsFromParam(slug: unknown): string[] {
+  if (Array.isArray(slug)) return slug.filter(Boolean).map(String);
+  if (typeof slug === "string" && slug.trim()) return [slug];
+  return [];
+}
 
-if (slugArray.length === 0 || slugArray[0] === " ") {
+const slugArray = computed(() => slugPartsFromParam(route.params.slug));
+
+if (slugArray.value.length === 0 || slugArray.value[0] === " ") {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
-const currentSlug = slugArray[slugArray.length - 1];
-const parentSlug = slugArray.length > 1 ? slugArray[slugArray.length - 2] : null;
+const ariane = computed(() => useGenerateSchemaArianne(slugArray.value));
 
-const { find } = useCms();
-
-const cacheKey = `page-${slugArray.join("-")}`;
-const filters: CmsFilters = {
-  slug: { $eq: currentSlug },
-};
-
-if (parentSlug) {
-  filters.parent = {
-    slug: { $eq: parentSlug },
-  };
-}
-
-const { data: page } = await useAsyncData<Page | null>(
-  cacheKey,
+const { data: page, status } = await useAsyncData<CmsPage | null>(
+  () => `page:${slugArray.value.join("/")}`,
   async () => {
-    const result = await find<Page>("pages", {
-      filters,
-      pagination: {
-        page: 0,
-        pageSize: 1,
-      },
-      populate: {
-        content: true,
-        seoMeta: true,
-        parent: {
-          fields: ["slug"],
-        },
-      },
+    const parts = slugPartsFromParam(route.params.slug);
+    const currentSlug = parts[parts.length - 1];
+    const parentSlug = parts.length > 1 ? parts[parts.length - 2] : undefined;
+    if (!currentSlug) return null;
+    const result = await cms.pages({
+      slug: currentSlug,
+      parentSlug,
+      include: ["seoMeta", "parent"],
+      page: 1,
+      pageSize: 1,
     });
     return result.data?.[0] ?? null;
   },
+  { watch: [() => route.params.slug] },
 );
 
-const ariane = useGenerateSchemaArianne(slugArray);
+watch(
+  [page, status],
+  async ([next, currentStatus]) => {
+    if (currentStatus === "pending") return;
+    if (!next) {
+      showError({ statusCode: 404, statusMessage: "Page Not Found" });
+      return;
+    }
+    clearError();
+    if (next.isHome) {
+      await navigateTo("/", { redirectCode: 301, replace: true });
+    }
+  },
+  { immediate: true },
+);
 
 if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
+if (page.value.isHome) {
+  await navigateTo("/", { redirectCode: 301, replace: true });
+}
+
+useApplyPageSeo(computed(() => {
+  const current = page.value;
+  const parts = slugArray.value;
+  const seo = current?.seoMeta || {};
+  const pagePath = `/${parts.join("/")}`;
+  return {
+    title: current?.title || "Journal du cuistot",
+    description: seo.description || "No description",
+    image: "/img/logo.webp",
+    url: current?.isHome ? "/" : pagePath,
+    keywords: seo.keywords,
+    robots: seo.metaRobots ?? undefined,
+    articleDatePublished: current?.publishedAt,
+    articleDateModified: current?.updatedAt,
+    og: {
+      headline: current?.title || "No title",
+      description: seo.description || "No description",
+    },
+  };
+}));
+
 const pageContent = computed(() => page.value?.content);
-const titleContent = computed(() => page.value?.title || "No title");
-const seo = computed(() => page.value?.seoMeta || {});
-
-const pagePath = `/${slugArray.join("/")}`;
-
-useApplyPageSeo({
-  title: titleContent.value || "Journal du cuistot",
-  description: seo.value?.description || "No description",
-  image: "/img/logo.webp",
-  url: pagePath,
-  keywords: seo.value?.keywords,
-  articleDatePublished: page.value?.publishedAt,
-  articleDateModified: page.value?.updatedAt,
-  og: {
-    headline: titleContent.value,
-    description: seo.value?.description || "No description",
-  },
-});
 </script>
 
 <template>

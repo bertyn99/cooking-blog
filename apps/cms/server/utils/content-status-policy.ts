@@ -1,4 +1,5 @@
 import type { User } from '#auth-utils'
+import type { Actor } from './actor'
 import { createApiError } from './errors'
 
 type PublishableStatus = 'draft' | 'published' | 'scheduled'
@@ -40,6 +41,69 @@ function assertAdminStatusTransition(
       },
     )
   }
+}
+
+export type ApiKeyWriteMode = 'draft-only' | 'in-place'
+
+/**
+ * API-key writes never publish, unpublish, or schedule.
+ * `draft-only` (recipes): reject live rows.
+ * `in-place` (articles/pages): edit the current row without changing status.
+ */
+export function applyApiKeyDraftPolicy(
+  existing: { status: PublishableStatus },
+  updates: ContentStatusPatch,
+  mode: ApiKeyWriteMode = 'draft-only',
+): ContentStatusPatch {
+  if (updates.status !== undefined && updates.status !== existing.status) {
+    throw createApiError(
+      'FORBIDDEN',
+      'Les clés agent ne peuvent pas publier, planifier ou dépublier du contenu.',
+      undefined,
+      { fix: 'Modifiez le contenu sans changer le statut ; un humain publie dans l’admin.' },
+    )
+  }
+
+  if (mode === 'in-place') {
+    const next = { ...updates }
+    delete next.status
+    return next
+  }
+
+  if (existing.status !== 'draft') {
+    throw createApiError(
+      'FORBIDDEN',
+      'Ce contenu est publié ou planifié — les agents ne peuvent modifier que des brouillons.',
+      undefined,
+      {
+        why: `Statut actuel : « ${existing.status} ».`,
+        fix: 'Créez un nouveau brouillon ou demandez une republication manuelle.',
+      },
+    )
+  }
+
+  return { ...updates, status: 'draft' }
+}
+
+/**
+ * Unified status policy for session editors/admins and API-key agents.
+ */
+export function applyContentPolicy(
+  actor: Actor,
+  existing: { status: PublishableStatus, firstPublishedAt?: string | null } | null,
+  updates: ContentStatusPatch,
+  options?: { apiKeyMode?: ApiKeyWriteMode },
+): ContentStatusPatch {
+  if (actor.kind === 'apiKey') {
+    const base = existing ?? { status: 'draft' as const, firstPublishedAt: null }
+    return applyApiKeyDraftPolicy(base, updates, options?.apiKeyMode ?? 'draft-only')
+  }
+
+  if (existing) {
+    return applyContentStatusPolicy(actor.user, existing, updates)
+  }
+
+  return applyInitialContentStatusPolicy(actor.user, updates)
 }
 
 /**
@@ -100,3 +164,4 @@ export function applyInitialContentStatusPolicy(
     { ...updates, status },
   )
 }
+

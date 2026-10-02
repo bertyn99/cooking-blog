@@ -3,22 +3,39 @@ import type { Category, Cover, Ingredient, Recipe, RecipeUtensil, SEO } from "~/
 
 definePageMeta({ layout: "content" });
 
-const {
-  params: { slug },
-} = useRoute();
+const route = useRoute();
 
-const recipeSlug = Array.isArray(slug) ? slug[0] : slug;
-
-const { find } = useCms();
-
-const { data: recipe } = await useAsyncData<Recipe | null>(`recipe-${recipeSlug}`, async () => {
-  const result = await find<Recipe>("recipes", {
-    filters: { slug: { $eq: recipeSlug } },
-    populate: "*",
-    pagination: { page: 1, pageSize: 1 },
-  });
-  return result.data[0] ?? null;
+const recipeSlug = computed(() => {
+  const slug = route.params.slug;
+  return Array.isArray(slug) ? slug[0] : slug;
 });
+
+const cms = useCms();
+
+const { data: recipe, status } = await useAsyncData<Recipe | null>(
+  () => `recipe:${recipeSlug.value}`,
+  async () => {
+    const slug = Array.isArray(route.params.slug) ? route.params.slug[0] : route.params.slug;
+    if (!slug) return null;
+    const result = await cms.recipes({
+      slug,
+      include: "*",
+      page: 1,
+      pageSize: 1,
+    });
+    return result.data[0] ?? null;
+  },
+  { watch: [recipeSlug] },
+);
+
+watch([recipe, status], ([next, currentStatus]) => {
+  if (currentStatus === "pending") return;
+  if (!next) {
+    showError({ statusCode: 404, statusMessage: "Page Not Found" });
+    return;
+  }
+  clearError();
+}, { immediate: true });
 
 if (!recipe.value) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
@@ -48,16 +65,16 @@ const urlCover = computed(() =>
   }),
 );
 
-const pagePath = `/recette/${recipeSlug}`;
-const pageUrl = useSitePageUrl(pagePath);
-const coverSource = {
+const pagePath = computed(() => `/recette/${recipeSlug.value}`);
+const pageUrl = computed(() => useSitePageUrl(pagePath.value));
+const coverSource = computed(() => ({
   cover: recipe.value?.cover,
   coverBlobPathname: recipe.value?.coverBlobPathname,
   slug: recipe.value?.slug,
   title: recipe.value?.title,
-};
+}));
 
-const link = computed(() => pageUrl);
+const link = computed(() => pageUrl.value);
 
 const steps = computed(() => recipe.value?.step?.split("\n\n")[0]?.split("\n") || []);
 
@@ -92,12 +109,12 @@ const metaDescription = computed(
     `Recette sur le Journal du cuistot : ${titleContent.value}`,
 );
 
-useApplyPageSeo({
+useApplyPageSeo(computed(() => ({
   title: titleContent.value || "Journal du cuistot",
   description: metaDescription.value,
   keywords: seo.value?.keywords,
-  image: formatCoverOgImagePath(coverSource) || "/img/logo.webp",
-  url: pagePath,
+  image: formatCoverOgImagePath(coverSource.value) || "/img/logo.webp",
+  url: pagePath.value,
   author: SITE_AUTHOR_NAME,
   articleDatePublished: recipe.value?.publishedAt,
   articleDateModified: recipe.value?.updatedAt,
@@ -105,7 +122,7 @@ useApplyPageSeo({
     headline: titleContent.value,
     description: metaDescription.value,
   },
-});
+})));
 </script>
 
 <template>
@@ -161,6 +178,6 @@ useApplyPageSeo({
   <RecipeNutritional :data="formated" />
   <LazyRecipeSteps :steps="steps" />
   <LazyCta />
-  <LazySectionYouMayAlsoLike :category="String(categoryRecipe.id ?? 'cuisine-africaine')" type-content="recipes"
+  <LazySectionYouMayAlsoLike :category="categoryRecipe.slug ?? ''" type-content="recipes"
     class="print:hidden" />
 </template>

@@ -1,0 +1,23 @@
+import { validateBody } from '../../utils/validate'
+import {
+  createPageMutation,
+  createPageSchema,
+} from '../../services/page-mutations'
+import { requireMcpTool } from '../utils/actor'
+import { mcpPageResult } from '../utils/content-result'
+import { mcpContentToolEnabled } from '../utils/enabled'
+import { MCP_CREATE, mcpCreatePageInput } from '../utils/payload'
+
+export default defineMcpTool({
+  description:
+    'Create a draft CMS page with Comark section blocks (hero, prose, newsletter by default when content is omitted). Never publishes. Returns previewUrl.',
+  annotations: MCP_CREATE,
+  inputSchema: mcpCreatePageInput,
+  enabled: event => mcpContentToolEnabled(event, 'pages'),
+  handler: async (input) => {
+    const { event, actor } = requireMcpTool('pages')
+    const data = validateBody(createPageSchema, { ...input, status: 'draft' })
+    const created = await createPageMutation(event, actor, data, { tool: 'create-page' })
+    return mcpPageResult(event, created.id)
+  },
+})

@@ -18,6 +18,7 @@ loadProjectEnv()
 
 // Remote Cloudflare state store requires a matching worker script.
 // If you see "listResources" RPC errors, run: pnpm bootstrap:alchemy --force
+// (`alchemy provider cloudflare bootstrap`)
 const useRemoteState =
   process.env.CI === 'true' || process.env.ALCHEMY_REMOTE_STATE === '1'
 

@@ -118,6 +118,6 @@ const seoKeywords = computed(() => {
   <RecipeNutritional :data="formatedNutrition" />
   <LazyRecipeSteps :steps="steps" />
   <LazyCta />
-  <LazySectionYouMayAlsoLike :category="String(categoryRecipe.id ?? 'cuisine-africaine')" type-content="recipes"
+  <LazySectionYouMayAlsoLike :category="categoryRecipe.slug ?? ''" type-content="recipes"
     class="print:hidden" />
 </template>

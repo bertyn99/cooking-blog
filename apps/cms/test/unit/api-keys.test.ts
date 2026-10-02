@@ -18,7 +18,10 @@ describe('api key scopes', () => {
   it('normalizes and orders known scopes', () => {
     expect(normalizeApiKeyScopes(['media', 'articles', 'media', 'nope']))
       .toEqual(['articles', 'media'])
+    expect(normalizeApiKeyScopes(['write', 'pages', 'recipes']))
+      .toEqual(['recipes', 'pages', 'write'])
     expect(API_KEY_SCOPES).toContain('recipes')
+    expect(API_KEY_SCOPES).toContain('write')
   })
 
   it('checks scope membership', () => {

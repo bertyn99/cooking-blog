@@ -240,13 +240,24 @@ function linkSelectionKey() {
   return `${href}|${from}|${to}`
 }
 
+function editorDom(editor: Editor | null | undefined): HTMLElement | null {
+  if (!editor || editor.isDestroyed) return null
+  try {
+    return editor.view.dom
+  }
+  catch {
+    return null
+  }
+}
+
 /** After the user closes the popover, do not reopen until the caret moves to another link/range. */
 let autoOpenSuppressedKey: string | null = null
 let lastLinkCaretKey: string | null = null
 let boundEditor: Editor | null = null
 
 watch(() => props.editor, (editor, _, onCleanup) => {
-  if (!editor?.view?.dom || editor === boundEditor) {
+  const dom = editorDom(editor)
+  if (!editor || !dom || editor === boundEditor) {
     return
   }
   boundEditor = editor
@@ -280,7 +291,7 @@ watch(() => props.editor, (editor, _, onCleanup) => {
       return
     }
     queueMicrotask(() => {
-      if (!editor.isActive('link')) {
+      if (editor.isDestroyed || !editor.isActive('link')) {
         return
       }
       autoOpenSuppressedKey = null
@@ -289,10 +300,10 @@ watch(() => props.editor, (editor, _, onCleanup) => {
   }
 
   editor.on('selectionUpdate', onSelection)
-  editor.view.dom.addEventListener('click', onEditorClick, true)
+  dom.addEventListener('click', onEditorClick, true)
   onCleanup(() => {
     editor.off('selectionUpdate', onSelection)
-    editor.view.dom.removeEventListener('click', onEditorClick, true)
+    dom.removeEventListener('click', onEditorClick, true)
     lastLinkCaretKey = null
     if (boundEditor === editor) {
       boundEditor = null

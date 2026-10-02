@@ -122,7 +122,7 @@ apps/cms/
 |-----------|--------------|----------------|
 | `ContentArticleForm` | Articles | title, slug, markdown, blog category, cover, SEO; **deferred media** on create (`useDeferredArticleMedia`) |
 | `ContentRecipeForm` | Recipes | intro, steps markdown, difficulty, time, ingredients, utensils, nutrition, recipe category, cover, SEO |
-| `ContentPageForm` | Pages | name, title, markdown, parent, locale, public path preview (`pagePublicPath`) |
+| `ContentPageForm` | Pages | name, title, **PageWorkspace** (canvas + markdown + inspector), parent, `isHome`, locale, public path preview (`pagePublicPath`, `/` when home) |
 | `ContentCategoryForm` | Categories | blog vs recipe type, slug, optional cover |
 
 ### Planning & media
@@ -215,6 +215,10 @@ SEO table uses nullable FKs per content type (not polymorphic).
 | GET/PATCH/DELETE | `/api/media/item` | Single blob metadata |
 | GET/DELETE | `/api/media/[pathname]` | By path |
 | POST/DELETE | `/api/media/folder` | Folder create/delete |
+| GET | `/api/media/picker-capabilities` | Stock + AI tab availability (`stock`, `aiGenerate`) |
+| GET | `/api/media/stock/search` | Pexels search (editor session) |
+| POST | `/api/media/stock/import` | Download Pexels photo → ingest to R2 + blobs |
+| POST | `/api/media/generate` | Workers AI image gen (`generateImage`) → ingest |
 
 Images: … `GET /images/{modifiers}/{pathname}` … Workers Cache enabled via Alchemy `cache` prop ([ADR-006](../../docs/architecture/adr-006-image-delivery-cloudflare.md)); purge on delete via `workers-image-cache.ts`. Admin HTML uses `private, no-store` middleware.
 
@@ -297,6 +301,8 @@ Notable suites: `auth.test.ts`, `calendar.test.ts`, `strapi-import-format.test.t
 
 ## COMMANDS & ENV
 
+**Do not rewrite `dev` / `deploy` scripts in any `package.json`.** They already work. Login, sqlite, Alchemy cwd, or “monorepo single-stack” failures are **not** a reason to change them. Local libSQL for a repo-root process is `.data/db/sqlite.db` (copy from `apps/cms/.data/db/sqlite.db` if missing). Alchemy with bindings is `pnpm dev:infra` — leave `dev` as committed.
+
 ```bash
 pnpm dev:cms              # from repo root — migrate local DB + Nuxt :3001
 pnpm --filter cms db:migrate:local
@@ -318,6 +324,14 @@ pnpm cms:clone:prod        # transfer API pull → apps/cms/.data (admin API key
 | `ADMIN_SEED_SECRET` | Protect `POST /api/auth/seed-admin` when users already exist |
 | Cloudflare bindings | `DB` (D1), `Media` (R2), `Cache` (KV), `AI` (Workers AI), `CMS_AI_GATEWAY_ID` (`jdc-cms-ai`) — see `nuxt.config.ts` nitro.cloudflare; image architecture [ADR-006](../../docs/architecture/adr-006-image-delivery-cloudflare.md) |
 | `CMS_AI_GATEWAY_ID` | Cloudflare AI Gateway id for Workers AI (`workers-ai-provider`); default `jdc-cms-ai` |
+| `CMS_MCP_ENABLED` | Kill switch for in-process MCP at `/mcp` (default on). Off = empty tool catalog. |
+| `CMS_PREVIEW_TOKEN` | Shared secret so `apps/web` `/preview` can load drafts from the CMS. Local default `local-preview`. |
+| `CMS_API_KEY` | Optional local helper for scripts. Cursor MCP uses a **personal** key in gitignored `.cursor/mcp.json` (copy `.cursor/mcp.json.example`). |
+
+**Agent MCP (Cursor / Claude):** In-process server via `@nuxtjs/mcp-toolkit` at `/mcp`. Mint a key in **Clés API** with `write` + `articles`/`recipes`/`pages`/`media`, then put it in local `.cursor/mcp.json` (copy the example; the real file is gitignored). Articles and pages may be edited in any status (never published via MCP). Tools return `previewUrl` for `/preview?type=&slug=`. Audit trail in **Journal MCP** (`/mcp-logs`). Skill: `.cursor/skills/jdc-cms/SKILL.md`.
+
+
+**Media picker AI (Stock + IA tabs):** Image generation uses Vercel AI SDK `generateImage` + `workers-ai-provider` through gateway `jdc-cms-ai`. Catalog models (`google/nano-banana-2`, `bytedance/seedream-5-pro`) require **Unified Billing** enabled on the AI Gateway (Cloudflare dashboard → AI Gateway → `jdc-cms-ai` → Settings). Flux fallback (`@cf/black-forest-labs/flux-2-klein-9b`) uses the Workers AI binding only. Stock and AI outputs are always ingested to R2 before TipTap — never hotlink Pexels or ephemeral CDN URLs.
 
 ## CONVENTIONS
 
@@ -345,9 +359,7 @@ Structured via `createApiError` (`server/utils/errors.ts`); query modules throw 
 
 Public site fetches CMS JSON over HTTP (`NUXT_PUBLIC_CMS_BASE_URL`, default `http://localhost:3001`). Web proxies CMS images via its own `server/routes/images` and utilities under `apps/web/server/utils/`. Content shape should stay aligned with [cms-strapi-schema-audit.md](../../docs/architecture/cms-strapi-schema-audit.md).
 
-## ANTI-PATTERNS
-
-- **Do not use `$fetch` in SSR admin pages for authenticated APIs** — use `$api` / `useRequestFetch`.
+- **Do not rewrite `dev` / `deploy` scripts in `package.json`** — they already work. Do not “fix” Alchemy cwd, sqlite paths, or monorepo layout by changing them. Missing root `.data/db/sqlite.db` → copy `apps/cms/.data/db/sqlite.db`. Bindings → `pnpm dev:infra`.
 - **Do not bypass populate allowlists** — unknown `include` relations are stripped in `buildWithObject`.
 - **Do not assume editors can publish** — check role or use admin test account.
 - **README legacy note:** Auth is session-based (nuxt-auth-utils), not standalone JWT cookies for the admin UI.

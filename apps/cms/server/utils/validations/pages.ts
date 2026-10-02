@@ -5,11 +5,14 @@ const pageStatusSchema = z.enum(['draft', 'published', 'scheduled'])
 export const createPageSchema = z.object({
   name: z.string().min(1),
   title: z.string().optional(),
-  content: z.string().optional(),
+  content: z.string().optional().describe(
+    'Comark page body (::hero, ::newsletter, prose). Omit for the default starter blocks.',
+  ),
   excerpt: z.string().optional(),
   parentId: z.number().nullable().optional(),
   locale: z.string().default('fr'),
   localeGroupId: z.string().optional(),
+  isHome: z.boolean().optional(),
   status: pageStatusSchema.optional(),
   scheduledAt: z.string().optional(),
 })

@@ -20,6 +20,7 @@ import { createNavigationQueries } from './navigation'
 import { createContentGenerationQueries } from './content-generation'
 import { createApiKeyQueries } from './api-keys'
 import { createTransferExportQueries } from './transfer-export'
+import { createAuditEventQueries } from './audit-events'
 
 /**
  * Single entry point for all Drizzle access in the CMS server.
@@ -48,6 +49,7 @@ export function createDbQueries(db: AppDb) {
     contentGeneration: createContentGenerationQueries(db),
     apiKeys: createApiKeyQueries(db),
     transferExport: createTransferExportQueries(db),
+    auditEvents: createAuditEventQueries(db),
   }
 }
 

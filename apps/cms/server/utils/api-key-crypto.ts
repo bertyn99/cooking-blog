@@ -44,6 +44,11 @@ export function parseBearerToken(authorization: string | undefined): string | nu
   return token || null
 }
 
+export function parseUpdateApiKeyScopesBody(body: unknown): ApiKeyScope[] {
+  const record = (body && typeof body === 'object') ? body as Record<string, unknown> : {}
+  return normalizeApiKeyScopes(record.scopes)
+}
+
 export function parseCreateApiKeyBody(body: unknown): {
   name: string
   scopes: ApiKeyScope[]

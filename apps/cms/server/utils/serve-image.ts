@@ -1,5 +1,4 @@
 import type { H3Event } from 'h3'
-import { getHeader } from 'h3'
 import {
   hasImageTransformOps,
   parseIpxImagePath,

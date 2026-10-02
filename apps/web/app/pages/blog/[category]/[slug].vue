@@ -5,27 +5,49 @@ definePageMeta({ layout: "content" });
 <script lang="ts" setup>
 import type { Article, Category, Cover } from "~/types/strapiMeta";
 
-const {
-  params: { category, slug },
-} = useRoute();
+const route = useRoute();
 
-const categorySlug = Array.isArray(category) ? category[0] : category;
-const articleSlug = Array.isArray(slug) ? slug[0] : slug;
+const categorySlug = computed(() => {
+  const category = route.params.category;
+  return Array.isArray(category) ? category[0] : category;
+});
+const articleSlug = computed(() => {
+  const slug = route.params.slug;
+  return Array.isArray(slug) ? slug[0] : slug;
+});
 
-if (!articleSlug || articleSlug === " " || !categorySlug || categorySlug === " ") {
+if (!articleSlug.value || articleSlug.value === " " || !categorySlug.value || categorySlug.value === " ") {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
-const { find } = useCms();
+const cms = useCms();
 
-const { data: article } = await useAsyncData<Article | null>("article", async () => {
-  const result = await find<Article>("articles", {
-    filters: { slug: { $eq: articleSlug } },
-    populate: "*",
-    pagination: { page: 1, pageSize: 1 },
-  });
-  return result.data[0] ?? null;
-});
+const { data: article, status } = await useAsyncData<Article | null>(
+  () => `article:${categorySlug.value}:${articleSlug.value}`,
+  async () => {
+    const category = Array.isArray(route.params.category) ? route.params.category[0] : route.params.category;
+    const slug = Array.isArray(route.params.slug) ? route.params.slug[0] : route.params.slug;
+    if (!slug || !category) return null;
+    const result = await cms.articles({
+      slug,
+      categorySlug: category,
+      include: "*",
+      page: 1,
+      pageSize: 1,
+    });
+    return result.data[0] ?? null;
+  },
+  { watch: [categorySlug, articleSlug] },
+);
+
+watch([article, status], ([next, currentStatus]) => {
+  if (currentStatus === "pending") return;
+  if (!next) {
+    showError({ statusCode: 404, statusMessage: "Page Not Found" });
+    return;
+  }
+  clearError();
+}, { immediate: true });
 
 if (!article.value) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
@@ -33,7 +55,10 @@ if (!article.value) {
 
 const content = computed(() => article.value?.content || "No content");
 const titleContent = computed(() => article.value?.title || "No title");
-const categoriesContent = computed(() => article.value?.categories || ([] as Category[]));
+const categoriesContent = computed(() => {
+  if (article.value?.categories?.length) return article.value.categories;
+  return article.value?.category ? [article.value.category] : [];
+});
 const cover = computed(() => article.value?.cover || ({} as Cover));
 
 const urlCover = computed(() =>
@@ -45,17 +70,17 @@ const urlCover = computed(() =>
   }),
 );
 
-const pagePath = `/blog/${categorySlug}/${articleSlug}`;
-const pageUrl = useSitePageUrl(pagePath);
-const coverSource = {
+const pagePath = computed(() => `/blog/${categorySlug.value}/${articleSlug.value}`);
+const pageUrl = computed(() => useSitePageUrl(pagePath.value));
+const coverSource = computed(() => ({
   cover: article.value?.cover,
   coverBlobPathname: article.value?.coverBlobPathname,
   slug: article.value?.slug,
   title: article.value?.title,
-};
+}));
 const authorImageUrl = useSitePageUrl("/img/author.jpg");
 
-const link = computed(() => pageUrl);
+const link = computed(() => pageUrl.value);
 const date = computed(() => article.value?.publishedAt || "");
 const modifiedAt = computed(() => article.value?.updatedAt || "");
 
@@ -73,12 +98,12 @@ const metaDescription = computed(
     `Article sur le Journal du cuistot : ${titleContent.value}`,
 );
 
-useApplyPageSeo({
+useApplyPageSeo(computed(() => ({
   title: titleContent.value || "Journal du cuistot",
   description: metaDescription.value,
   keywords: seo.value?.keywords,
-  image: formatCoverOgImagePath(coverSource) || "/img/logo.webp",
-  url: pagePath,
+  image: formatCoverOgImagePath(coverSource.value) || "/img/logo.webp",
+  url: pagePath.value,
   author: SITE_AUTHOR_NAME,
   articleDatePublished: article.value?.publishedAt,
   articleDateModified: article.value?.updatedAt,
@@ -86,7 +111,7 @@ useApplyPageSeo({
     headline: titleContent.value,
     description: metaDescription.value,
   },
-});
+})));
 </script>
 
 <template>
@@ -157,7 +182,7 @@ useApplyPageSeo({
   <BaseMarkdownContent :markdown="content" tag="article" />
   <LazyCta />
   <LazySectionYouMayAlsoLike
-    :category="String(categoryRecipe.id ?? '')"
+    :category="categoryRecipe.slug ?? ''"
     type-content="articles"
   />
 </template>

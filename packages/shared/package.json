@@ -1,0 +1,39 @@
+{
+  "name": "@journalducuistot/shared",
+  "version": "0.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "main": "./module.ts",
+  "exports": {
+    ".": "./module.ts",
+    "./module": "./module.ts",
+    "./content-blocks": "./shared/content-blocks/index.ts",
+    "./content-blocks/*": "./shared/content-blocks/*.ts",
+    "./content-image": "./shared/content-image.ts",
+    "./content-editor/grid-columns": "./shared/content-editor/grid-columns.ts",
+    "./content-editor/canvas-editor": "./shared/content-editor/canvas-editor.ts",
+    "./markdown": "./app/utils/content-block-clients.ts",
+    "./blocks/*": "./blocks/*"
+  },
+  "dependencies": {
+    "comark": "^0.7.0"
+  },
+  "peerDependencies": {
+    "@comark/vue": "^0.7.0",
+    "@nuxt/ui": "^4.11.0",
+    "@tiptap/core": ">=2.0.0",
+    "@tiptap/vue-3": ">=2.0.0",
+    "nuxt": "catalog:",
+    "vue": "catalog:"
+  },
+  "peerDependenciesMeta": {
+    "@tiptap/core": { "optional": true },
+    "@tiptap/vue-3": { "optional": true }
+  },
+  "devDependencies": {
+    "nuxt": "catalog:",
+    "typescript": "catalog:",
+    "vue": "catalog:"
+  }
+}

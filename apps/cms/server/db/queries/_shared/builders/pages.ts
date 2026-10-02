@@ -17,6 +17,7 @@ export interface PagesQueryOptions {
     slug?: string
     parentSlug?: string
     parentId?: number
+    isHome?: boolean
   }
   /** When false (unauthenticated), filters to published + non-deleted pages only. */
   isAuthenticated: boolean
@@ -42,6 +43,18 @@ export function buildPagesQueryWhere(options: PagesQueryOptions): PagesQueryFilt
 
   if (options.locale) {
     filters.push({ locale: options.locale })
+  }
+
+  if (options.filters?.slug) {
+    filters.push({ slug: options.filters.slug })
+  }
+
+  if (options.filters?.parentId != null) {
+    filters.push({ parentId: options.filters.parentId })
+  }
+
+  if (options.filters?.isHome !== undefined) {
+    filters.push({ isHome: options.filters.isHome })
   }
 
   if (filters.length === 0) return undefined

@@ -1,24 +1,20 @@
 <script lang="ts" setup>
-import type { Category, Recipe, StrapiResponse } from "~/types/strapiMeta";
+import type { Category, Recipe } from "~/types/strapiMeta";
+import type { CmsListResponse } from "~/types/cms";
 
-const { find } = useCms();
+const cms = useCms();
 const search = ref("");
 const checkedCategories = ref<string[]>([]);
 const currentPage = ref(1);
-const { data: recipes, refresh } = await useAsyncData<StrapiResponse<Recipe>>(
+const { data: recipes, refresh } = await useAsyncData<CmsListResponse<Recipe>>(
   `recipes`,
   () =>
-    find<Recipe>(`recipes`, {
-      filters: {
-        title: { $contains: search.value },
-        category: { name: { $in: checkedCategories.value } },
-      },
-      sort: ["firstPublishedAt:desc"],
-      populate: "*",
-      pagination: {
-        page: currentPage.value,
-        pageSize: 16,
-      },
+    cms.recipes({
+      search: search.value || undefined,
+      categoryNames: checkedCategories.value.length ? checkedCategories.value : undefined,
+      include: ["cover", "category"],
+      page: currentPage.value,
+      pageSize: 16,
     }),
   { watch: [currentPage], deep: false },
 );
@@ -41,9 +37,10 @@ useApplyPageSeo({
 const searchWithFilter = () => {
   refresh();
 };
-const { data: categories } = await useAsyncData(`categories`, () =>
-  find<Category>(`categories`, {
-    pagination: { page: 1, pageSize: 100 },
+const { data: categories } = await useAsyncData(`recipe-categories`, () =>
+  cms.categories({
+    page: 1,
+    pageSize: 100,
   }),
 );
 

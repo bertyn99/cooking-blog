@@ -82,6 +82,8 @@ Admin pull: `POST /api/admin/transfer/pull`.
 
 **Editor AI (`POST /api/completion`)** needs the Workers AI binding (`env.AI`). Use `pnpm dev:infra` for Alchemy's wrangler-free local binding proxy; standalone `pnpm dev:cms` uses the local database and the generation fallback without Cloudflare bindings. Alchemy: `Cloudflare.Website.Nuxt` + `Cloudflare.AI.Gateway` + `Cloudflare.Workers.AI()` in `infra/workers.ts` — redeploy after infra changes.
 
+**Media picker (Stock + IA):** optional `PEXELS_API_KEY` enables the Pexels Stock tab; IA generation needs `env.AI` + AI Gateway `jdc-cms-ai` with **Unified Billing** for catalog image models. See [`AGENTS.md` — Commands & env](./AGENTS.md#commands--env).
+
 ## Admin seeder
 
 | Mechanism | When | Auth |
