@@ -303,7 +303,7 @@ watch(() => props.editor, (editor, _, onCleanup) => {
   dom.addEventListener('click', onEditorClick, true)
   onCleanup(() => {
     editor.off('selectionUpdate', onSelection)
-    editorDom(editor)?.removeEventListener('click', onEditorClick, true)
+    dom.removeEventListener('click', onEditorClick, true)
     lastLinkCaretKey = null
     if (boundEditor === editor) {
       boundEditor = null
