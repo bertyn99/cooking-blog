@@ -18,6 +18,14 @@ const cloudflareRuntimeModulesPlugin = {
     if (id === 'cloudflare:workers' || id === 'cloudflare:workflows' || id === 'cloudflare:email') {
       return { id: fileURLToPath(new URL(`./server/shims/cloudflare-${id.slice('cloudflare:'.length)}.mjs`, import.meta.url)), external: false }
     }
+    const normalized = id.replace(/\\/g, '/')
+    if (normalized.endsWith('@nuxtjs/mcp-toolkit/dist/runtime/server/mcp/providers/cloudflare.js')
+      || normalized.endsWith('/node_modules/@nuxtjs/mcp-toolkit/dist/runtime/server/mcp/providers/cloudflare.js')) {
+      return {
+        id: fileURLToPath(new URL('./server/shims/mcp-cloudflare-provider.mjs', import.meta.url)),
+        external: false,
+      }
+    }
     return null
   },
 }
@@ -119,10 +127,6 @@ export default defineNuxtConfig({
     externals: {
       inline: ['@jsquash/jpeg', '@jsquash/png', '@jsquash/webp', '@jsquash/resize'],
     },
-  },
-
-
-  nitro: {
     // MCP sessions persist to KV through unstorage — see
     // https://mcp-toolkit.nuxt.dev/advanced/sessions#custom-storage-driver.
     // `Cache` is the KV namespace already bound by Alchemy (infra/workers.ts);
@@ -132,6 +136,11 @@ export default defineNuxtConfig({
         driver: 'cloudflare-kv-binding',
         binding: 'Cache',
         base: 'mcp:sessions',
+      },
+      'mcp:sessions-meta': {
+        driver: 'cloudflare-kv-binding',
+        binding: 'Cache',
+        base: 'mcp:sessions-meta',
       },
     },
     rollupConfig: {

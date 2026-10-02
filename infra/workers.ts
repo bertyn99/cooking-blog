@@ -60,9 +60,18 @@ export const workers = Effect.fn(function* (input: {
       'PROD_WEB_HOST is required for stage=prod (hostname only, e.g. journalducuistot.fr). Set the GitHub Actions secret before deploying.',
     )
   }
+  if (isProd && !prodCmsHost) {
+    throw new Error(
+      'PROD_CMS_HOST is required for stage=prod (hostname only, e.g. admin.journalducuistot.fr). Set the GitHub Actions secret before deploying.',
+    )
+  }
   const normalizeHost = (value: string) =>
     value.replace(/^https?:\/\//, '').replace(/\/$/, '')
-  const prodCmsOrigin = prodCmsHost ? `https://${normalizeHost(prodCmsHost)}` : ''
+  const httpsOrigin = (host: string) => `https://${normalizeHost(host)}`
+  // Prod CMS URL: one secret (`PROD_CMS_HOST` hostname) → `https://…` on the Worker as
+  // `NUXT_PUBLIC_CMS_BASE_URL` only. `CMS_BASE_URL` in repo docs is the same origin for
+  // local `.env` / clone scripts — not a second deploy knob.
+  const prodCmsOrigin = prodCmsHost ? httpsOrigin(prodCmsHost) : ''
   const cmsDomain = isProd && prodCmsHost ? normalizeHost(prodCmsHost) : undefined
   const webDomain = isProd ? normalizeHost(prodWebHost) : undefined
 
@@ -124,11 +133,9 @@ export const workers = Effect.fn(function* (input: {
       NUXT_STRAPI_API_TOKEN: strapiApiToken,
       PEXELS_API_KEY: Config.String('PEXELS_API_KEY').pipe(Config.withDefault('')),
       CMS_PREVIEW_TOKEN: Config.String('CMS_PREVIEW_TOKEN').pipe(Config.withDefault('')),
-      ...(isProd && prodCmsHost
-        ? { NUXT_PUBLIC_CMS_BASE_URL: `https://${normalizeHost(prodCmsHost)}` }
-        : {}),
+      ...(isProd ? { NUXT_PUBLIC_CMS_BASE_URL: prodCmsOrigin } : {}),
       ...(isProd && prodWebHost
-        ? { NUXT_PUBLIC_SITE_URL: `https://${normalizeHost(prodWebHost)}` }
+        ? { NUXT_PUBLIC_SITE_URL: httpsOrigin(prodWebHost) }
         : {}),
     },
     // beta.78 forwards Worker crons into Vite/dev; skip locally so scheduled
@@ -143,15 +150,16 @@ export const workers = Effect.fn(function* (input: {
   const cmsPublicOverride = yield* Config.String('NUXT_PUBLIC_CMS_BASE_URL').pipe(Config.option)
   const cmsWorkerOrigin = Output.map(Cms.url, (url) => url ?? 'http://localhost:3001')
   const defaultCmsOrigin = isProd ? prodCmsOrigin : cmsWorkerOrigin
-  const cmsBaseUrl = cmsOriginOverride._tag === 'Some' ? cmsOriginOverride.value : defaultCmsOrigin
-  const cmsPublicUrl =
-    cmsPublicOverride._tag === 'Some' ? cmsPublicOverride.value : defaultCmsOrigin
+  const cmsOrigin =
+    cmsPublicOverride._tag === 'Some'
+      ? cmsPublicOverride.value
+      : cmsOriginOverride._tag === 'Some'
+        ? cmsOriginOverride.value
+        : defaultCmsOrigin
   const siteUrlFromEnv = yield* Config.String('NUXT_PUBLIC_SITE_URL').pipe(
     Config.withDefault('http://localhost:3000'),
   )
-  const siteUrl = isProd
-    ? `https://${normalizeHost(prodWebHost)}`
-    : siteUrlFromEnv
+  const siteUrl = isProd ? httpsOrigin(prodWebHost) : siteUrlFromEnv
   const ogImageSecret = Config.String('NUXT_OG_IMAGE_SECRET').pipe(Config.withDefault(''))
   const umamiId = isProd
     ? yield* Config.String('NUXT_UMAMI_ID').pipe(Config.withDefault(''))
@@ -188,8 +196,7 @@ export const workers = Effect.fn(function* (input: {
       Cache: input.Cache,
       AI_READY_DB: input.AiReadyDB,
       SKEW_PROTECTION: SkewProtection,
-      CMS_BASE_URL: cmsBaseUrl,
-      NUXT_PUBLIC_CMS_BASE_URL: cmsPublicUrl,
+      NUXT_PUBLIC_CMS_BASE_URL: cmsOrigin,
       NUXT_PUBLIC_SITE_URL: siteUrl,
       CMS_PREVIEW_TOKEN: Config.String('CMS_PREVIEW_TOKEN').pipe(Config.withDefault('')),
       NUXT_OG_IMAGE_SECRET: ogImageSecretValue,
@@ -215,8 +222,8 @@ export const workers = Effect.fn(function* (input: {
           ? { env: 'production', indexable: true }
           : { indexable: false }),
       },
-      // Keep `nuxt` overrides JSON-plain (no Outputs). CMS URL stays on Worker
-      // env (`NUXT_PUBLIC_CMS_BASE_URL`). Deep-clone in @distilled.cloud/nuxt
+      // Keep `nuxt` overrides JSON-plain (no Outputs). CMS origin → Worker env
+      // `NUXT_PUBLIC_CMS_BASE_URL` only. Deep-clone in @distilled.cloud/nuxt
       // patch prevents Nuxt from mutating Alchemy-tracked prop objects.
       umami: {
         id: umamiId,
