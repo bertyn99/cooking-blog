@@ -6,13 +6,11 @@ defineOptions({ inheritAttrs: false })
 const props = withDefaults(defineProps<{
   image?: string
   alt?: string
-  ctaHref?: string
-  ctaSecondaryHref?: string
+  href?: string
 }>(), {
-  image: '/img/hero.jpg',
-  alt: '',
-  ctaHref: '/recette',
-  ctaSecondaryHref: '/blog',
+  image: '/img/author.jpg',
+  alt: 'Portrait du cuistot',
+  href: '/a-propos',
 })
 
 const emit = defineEmits<{
@@ -22,7 +20,7 @@ const emit = defineEmits<{
 
 <template>
   <BlockPropsForm
-    :definition="catalogEntryForTag('hero')"
+    :definition="catalogEntryForTag('person')"
     :values="props"
     @update:values="emit('update:props', $event)"
   />

@@ -2,6 +2,12 @@
 
 Architecture and decision records for the **journalducuistot** pnpm monorepo (French cooking blog at [journalducuistot.fr](https://journalducuistot.fr)).
 
+## Visual language
+
+| Document | Description |
+|----------|-------------|
+| [Design](./design.md) | Public site style, tokens, layout families, and audit (preserve vs retire) |
+
 ## Architecture
 
 | Document | Description |

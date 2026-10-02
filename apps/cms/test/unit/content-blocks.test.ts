@@ -8,6 +8,7 @@ import {
   pageContentRoundTrip,
   propCountLabel,
   DEFAULT_NEW_PAGE_MARKDOWN,
+  HOME_PAGE_MARKDOWN,
   PUBLIC_SITE_IMAGES,
   serializePageDocument,
   uniqueFieldKinds,
@@ -67,22 +68,14 @@ Astuce
   })
 
   it('round-trips homepage seed markdown', async () => {
-    const md = `::hero{image="/img/hero.jpg"}
-::
-
-::newsletter
-::
-
-::recipe-list{source="latest" limit="4"}
-::
-
-::article-list{source="latest" limit="5"}
-::`
-
-    const round = await pageContentRoundTrip(md)
-    expect(round).toContain('::hero{image="/img/hero.jpg"}')
-    expect(round).toContain('::recipe-list{source="latest" limit="4"}')
-    expect(round).toContain('::article-list{source="latest" limit="5"}')
+    const round = await pageContentRoundTrip(HOME_PAGE_MARKDOWN)
+    expect(round).toContain('::hero{')
+    expect(round).toContain('::person{')
+    expect(round).toContain('::hubs{')
+    expect(round).toContain('::recipe-list{source="latest"')
+    expect(round).toContain('::article-list{source="latest"')
+    expect(round).toContain('#title')
+    expect(round).toContain('Cuisine africaine, recettes de saison')
   })
 
   it('drops unknown section props on parse/serialize', async () => {
@@ -91,7 +84,12 @@ Astuce
     const doc = await parsePageContent(md)
     expect(doc.blocks[0]).toMatchObject({ kind: 'section', tag: 'hero' })
     if (doc.blocks[0]?.kind !== 'section') throw new Error('expected section')
-    expect(doc.blocks[0].props).toEqual({ image: '/img/hero.jpg', alt: '' })
+    expect(doc.blocks[0].props).toEqual({
+      image: '/img/hero.jpg',
+      alt: '',
+      ctaHref: '/recette',
+      ctaSecondaryHref: '/blog',
+    })
     const out = await serializePageDocument(doc)
     expect(out).not.toContain('onclick')
   })
@@ -180,7 +178,7 @@ describe('content block field schema', () => {
       { kind: 'media', label: 'Média', icon: 'i-lucide-image' },
       { kind: 'text', label: 'Texte', icon: 'i-lucide-type' },
     ])
-    expect(propCountLabel(hero.fields.length)).toBe('2 props')
+    expect(propCountLabel(hero.fields.length)).toBe('4 props')
     expect(fieldKindMeta('color')).toMatchObject({ label: 'Couleur', icon: 'i-lucide-palette' })
     expect(fieldKindMeta('text').label).toBe('Texte')
   })
@@ -201,7 +199,12 @@ describe('content block field schema', () => {
     expect(doc.blocks[0]).toMatchObject({
       kind: 'section',
       tag: 'hero',
-      props: { image: '/img/hero.jpg', alt: '' },
+      props: {
+        image: '/img/hero.jpg',
+        alt: '',
+        ctaHref: '/recette',
+        ctaSecondaryHref: '/blog',
+      },
     })
   })
 })

@@ -8,13 +8,11 @@ defineOptions({ inheritAttrs: false })
 const props = withDefaults(defineProps<{
   image?: string
   alt?: string
-  ctaHref?: string
-  ctaSecondaryHref?: string
+  href?: string
 } & ContentBlockSimpleChromeProps>(), {
-  image: '/img/hero.jpg',
-  alt: '',
-  ctaHref: '/recette',
-  ctaSecondaryHref: '/blog',
+  image: '/img/author.jpg',
+  alt: 'Portrait du cuistot',
+  href: '/a-propos',
   expanded: false,
 })
 
@@ -23,46 +21,43 @@ const emit = defineEmits<{
   'update:values': [Record<string, string>]
 }>()
 
-const heroDef = catalogEntryForTag('hero')
+const def = catalogEntryForTag('person')
 
 const resolved = computed(() =>
-  resolveSectionProps(heroDef.fields, {
+  resolveSectionProps(def.fields, {
     ...props.values,
     image: props.image,
     alt: props.alt,
-    ctaHref: props.ctaHref,
-    ctaSecondaryHref: props.ctaSecondaryHref,
+    href: props.href,
   }),
 )
 </script>
 
 <template>
   <BlockSimpleChrome
-    tag="hero"
+    tag="person"
     :values="resolved"
     :expanded="props.expanded"
     :slot-values="props.slotValues"
     @update:slot-values="emit('update:slotValues', $event)"
     @update:values="emit('update:values', $event)"
   />
-  <BlockHeroClient
+  <BlockPersonClient
     :image="resolved.image"
     :alt="resolved.alt"
-    :cta-href="resolved.ctaHref"
-    :cta-secondary-href="resolved.ctaSecondaryHref"
-    class="mt-2 min-h-[10rem] sm:min-h-[12rem] lg:min-h-[14rem]"
+    :href="resolved.href"
   >
     <template
-      v-if="props.slotValues?.title"
-      #title
+      v-if="props.slotValues?.heading"
+      #heading
     >
-      {{ props.slotValues.title }}
+      {{ props.slotValues.heading }}
     </template>
     <template
-      v-if="props.slotValues?.description"
-      #description
+      v-if="props.slotValues?.body"
+      #body
     >
-      {{ props.slotValues.description }}
+      {{ props.slotValues.body }}
     </template>
     <template
       v-if="props.slotValues?.cta"
@@ -70,11 +65,5 @@ const resolved = computed(() =>
     >
       {{ props.slotValues.cta }}
     </template>
-    <template
-      v-if="props.slotValues?.['cta-secondary']"
-      #cta-secondary
-    >
-      {{ props.slotValues['cta-secondary'] }}
-    </template>
-  </BlockHeroClient>
+  </BlockPersonClient>
 </template>

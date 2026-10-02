@@ -7,6 +7,8 @@ import {
 
 export const SECTION_BLOCK_TAGS = [
   'hero',
+  'person',
+  'hubs',
   'newsletter',
   'recipe-list',
   'article-list',
@@ -95,11 +97,100 @@ export const CONTENT_BLOCK_CATALOG: ContentBlockDefinition[] = [
         input: 'text',
         placeholder: 'Décrivez l’image',
       },
+      {
+        key: 'ctaHref',
+        label: 'Lien du bouton',
+        input: 'text',
+        default: '/recette',
+        placeholder: '/recette',
+      },
+      {
+        key: 'ctaSecondaryHref',
+        label: 'Lien du second bouton',
+        input: 'text',
+        default: '/blog',
+        placeholder: '/blog',
+      },
     ],
     slots: [
       { name: 'title', label: 'TITLE', input: 'text', placeholder: 'Titre' },
       { name: 'description', label: 'DESCRIPTION', input: 'textarea', placeholder: 'Accroche' },
       { name: 'cta', label: 'CTA', input: 'text', placeholder: 'Libellé du bouton' },
+      { name: 'cta-secondary', label: 'CTA SECONDARY', input: 'text', placeholder: 'Second bouton' },
+    ],
+  }),
+  defineBlock({
+    tag: 'person',
+    family: 'section',
+    label: 'Présentation',
+    description: 'Intro auteur : photo, texte et lien (un seul H2).',
+    icon: 'i-lucide-user',
+    insertable: true,
+    fields: [
+      {
+        key: 'image',
+        label: 'Portrait',
+        input: 'media',
+        default: '/img/author.jpg',
+        placeholder: '/img/author.jpg',
+        altKey: 'alt',
+      },
+      {
+        key: 'alt',
+        label: 'Texte alternatif',
+        input: 'text',
+        default: 'Portrait du cuistot',
+        placeholder: 'Décrivez le portrait',
+      },
+      {
+        key: 'href',
+        label: 'Lien',
+        input: 'text',
+        default: '/a-propos',
+        placeholder: '/a-propos',
+      },
+    ],
+    slots: [
+      { name: 'heading', label: 'HEADING', input: 'text', placeholder: 'Titre de section' },
+      { name: 'body', label: 'BODY', input: 'textarea', placeholder: 'Texte d’intro' },
+      { name: 'cta', label: 'CTA', input: 'text', placeholder: 'Libellé du lien' },
+    ],
+  }),
+  defineBlock({
+    tag: 'hubs',
+    family: 'section',
+    label: 'Hubs',
+    description: 'Quatre portes d’entrée : recettes, techniques, Afrique, journal.',
+    icon: 'i-lucide-layout-grid',
+    insertable: true,
+    fields: [
+      {
+        key: 'recipesHref',
+        label: 'Lien recettes',
+        input: 'text',
+        default: '/recette',
+      },
+      {
+        key: 'techniquesHref',
+        label: 'Lien techniques',
+        input: 'text',
+        default: '/techniques-culinaires',
+      },
+      {
+        key: 'africaHref',
+        label: 'Lien Afrique',
+        input: 'text',
+        default: '/recettes-du-monde',
+      },
+      {
+        key: 'journalHref',
+        label: 'Lien journal',
+        input: 'text',
+        default: '/blog',
+      },
+    ],
+    slots: [
+      { name: 'title', label: 'TITLE', input: 'text', default: 'Explorer le journal', placeholder: 'Titre' },
     ],
   }),
   defineBlock({
@@ -172,7 +263,9 @@ export const CONTENT_BLOCK_CATALOG: ContentBlockDefinition[] = [
         max: 24,
       },
     ],
-    slots: [],
+    slots: [
+      { name: 'title', label: 'TITLE', input: 'text', placeholder: 'Titre de la liste' },
+    ],
   }),
   defineBlock({
     tag: 'article-list',
@@ -212,7 +305,15 @@ export const CONTENT_BLOCK_CATALOG: ContentBlockDefinition[] = [
         max: 24,
       },
     ],
-    slots: [],
+    slots: [
+      {
+        name: 'title',
+        label: 'TITLE',
+        input: 'text',
+        default: 'Derniers articles',
+        placeholder: 'Titre de la liste',
+      },
+    ],
   }),
   defineBlock({
     tag: 'grid',
