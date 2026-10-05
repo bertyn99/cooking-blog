@@ -14,12 +14,9 @@ const props = defineProps<{
 
 const { data: recipes, status, error } = useContentBlockRecipeList(props)
 
-const gridUi = computed(() => {
-  const count = recipes.value?.length ?? 0
-  if (count <= 2) return { base: 'relative grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-10' }
-  if (count === 3) return { base: 'relative grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 sm:gap-10' }
-  return { base: 'relative grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-2 sm:gap-10 xl:gap-12' }
-})
+const gridUi = {
+  base: 'relative grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 sm:gap-x-8 sm:gap-y-12',
+}
 
 const skeletonCount = computed(() => {
   const n = Number(props.limit)
@@ -79,7 +76,7 @@ const skeletonCount = computed(() => {
             :ui="{
               root: 'rounded-none',
               container: 'gap-4 p-0 sm:p-0',
-              title: 'jdc-serif text-2xl font-normal capitalize transition-colors duration-200 group-hover:text-yellow-800',
+              title: 'jdc-serif text-lg leading-6 font-normal capitalize transition-colors duration-200 group-hover:text-yellow-800',
               header: 'mt-4 mb-0',
             }"
           >
@@ -90,7 +87,7 @@ const skeletonCount = computed(() => {
                 :alt="item.title"
                 :width="1300"
                 :height="1657"
-                sizes="sm:90vw md:45vw lg:40vw"
+                sizes="sm:90vw md:45vw lg:25vw"
                 img-class="aspect-[3/4] w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
               />
               <div

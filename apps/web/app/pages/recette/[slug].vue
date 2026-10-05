@@ -1,7 +1,10 @@
 <script lang="ts" setup>
 import type { Category, Cover, Ingredient, Recipe, RecipeUtensil, SEO } from "~/types/strapiMeta";
 
-definePageMeta({ layout: "content" });
+definePageMeta({
+  layout: "content",
+  path: "/recette/:slug([^_][^/]*)",
+});
 
 const route = useRoute();
 

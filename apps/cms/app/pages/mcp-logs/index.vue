@@ -32,21 +32,34 @@ const filters = reactive({
   keyPrefix: '',
 })
 
-const pagination = ref({ pageIndex: 0, pageSize: 25 })
+const page = ref(1)
+const pageSize = 25
 
 const { data, status, refresh } = await useAsyncData(
-  'mcp-logs',
+  () => `mcp-logs-p${page.value}-a${filters.action}-e${filters.entityType}-k${filters.keyPrefix}`,
   () => $api<McpLogsResponse>('/api/admin/mcp-logs', {
     query: {
-      page: pagination.value.pageIndex + 1,
-      pageSize: pagination.value.pageSize,
+      page: page.value,
+      pageSize,
       ...(filters.action ? { action: filters.action } : {}),
       ...(filters.entityType ? { entityType: filters.entityType } : {}),
       ...(filters.keyPrefix ? { keyPrefix: filters.keyPrefix } : {}),
     },
   }),
-  { watch: [pagination, filters] },
 )
+
+watch(
+  () => data.value?.meta.pagination.pageCount,
+  (pageCount) => {
+    if (pageCount && page.value > pageCount) {
+      page.value = pageCount
+    }
+  },
+)
+
+watch(filters, () => {
+  page.value = 1
+}, { deep: true })
 
 const rows = computed(() => data.value?.data ?? [])
 const total = computed(() => data.value?.meta.pagination.total ?? 0)
@@ -90,7 +103,7 @@ const columns: TableColumn<McpLogRow>[] = [
 ]
 
 async function applyFilters() {
-  pagination.value.pageIndex = 0
+  page.value = 1
   try {
     await refresh()
   }
@@ -146,8 +159,17 @@ async function applyFilters() {
         </template>
       </UTable>
 
-      <div class="text-sm text-muted">
-        {{ total }} entrée(s)
+      <div class="flex items-center justify-between gap-3">
+        <p class="text-sm text-muted">
+          {{ total }} entrée(s)
+        </p>
+        <UPagination
+          v-if="total > pageSize"
+          v-model:page="page"
+          :items-per-page="pageSize"
+          :total="total"
+          show-edges
+        />
       </div>
     </div>
   </AppDashboardPanel>

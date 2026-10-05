@@ -1,7 +1,12 @@
 <script lang="ts" setup>
-import type { Article, Category } from "~/types/strapiMeta";
+import type { Article } from "~/types/strapiMeta";
 import type { CmsListResponse } from "~/types/cms";
 
+definePageMeta({
+  key: (route) => route.fullPath,
+});
+
+const PAGE_SIZE = 7;
 const blogDescription =
   "Articles, astuces et inspiration culinaire sur le Journal du cuistot.";
 
@@ -15,22 +20,28 @@ useApplyPageSeo({
     description: blogDescription,
   },
 });
+
+const route = useRoute();
+const cms = useCms();
 const search = ref("");
 const checkedCategories = ref<string[]>([]);
-const currentPage = ref(1);
-const cms = useCms();
+const appliedSearch = ref("");
+const appliedCategories = ref<string[]>([]);
+const currentPage = computed(() => parsePageQuery(route.query));
 
-const { data: articles, refresh } = await useAsyncData<CmsListResponse<Article>>(
-  `articles`,
+const { data: articles } = await useAsyncData<CmsListResponse<Article>>(
+  () => {
+    const categories = [...appliedCategories.value].sort().join("|");
+    return `articles-p${currentPage.value}-q${appliedSearch.value}-c${categories}`;
+  },
   () =>
     cms.articles({
-      search: search.value || undefined,
-      categoryNames: checkedCategories.value.length ? checkedCategories.value : undefined,
+      search: appliedSearch.value || undefined,
+      categoryNames: appliedCategories.value.length ? appliedCategories.value : undefined,
       include: ["cover", "category", "seo"],
       page: currentPage.value,
-      pageSize: 7,
+      pageSize: PAGE_SIZE,
     }),
-  { watch: [currentPage], deep: false },
 );
 
 const { data: categories } = await useAsyncData(`blog-article-categories`, () =>
@@ -46,21 +57,14 @@ const formatCategories = computed(() =>
   }),
 );
 
-const searchWithFilter = () => {
-  refresh();
-};
+const pageCount = computed(() => articles.value?.meta?.pagination?.pageCount ?? 1);
 
-const goNext = () => {
-  if (articles.value && currentPage.value < articles.value.meta.pagination.pageCount + 1) {
-    currentPage.value += 1;
+const searchWithFilter = async () => {
+  appliedSearch.value = search.value;
+  appliedCategories.value = [...checkedCategories.value];
+  if (currentPage.value > 1) {
+    await navigateTo(listPageLocation(route.path, route.query, 1));
   }
-};
-
-const goPrev = () => {
-  if (currentPage.value > 1) currentPage.value -= 1;
-};
-const goTo = (id: number) => {
-  currentPage.value = id;
 };
 </script>
 
@@ -90,11 +94,8 @@ const goTo = (id: number) => {
       <div class="lg:col-span-3">
         <ArticleList :articles="articles?.data ?? []"></ArticleList>
         <BasePagination
-          :totalPage="articles?.meta.pagination.pageCount ?? 1"
+          :totalPage="pageCount"
           :currentPage="currentPage"
-          :prev="goPrev"
-          :next="goNext"
-          :to="goTo"
         />
       </div>
     </div>

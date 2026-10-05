@@ -126,6 +126,7 @@ export default defineNuxtConfig({
   routeRules: {
     '/': { isr: 60 * 15 },
     '/blog/**': { isr: 60 * 25 },
+    '/recette/**': { isr: 60 * 25 },
     '/images/**': {
       isr: 60 * 60 * 24 * 30,
       headers: {
