@@ -1,4 +1,5 @@
 import { serverCmsFind } from '../utils/cms-fetch'
+import type { NestedParent } from '~/types/strapiMeta'
 import { cmsPageMatchesRequestPath } from '~/utils/format'
 
 const PREVIEW_TYPES = ['article', 'page', 'recipe'] as const
@@ -62,7 +63,7 @@ export default defineEventHandler(async (event) => {
   }
 
   if (type === 'page') {
-    const page = row as { slug?: string, isHome?: boolean, parent?: { slug?: string, parent?: unknown } | null }
+    const page = row as { slug?: string, isHome?: boolean, parent?: NestedParent | null }
     const requestPath = `/${slugParts.join('/')}`
     if (!page.isHome && !cmsPageMatchesRequestPath(page, requestPath)) {
       throw createError({ statusCode: 404, statusMessage: 'Content not found' })

@@ -3,16 +3,28 @@ import { useQueries } from '../../utils/db'
 import { createApiError } from '../../utils/errors'
 import { requireAdmin } from '../../utils/http-auth'
 
-const positiveIntString = z.string().regex(/^[1-9]\d*$/)
+const MAX_PAGE_SIZE = 100
+const MAX_PAGE = Math.floor(Number.MAX_SAFE_INTEGER / MAX_PAGE_SIZE)
+
 const optionalTrimmed = z
   .string()
   .trim()
   .optional()
   .transform((value) => value || undefined)
 
+function queryPositiveInt(fallback: number, max: number) {
+  return z
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .transform((value) => Number(value))
+    .pipe(z.number().int().positive().finite().max(max))
+    .optional()
+    .default(fallback)
+}
+
 const mcpLogsQuerySchema = z.object({
-  page: positiveIntString.optional().transform((value) => (value ? Number(value) : 1)),
-  pageSize: positiveIntString.optional().transform((value) => (value ? Number(value) : 25)),
+  page: queryPositiveInt(1, MAX_PAGE),
+  pageSize: queryPositiveInt(25, MAX_PAGE_SIZE),
   action: optionalTrimmed,
   entityType: optionalTrimmed,
   keyPrefix: optionalTrimmed,
@@ -31,7 +43,7 @@ export default defineEventHandler(async (event) => {
   const query = parsed.data
   return useQueries(event).auditEvents.listMcpLogs({
     page: query.page,
-    pageSize: Math.min(100, query.pageSize),
+    pageSize: query.pageSize,
     action: query.action,
     entityType: query.entityType,
     keyPrefix: query.keyPrefix,
