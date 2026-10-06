@@ -40,8 +40,16 @@ async function streamToArrayBuffer(stream: ReadableStream): Promise<ArrayBuffer>
  * Local `nuxt dev` does not enable Workers Cache; only deployed Alchemy workers do.
  */
 export async function serveCmsImage(event: H3Event, fullPath: string) {
+  // The web Worker proxies image requests and forwards the real client IP
+  // (`x-jdc-client-ip`), proven with the shared preview token — worker-to-worker
+  // fetches would otherwise share one Cloudflare-egress rate-limit bucket.
+  const config = useRuntimeConfig(event)
+  const forwardedIp = config.cmsPreviewToken
+    && getHeader(event, 'x-jdc-internal') === config.cmsPreviewToken
+    ? getHeader(event, 'x-jdc-client-ip')
+    : undefined
   const imageLimiter = createRequestRateLimiter(useKvStore(event), IMAGE_DELIVERY_RATE_LIMIT)
-  const rate = await imageLimiter.consume(getClientIp(event))
+  const rate = await imageLimiter.consume(forwardedIp || getClientIp(event))
   if (!rate.allowed) {
     throw createError({
       statusCode: 429,

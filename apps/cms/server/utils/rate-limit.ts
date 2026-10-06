@@ -99,22 +99,55 @@ export interface RequestRateLimitResult {
   limit: number
 }
 
+interface WindowCounter {
+  count: number
+  windowStart: number
+}
+
+function isWindowCounter(raw: unknown): raw is WindowCounter {
+  return typeof raw === 'object' && raw !== null
+    && typeof (raw as WindowCounter).count === 'number'
+    && typeof (raw as WindowCounter).windowStart === 'number'
+}
+
 /**
  * Fixed-window request counter (e.g. public `/images/**` abuse protection).
- * Increments before serving; blocks when count exceeds `maxRequests` within the TTL window.
+ *
+ * The window is tracked explicitly via `windowStart` inside the stored value —
+ * not via the store TTL. The D1-backed store (`site_settings`) ignores TTLs, so
+ * a TTL-only window never resets and permanently blocks an IP after
+ * `maxRequests` cumulative hits. `windowStart` resets the count whenever the
+ * window elapses, regardless of store TTL support; the store TTL stays as a
+ * cleanup hint for KV-backed stores.
  */
 export function createRequestRateLimiter(store: RateLimitStore, config: RequestRateLimitConfig) {
   const keyFor = (id: string) => `${config.prefix}:${id}`
 
   return {
     async consume(id: string): Promise<RequestRateLimitResult> {
-      const raw = await store.get<number>(keyFor(id))
-      const current = typeof raw === 'number' ? raw : 0
-      if (current >= config.maxRequests) {
-        return { allowed: false, current, limit: config.maxRequests }
+      const raw = await store.get<WindowCounter | number>(keyFor(id))
+      const now = Date.now()
+      let count = 0
+      let windowStart = now
+      if (isWindowCounter(raw)) {
+        if (now - raw.windowStart < config.windowSeconds * 1000) {
+          count = raw.count
+          windowStart = raw.windowStart
+        }
+        // else: window elapsed — start a fresh one.
       }
-      const next = current + 1
-      await store.set(keyFor(id), next, { ttl: config.windowSeconds })
+      else if (typeof raw === 'number') {
+        // Legacy numeric entry (pre-windowStart): migrate to the windowed
+        // shape immediately — including over-limit tallies — so stale counts
+        // expire after one window instead of blocking forever.
+        count = raw
+        await store.set(keyFor(id), { count, windowStart }, { ttl: config.windowSeconds * 2 })
+      }
+      if (count >= config.maxRequests) {
+        return { allowed: false, current: count, limit: config.maxRequests }
+      }
+      const next = count + 1
+      await store.set(keyFor(id), { count: next, windowStart }, { ttl: config.windowSeconds * 2 })
       return { allowed: true, current: next, limit: config.maxRequests }
     },
   }

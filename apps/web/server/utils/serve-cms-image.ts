@@ -23,11 +23,20 @@ export async function serveOptimizedCmsImage(event: H3Event, fullPath: string) {
   const config = useRuntimeConfig(event)
   const originUrl = `${config.public.cmsBaseUrl.replace(/\/$/, '')}/images/${originPath}`
 
-  const origin = await fetch(originUrl, {
-    headers: {
-      accept: getHeader(event, 'accept') ?? 'image/webp,image/*,*/*',
-    },
-  })
+  // Worker-to-worker fetches reach the CMS with a Cloudflare egress IP in
+  // `cf-connecting-ip`, so the CMS would rate-limit every visitor under one
+  // shared bucket. Forward the real client IP, authenticated with the shared
+  // preview token so public callers can't spoof it.
+  const headers: Record<string, string> = {
+    accept: getHeader(event, 'accept') ?? 'image/webp,image/*,*/*',
+  }
+  const clientIp = getHeader(event, 'cf-connecting-ip')
+  if (clientIp && config.cmsPreviewToken) {
+    headers['x-jdc-client-ip'] = clientIp
+    headers['x-jdc-internal'] = config.cmsPreviewToken
+  }
+
+  const origin = await fetch(originUrl, { headers })
   if (!origin.ok) {
     if (import.meta.dev) {
       console.error('[cms-image] origin fetch failed', {
