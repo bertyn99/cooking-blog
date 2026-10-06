@@ -1,5 +1,17 @@
 export const MAX_CSV_VALUES = 50
 
+const CONTENT_STATUSES = ['draft', 'published', 'scheduled'] as const
+
+export type ContentStatusQuery = (typeof CONTENT_STATUSES)[number]
+
+export function parseContentStatus(value: unknown): ContentStatusQuery | undefined {
+  const raw = Array.isArray(value) ? value[0] : value
+  if (raw === 'draft' || raw === 'published' || raw === 'scheduled') {
+    return raw
+  }
+  return undefined
+}
+
 export function parseOptionalBoolean(value: unknown): boolean | undefined {
   if (value === true || value === 'true' || value === '1') return true
   if (value === false || value === 'false' || value === '0') return false

@@ -1,5 +1,6 @@
 import { parseInclude } from '../../../utils/populate'
 import { parsePagination } from '../../../utils/pagination'
+import { parseContentStatus } from '../../../utils/query-params'
 import { useQueries } from '../../../utils/db'
 
 export default defineEventHandler(async (event) => {
@@ -11,7 +12,7 @@ export default defineEventHandler(async (event) => {
     slug: query.slug as string | undefined,
     categoryId: query.categoryId ? Number.parseInt(query.categoryId as string, 10) : undefined,
     locale: query.locale as string | undefined,
-    status: query.status as 'draft' | 'published' | 'scheduled' | undefined,
+    status: parseContentStatus(query.status),
     search: query.search as string | undefined,
   }
 

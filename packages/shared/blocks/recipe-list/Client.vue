@@ -1,110 +1,136 @@
 <script setup lang="ts">
-import type { ContentBlockListItem, ContentBlockListQuery } from '../../shared/content-blocks/list'
 import JdcCoverMedia from '../../app/components/JdcCoverMedia.vue'
 import JdcPublicSurface from '../../app/components/JdcPublicSurface.vue'
+import JdcSectionHeading from '../../app/components/JdcSectionHeading.vue'
 
 defineOptions({ inheritAttrs: false })
 
-const props = defineProps<ContentBlockListQuery>()
+const props = defineProps<{
+  source?: string
+  category?: string
+  slugs?: string
+  limit?: string | number
+}>()
 
 const { data: recipes, status, error } = useContentBlockRecipeList(props)
 
-const nuxtLink = resolveComponent('NuxtLink')
-
-function itemTag(item: ContentBlockListItem) {
-  if (!item.href) return 'div'
-  return typeof nuxtLink === 'string' ? 'a' : nuxtLink
+const gridUi = {
+  base: 'relative grid list-none grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 sm:gap-x-8 sm:gap-y-12',
 }
+
+const skeletonCount = computed(() => {
+  const n = Number(props.limit)
+  if (Number.isFinite(n) && n > 0) return Math.min(Math.trunc(n), 8)
+  return 4
+})
 </script>
 
 <template>
   <JdcPublicSurface>
-    <div class="mx-auto max-w-6xl py-1">
-      <div
-        v-if="status === 'pending'"
-        class="grid grid-cols-1 gap-6 px-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-      >
-        <USkeleton
-          v-for="n in 4"
-          :key="n"
-          class="aspect-[3/4] w-full rounded-t-lg"
-        />
-      </div>
-      <UAlert
-        v-else-if="error"
-        class="mx-4"
-        color="error"
-        variant="subtle"
-        title="Impossible de charger les recettes."
-      />
-      <p
-        v-else-if="!recipes?.length"
-        class="px-4 text-sm text-gray-500"
-      >
-        Aucune recette pour le moment.
-      </p>
-      <div
-        v-else
-        role="list"
-        class="grid grid-cols-1 gap-6 px-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-      >
-        <article
-          v-for="item in recipes"
-          :key="item.id"
-          class="col-span-1 flex flex-col rounded-lg"
+    <UPageSection
+      as="section"
+      :ui="{
+        container: 'gap-8 py-16 sm:py-20 lg:py-20',
+      }"
+    >
+      <div class="w-full">
+        <JdcSectionHeading v-if="$slots.title">
+          <slot name="title" />
+        </JdcSectionHeading>
+
+        <UPageGrid
+          v-if="status === 'pending'"
+          :ui="gridUi"
         >
-          <component
-            :is="itemTag(item)"
-            :href="item.href"
-            :to="item.href"
+          <USkeleton
+            v-for="n in skeletonCount"
+            :key="n"
+            class="aspect-[3/4] w-full rounded-none"
+          />
+        </UPageGrid>
+        <UAlert
+          v-else-if="error"
+          color="error"
+          variant="subtle"
+          title="Impossible de charger les recettes."
+        />
+        <p
+          v-else-if="!recipes?.length"
+          class="text-sm text-toned"
+        >
+          Aucune recette pour le moment.
+        </p>
+        <UPageGrid
+          v-else
+          as="ul"
+          :ui="gridUi"
+        >
+          <UPageCard
+            v-for="item in recipes"
+            :key="item.id"
+            as="li"
+            variant="naked"
+            reverse
             class="group"
+            :to="item.href"
+            :title="item.title"
+            :ui="{
+              root: 'rounded-none',
+              container: 'gap-4 p-0 sm:p-0',
+              title: 'jdc-serif text-lg leading-6 font-normal capitalize transition-colors duration-200 group-hover:text-yellow-800',
+              header: 'mt-4 mb-0',
+            }"
           >
-            <div class="overflow-hidden rounded-t-lg bg-neutral-100">
+            <div class="overflow-hidden bg-elevated">
               <JdcCoverMedia
                 v-if="item.coverSrc"
                 :src="item.coverSrc"
                 :alt="item.title"
                 :width="1300"
                 :height="1657"
-                sizes="sm:55vw md:25vw lg:20vw"
-                img-class="aspect-[3/4] w-full object-cover"
+                sizes="90vw sm:45vw lg:25vw"
+                img-class="aspect-[3/4] w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
               />
               <div
                 v-else
-                class="aspect-[3/4] w-full bg-neutral-100"
-              />
-            </div>
-            <div
-              v-if="item.time || item.difficulty"
-              class="mt-8 flex items-center gap-x-4 text-xs"
-            >
-              <span
-                v-if="item.time"
-                class="inline-flex items-center gap-1 font-medium text-gray-700 uppercase"
-              >
-                <UIcon
-                  name="i-lucide-clock"
-                  class="h-3 w-3 text-gray-400"
-                />
-                {{ item.time }} minutes
-              </span>
-              <span
-                v-if="item.difficulty"
-                class="inline-flex items-center gap-1 font-medium text-gray-700 uppercase"
+                class="flex aspect-[3/4] w-full items-center justify-center bg-elevated text-muted"
               >
                 <UIcon
                   name="i-lucide-utensils"
-                  class="h-3 w-3 text-gray-400"
+                  class="size-8"
                 />
-                {{ item.difficulty }}
-              </span>
+              </div>
             </div>
-            <h3 class="mt-3 text-lg leading-6 font-semibold text-gray-900 capitalize group-hover:text-gray-600">
-              {{ item.title }}
-            </h3>
-          </component>
-        </article>
+            <template
+              v-if="item.time || item.difficulty"
+              #header
+            >
+              <div class="flex items-center gap-x-4 text-xs font-medium tracking-wide text-toned uppercase">
+                <span
+                  v-if="item.time"
+                  class="inline-flex items-center gap-1"
+                >
+                  <UIcon
+                    name="i-lucide-clock"
+                    class="size-3 text-muted"
+                  />
+                  {{ item.time }} minutes
+                </span>
+                <span
+                  v-if="item.difficulty"
+                  class="inline-flex items-center gap-1"
+                >
+                  <UIcon
+                    name="i-lucide-utensils"
+                    class="size-3 text-muted"
+                  />
+                  {{ item.difficulty }}
+                </span>
+              </div>
+            </template>
+          </UPageCard>
+        </UPageGrid>
       </div>
-    </div>
+    </UPageSection>
   </JdcPublicSurface>
 </template>

@@ -119,10 +119,6 @@ export default defineNuxtConfig({
     externals: {
       inline: ['@jsquash/jpeg', '@jsquash/png', '@jsquash/webp', '@jsquash/resize'],
     },
-  },
-
-
-  nitro: {
     // MCP sessions persist to KV through unstorage — see
     // https://mcp-toolkit.nuxt.dev/advanced/sessions#custom-storage-driver.
     // `Cache` is the KV namespace already bound by Alchemy (infra/workers.ts);
@@ -132,6 +128,11 @@ export default defineNuxtConfig({
         driver: 'cloudflare-kv-binding',
         binding: 'Cache',
         base: 'mcp:sessions',
+      },
+      'mcp:sessions-meta': {
+        driver: 'cloudflare-kv-binding',
+        binding: 'Cache',
+        base: 'mcp:sessions-meta',
       },
     },
     rollupConfig: {

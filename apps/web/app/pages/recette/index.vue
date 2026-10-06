@@ -1,23 +1,16 @@
 <script lang="ts" setup>
-import type { Category, Recipe } from "~/types/strapiMeta";
+import type { Recipe } from "~/types/strapiMeta";
 import type { CmsListResponse } from "~/types/cms";
 
+const PAGE_SIZE = 16;
 const cms = useCms();
+const route = useRoute();
 const search = ref("");
 const checkedCategories = ref<string[]>([]);
-const currentPage = ref(1);
-const { data: recipes, refresh } = await useAsyncData<CmsListResponse<Recipe>>(
-  `recipes`,
-  () =>
-    cms.recipes({
-      search: search.value || undefined,
-      categoryNames: checkedCategories.value.length ? checkedCategories.value : undefined,
-      include: ["cover", "category"],
-      page: currentPage.value,
-      pageSize: 16,
-    }),
-  { watch: [currentPage], deep: false },
-);
+const appliedSearch = ref("");
+const appliedCategories = ref<string[]>([]);
+const currentPage = computed(() => parsePageQuery(route.query));
+
 const recetteDescription =
   "Découvrez nos délicieuses recettes de cuisine, des entrées aux desserts, pour tous les goûts et toutes les occasions.";
 
@@ -34,9 +27,21 @@ useApplyPageSeo({
   },
 });
 
-const searchWithFilter = () => {
-  refresh();
-};
+const { data: recipes } = await useAsyncData<CmsListResponse<Recipe>>(
+  () => {
+    const categories = [...appliedCategories.value].sort().join("|");
+    return `recipes-p${currentPage.value}-q${appliedSearch.value}-c${categories}`;
+  },
+  () =>
+    cms.recipes({
+      search: appliedSearch.value || undefined,
+      categoryNames: appliedCategories.value.length ? appliedCategories.value : undefined,
+      include: ["cover", "category"],
+      page: currentPage.value,
+      pageSize: PAGE_SIZE,
+    }),
+);
+
 const { data: categories } = await useAsyncData(`recipe-categories`, () =>
   cms.categories({
     page: 1,
@@ -50,17 +55,14 @@ const formatCategories = computed(() =>
   }),
 );
 
-const goNext = () => {
-  if (recipes.value && currentPage.value < recipes.value.meta.pagination.pageCount + 1) {
-    currentPage.value += 1;
-  }
-};
+const pageCount = computed(() => recipes.value?.meta?.pagination?.pageCount ?? 1);
 
-const goPrev = () => {
-  if (currentPage.value > 1) currentPage.value -= 1;
-};
-const goTo = (id: number) => {
-  currentPage.value = id;
+const searchWithFilter = async () => {
+  appliedSearch.value = search.value;
+  appliedCategories.value = [...checkedCategories.value];
+  if (currentPage.value > 1) {
+    await navigateTo(listPageLocation(route.path, route.query, 1));
+  }
 };
 </script>
 
@@ -78,8 +80,7 @@ const goTo = (id: number) => {
         v-model:selected="checkedCategories" @filter="searchWithFilter" />
       <div class="lg:col-span-3">
         <RecipeList :list="recipes?.data ?? []" showDetails />
-        <BasePagination :totalPage="recipes?.meta?.pagination?.pageCount ?? 1" :currentPage="currentPage" :prev="goPrev"
-          :next="goNext" :to="goTo" />
+        <BasePagination :totalPage="pageCount" :currentPage="currentPage" />
       </div>
     </div>
   </section>

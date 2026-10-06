@@ -3,7 +3,7 @@ import { useQueries } from '../../utils/db'
 import { serializeRecipeForScope } from '../../utils/serialize-content'
 import { resolveRecipeCategoryIds } from '../../utils/resolve-category-ids'
 import { isPrivilegedContentRead } from '../../utils/preview-auth'
-import { parseCsvParam } from '../../utils/query-params'
+import { parseContentStatus, parseCsvParam } from '../../utils/query-params'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -30,11 +30,13 @@ export default defineEventHandler(async (event) => {
     categoryIds: categoryIds?.length ? categoryIds : undefined,
     locale: query.locale as string | undefined,
     search: (query.search as string) || undefined,
+    status: parseContentStatus(query.status),
   }
   if (!filters.slug) delete filters.slug
   if (!filters.slugs?.length) delete filters.slugs
   if (Number.isNaN(filters.categoryId as number)) delete filters.categoryId
   if (!filters.search) delete filters.search
+  if (!filters.status) delete filters.status
 
   const pagination = parsePagination(query as Record<string, string>)
 

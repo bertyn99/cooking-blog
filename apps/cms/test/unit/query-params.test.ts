@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseCsvParam, parseOptionalBoolean } from '../../server/utils/query-params'
+import { parseContentStatus, parseCsvParam, parseOptionalBoolean } from '../../server/utils/query-params'
 
 describe('query-params', () => {
   it('parses booleans including false', () => {
@@ -14,6 +14,15 @@ describe('query-params', () => {
     expect(parseCsvParam('a,b')).toEqual(['a', 'b'])
     expect(parseCsvParam(['a', 'b,c'])).toEqual(['a', 'b', 'c'])
     expect(parseCsvParam('')).toBeUndefined()
+  })
+
+  it('parses content status and ignores unknown values', () => {
+    expect(parseContentStatus('draft')).toBe('draft')
+    expect(parseContentStatus('published')).toBe('published')
+    expect(parseContentStatus('scheduled')).toBe('scheduled')
+    expect(parseContentStatus(['draft', 'published'])).toBe('draft')
+    expect(parseContentStatus('live')).toBeUndefined()
+    expect(parseContentStatus(undefined)).toBeUndefined()
   })
 
   it('caps comma lists', () => {

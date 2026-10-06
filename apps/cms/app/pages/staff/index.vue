@@ -18,17 +18,26 @@ type StaffListResponse = {
   meta: { pagination: { page: number, pageSize: number, total: number, pageCount: number } }
 }
 
-const pagination = ref({ pageIndex: 0, pageSize: 10 })
+const page = ref(1)
+const pageSize = 10
 
 const { data, status, refresh } = await useAsyncData(
-  'staff-users',
+  () => `staff-users-p${page.value}`,
   () => $api<StaffListResponse>('/api/admin/users', {
     query: {
-      page: pagination.value.pageIndex + 1,
-      pageSize: pagination.value.pageSize,
+      page: page.value,
+      pageSize,
     },
   }),
-  { watch: [pagination] },
+)
+
+watch(
+  () => data.value?.meta.pagination.pageCount,
+  (pageCount) => {
+    if (pageCount && page.value > pageCount) {
+      page.value = pageCount
+    }
+  },
 )
 
 const rows = computed(() => data.value?.data ?? [])
@@ -248,8 +257,17 @@ function isSelf(row: StaffUserPublic) {
         </template>
       </UTable>
 
-      <div class="text-sm text-muted">
-        {{ total }} compte(s)
+      <div class="flex items-center justify-between gap-3">
+        <p class="text-sm text-muted">
+          {{ total }} compte(s)
+        </p>
+        <UPagination
+          v-if="total > pageSize"
+          v-model:page="page"
+          :items-per-page="pageSize"
+          :total="total"
+          show-edges
+        />
       </div>
     </div>
 

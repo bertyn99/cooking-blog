@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
+import { z } from 'zod'
 import { getApiErrorMessage } from '#shared/api-error'
 import { DASHBOARD_TABLE_UI } from '~/utils/dashboard-shell'
 
@@ -20,32 +21,56 @@ type McpLogRow = {
 
 type McpLogsResponse = {
   data: McpLogRow[]
-  meta: { pagination: { page: number, pageSize: number, total: number, pageCount: number } }
+  meta: { pagination: { page: number; pageSize: number; total: number; pageCount: number } }
 }
+
+const mcpLogFiltersSchema = z.object({
+  action: z.string().trim(),
+  entityType: z.string().trim(),
+  keyPrefix: z.string().trim(),
+})
+
+type McpLogFilters = z.infer<typeof mcpLogFiltersSchema>
 
 const { $api } = useNuxtApp()
 const toast = useToast()
 
-const filters = reactive({
+const draftFilters = reactive<McpLogFilters>({
+  action: '',
+  entityType: '',
+  keyPrefix: '',
+})
+const appliedFilters = reactive<McpLogFilters>({
   action: '',
   entityType: '',
   keyPrefix: '',
 })
 
-const pagination = ref({ pageIndex: 0, pageSize: 25 })
+const page = ref(1)
+const pageSize = 25
 
 const { data, status, refresh } = await useAsyncData(
-  'mcp-logs',
-  () => $api<McpLogsResponse>('/api/admin/mcp-logs', {
-    query: {
-      page: pagination.value.pageIndex + 1,
-      pageSize: pagination.value.pageSize,
-      ...(filters.action ? { action: filters.action } : {}),
-      ...(filters.entityType ? { entityType: filters.entityType } : {}),
-      ...(filters.keyPrefix ? { keyPrefix: filters.keyPrefix } : {}),
-    },
-  }),
-  { watch: [pagination, filters] },
+  () =>
+    `mcp-logs-p${page.value}-a${appliedFilters.action}-e${appliedFilters.entityType}-k${appliedFilters.keyPrefix}`,
+  () =>
+    $api<McpLogsResponse>('/api/admin/mcp-logs', {
+      query: {
+        page: page.value,
+        pageSize,
+        ...(appliedFilters.action ? { action: appliedFilters.action } : {}),
+        ...(appliedFilters.entityType ? { entityType: appliedFilters.entityType } : {}),
+        ...(appliedFilters.keyPrefix ? { keyPrefix: appliedFilters.keyPrefix } : {}),
+      },
+    })
+)
+
+watch(
+  () => data.value?.meta.pagination.pageCount,
+  (pageCount) => {
+    if (pageCount && page.value > pageCount) {
+      page.value = pageCount
+    }
+  }
 )
 
 const rows = computed(() => data.value?.data ?? [])
@@ -90,11 +115,11 @@ const columns: TableColumn<McpLogRow>[] = [
 ]
 
 async function applyFilters() {
-  pagination.value.pageIndex = 0
+  Object.assign(appliedFilters, mcpLogFiltersSchema.parse(draftFilters))
+  page.value = 1
   try {
     await refresh()
-  }
-  catch (error) {
+  } catch (error) {
     toast.add({
       title: 'Chargement impossible',
       description: getApiErrorMessage(error),
@@ -112,18 +137,27 @@ async function applyFilters() {
 
     <div class="space-y-4 p-4 sm:p-6">
       <p class="text-sm text-muted">
-        Actions des agents via clés API (créations, mises à jour, lectures MCP). Les publications humaines n’apparaissent pas ici.
+        Actions des agents via clés API (créations, mises à jour, lectures MCP). Les publications
+        humaines n’apparaissent pas ici.
       </p>
 
       <form class="flex flex-wrap gap-3 items-end" @submit.prevent="applyFilters">
         <UFormField label="Action">
-          <UInput v-model="filters.action" placeholder="mcp.tool, content.create…" class="min-w-40" />
+          <UInput
+            v-model="draftFilters.action"
+            placeholder="mcp.tool, content.create…"
+            class="min-w-40"
+          />
         </UFormField>
         <UFormField label="Type">
-          <UInput v-model="filters.entityType" placeholder="article, recipe…" class="min-w-32" />
+          <UInput
+            v-model="draftFilters.entityType"
+            placeholder="article, recipe…"
+            class="min-w-32"
+          />
         </UFormField>
         <UFormField label="Préfixe clé">
-          <UInput v-model="filters.keyPrefix" placeholder="jdc_…" class="min-w-32" />
+          <UInput v-model="draftFilters.keyPrefix" placeholder="jdc_…" class="min-w-32" />
         </UFormField>
         <UButton type="submit" label="Filtrer" />
       </form>
@@ -146,8 +180,15 @@ async function applyFilters() {
         </template>
       </UTable>
 
-      <div class="text-sm text-muted">
-        {{ total }} entrée(s)
+      <div class="flex items-center justify-between gap-3">
+        <p class="text-sm text-muted">{{ total }} entrée(s)</p>
+        <UPagination
+          v-if="total > pageSize"
+          v-model:page="page"
+          :items-per-page="pageSize"
+          :total="total"
+          show-edges
+        />
       </div>
     </div>
   </AppDashboardPanel>

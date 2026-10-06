@@ -26,6 +26,22 @@ describe('queries list filters', () => {
     expect(where).toEqual({ deletedAt: { isNull: true } })
   })
 
+  it('rootOnly restricts pages to parent_id IS NULL', () => {
+    const where = buildPagesQueryWhere({
+      include: [],
+      isAuthenticated: false,
+      filters: { slug: 'recettes-du-monde', rootOnly: true },
+    })
+    expect(where).toEqual({
+      AND: [
+        { status: 'published' },
+        { deletedAt: { isNull: true } },
+        { slug: 'recettes-du-monde' },
+        { parentId: { isNull: true } },
+      ],
+    })
+  })
+
   it('article list SQL where differs when search filter is set', () => {
     const base: ArticleListOptions = {
       include: [],

@@ -47,6 +47,8 @@ export type Cover = {
   provider?: string;
   provider_metadata?: unknown;
   folderPath?: string;
+  /** CMS blob pathname when the cover relation is not flattened. */
+  pathname?: string;
   /** Strapi v4 nested attributes */
   attributes?: CoverAttributes;
   /** Format: date-time */

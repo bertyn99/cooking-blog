@@ -8,6 +8,7 @@ defineOptions({ inheritAttrs: false })
 const props = defineProps<ContentBlockListQuery & ContentBlockSimpleChromeProps>()
 
 const emit = defineEmits<{
+  'update:slotValues': [Record<string, string>]
   'update:values': [Record<string, string>]
 }>()
 </script>
@@ -18,13 +19,20 @@ const emit = defineEmits<{
     :values="props.values ?? props"
     :expanded="props.expanded"
     :slot-values="props.slotValues"
+    @update:slot-values="emit('update:slotValues', $event)"
     @update:values="emit('update:values', $event)"
+  />
+  <BlockArticleListClient
+    :source="props.source"
+    :category="props.category"
+    :slugs="props.slugs"
+    :limit="props.limit"
   >
-    <BlockArticleListClient
-      :source="props.source"
-      :category="props.category"
-      :slugs="props.slugs"
-      :limit="props.limit"
-    />
-  </BlockSimpleChrome>
+    <template
+      v-if="props.slotValues?.title"
+      #title
+    >
+      {{ props.slotValues.title }}
+    </template>
+  </BlockArticleListClient>
 </template>

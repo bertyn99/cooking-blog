@@ -1,17 +1,32 @@
 import type { Article } from "~/types/strapiMeta";
-import { serverCmsFind } from "../../utils/cms-fetch";
+import { serverCmsFind } from "../utils/cms-fetch";
+
+/**
+ * Legacy `/blog/:slug` → `/blog/:category/:slug`.
+ *
+ * Must live in middleware, not `server/routes/blog/[slug]`. A Nitro route
+ * there also matches Nuxt client payloads (`/blog/_payload.json`) and 404s
+ * the Blog index on in-app navigation.
+ */
+function legacyArticleSlug(pathname: string): string | null {
+  const match = pathname.match(/^\/blog\/([^/]+)\/?$/);
+  if (!match) return null;
+
+  let slug: string;
+  try {
+    slug = decodeURIComponent(match[1] ?? "").trim();
+  }
+  catch {
+    return null;
+  }
+  if (!slug || slug.startsWith("_") || slug.includes(".")) return null;
+
+  return slug;
+}
 
 export default defineEventHandler(async (event) => {
-  const { slug } = getRouterParams(event);
-
-  const articleSlug = Array.isArray(slug) ? slug.join("/") : slug;
-
-  if (!articleSlug || articleSlug === "") {
-    throw createError({
-      statusCode: 404,
-      statusMessage: "Page not found",
-    });
-  }
+  const articleSlug = legacyArticleSlug(getRequestURL(event).pathname);
+  if (!articleSlug) return;
 
   let response;
   try {

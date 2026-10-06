@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import { getPaginationRowModel } from '@tanstack/table-core'
 import type { ContentStatus } from '~/types/cms'
 import { DASHBOARD_TABLE_UI } from '~/utils/dashboard-shell'
 
@@ -12,6 +11,11 @@ export interface ContentRow {
   locale: string
   publishedAt: string | null
   updatedAt: string
+}
+
+type ListResponse = {
+  data: ContentRow[]
+  meta: { pagination: { page: number, pageSize: number, total: number, pageCount: number } }
 }
 
 const props = withDefaults(defineProps<{
@@ -35,44 +39,49 @@ const UBadge = resolveComponent('UBadge')
 const UButton = resolveComponent('UButton')
 
 const { $api } = useNuxtApp()
-const table = useTemplateRef('table')
 
 const search = ref('')
+const debouncedSearch = refDebounced(search, 300)
 const statusFilter = ref<'all' | ContentStatus>('all')
-const pagination = ref({ pageIndex: 0, pageSize: 10 })
+const page = ref(1)
+const pageSize = 10
 
-const { data, status, refresh } = await useAsyncData(
-  () => `content-list-${props.endpoint}`,
-  () => $api<{ data: ContentRow[], meta: { pagination: { total: number } } }>(props.endpoint, {
-    query: {
-      page: pagination.value.pageIndex + 1,
-      pageSize: pagination.value.pageSize
-    }
-  }),
-  { watch: [pagination] }
+watch([debouncedSearch, statusFilter], () => {
+  page.value = 1
+})
+
+const listKey = computed(() =>
+  `content-list-${props.endpoint}-p${page.value}-q${debouncedSearch.value}-st${statusFilter.value}`,
 )
 
-const rows = computed(() => {
-  let items = data.value?.data ?? []
+const { data, status } = await useAsyncData(
+  listKey,
+  () => $api<ListResponse>(props.endpoint, {
+    query: {
+      page: page.value,
+      pageSize,
+      ...(debouncedSearch.value ? { search: debouncedSearch.value } : {}),
+      ...(statusFilter.value !== 'all' ? { status: statusFilter.value } : {}),
+    },
+  }),
+)
 
-  if (search.value) {
-    const q = search.value.toLowerCase()
-    items = items.filter(item =>
-      item.title.toLowerCase().includes(q) || item.slug.toLowerCase().includes(q)
-    )
-  }
+watch(
+  () => data.value?.meta.pagination.pageCount,
+  (pageCount) => {
+    if (pageCount && page.value > pageCount) {
+      page.value = pageCount
+    }
+  },
+)
 
-  if (statusFilter.value !== 'all') {
-    items = items.filter(item => item.status === statusFilter.value)
-  }
-
-  return items
-})
+const rows = computed(() => data.value?.data ?? [])
+const total = computed(() => data.value?.meta.pagination.total ?? 0)
 
 const statusColor = {
   draft: 'neutral',
   published: 'success',
-  scheduled: 'warning'
+  scheduled: 'warning',
 } as const
 
 const columns = computed<TableColumn<ContentRow>[]>(() => {
@@ -111,10 +120,6 @@ const columns = computed<TableColumn<ContentRow>[]>(() => {
   )
   return cols
 })
-
-watch([search, statusFilter], () => {
-  pagination.value.pageIndex = 0
-})
 </script>
 
 <template>
@@ -143,20 +148,26 @@ watch([search, statusFilter], () => {
         ]" class="min-w-36" />
       </div>
 
-      <UTable ref="table" v-model:pagination="pagination"
-        :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }" class="mt-4 shrink-0" :data="rows"
-        :columns="columns"         :loading="status === 'pending'"
+      <UTable
+        class="mt-4 shrink-0"
+        :data="rows"
+        :columns="columns"
+        :loading="status === 'pending'"
         :ui="DASHBOARD_TABLE_UI"
       />
 
       <div class="mt-4 flex items-center justify-between gap-3 pt-2">
         <p class="text-sm text-muted">
-          {{ data?.meta.pagination.total ?? 0 }} élément(s) au total
+          {{ total }} élément(s) au total
         </p>
 
-        <UPagination :default-page="pagination.pageIndex + 1" :items-per-page="pagination.pageSize"
-          :total="data?.meta.pagination.total ?? 0"
-          @update:page="(p: number) => { pagination.pageIndex = p - 1; refresh() }" />
+        <UPagination
+          v-if="total > pageSize"
+          v-model:page="page"
+          :items-per-page="pageSize"
+          :total="total"
+          show-edges
+        />
       </div>
     </template>
   </AppDashboardPanel>

@@ -194,9 +194,48 @@ See `app/components/AGENTS.md` for the component domain guide and `server/AGENTS
 
 ---
 
+## LINEAR TRACKING
+
+> Source of truth for **bugs, errors, SEO, content, and refactors** on journalducuistot.fr. Workspace [Yggdrazil](https://linear.app/yggdraz) (`yggdraz`), team **YGG**. Do not open site issues in Notion.
+
+| | |
+|---|---|
+| **Project** | [jdc](https://linear.app/yggdraz/project/jdc-95b7c8989392) |
+| **Slug / UUID** | `95b7c8989392` / `e0f14f5c-f0b0-40f0-987a-fd4633d5975d` |
+| **Intake doc** | [jdc intake](https://linear.app/yggdraz/document/jdc-intake-e7e785b53bc0) |
+
+CLI: `linear` (`@schpet/linear-cli`). Always `--team YGG --project jdc --no-interactive`. Markdown bodies via `--description-file`.
+
+```bash
+# Create an issue
+linear issue create --no-interactive --team YGG --project jdc \
+  --title "[seo] …" \
+  --label seo --label Bug --label ready-for-agent \
+  --description-file ./desc.md
+
+# List project issues
+linear issue query --team YGG --project jdc
+```
+
+| Label | Use |
+|-------|-----|
+| `error` | HTTP 4xx/5xx, import failure, image 502, broken pipeline |
+| `Bug` | Wrong behaviour on an existing feature |
+| `seo` | Indexing, canonicals, schema, sitemaps, redirects, crawl |
+| `content` | CMS copy, recipes, articles, pages, media |
+| `refactor` | Code-only cleanup (`apps/web`, `apps/cms`) |
+| `Feature` / `Improvement` | New or incremental product work |
+| `needs-triage` | Not yet classified |
+| `ready-for-agent` / `ready-for-human` | Who should pick it up |
+| `needs-info` | Blocked on import, credentials, or a human decision |
+
+Revival (2026-10-02): [YGG-79](https://linear.app/yggdraz/issue/YGG-79) parents restored (Done). Next: [YGG-81](https://linear.app/yggdraz/issue/YGG-81) 301 duplicate page URLs; [YGG-82](https://linear.app/yggdraz/issue/YGG-82) Recipe schema + homepage H1. Then content: [YGG-83](https://linear.app/yggdraz/issue/YGG-83) SEO/covers, [YGG-84](https://linear.app/yggdraz/issue/YGG-84) reclaim apéro, [YGG-85](https://linear.app/yggdraz/issue/YGG-85) Africa recipes. Epic: [YGG-80](https://linear.app/yggdraz/issue/YGG-80).
+
+---
+
 ## NOTION TRACKING
 
-> Suivi du projet dans Notion, DB "Client project".
+> Client notes only (DB "Client project"). **Issues live in Linear `jdc`.**
 
 ### Page projet
 
@@ -216,16 +255,4 @@ ntn api v1/pages/35882753-8c8a-81aa-bd46-eb6ccbf291b2 -X PATCH properties:='{"St
 ntn api v1/blocks/35882753-8c8a-81aa-bd46-eb6ccbf291b2/children -X PATCH 'children[0][type]=heading_2' 'children[0][heading_2][rich_text][0][text][content]=Stat'
 ```
 
-### Ajouter une tache a la todo globale (DB Taches)
-
-Toute tache a faire se cree dans la DB Taches (`35782753-8c8a-8165-9068-eb0a4899acc6`) avec la relation `Projet` vers cette page. Elle apparait alors sur le kanban du projet.
-
-```bash
-ntn api v1/pages -X POST \
-  parent[data_source_id]=35782753-8c8a-8108-99cd-000b85e41234 \
-  properties:='{"Name":{"title":[{"text":{"content":"Titre de la tache"}}]},"Statut":{"status":{"name":"À faire"}},"Projet":{"relation":[{"id":"35882753-8c8a-81aa-bd46-eb6ccbf291b2"}]},"Priorité":{"select":{"name":"Moyenne"}},"Type":{"select":{"name":"Projet"}}}'
-```
-
-Statuts: À faire, En cours, En attente, Fait, Annulé. Priorites: Urgent, Haute, Moyenne, Basse. Types: Projet, Opérationnel, Contenu, Administratif.
- 
-Prochaine tache connue: audit SEO avec nuxt-seo-pro sur le nouveau CMS (voir contexte dans les Notes de la page).
+Client-facing status can stay in Notion. Engineering work (bugs, SEO, content, refactors) goes to Linear `jdc`, not the Notion Taches DB.

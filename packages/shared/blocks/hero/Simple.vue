@@ -8,9 +8,13 @@ defineOptions({ inheritAttrs: false })
 const props = withDefaults(defineProps<{
   image?: string
   alt?: string
+  ctaHref?: string
+  ctaSecondaryHref?: string
 } & ContentBlockSimpleChromeProps>(), {
   image: '/img/hero.jpg',
   alt: '',
+  ctaHref: '/recette',
+  ctaSecondaryHref: '/blog',
   expanded: false,
 })
 
@@ -26,6 +30,8 @@ const resolved = computed(() =>
     ...props.values,
     image: props.image,
     alt: props.alt,
+    ctaHref: props.ctaHref,
+    ctaSecondaryHref: props.ctaSecondaryHref,
   }),
 )
 </script>
@@ -42,6 +48,8 @@ const resolved = computed(() =>
   <BlockHeroClient
     :image="resolved.image"
     :alt="resolved.alt"
+    :cta-href="resolved.ctaHref"
+    :cta-secondary-href="resolved.ctaSecondaryHref"
     class="mt-2 min-h-[10rem] sm:min-h-[12rem] lg:min-h-[14rem]"
   >
     <template
@@ -61,6 +69,12 @@ const resolved = computed(() =>
       #cta
     >
       {{ props.slotValues.cta }}
+    </template>
+    <template
+      v-if="props.slotValues?.['cta-secondary']"
+      #cta-secondary
+    >
+      {{ props.slotValues['cta-secondary'] }}
     </template>
   </BlockHeroClient>
 </template>

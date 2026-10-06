@@ -1,7 +1,8 @@
 # Priorities & content silos
 
-**Horizon:** Post–Strapi import → first 6 months on `apps/web` + `apps/cms`  
-**Goal:** Qualified organic traffic (FR), not generic listicle churn.
+**Horizon:** Post–Strapi import → first 6 months on `cooking-blog` + CMS  
+**Goal:** Qualified organic traffic (FR), not generic listicle churn.  
+**Status (2026-10-02):** CMS `parent` is restored ([YGG-79](https://linear.app/yggdraz/issue/YGG-79) Done). Nested **and** root slugs both 200 — canonicalize first ([YGG-81](https://linear.app/yggdraz/issue/YGG-81)). Index still 21%. Do not start Phase 3 glossary / allergens until 301s land and GSC reclaims the 3 apéro/dessert queries. 100K December impressions is out of band — see [README](./README.md#goal-check--100k-impressions-in-december-2026).
 
 ## Strategic silos
 
