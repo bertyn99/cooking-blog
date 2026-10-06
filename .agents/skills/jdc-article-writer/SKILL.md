@@ -3,7 +3,7 @@ name: jdc-article-writer
 description: |
   Write and publish SEO-optimized French articles for Journal du Cuistot (journalducuistot.fr)
   in the voice of Bertyn Boulikou — young passionate cook, curious about food history and how
-  dishes came to be. Covers keyword research (Nuxt SEO Pro + Search Console MCP), SERP competitor
+  dishes came to be. Covers keyword research (nuxtseo CLI + Search Console MCP), SERP competitor
   analysis, per-type outlines (listicle, ingredient origin, culture, ustensils, cookbook review),
   on-page SEO, and draft creation via the jdc-cms MCP.
 
@@ -17,33 +17,29 @@ Write French food articles for [journalducuistot.fr](https://journalducuistot.fr
 
 Non-negotiable: data first (keywords + SERP), voice always, drafts only (never publish via MCP).
 
-**Toolchain:** jdc-cms MCP (content drafts), Nuxt SEO Pro MCP (keywords + SERP), Search Console MCP (site demand), and the **`nuxtseo` CLI** (site `s_7a49d74f` — keyword/rankings research, page scans, indexing evidence; protocol details in the `nuxtseo-cli` skill).
+**Toolchain:** **`nuxtseo` CLI** (site `s_7a49d74f` — keyword/rankings research, SERP fallback, page scans, indexing evidence, annotations), **Search Console MCP** (site demand on `sc-domain:journalducuistot.fr`), **jdc-cms MCP** (content inventory, drafts, internal-link targets, previewUrl). Protocol details for the CLI live in the `nuxtseo-cli` skill.
 
 ## Workflow
 
 ### 1. Keyword research (before any writing)
 
-Run **three** sources, in this order:
+Run **both** sources, in this order:
 
-1. **Nuxt SEO Pro MCP** — `keyword_research`:
-   - One seed per call (1–3 French words). Comma-separated seeds return noise.
-   - Lower `minVolume` to **10** — French cooking long-tails are under-reported.
-   - Then `serp` on the **exact French query** you want. Record SERP features: `ai_overview`, `recipes` carousel, `featured_snippet`, `people_also_ask`, `video`.
+1. **`nuxtseo` CLI** — site `s_7a49d74f`, always `--json --no-input` — the primary keyword + SERP source:
+   - `nuxtseo research keywords --site s_7a49d74f --no-input "<topic>" --json` → keyword ideas with volume/difficulty/intent.
+   - **Empty `keywords` + a `data.message` is a refusal or a low-volume topic, not zero demand** — read `data.serpFallback.topResults`: it ships the current top-ranking pages (position, title, domain, url). This is the competitor list for step 2.
+   - `--min-volume 10` matches the strategy guidance; one topic per call, `--no-related` to widen a dead end.
+   - `research *` spends the Team research limit — batch topics, don't spam seeds. Full protocol (exit codes, envelopes, spend rules): see the `nuxtseo-cli` skill — do not guess flags.
    - Hard head terms to avoid alone: `recette apéritif été`, `techniques culinaires`, `recettes du monde` (major publishers own them) — differentiate by country/angle instead.
 2. **Search Console MCP** — site `sc-domain:journalducuistot.fr`:
    - `analytics_query` filtered on the topic query: does the site **already have impressions** for it? Existing demand = write for those exact formulations.
-   - Note query variants Google already associates with us (accents, plurals, "combien…", "comment…").
-3. **`nuxtseo` CLI** — site `s_7a49d74f`, always `--json --no-input`:
-   - `nuxtseo research keywords --site s_7a49d74f --no-input "<topic>" --json` → keyword ideas with volume/difficulty/intent.
-   - **Empty `keywords` + a `data.message` is a refusal or a low-volume topic, not zero demand** — read `data.serpFallback.topResults`: it ships the current top-ranking pages (position, title, domain, url) for the competitor analysis in step 2.
-   - `research *` spends the Team research limit — batch topics, don't spam seeds. `--min-volume 10` matches the SEO Pro guidance.
-   - Full protocol (exit codes, envelopes, spend rules): see the `nuxtseo-cli` skill — do not guess flags.
+   - Note query variants Google already associates with us (accents, plurals, "combien…", "comment…") — often better targets than the head term.
 
-Deliverable before writing: primary query + 3–5 variants + volume/difficulty + SERP features + top-2 competitor URLs + one differentiation angle.
+Deliverable before writing: primary query + 3–5 variants + volume/difficulty + top-2 competitor URLs (from the SERP fallback) + one differentiation angle.
 
 ### 2. SERP competitor analysis (top 2 pages)
 
-Take the top 2 organic results (from the `serp` call or the `nuxtseo` `serpFallback` — skip the carousel/forums/Pinterest) and extract:
+Take the top 2 organic results from the SERP fallback (skip Pinterest/forums/carousels) and extract:
 
 - Title pattern and how the exact query appears
 - H2 skeleton (their section list)
