@@ -38,8 +38,8 @@
     "@cloudflare/workers-types": "^5.20260804.1",
     "@distilled.cloud/nuxt": "^0.17.1",
     "@effect/platform-node": "catalog:",
-    "@effect/sql-mysql2": "4.0.0-rc.117",
-    "@effect/sql-pg": "4.0.0-rc.117",
+    "@effect/sql-mysql2": "4.0.1",
+    "@effect/sql-pg": "4.0.1",
     "alchemy": "catalog:",
     "drizzle-kit": "catalog:",
     "drizzle-orm": "catalog:",
@@ -50,4 +50,3 @@
     "nuxt": "catalog:"
   }
 }
-
