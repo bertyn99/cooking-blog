@@ -18,14 +18,6 @@ const cloudflareRuntimeModulesPlugin = {
     if (id === 'cloudflare:workers' || id === 'cloudflare:workflows' || id === 'cloudflare:email') {
       return { id: fileURLToPath(new URL(`./server/shims/cloudflare-${id.slice('cloudflare:'.length)}.mjs`, import.meta.url)), external: false }
     }
-    const normalized = id.replace(/\\/g, '/')
-    if (normalized.endsWith('@nuxtjs/mcp-toolkit/dist/runtime/server/mcp/providers/cloudflare.js')
-      || normalized.endsWith('/node_modules/@nuxtjs/mcp-toolkit/dist/runtime/server/mcp/providers/cloudflare.js')) {
-      return {
-        id: fileURLToPath(new URL('./server/shims/mcp-cloudflare-provider.mjs', import.meta.url)),
-        external: false,
-      }
-    }
     return null
   },
 }

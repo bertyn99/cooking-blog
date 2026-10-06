@@ -5,6 +5,8 @@ definePageMeta({ layout: "content" });
 <script lang="ts" setup>
 import { useGenerateSchemaArianne } from "~/composables/useGenerateSchemaArianne";
 import type { CmsPage } from "~/types/cms";
+import { cmsPageCanonicalPath, cmsPageMatchesRequestPath, normalizePagePath } from "~/utils/format";
+import type { NestedParent } from "~/types/strapiMeta";
 
 const route = useRoute();
 const cms = useCms();
@@ -16,6 +18,7 @@ function slugPartsFromParam(slug: unknown): string[] {
 }
 
 const slugArray = computed(() => slugPartsFromParam(route.params.slug));
+const requestPath = computed(() => normalizePagePath(`/${slugArray.value.join("/")}`));
 
 if (slugArray.value.length === 0 || slugArray.value[0] === " ") {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
@@ -32,12 +35,18 @@ const { data: page, status } = await useAsyncData<CmsPage | null>(
     if (!currentSlug) return null;
     const result = await cms.pages({
       slug: currentSlug,
-      parentSlug,
+      ...(parts.length > 1 ? { parentSlug } : { rootOnly: true }),
       include: ["seoMeta", "parent"],
       page: 1,
       pageSize: 1,
     });
-    return result.data?.[0] ?? null;
+    const row = result.data?.[0] ?? null;
+    if (!row) return null;
+    // Immediate parentSlug is not enough (`/wrong/mid/leaf` can still hit
+    // a page whose parent slug is `mid`). Require the full ancestor path.
+    if (row.isHome) return row;
+    if (!cmsPageMatchesRequestPath(row, `/${parts.join("/")}`)) return null;
+    return row;
   },
   { watch: [() => route.params.slug] },
 );
@@ -68,9 +77,12 @@ if (page.value.isHome) {
 
 useApplyPageSeo(computed(() => {
   const current = page.value;
-  const parts = slugArray.value;
   const seo = current?.seoMeta || {};
-  const pagePath = `/${parts.join("/")}`;
+  const pagePath = current?.slug
+    ? cmsPageCanonicalPath(current.slug, current.parent as NestedParent | null | undefined, {
+      isHome: current.isHome,
+    })
+    : requestPath.value;
   return {
     title: current?.title || "Journal du cuistot",
     description: seo.description || "No description",

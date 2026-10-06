@@ -20,6 +20,7 @@ export default defineEventHandler(async (event) => {
   const slug = (query.slug as string) || undefined
   const parentSlug = (query.parentSlug as string) || undefined
   const isHome = parseOptionalBoolean(query.isHome)
+  const rootOnly = parseOptionalBoolean(query.rootOnly) === true && !parentSlug
   let parentId: number | undefined
 
   if (parentSlug) {
@@ -39,6 +40,7 @@ export default defineEventHandler(async (event) => {
     filters: {
       slug: slug || undefined,
       parentId,
+      rootOnly,
       isHome,
     },
     isAuthenticated,

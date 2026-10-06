@@ -17,6 +17,8 @@ export interface PagesQueryOptions {
     slug?: string
     parentSlug?: string
     parentId?: number
+    /** When true, only pages with `parent_id` NULL (site-root CMS pages). */
+    rootOnly?: boolean
     isHome?: boolean
   }
   /** When false (unauthenticated), filters to published + non-deleted pages only. */
@@ -49,7 +51,10 @@ export function buildPagesQueryWhere(options: PagesQueryOptions): PagesQueryFilt
     filters.push({ slug: options.filters.slug })
   }
 
-  if (options.filters?.parentId != null) {
+  if (options.filters?.rootOnly) {
+    filters.push({ parentId: { isNull: true } })
+  }
+  else if (options.filters?.parentId != null) {
     filters.push({ parentId: options.filters.parentId })
   }
 

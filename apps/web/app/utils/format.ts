@@ -37,6 +37,46 @@ export const getParentHierarchy = (parent: NestedParent | null | undefined): Nes
  * @param parent - The parent object (can be nested)
  * @returns The full path from root to current item
  */
+export function normalizePagePath(path: string): string {
+  const trimmed = path.replace(/\/+$/, "").replace(/^\/+/, "");
+  return trimmed ? `/${trimmed}` : "/";
+}
+
+/** Public URL for a CMS page from slug + populated `parent` chain. */
+export function cmsPageCanonicalPath(
+  slug: string,
+  parent: NestedParent | null | undefined,
+  options?: { isHome?: boolean },
+): string {
+  if (options?.isHome) {
+    return '/'
+  }
+  return normalizePagePath(generateSlug(slug, parent));
+}
+
+/**
+ * True only when this CMS page is published at exactly `requestPath`.
+ * Nested pages must include every ancestor (`/methodes-de-cuisson` ≠
+ * `/techniques-culinaires/methodes-de-cuisson`). Home is only `/`.
+ */
+export function cmsPageMatchesRequestPath(
+  page: {
+    slug?: string | null
+    isHome?: boolean
+    parent?: NestedParent | null
+  },
+  requestPath: string,
+): boolean {
+  const path = normalizePagePath(requestPath)
+  if (page.isHome) {
+    return path === '/'
+  }
+  if (!page.slug) {
+    return false
+  }
+  return cmsPageCanonicalPath(page.slug, page.parent) === path
+}
+
 export const generateSlug = (str: string, parent: NestedParent | null | undefined): string => {
   if (!parent?.slug) {
     return `/${str}`;

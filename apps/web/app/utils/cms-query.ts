@@ -13,6 +13,8 @@ export type CmsInclude = string | readonly string[]
 export interface CmsPageListQuery {
   slug?: string
   parentSlug?: string
+  /** CMS: slug lookup at site root (`parent_id` IS NULL). Set by the web catch-all for single-segment URLs. */
+  rootOnly?: boolean
   isHome?: boolean
   locale?: string
   include?: CmsInclude

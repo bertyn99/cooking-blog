@@ -24,6 +24,7 @@ function buildPagesListSqlWhere(opts: PageListOptions) {
     }),
     localeFilter(pages, opts.locale),
     opts.filters?.slug ? eq(pages.slug, opts.filters.slug) : undefined,
+    opts.filters?.rootOnly ? isNull(pages.parentId) : undefined,
     opts.filters?.parentId ? eq(pages.parentId, opts.filters.parentId) : undefined,
     opts.filters?.isHome !== undefined ? eq(pages.isHome, opts.filters.isHome) : undefined,
   )
@@ -102,7 +103,7 @@ export function createPageQueries(db: AppDb) {
     },
 
     findRowBySlug(slug: string, locale?: string) {
-      const conditions = [eq(pages.slug, slug)]
+      const conditions = [eq(pages.slug, slug), isNull(pages.deletedAt)]
       if (locale) conditions.push(eq(pages.locale, locale))
       return db
         .select({ id: pages.id })

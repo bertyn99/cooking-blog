@@ -27,6 +27,15 @@ export function formatCoverUrl(
     return toPublicMediaKey(`${cover.hash}${cover.ext}`);
   }
 
+  const nestedUrl = cover?.attributes?.url;
+  if (nestedUrl) {
+    return toPublicMediaKey(nestedUrl);
+  }
+
+  if (cover?.pathname) {
+    return toPublicMediaKey(cover.pathname);
+  }
+
   if (coverBlobPathname) {
     return toPublicMediaKey(coverBlobPathname);
   }

@@ -5,6 +5,7 @@ definePageMeta({ layout: "content" });
 <script lang="ts" setup>
 import { useGenerateSchemaArianne } from "~/composables/useGenerateSchemaArianne";
 import type { CmsPage } from "~/types/cms";
+import { cmsPageMatchesRequestPath } from "~/utils/format";
 
 const route = useRoute();
 
@@ -31,7 +32,10 @@ const { data: page, status } = await useAsyncData<CmsPage | null>(
       page: 1,
       pageSize: 1,
     });
-    return result.data[0] ?? null;
+    const row = result.data[0] ?? null;
+    if (!row) return null;
+    if (!cmsPageMatchesRequestPath(row, `/recette/recettes-${slug}`)) return null;
+    return row;
   },
   { watch: [categorySlug] },
 );
