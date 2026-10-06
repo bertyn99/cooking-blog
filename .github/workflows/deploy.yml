@@ -78,6 +78,7 @@ jobs:
           PROD_CMS_HOST: ${{ secrets.PROD_CMS_HOST }}
           NUXT_UMAMI_ID: ${{ secrets.NUXT_UMAMI_ID }}
           NUXT_UMAMI_HOST: ${{ secrets.NUXT_UMAMI_HOST }}
+          CMS_PREVIEW_TOKEN: ${{ secrets.CMS_PREVIEW_TOKEN }}
           GITHUB_SHA: ${{ github.sha }}
           # Never enable skew KV bundling in CI (wrangler-per-asset + converge risk)
           SKEW_BUNDLE_ASSETS: '0'
