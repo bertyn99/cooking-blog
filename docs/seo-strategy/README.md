@@ -25,6 +25,7 @@ This folder captures post–Strapi-migration SEO direction: what we already publ
 - **Public app:** Nuxt SSR (`cooking-blog`), `@nuxtjs/seo`; CMS at `admin.journalducuistot.fr`. Strapi is import-only.
 - **Baseline (2026-08-12):** Last 28d **1 click / 346 impressions / pos 63**. Index **~20%** (23/113). Write-up: [seo-audit-2026-08.md](./audit/seo-audit-2026-08.md).
 - **Refresh (2026-10-02, Nuxt SEO Pro):** Last 28d **6 clicks / 568 impressions / pos 57**. Index **21%** (24/113). Last 12m **280 clicks / 9,382 impressions**; prior 12m was **705 / 23,362**. Peak month: **Oct 2025 = 4,884 impressions**. Parents restored; live blocker is **duplicate 200s** (nested + root) — [YGG-81](https://linear.app/yggdraz/issue/YGG-81).
+- **Refresh (2026-10-06, GSC API + CMS MCP):** Last 28d **8 clicks / 502 impressions / pos 50** (prior 28d: 0 clicks / pos 79). Key URLs re-indexed. Recovery confirmed; bottleneck is now content tuning — see [seo-audit-2026-10.md](./audit/seo-audit-2026-10.md).
 
 ### Goal check — 100K impressions in December 2026
 
