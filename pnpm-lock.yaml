@@ -370,8 +370,8 @@ importers:
         specifier: 'catalog:'
         version: 4.5.2(e2584357bebf000053eae4c50a6847ed)
       nuxt-umami:
-        specifier: https://github.com/bgervan/nuxt-umami/releases/download/v3.4.0-bg.2/nuxt-umami-3.4.0.tgz
-        version: https://github.com/bgervan/nuxt-umami/releases/download/v3.4.0-bg.2/nuxt-umami-3.4.0.tgz(magic-string@1.4.2)(magicast@0.5.4)(oxc-parser@0.143.0)(rolldown@1.2.6)(unplugin@3.4.0(esbuild@0.28.2)(rolldown@1.2.6)(rollup@4.63.1)(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0)))
+        specifier: https://github.com/bgervan/nuxt-umami/releases/download/v3.4.0-bg.3/nuxt-umami-3.4.0.tgz
+        version: https://github.com/bgervan/nuxt-umami/releases/download/v3.4.0-bg.3/nuxt-umami-3.4.0.tgz(magic-string@1.4.2)(magicast@0.5.4)(oxc-parser@0.143.0)(rolldown@1.2.6)(unplugin@3.4.0(esbuild@0.28.2)(rolldown@1.2.6)(rollup@4.63.1)(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0)))
       oxfmt:
         specifier: 'catalog:'
         version: 0.65.0
@@ -7417,8 +7417,8 @@ packages:
       pusher-js:
         optional: true
 
-  nuxt-umami@https://github.com/bgervan/nuxt-umami/releases/download/v3.4.0-bg.2/nuxt-umami-3.4.0.tgz:
-    resolution: {tarball: https://github.com/bgervan/nuxt-umami/releases/download/v3.4.0-bg.2/nuxt-umami-3.4.0.tgz}
+  nuxt-umami@https://github.com/bgervan/nuxt-umami/releases/download/v3.4.0-bg.3/nuxt-umami-3.4.0.tgz:
+    resolution: {integrity: sha512-NIIcgEnWz4M8KgcHQPaaLlS1kbaD+fUIXGh3zq+/8fYb2K0sbNrcQbIWeUciA00ex0jkeFi2iEJyd5Av+rpRnw==, tarball: https://github.com/bgervan/nuxt-umami/releases/download/v3.4.0-bg.3/nuxt-umami-3.4.0.tgz}
     version: 3.4.0
 
   nuxt@4.5.2:
@@ -17766,7 +17766,7 @@ snapshots:
       - vite
       - vue
 
-  nuxt-umami@https://github.com/bgervan/nuxt-umami/releases/download/v3.4.0-bg.2/nuxt-umami-3.4.0.tgz(magic-string@1.4.2)(magicast@0.5.4)(oxc-parser@0.143.0)(rolldown@1.2.6)(unplugin@3.4.0(esbuild@0.28.2)(rolldown@1.2.6)(rollup@4.63.1)(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0))):
+  nuxt-umami@https://github.com/bgervan/nuxt-umami/releases/download/v3.4.0-bg.3/nuxt-umami-3.4.0.tgz(magic-string@1.4.2)(magicast@0.5.4)(oxc-parser@0.143.0)(rolldown@1.2.6)(unplugin@3.4.0(esbuild@0.28.2)(rolldown@1.2.6)(rollup@4.63.1)(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0))):
     dependencies:
       '@nuxt/kit': 4.5.2(magic-string@1.4.2)(magicast@0.5.4)(oxc-parser@0.143.0)(rolldown@1.2.6)(unplugin@3.4.0(esbuild@0.28.2)(rolldown@1.2.6)(rollup@4.63.1)(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.0)))
       request-ip: 3.3.0
