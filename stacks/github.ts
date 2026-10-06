@@ -81,6 +81,7 @@ export default Alchemy.Stack(
     })
 
     const optionalSecrets = [
+      'CMS_PREVIEW_TOKEN',
       'NUXT_SESSION_PASSWORD',
       'NUXT_OG_IMAGE_SECRET',
       'STRAPI_URL',
