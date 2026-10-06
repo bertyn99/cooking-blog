@@ -15,7 +15,7 @@ const props = defineProps<{
 const { data: recipes, status, error } = useContentBlockRecipeList(props)
 
 const gridUi = {
-  base: 'relative grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 sm:gap-x-8 sm:gap-y-12',
+  base: 'relative grid list-none grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 sm:gap-x-8 sm:gap-y-12',
 }
 
 const skeletonCount = computed(() => {
@@ -62,12 +62,13 @@ const skeletonCount = computed(() => {
         </p>
         <UPageGrid
           v-else
-          role="list"
+          as="ul"
           :ui="gridUi"
         >
           <UPageCard
             v-for="item in recipes"
             :key="item.id"
+            as="li"
             variant="naked"
             reverse
             class="group"
@@ -87,7 +88,7 @@ const skeletonCount = computed(() => {
                 :alt="item.title"
                 :width="1300"
                 :height="1657"
-                sizes="sm:90vw md:45vw lg:25vw"
+                sizes="90vw sm:45vw lg:25vw"
                 img-class="aspect-[3/4] w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
               />
               <div

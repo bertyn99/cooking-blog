@@ -3,8 +3,10 @@ import type { LocationQuery } from "vue-router";
 export function parsePageQuery(query: LocationQuery, fallback = 1): number {
   const raw = query.page;
   const value = Array.isArray(raw) ? raw[0] : raw;
-  const page = Number.parseInt(String(value ?? ""), 10);
-  return Number.isFinite(page) && page >= 1 ? Math.trunc(page) : fallback;
+  if (value == null || value === "") return fallback;
+  if (!/^[1-9]\d*$/.test(String(value))) return fallback;
+  const page = Number(value);
+  return Number.isSafeInteger(page) ? page : fallback;
 }
 
 export function listPageLocation(path: string, query: LocationQuery, page: number) {

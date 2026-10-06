@@ -2,10 +2,6 @@
 import type { Article } from "~/types/strapiMeta";
 import type { CmsListResponse } from "~/types/cms";
 
-definePageMeta({
-  key: (route) => route.fullPath,
-});
-
 const PAGE_SIZE = 7;
 const blogDescription =
   "Articles, astuces et inspiration culinaire sur le Journal du cuistot.";

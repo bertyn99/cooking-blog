@@ -150,12 +150,12 @@ export const workers = Effect.fn(function* (input: {
   const cmsPublicOverride = yield* Config.String('NUXT_PUBLIC_CMS_BASE_URL').pipe(Config.option)
   const cmsWorkerOrigin = Output.map(Cms.url, (url) => url ?? 'http://localhost:3001')
   const defaultCmsOrigin = isProd ? prodCmsOrigin : cmsWorkerOrigin
+  const cleanOriginOverride = (option: typeof cmsPublicOverride) =>
+    option._tag === 'Some' ? option.value.trim().replace(/\/$/, '') : ''
   const cmsOrigin =
-    cmsPublicOverride._tag === 'Some'
-      ? cmsPublicOverride.value
-      : cmsOriginOverride._tag === 'Some'
-        ? cmsOriginOverride.value
-        : defaultCmsOrigin
+    cleanOriginOverride(cmsPublicOverride)
+    || cleanOriginOverride(cmsOriginOverride)
+    || defaultCmsOrigin
   const siteUrlFromEnv = yield* Config.String('NUXT_PUBLIC_SITE_URL').pipe(
     Config.withDefault('http://localhost:3000'),
   )

@@ -12,7 +12,13 @@ function legacyArticleSlug(pathname: string): string | null {
   const match = pathname.match(/^\/blog\/([^/]+)\/?$/);
   if (!match) return null;
 
-  const slug = decodeURIComponent(match[1] ?? "").trim();
+  let slug: string;
+  try {
+    slug = decodeURIComponent(match[1] ?? "").trim();
+  }
+  catch {
+    return null;
+  }
   if (!slug || slug.startsWith("_") || slug.includes(".")) return null;
 
   return slug;

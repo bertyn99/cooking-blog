@@ -56,14 +56,14 @@ function slotFallback(name: string): string {
               {{ slotFallback('heading') }}
             </slot>
           </h2>
-          <p
+          <div
             v-if="$slots.body || slotFallback('body')"
             class="mt-4 max-w-[65ch] text-base leading-relaxed text-toned"
           >
             <slot name="body">
               {{ slotFallback('body') }}
             </slot>
-          </p>
+          </div>
           <UButton
             v-if="$slots.cta || slotFallback('cta')"
             :to="resolved.href || undefined"

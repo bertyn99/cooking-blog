@@ -2,10 +2,6 @@
 import type { Recipe } from "~/types/strapiMeta";
 import type { CmsListResponse } from "~/types/cms";
 
-definePageMeta({
-  key: (route) => route.fullPath,
-});
-
 const PAGE_SIZE = 16;
 const cms = useCms();
 const route = useRoute();

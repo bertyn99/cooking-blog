@@ -1,22 +1,41 @@
-import { requireAdmin } from '../../utils/http-auth'
+import { z } from 'zod'
 import { useQueries } from '../../utils/db'
+import { createApiError } from '../../utils/errors'
+import { requireAdmin } from '../../utils/http-auth'
+
+const positiveIntString = z.string().regex(/^[1-9]\d*$/)
+const optionalTrimmed = z
+  .string()
+  .trim()
+  .optional()
+  .transform((value) => value || undefined)
+
+const mcpLogsQuerySchema = z.object({
+  page: positiveIntString.optional().transform((value) => (value ? Number(value) : 1)),
+  pageSize: positiveIntString.optional().transform((value) => (value ? Number(value) : 25)),
+  action: optionalTrimmed,
+  entityType: optionalTrimmed,
+  keyPrefix: optionalTrimmed,
+  from: optionalTrimmed,
+  to: optionalTrimmed,
+})
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
-  const query = getQuery(event)
-  const page = Math.max(1, Number.parseInt(String(query.page ?? '1'), 10) || 1)
-  const pageSize = Math.min(100, Math.max(1, Number.parseInt(String(query.pageSize ?? '25'), 10) || 25))
+  const parsed = mcpLogsQuerySchema.safeParse(getQuery(event))
+  if (!parsed.success) {
+    throw createApiError('VALIDATION_ERROR', 'Invalid MCP logs query', parsed.error.flatten())
+  }
 
-  const result = await useQueries(event).auditEvents.listMcpLogs({
-    page,
-    pageSize,
-    action: typeof query.action === 'string' ? query.action : undefined,
-    entityType: typeof query.entityType === 'string' ? query.entityType : undefined,
-    keyPrefix: typeof query.keyPrefix === 'string' ? query.keyPrefix : undefined,
-    from: typeof query.from === 'string' ? query.from : undefined,
-    to: typeof query.to === 'string' ? query.to : undefined,
+  const query = parsed.data
+  return useQueries(event).auditEvents.listMcpLogs({
+    page: query.page,
+    pageSize: Math.min(100, query.pageSize),
+    action: query.action,
+    entityType: query.entityType,
+    keyPrefix: query.keyPrefix,
+    from: query.from,
+    to: query.to,
   })
-
-  return result
 })
