@@ -3,30 +3,36 @@ import { buildPublicDeliveryImagePath, toPublicMediaKey } from '../../shared/med
 
 defineOptions({ inheritAttrs: false })
 
-const props = withDefaults(defineProps<{
-  src?: string
-  alt?: string
-  title?: string
-  width?: number
-  height?: number
-  sizes?: string
-  imgClass?: string
-  priority?: boolean
-}>(), {
-  alt: '',
-  width: 800,
-  height: 600,
-  priority: false,
-})
+const props = withDefaults(
+  defineProps<{
+    src?: string
+    alt?: string
+    title?: string
+    width?: number
+    height?: number
+    sizes?: string
+    imgClass?: string
+    priority?: boolean
+  }>(),
+  {
+    alt: '',
+    width: 800,
+    height: 600,
+    priority: false,
+  }
+)
 
-const NuxtImg = resolveComponent('NuxtImg')
-const hasNuxtImg = typeof NuxtImg !== 'string'
+const nuxtApp = useNuxtApp()
+const hasImageModule = '$img' in nuxtApp
+// Join at runtime: Nuxt's production build statically matches the image
+// component name (NUXT_B3004) and hard-fails hosts without @nuxt/image (CMS).
+const resolvedImage = hasImageModule ? resolveComponent(['Nuxt', 'Img'].join('')) : 'img'
+const imageComponent = typeof resolvedImage === 'string' ? 'img' : resolvedImage
+const canOptimize = imageComponent !== 'img'
 
 const isStaticOrRemote = computed(() => {
   const src = props.src || ''
-  return src.startsWith('/img/')
-    || src.startsWith('blob:')
-    || /^(https?:)?\/\//.test(src)
+  return src.startsWith('/img/') || src.startsWith('blob:') || /^(https?:)?\/\//.test(src)
 })
 
 const resolvedStaticSrc = computed(() => {
@@ -37,8 +43,7 @@ const resolvedStaticSrc = computed(() => {
   try {
     const siteOrigin = new URL(site, window.location.origin).origin
     if (siteOrigin !== window.location.origin) return `${site}${src}`
-  }
-  catch {
+  } catch {
     return src
   }
   return src
@@ -54,8 +59,8 @@ const publicKey = computed(() => {
   return toPublicMediaKey(src)
 })
 
-const useOptimizedCmsImage = computed(() =>
-  hasNuxtImg && Boolean(props.src) && !isStaticOrRemote.value,
+const useOptimizedCmsImage = computed(
+  () => canOptimize && Boolean(props.src) && !isStaticOrRemote.value
 )
 
 const imgSrc = computed(() => {
@@ -85,7 +90,7 @@ const imgBind = computed(() => {
 
 <template>
   <component
-    :is="useOptimizedCmsImage ? NuxtImg : 'img'"
+    :is="useOptimizedCmsImage ? imageComponent : 'img'"
     v-if="src && imgSrc"
     :src="imgSrc"
     :alt="alt"
