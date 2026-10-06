@@ -17,11 +17,13 @@ Write French food articles for [journalducuistot.fr](https://journalducuistot.fr
 
 Non-negotiable: data first (keywords + SERP), voice always, drafts only (never publish via MCP).
 
+**Toolchain:** jdc-cms MCP (content drafts), Nuxt SEO Pro MCP (keywords + SERP), Search Console MCP (site demand), and the **`nuxtseo` CLI** (site `s_7a49d74f` — keyword/rankings research, page scans, indexing evidence; protocol details in the `nuxtseo-cli` skill).
+
 ## Workflow
 
 ### 1. Keyword research (before any writing)
 
-Run **both** sources, in this order:
+Run **three** sources, in this order:
 
 1. **Nuxt SEO Pro MCP** — `keyword_research`:
    - One seed per call (1–3 French words). Comma-separated seeds return noise.
@@ -31,12 +33,17 @@ Run **both** sources, in this order:
 2. **Search Console MCP** — site `sc-domain:journalducuistot.fr`:
    - `analytics_query` filtered on the topic query: does the site **already have impressions** for it? Existing demand = write for those exact formulations.
    - Note query variants Google already associates with us (accents, plurals, "combien…", "comment…").
+3. **`nuxtseo` CLI** — site `s_7a49d74f`, always `--json --no-input`:
+   - `nuxtseo research keywords --site s_7a49d74f --no-input "<topic>" --json` → keyword ideas with volume/difficulty/intent.
+   - **Empty `keywords` + a `data.message` is a refusal or a low-volume topic, not zero demand** — read `data.serpFallback.topResults`: it ships the current top-ranking pages (position, title, domain, url) for the competitor analysis in step 2.
+   - `research *` spends the Team research limit — batch topics, don't spam seeds. `--min-volume 10` matches the SEO Pro guidance.
+   - Full protocol (exit codes, envelopes, spend rules): see the `nuxtseo-cli` skill — do not guess flags.
 
-Deliverable before writing: primary query + 3–5 variants + SERP features + one differentiation angle.
+Deliverable before writing: primary query + 3–5 variants + volume/difficulty + SERP features + top-2 competitor URLs + one differentiation angle.
 
 ### 2. SERP competitor analysis (top 2 pages)
 
-Fetch the first **2 organic results** (not the carousel/forums) with WebFetch and extract:
+Take the top 2 organic results (from the `serp` call or the `nuxtseo` `serpFallback` — skip the carousel/forums/Pinterest) and extract:
 
 - Title pattern and how the exact query appears
 - H2 skeleton (their section list)
@@ -102,6 +109,11 @@ See [references/templates.md](./references/templates.md) for full skeletons. Sum
 ### 7. After the human publishes
 
 - GSC `inspection_inspect` on the live URL → confirm indexing; `indexing_submit` to push
+- **`nuxtseo` follow-up** (site `s_7a49d74f`):
+  - `nuxtseo page scan <live-url> --site s_7a49d74f --yes --json` — post-publish scan (spends the Lighthouse limit: ask before running)
+  - `nuxtseo search inspect <live-url> --site s_7a49d74f --fresh --yes --json` — requests a fresh Google inspection (uses inspection quota)
+  - `nuxtseo annotations create --site s_7a49d74f --date "$(date -u +%F)" --title "Publié : <titre>" --yes --json` — marks the day so the next traffic move has a cause
+  - `nuxtseo research rankings` / `research competitors` track how the new URL ranks over time
 - Add the target query to the tracked list in [keyword-validation](../../../docs/seo-strategy/keyword-validation.md)
 - If the topic already had GSC impressions, re-check `analytics_query` after 2 crawl cycles
 
