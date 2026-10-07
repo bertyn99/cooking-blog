@@ -11,15 +11,3 @@ defineOptions({ inheritAttrs: false })
     <slot />
   </div>
 </template>
-
-<style>
-.jdc-public {
-  color-scheme: light;
-  color: #111827;
-  font-family: Catamaran, ui-sans-serif, system-ui, sans-serif;
-}
-
-.jdc-public .jdc-serif {
-  font-family: Merriweather, ui-serif, Georgia, serif;
-}
-</style>

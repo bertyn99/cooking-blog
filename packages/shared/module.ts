@@ -9,6 +9,14 @@ export interface ModuleOptions {
    * Editors require `@nuxt/ui` in the host app.
    */
   surfaces: ContentBlockSurface[]
+  /**
+   * Project theme — the JDC brand applied to every host app.
+   * Per-app `app.config.ts` (`ui.colors`) still wins over these defaults.
+   */
+  theme?: {
+    primary?: string
+    neutral?: string
+  }
 }
 
 const SURFACE_FILES: Record<ContentBlockSurface, string> = {
@@ -27,13 +35,29 @@ export default defineNuxtModule<ModuleOptions>({
   },
   defaults: {
     surfaces: ['client'],
+    theme: {
+      primary: 'orange',
+      neutral: 'stone',
+    },
   },
   moduleDependencies: {
     '@nuxt/ui': {},
   },
-  async setup(options) {
+  async setup(options, nuxt) {
     const { resolve } = createResolver(import.meta.url)
     const surfaces = new Set(options.surfaces)
+
+    // Project theme: primary + neutral as app-config defaults. @nuxt/ui
+    // merges `nuxt.options.appConfig.ui` over its own defaults, and the
+    // host app's app.config.ts wins over us — so this fixes the JDC brand
+    // everywhere while keeping per-app overrides possible.
+    const theme = { primary: options.theme?.primary ?? 'orange', neutral: options.theme?.neutral ?? 'stone' }
+    const appConfigUi = (nuxt.options.appConfig.ui ??= {}) as { colors?: Record<string, string> }
+    appConfigUi.colors = { ...theme, ...appConfigUi.colors }
+
+    // Shared brand CSS (fonts, .jdc-public isolation) — unshifted so host
+    // app styles can override.
+    nuxt.options.css.unshift(resolve('./app/assets/css/jdc-theme.css'))
 
     const ignore: string[] = []
     for (const surface of ['client', 'editor', 'simple'] as const) {
