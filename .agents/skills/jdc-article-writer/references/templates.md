@@ -145,3 +145,28 @@ Links out:  UP to /techniques-culinaires pillar page + 3–5 recipes
 **Query pattern:** `recette [fête]`, `menu [événement]` (Ramadan, Noël, été…).
 
 Same skeleton as listicle, but: publish **6–8 weeks before the event** (Google needs lead time), refresh yearly (update `updatedAt`, re-submit indexing), internal-link to the previous year's winners.
+
+---
+
+## 9. Histoire de plat / migration — "L'histoire de…"
+
+**Query pattern:** `histoire [plat]`, `[plat] origine`, `pourquoi [plat]` — the strongest differentiation format (recipe sites rarely do history well).
+
+Use the [migration-web framework](./cuisine-toile-migrations.md): pick ONE of the 12 narrative templates (T1–T12) and ONE hero-fact, then 2–3 of the 6 layers. Verified stories ready for 24 dishes (tempura, vindaloo, bánh mì, phở, pad thaï, couscous, harissa, croissant, bœuf bourguignon, pizza…).
+
+```
+Title:      [Plat] : l'histoire méconnue / d'où vient vraiment…
+Intro:      open on the reader's plate, then detonate the hero-fact
+            (« Votre tempura préféré porte le nom d'un jeûne catholique. »)
+H2: La légende            — tell the myth properly (it's part of the dish)
+H2: Ce que disent les archives — dates, carriers, the merge/split
+H2: [Plat] aujourd'hui    — the living diaspora (end on the web)
+FAQ:                      — origine, différences régionales, accompagnement
+Length:     6–10k chars
+Links out:  the recipe(s) + country listicle + recettes-du-monde hub
+Schema:     Article + FAQPage
+```
+
+Signature move: **the legend is part of the dish's history** — tell it, then show the archive. Never mock the myth.
+
+Any other template (listicle, ingrédient) can carry a migration story as an enrichment layer: one « côté histoire » block per item, sourced from the framework.
