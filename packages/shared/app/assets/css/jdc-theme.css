@@ -1,0 +1,19 @@
+/* JDC shared theme — injected by @journalducuistot/shared before host app CSS.
+   Common brand styles only: app-specific rules live in each app's main CSS. */
+
+@theme static {
+  --font-sans: Catamaran, ui-sans-serif, system-ui, sans-serif;
+  --font-serif: Merriweather, ui-serif, Georgia, serif;
+  --font-merriweather: Merriweather, ui-serif, Georgia, serif;
+}
+
+/* Isolation scope for shared blocks rendered inside any host app. */
+.jdc-public {
+  color-scheme: light;
+  color: #111827;
+  font-family: Catamaran, ui-sans-serif, system-ui, sans-serif;
+}
+
+.jdc-public .jdc-serif {
+  font-family: Merriweather, ui-serif, Georgia, serif;
+}
