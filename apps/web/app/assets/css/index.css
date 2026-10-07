@@ -3,8 +3,8 @@
 @plugin "@tailwindcss/typography";
 
 /* Fonts (Catamaran/Merriweather) + .jdc-public scope come from the
-   shared theme: packages/shared/app/assets/css/jdc-theme.css */
-
+   shared theme: packages/shared/app/assets/css/jdc-theme.css (v2 —
+   watched via the memo include on ../packages/shared/**). */
 :root {
   --ui-header-height: 24rem;
   --ui-radius: 0.375rem;
