@@ -1,6 +1,6 @@
 import type { Component } from 'vue'
 
-const PROSE_TAGS = ['callout', 'grid', 'image'] as const
+const PROSE_TAGS = ['callout', 'grid', 'image', 'timeline', 'table', 'carousel'] as const
 
 function kebabFromClientPath(path: string): string | null {
   const match = path.match(/\/blocks\/([^/]+)\/Client\.vue$/)
