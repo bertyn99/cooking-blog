@@ -94,6 +94,25 @@ See [references/templates.md](./references/templates.md) for full skeletons. Sum
 
 Write in **Comark-valid markdown** from the start (JDC renders with `@comark/html` — load the `comark` skill for component syntax when using `::blocks`):
 
+**Illustration blocks** (usable in articles + recipes, styled JDC — stone/amber/Merriweather). Close every block with `::`:
+
+```markdown
+::timeline{items='[{"date":"1680","title":"La légende de Namur","text":"La Meuse gelée…"},{"date":"1789","title":"Pont-Neuf, Paris"}]'}
+::
+
+::table{head='["Convives","Moules","Frites"]' rows='[["2","1 kg","400 g"],["4","2 kg","800 g"]]' caption="Quantités indicatives — 500 g par personne."}
+::
+
+::carousel{images='[{"src":"uploads/assiette_1.png","alt":"Vue de l'assiette dressée"},{"src":"uploads/cuisson_2.png","alt":"La cuisson au vin blanc"}]'}
+::
+```
+
+- `::timeline` — chronologic frise for history articles (template 9): one item per date, `text` ≤ 2 lines
+- `::table` — quantities, comparatifs, timelines tabulaires; header cells = `head`, data = `rows` (array of arrays), optional `caption`
+- `::carousel` — 2–6 images with descriptive alts; use existing media paths (`list-media`, `uploads/…` prefix)
+- JSON inside single-quoted Comark attrs: no unescaped single quotes (write "l'histoire" fine, but never `'\''`)
+
+
 - **Title** ≤ 60 chars, exact query front-loaded, evergreen (no "pour l'été"), natural French — never "Recettes de plat Apéritif"
 - **Meta description** 140–155 chars, exact query + benefit, written (not auto-generated)
 - **Slug**: keywords only, hyphens, no dates/seasons — set explicitly to keep it stable

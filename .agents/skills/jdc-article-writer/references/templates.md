@@ -158,9 +158,12 @@ Use the [migration-web framework](./cuisine-toile-migrations.md): pick ONE of th
 Title:      [Plat] : l'histoire méconnue / d'où vient vraiment…
 Intro:      open on the reader's plate, then detonate the hero-fact
             (« Votre tempura préféré porte le nom d'un jeûne catholique. »)
+::timeline  — the chronology as a frise block (5–6 dated items;
+            block syntax at the end of this file)
 H2: La légende            — tell the myth properly (it's part of the dish)
 H2: Ce que disent les archives — dates, carriers, the merge/split
 H2: [Plat] aujourd'hui    — the living diaspora (end on the web)
+::table     — key dates or quantities in a styled table (optional)
 FAQ:                      — origine, différences régionales, accompagnement
 Length:     6–10k chars
 Links out:  the recipe(s) + country listicle + recettes-du-monde hub
@@ -170,3 +173,14 @@ Schema:     Article + FAQPage
 Signature move: **the legend is part of the dish's history** — tell it, then show the archive. Never mock the myth.
 
 Any other template (listicle, ingrédient) can carry a migration story as an enrichment layer: one « côté histoire » block per item, sourced from the framework.
+
+
+## Illustration blocks (Comark)
+
+Three styled blocks exist for articles/recipes (JDC design: stone neutrals, amber accents, Merriweather headings):
+
+- `::timeline{items='[{"date":"1680","title":"…","text":"…"}]'}` then `::` — chronologic frise (template 9: one item per date, text ≤ 2 lines)
+- `::table{head='["A","B"]' rows='[["1","2"]]' caption="…"}` then `::` — quantities, comparatifs, key dates (striped, amber header)
+- `::carousel{images='[{"src":"uploads/x.png","alt":"…"}]'}` then `::` — 2–6 images with descriptive alts (arrows + dots)
+
+Close every block with `::`. JSON goes inside single-quoted Comark attrs — no unescaped single quotes inside strings. Render check after writing: no raw `::block` text visible on the preview (occurrences inside the `<script>` hydration payload are fine).
