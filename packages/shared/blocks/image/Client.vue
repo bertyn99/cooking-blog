@@ -21,7 +21,7 @@ defineProps<{
         :title="title"
         :width="1300"
         :height="910"
-        img-class="block h-auto w-full max-w-full"
+        img-class="block h-auto w-full max-w-full object-cover object-center max-h-[480px]"
       />
       <figcaption
         v-if="alt"
