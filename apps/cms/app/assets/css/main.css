@@ -4,7 +4,7 @@
 /* Les blocs Comark partagés (packages/shared/blocks) portent des classes
    Tailwind hors du périmètre de scan par défaut — sans cette source,
    leurs utilitaires (max-h, amber, aspect…) ne sont jamais générés. */
-@source "../../../../packages/shared/**/*.{vue,ts}";
+@source "../../../../../packages/shared/**/*.{vue,ts}";
 
 .cms-markdown-editor--embedded [data-slot="content"] {
     min-height: 18rem;
