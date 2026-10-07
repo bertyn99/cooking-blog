@@ -37,9 +37,11 @@ const NUXT_MEMO = {
     'shared/**',
     'public/**',
     // Workspace package consumed by both apps (shared blocks + theme):
-    // outside rootDir, so the memo must watch it explicitly or Alchemy
-    // skips the worker deploy when only the package changed.
-    '../packages/shared/**',
+    // outside rootDir, so it's exposed as a `packages-shared` symlink in
+    // each app and watched explicitly — without it, Alchemy skips the
+    // worker deploy when only the package changed (fast-glob ne matche
+    // pas les patterns avec '..').
+    'packages-shared/**',
     'exports.cloudflare.ts',
     'nuxt.config.ts',
     'app.config.ts',
