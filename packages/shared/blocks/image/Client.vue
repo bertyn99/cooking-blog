@@ -2,13 +2,27 @@
 import JdcCoverMedia from '../../app/components/JdcCoverMedia.vue'
 import JdcPublicSurface from '../../app/components/JdcPublicSurface.vue'
 
-defineOptions({ inheritAttrs: false })
-
-defineProps<{
+const props = withDefaults(defineProps<{
   src?: string
   alt?: string
   title?: string
-}>()
+  /** Classes ajoutées à l'img (ex: "max-h-[600px] object-cover object-top") */
+  class?: string
+  /** Largeur de la variante transformée (pipeline /images) */
+  width?: string | number
+  /** Hauteur de la variante transformée (pipeline /images) */
+  height?: string | number
+}>(), {
+  alt: '',
+  title: undefined,
+  class: 'object-cover object-center max-h-[480px]',
+  width: 1300,
+  height: 910,
+})
+
+const widthAttr = computed(() => Number(props.width) || 1300)
+const heightAttr = computed(() => Number(props.height) || 910)
+const imgClass = computed(() => `block h-auto w-full max-w-full ${props.class}`.trim())
 </script>
 
 <template>
@@ -17,11 +31,11 @@ defineProps<{
       <JdcCoverMedia
         v-if="src"
         :src="src"
-        :alt="alt ?? ''"
+        :alt="alt"
         :title="title"
-        :width="1300"
-        :height="910"
-        img-class="block h-auto w-full max-w-full object-cover object-center max-h-[480px]"
+        :width="widthAttr"
+        :height="heightAttr"
+        :img-class="imgClass"
       />
       <figcaption
         v-if="alt"
