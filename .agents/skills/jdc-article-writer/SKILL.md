@@ -102,14 +102,36 @@ See [references/templates.md](./references/templates.md) for full skeletons. Sum
 - **Images**: cover + alt text describing the dish; inline image per major section. Only reference media that exists in the library (`list-media`) — broken `/images/...` paths have shipped before.
 - **Schema**: recipes get `Recipe` (YGG-82 pending — author/`recipeCuisine`/calories fixed at template level); listicles get `ItemList`; FAQ block → `FAQPage`
 
-### 6. Publish via jdc-cms MCP
+### 6. Review — two passes on the first draft
+
+Never ship the first draft. Run two passes on the draft created in step 6 (via `update-article` / `upsert-seo`, slugs pinned), each producing a new `previewUrl`:
+
+**Pass 1 — Correction (facts, structure, mechanics).** Objective only:
+- [ ] **Facts vs sources**: every date, origin, quantity, cooking time, name checked against the research notes and URLs from steps 1–2 (legend stated as legend, archive as archive)
+- [ ] **French**: grammar, spelling, agreements, punctuation (no AI-perfect uniformity either — natural but clean)
+- [ ] **Structure**: single H1; primary query in the first 2 sentences; ≥3 H2s in logical order; FAQ block present; listicle items consistent but varied in length
+- [ ] **Links**: every internal link resolves (fetch each target — 404s have shipped before), no duplicate targets, anchors natural and varied
+- [ ] **Images**: every referenced path exists in the media library (`list-media`) — dead `/images/...` references have shipped before; alt texts present
+- [ ] **Metadata**: title ≤ 60 chars, description 140–155, excerpt set, keywords clean (no typos/junk), slug unchanged and stable
+
+**Pass 2 — Amélioration (voice + SEO polish).** The rewrite pass:
+- [ ] **Anti-slop 10-point checklist** (see [references/antislop-fr.md](./references/antislop-fr.md) §8): banned openers gone, no « il convient de », conclusion < 4 lines with an opinion, adjectives backed by facts, no triades, paragraph-length variation
+- [ ] **Voice arsenal applied**: ≥1 verdict court (Curnonsky), ≥1 aparté in parentheses, physical cause where an adjective survived (« en dessous de 65 °C, les œufs gardent leur eau »), one migration-web story if the topic supports it ([references/cuisine-toile-migrations.md](./references/cuisine-toile-migrations.md))
+- [ ] **Rhythm**: long/short alternation, 1 paragraph ends ≤ 6 words, read-aloud test passed (nothing you wouldn't say at table)
+- [ ] **L'empreinte unique**: ≥1 detail only lived experience produces (the failure in v1, what the vendor said, the real price)
+- [ ] **SEO polish**: exact query variants woven into H2s, internal anchor variety (no repeated exact-match anchors), one more natural internal link if a spot exists
+
+Then report **both** preview URLs to the human: v2 (corrected) and v3 (improved) — or the single v3 with a short changelog of what each pass changed. The human reviews; publishing stays manual.
+
+### 7. Publish via jdc-cms MCP
 
 1. `create-article` with `{ title, content (markdown), excerpt, slug, categoryId, coverBlobPathname, coverAltText, coverDescription }` — **status stays draft**
 2. `upsert-seo` `{ contentType: 'article', contentId, description, keywords }`
-3. Report the `previewUrl` to the human. **Never publish, unpublish, or schedule via MCP.** Recipes are draft-only (403 if live).
-4. List categories with `list-article-categories` before setting `categoryId` — no `uncategorized`.
+3. Then run the two review passes above (step 6) on the draft
+4. Report the final `previewUrl` + changelog to the human. **Never publish, unpublish, or schedule via MCP.** Recipes are draft-only (403 if live).
+5. List categories with `list-article-categories` before setting `categoryId` — no `uncategorized`.
 
-### 7. After the human publishes
+### 8. After the human publishes
 
 - GSC `inspection_inspect` on the live URL → confirm indexing; `indexing_submit` to push
 - **`nuxtseo` follow-up** (site `s_7a49d74f`):
