@@ -92,6 +92,8 @@ See [references/templates.md](./references/templates.md) for full skeletons. Sum
 
 ### 5. On-page checklist (every article)
 
+Write in **Comark-valid markdown** from the start (JDC renders with `@comark/html` — load the `comark` skill for component syntax when using `::blocks`):
+
 - **Title** ≤ 60 chars, exact query front-loaded, evergreen (no "pour l'été"), natural French — never "Recettes de plat Apéritif"
 - **Meta description** 140–155 chars, exact query + benefit, written (not auto-generated)
 - **Slug**: keywords only, hyphens, no dates/seasons — set explicitly to keep it stable
@@ -109,6 +111,7 @@ Never ship the first draft. Run two passes on the draft created in step 6 (via `
 **Pass 1 — Correction (facts, structure, mechanics).** Objective only:
 - [ ] **Facts vs sources**: every date, origin, quantity, cooking time, name checked against the research notes and URLs from steps 1–2 (legend stated as legend, archive as archive)
 - [ ] **French**: grammar, spelling, agreements, punctuation (no AI-perfect uniformity either — natural but clean)
+- [ ] **Comark syntax**: the body must be valid Comark markdown (JDC renders with `@comark/html`). Check: no unclosed `::component` blocks, valid props syntax, no raw HTML that the renderer drops, headings/list/image syntax intact, no escaped-entity garbage (`&amp;`, `&#x27;`) in the source. Load the `comark` skill for the exact syntax when in doubt — a broken component renders as raw text on the page.
 - [ ] **Structure**: single H1; primary query in the first 2 sentences; ≥3 H2s in logical order; FAQ block present; listicle items consistent but varied in length
 - [ ] **Links**: every internal link resolves (fetch each target — 404s have shipped before), no duplicate targets, anchors natural and varied
 - [ ] **Images**: every referenced path exists in the media library (`list-media`) — dead `/images/...` references have shipped before; alt texts present
@@ -120,6 +123,15 @@ Never ship the first draft. Run two passes on the draft created in step 6 (via `
 - [ ] **Rhythm**: long/short alternation, 1 paragraph ends ≤ 6 words, read-aloud test passed (nothing you wouldn't say at table)
 - [ ] **L'empreinte unique**: ≥1 detail only lived experience produces (the failure in v1, what the vendor said, the real price)
 - [ ] **SEO polish**: exact query variants woven into H2s, internal anchor variety (no repeated exact-match anchors), one more natural internal link if a spot exists
+
+Then run the **render check** on the final `previewUrl` (the draft must display correctly, not just exist):
+
+- [ ] Preview returns **200** (no error boundary / Nuxt error page); title carries the `[PREVIEW]` prefix (expected — it disappears once published)
+- [ ] Title + meta description in the HTML match the review result
+- [ ] Single H1, all H2/H3 render as headings (no raw `##` or unrendered `::component` markers leaking as text — a visible `::` or `**` means broken Comark)
+- [ ] Images load (no 502/404 — check at least cover + first inline image)
+- [ ] Every internal link resolves; FAQ section renders
+- [ ] No leftover placeholder, comment or template text
 
 Then report **both** preview URLs to the human: v2 (corrected) and v3 (improved) — or the single v3 with a short changelog of what each pass changed. The human reviews; publishing stays manual.
 
