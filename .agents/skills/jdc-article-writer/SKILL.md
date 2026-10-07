@@ -120,7 +120,7 @@ Write in **Comark-valid markdown** from the start (JDC renders with `@comark/htm
 - **Structure**: intro 100–150 words with primary query in the first 2 sentences; H2 every ~300 words; H3 per listicle item
 - **FAQ**: 3–5 questions from SERP PAA + "combien/comment" variants, near the end
 - **Internal links ≥ 2**: pick REAL targets via jdc-cms MCP `list-recipes` / `list-articles` / `list-pages` — 1 up (hub: `/techniques-culinaires/**`, `/recette/recettes-du-monde`, category) + 1 sideways (related recipe/article). Contextual anchors, never "cliquez ici". Verify targets exist (no 404s — this has happened).
-- **Images**: cover + alt text describing the dish; inline image per major section. Only reference media that exists in the library (`list-media`) — broken `/images/...` paths have shipped before.
+- **Images**: cover + alt text describing the dish; **listicles: 1 image per item** via the `::image` block (`::image{src="uploads/file.png" alt="…"}` + `::`) — match items against the media library with `list-media` (`prefix: 'uploads/'`), skip items without media and note them for a future generation pass; 1 inline image per major section otherwise. Only reference media that exists — broken `/images/...` paths have shipped before.
 - **Schema**: recipes get `Recipe` (YGG-82 pending — author/`recipeCuisine`/calories fixed at template level); listicles get `ItemList`; FAQ block → `FAQPage`
 
 ### 6. Review — two passes on the first draft
