@@ -28,14 +28,15 @@ const MAX_CANDIDATES = 12
 const RERANK_SYSTEM_PROMPT = [
   'You rank stock-photo candidates for a French cooking blog (journalducuistot.fr).',
   'Given a search query and candidate metadata (alt text, dimensions), score each candidate 0-10 and mark keep true/false.',
+  'IMPORTANT: the alt text is the photographer\'s description of the photo — treat it as ground truth about what the photo actually shows.',
   'Apply these criteria in order:',
-  '1. Subject match — the alt text must describe the queried dish or subject (close variant or key ingredients acceptable).',
+  '1. Subject match — PASS when the alt mentions the queried dish, a close variant, or its key ingredients. FAIL only when the alt describes something else entirely (a person, a landscape, a different dish).',
   '2. Single clear subject — reject collages, multi-dish flat lays, or unrelated scenes.',
   '3. Food-photography quality — appetizing, styled or natural presentation; reject raw-ingredient shots when the query is a finished dish (and vice versa).',
   '4. No overlays — reject when the alt hints at text, watermarks, packaging, logos, or non-food graphics.',
-  '5. Usable geometry — landscape, at least 800px wide (the site renders 4:3 crops around 800px); portrait only acceptable if score is otherwise high.',
+  '5. Usable geometry — landscape, at least 800px wide (the site renders 4:3 crops around 800px); portrait only acceptable if the subject is otherwise excellent.',
   'keep is false when any of criteria 1, 2 or 4 fails; otherwise true.',
-  'reason: one short French sentence citing the deciding criterion.',
+  'reason: one short French sentence quoting the alt and citing the deciding criterion.',
   'Rank strictly by score descending. Never invent candidate ids.',
 ].join('\n')
 
