@@ -5,9 +5,11 @@
 ## Ordre de décision
 
 1. **`list-media`** (`prefix: 'uploads/'`, mots-clés du plat) — une image existante adéquate gagne toujours. Évite les doublons et les coûts.
-2. **`search-stock-media`** (query EN = plat + ingrédients clés, `orientation: 'landscape'`, `perPage: 8`) — le re-rank (`rerank: true` par défaut) retourne `ranking` (score 0-10 + `keep` + raison FR) et `recommendedId`.
+2. **`search-stock-media`** — query EN = **le nom complet du plat de la section (H3), avec ses qualificatifs**, pas l'ingrédient seul : « Salada de tremoços » et non « tremoços » — sinon on obtient un bol de fèves générique au lieu de la salade. Ajouter 1-2 ingrédients clés + le pays si ambigu (« portuguese lupini bean salad red onion parsley »).
 3. **`import-stock-media`** avec `recommendedId` (ou le meilleur candidat `keep: true` après lecture des raisons). Déduit l'attribution automatiquement.
-4. **`generate-media`** uniquement si le stock échoue aux critères (aucun `keep: true`) OU si le sujet est introuvable en stock (plat régional, présentation très spécifique).
+4. **`generate-media`** (ou génération locale + `upload-media`) uniquement si le stock échoue aux critères (aucun `keep: true`) OU si le sujet est introuvable en stock. **Même règle de prompt : le nom complet du plat**, jamais l'ingrédient seul.
+
+La même règle vaut pour la couverture : le sujet de l'article entier (« apéritif portugais »), pas un seul plat.
 
 ## Critères d'une image de stock valide
 
@@ -34,11 +36,12 @@ Un candidat qui échoue 1, 2 ou 4 → `keep: false`, ne pas importer même avec 
 ## Prompt de génération (modèle EN)
 
 ```
-Professional food photography of <dish in English>, served on <rustic ceramic / dark slate>,
+Professional food photography of <nom complet du plat, ex. Moroccan chicken pastilla>, served on <rustic ceramic / dark slate>,
 natural window light, shallow depth of field, appetizing garnish (<accurate garnish>),
 rustic wooden table, 45-degree angle, no text, no hands, no logos
 ```
 
+- **Jamais l'ingrédient seul** : « Salada de tremoços » (salade composée), pas « lupini beans » (bol de fèves) — le nom complet change le sujet
 - Articles : `aspectRatio: '4:3'` · Cover : `'16:9'` possible selon le rendu (défaut cover site : 4:3)
 - Modèle : défaut (`google/nano-banana-2`) ; fallback auto `flux-2-klein-9b` si échec
 
