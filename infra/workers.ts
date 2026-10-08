@@ -145,10 +145,10 @@ export const workers = Effect.fn(function* (input: {
       PEXELS_API_KEY: Config.String('PEXELS_API_KEY').pipe(Config.withDefault('')),
       CMS_PREVIEW_TOKEN: Config.String('CMS_PREVIEW_TOKEN').pipe(Config.withDefault('')),
       // Workers AI REST fallback — the runtime registry at the pinned compat
-      // date predates CLEF, so `ai.run` cannot validate it. The deploy token
-      // (already a GitHub secret) must include Workers AI Run permission.
+      // date predates CLEF, so `ai.run` cannot validate it. Dedicated scoped
+      // token (Workers AI:Edit) — the deploy token lacks AI permissions.
       CLOUDFLARE_ACCOUNT_ID: Config.String('CLOUDFLARE_ACCOUNT_ID').pipe(Config.withDefault('')),
-      CLOUDFLARE_AI_API_TOKEN: Config.String('CLOUDFLARE_API_TOKEN').pipe(Config.withDefault('')),
+      CLOUDFLARE_AI_API_TOKEN: Config.String('CLOUDFLARE_AI_API_TOKEN').pipe(Config.withDefault('')),
       ...(isProd ? { NUXT_PUBLIC_CMS_BASE_URL: prodCmsOrigin } : {}),
       ...(isProd && prodWebHost
         ? { NUXT_PUBLIC_SITE_URL: httpsOrigin(prodWebHost) }
