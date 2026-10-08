@@ -25,12 +25,19 @@ export default defineMcpTool({
       throw createError({ statusCode: 413, statusMessage: 'Fichier vide ou trop volumineux (max 8 Mo).' })
     }
 
-    return ingestImageBuffer(event, {
+    const ingested = await ingestImageBuffer(event, {
       buffer,
       contentType,
       originalName,
       altText,
       source: 'upload',
     })
+
+    // Markdown-ready path — `pathname` is the storage key (uploads/…) and
+    // prepending /uploads/ to it in content yields a double prefix.
+    return {
+      ...ingested,
+      markdownPath: `/uploads/${ingested.pathname.replace(/^uploads\//, '')}`,
+    }
   },
 })
