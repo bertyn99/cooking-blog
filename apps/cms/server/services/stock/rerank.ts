@@ -1,6 +1,6 @@
 import { generateText, Output } from 'ai'
 import { z } from 'zod'
-import { WORKERS_AI_MODEL } from '../../../shared/workers-ai-model'
+import { STOCK_RERANK_MODEL } from '../../../shared/workers-ai-model'
 import { createCmsWorkersAI } from '../../utils/cms-workers-ai'
 import type { H3Event } from 'h3'
 import type { StockSearchItem } from './pexels'
@@ -134,7 +134,7 @@ export async function rerankStockCandidates(
       gatewayId: resolveGatewayId(event),
       metadata: { surface: 'stock-rerank' },
     })
-    const model = workersai(WORKERS_AI_MODEL)
+    const model = workersai(STOCK_RERANK_MODEL)
 
     const { output } = await generateText({
       model,
