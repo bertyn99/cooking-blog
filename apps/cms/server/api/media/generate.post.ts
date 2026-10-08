@@ -6,10 +6,10 @@ import {
 } from '../../../shared/workers-ai-model'
 import { generateMediaImage } from '../../services/ai/image-generation'
 import { getClientIp } from '../../utils/client-ip'
-import { getCloudflareEnv } from '../../utils/cloudflare-env'
 import { createApiError } from '../../utils/errors'
 import { requireEditor } from '../../utils/http-auth'
 import { ingestImageBuffer } from '../../utils/ingest-image-buffer'
+import { resolveMediaGenerationGatewayId } from '../../utils/media-generation-gateway'
 import { useKvStore } from '../../utils/kv'
 import { createRequestRateLimiter } from '../../utils/rate-limit'
 import { isAbortError, resolveRequestAbortSignal } from '../../utils/request-abort'
@@ -28,18 +28,6 @@ const bodySchema = z.object({
 
 function getMediaGenerateLimiter(event: Parameters<typeof useKvStore>[0]) {
   return createRequestRateLimiter(useKvStore(event), MEDIA_GENERATE_LIMIT)
-}
-
-function resolveGenerationGatewayId(event: Parameters<typeof getCloudflareEnv>[0]): string | null {
-  const env = getCloudflareEnv(event)
-  if (env?.CMS_AI_GATEWAY_ID) {
-    return env.CMS_AI_GATEWAY_ID
-  }
-  if (import.meta.dev) {
-    return null
-  }
-  const fromConfig = useRuntimeConfig(event).cmsAiGatewayId
-  return typeof fromConfig === 'string' && fromConfig.length > 0 ? fromConfig : null
 }
 
 export default defineEventHandler(async (event) => {
@@ -64,7 +52,7 @@ export default defineEventHandler(async (event) => {
   const abortSignal = resolveRequestAbortSignal(event)
 
   const { prompt, aspectRatio, model } = parsed.data
-  const gatewayId = resolveGenerationGatewayId(event)
+  const gatewayId = resolveMediaGenerationGatewayId(event)
 
   let generated
   try {

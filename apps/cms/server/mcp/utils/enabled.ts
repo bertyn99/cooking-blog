@@ -17,6 +17,7 @@ export const MCP_READ_TOOL_NAMES = new Set([
   'list-pages',
   'get-page',
   'list-media',
+  'search-stock-media',
 ])
 
 function flagOff(value: unknown): boolean {
