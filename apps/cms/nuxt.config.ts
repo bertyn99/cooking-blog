@@ -147,12 +147,13 @@ export default defineNuxtConfig({
       plugins: [cloudflareRuntimeModulesPlugin],
     },
   },
-  // ⚠️ Build date — keep in sync with runtime needs only. Bumping past
-  // 2025-01-15 changes Nitro's cloudflare_module stitching and DROPS the
-  // exports.cloudflare.ts additional exports (ContentGenerationWorkflow) —
-  // ScriptStartupError at deploy (seen 2026-10-08). The RUNTIME date lives in
-  // infra/workers.ts NODE_COMPAT.
-  compatibilityDate: '2025-01-15',
+  // Build date (Nitro stitching). The RUNTIME date lives in infra/workers.ts
+  // NODE_COMPAT (2026-05-27). 2026-05-27 is safe since 2026-10-08: the
+  // ContentGenerationWorkflow class moved to the dedicated `CmsWorkflows`
+  // host worker — Nitro v2 cannot emit extra worker exports
+  // (`exports.cloudflare.ts` is a Nitro 3 feature), which is what broke the
+  // startup validation when the class lived in this build.
+  compatibilityDate: '2026-05-27',
 
   routeRules: {
     '/api/**': {
