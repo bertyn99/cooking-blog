@@ -140,10 +140,20 @@ export async function rerankStockCandidates(
     return verdictFromAnswers(item, response.answers ?? {})
   }))
 
-  const ranking = normalizeVerdicts(
-    capped,
-    settled.map((r, i) => r.status === 'fulfilled' ? r.value : { id: capped[i].id, score: -1, keep: true, reason: 'Évaluation indisponible.' }),
-  )
+  // Surface per-candidate failure reasons — the MCP response is where we debug
+  // model availability; never break the search itself.
+  const verdicts = settled.map((r, i) => {
+    if (r.status === 'fulfilled') return r.value
+    const message = r.reason instanceof Error ? r.reason.message : String(r.reason)
+    return {
+      id: capped[i].id,
+      score: -1,
+      keep: true,
+      reason: `Évaluation indisponible : ${message.slice(0, 160)}`,
+    }
+  })
+
+  const ranking = normalizeVerdicts(capped, verdicts)
   const best = ranking.find(v => v.keep && v.score > 0)
   return { ranking, recommendedId: best?.id ?? null, ranked: settled.some(r => r.status === 'fulfilled') }
 }
