@@ -29,6 +29,7 @@
     "task:generation-process": "nitro task run generation-process"
   },
   "dependencies": {
+    "@adonisjs/hash": "^9.1.1",
     "@ai-sdk/mcp": "^2.0.16",
     "@ai-sdk/vue": "^4.0.48",
     "@comark/vue": "^0.7.0",
