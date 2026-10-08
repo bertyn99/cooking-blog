@@ -9,7 +9,6 @@ import {
   type ImageGenerationModelId,
 } from '../../../shared/workers-ai-model'
 import { getCloudflareEnv } from '../../utils/cloudflare-env'
-import { createCmsWorkersAI } from '../../utils/cms-workers-ai'
 import { createApiError } from '../../utils/errors'
 import { createCatalogImageModel } from './catalog-image-model'
 import { isAbortError } from '../../utils/request-abort'
@@ -108,30 +107,44 @@ export async function generateMediaImage(
     // Flux fallback on the DIRECT binding: it's a native @cf model the runtime
     // registry knows — routing it through the AI Gateway returned empty
     // responses (observed 2026-10-08). Gateway stays for catalog models only.
-    const workersai = createCmsWorkersAI(ai, {
-      gatewayId: null,
-      metadata: options.metadata,
-    })
+    // FLUX.2 klein uses multipart form inputs EVEN for prompt-only generation
+    // (schema requires `multipart` at root — JSON input fails with 5006).
+    // Direct binding, no gateway: native @cf model the registry knows.
+    // @see https://developers.cloudflare.com/workers-ai/models/flux-2-klein-9b/
+    const size = aspectRatioToFluxSize(aspectRatio)
+    const [width, height] = size.split('x')
+    const form = new FormData()
+    form.append('prompt', prompt)
+    form.append('width', width)
+    form.append('height', height)
 
-    const flux = await generateImage({
-      model: workersai.image(IMAGE_MODEL_FALLBACK),
-      prompt,
-      size: aspectRatioToFluxSize(aspectRatio),
-      abortSignal: options.abortSignal,
+    const runBinding = ai.run as unknown as (
+      model: string,
+      input: Record<string, unknown>,
+    ) => Promise<{ image?: string }>
+
+    const output = await runBinding(IMAGE_MODEL_FALLBACK, {
+      multipart: {
+        body: form.body,
+        contentType: form.headers.get('content-type') ?? 'multipart/form-data',
+      },
     })
 
     if (options.abortSignal?.aborted) {
       throw new DOMException('Aborted', 'AbortError')
     }
 
-    const image = flux.image ?? flux.images?.[0]
-    if (!image?.uint8Array?.byteLength) {
+    if (!output?.image) {
+      throw catalogError instanceof Error ? catalogError : new Error('Image generation failed')
+    }
+    const image = Uint8Array.from(atob(output.image), c => c.charCodeAt(0))
+    if (!image.byteLength) {
       throw catalogError instanceof Error ? catalogError : new Error('Image generation failed')
     }
 
     return {
-      buffer: image.uint8Array,
-      contentType: image.mediaType ?? contentTypeFromBytes(image.uint8Array),
+      buffer: image,
+      contentType: 'image/png',
       modelId: IMAGE_MODEL_FALLBACK,
       usedFallback: true,
     }
