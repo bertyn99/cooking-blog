@@ -5,8 +5,9 @@ import type { User } from '#auth-utils'
 import type { AppDb } from '../create-db'
 import { schema } from '../create-db'
 import { toSessionUser } from '../../utils/auth/user'
+import { AGENT_USER_EMAIL } from './constants'
 
-export const AGENT_USER_EMAIL = 'agent@journalducuistot.internal'
+export { AGENT_USER_EMAIL }
 
 const hasher = new Hash(new Scrypt({}))
 

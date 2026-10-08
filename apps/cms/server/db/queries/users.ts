@@ -3,7 +3,7 @@ import type { AppDb } from '../create-db'
 import { schema } from '../create-db'
 import type { StaffUserPublic } from '../../shared/staff'
 
-import { AGENT_USER_EMAIL } from '../seed/agent'
+import { AGENT_USER_EMAIL } from '../seed/constants'
 
 export type UserRole = 'admin' | 'editor' | 'agent'
 
