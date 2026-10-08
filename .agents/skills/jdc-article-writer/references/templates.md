@@ -20,7 +20,7 @@ Title:      Apéritif [pays] : 10 recettes de bouchées faciles
 Intro:      [pays]'s apéro culture in 2–3 lines + what makes it different
             (primary query in first sentence). No "bienvenue dans".
 H2 x10:     1. [Nom de la bouchée] — H3 in the list version
-            Per item: ::image block from the media library (match
+            Per item: 1 image markdown standard from the media library (match
             list-media against each dish; skip + note items without
             media) + ~500 chars: what it is, where it comes from,
             taste/texture, when to serve. Link the matching JDC recipe

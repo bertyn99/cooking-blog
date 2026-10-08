@@ -94,23 +94,16 @@ See [references/templates.md](./references/templates.md) for full skeletons. Sum
 
 Write in **Comark-valid markdown** from the start (JDC renders with `@comark/html` — load the `comark` skill for component syntax when using `::blocks`):
 
-**Illustration blocks** (usable in articles + recipes, styled JDC — stone/amber/Merriweather). Close every block with `::`:
+**Images dans le corps d'article : images markdown standard** (PAS de blocs `::image`/`::timeline`/`::table` — ils ne sont pas résolus par le renderer web en prod, vérifié 2026-10-07 : le bloc rend son slot mais l'img est absente) :
 
 ```markdown
-::timeline{items='[{"date":"1680","title":"La légende de Namur","text":"La Meuse gelée…"},{"date":"1789","title":"Pont-Neuf, Paris"}]'}
-::
-
-::table{head='["Convives","Moules","Frites"]' rows='[["2","1 kg","400 g"],["4","2 kg","800 g"]]' caption="Quantités indicatives — 500 g par personne."}
-::
-
-::carousel{images='[{"src":"uploads/assiette_1.png","alt":"Vue de l'assiette dressée"},{"src":"uploads/cuisson_2.png","alt":"La cuisson au vin blanc"}]'}
-::
+![Baklava aux noix et au miel, feuilles dorées](/images/w_800,f_webp,fit_cover/uploads/baklava_c439771884.webp)
 ```
 
-- `::timeline` — chronologic frise for history articles (template 9): one item per date, `text` ≤ 2 lines
-- `::table` — quantities, comparatifs, timelines tabulaires; header cells = `head`, data = `rows` (array of arrays), optional `caption`
-- `::carousel` — 2–6 images with descriptive alts; use existing media paths (`list-media`, `uploads/…` prefix)
-- JSON inside single-quoted Comark attrs: no unescaped single quotes (write "l'histoire" fine, but never `'\''`)
+- Src pré-transformée via le pipeline `/images/` : `/images/w_800,f_webp,fit_cover/uploads/<fichier>` (le fichier vient de `list-media`, préfixe `uploads/`)
+- 1 image par plat/section, alt descriptif
+- Les blocs `::callout`/`::grid` restent utilisables (composants natifs du thème)
+- Les blocs `::timeline`/`::table`/`::carousel` existent dans le page builder mais ne rendent pas dans les articles — ne pas utiliser dans le corps d'article
 
 
 - **Title** ≤ 60 chars, exact query front-loaded, evergreen (no "pour l'été"), natural French — never "Recettes de plat Apéritif"
@@ -120,7 +113,7 @@ Write in **Comark-valid markdown** from the start (JDC renders with `@comark/htm
 - **Structure**: intro 100–150 words with primary query in the first 2 sentences; H2 every ~300 words; H3 per listicle item
 - **FAQ**: 3–5 questions from SERP PAA + "combien/comment" variants, near the end
 - **Internal links ≥ 2**: pick REAL targets via jdc-cms MCP `list-recipes` / `list-articles` / `list-pages` — 1 up (hub: `/techniques-culinaires/**`, `/recette/recettes-du-monde`, category) + 1 sideways (related recipe/article). Contextual anchors, never "cliquez ici". Verify targets exist (no 404s — this has happened).
-- **Images**: cover + alt text describing the dish; **listicles: 1 image per item** via the `::image` block (`::image{src="uploads/file.png" alt="…"}` + `::`) — match items against the media library with `list-media` (`prefix: 'uploads/'`), skip items without media and note them for a future generation pass; 1 inline image per major section otherwise. Only reference media that exists — broken `/images/...` paths have shipped before.
+- **Images**: cover + alt text describing the dish; **listicles: 1 image per item** as standard markdown images — match items against the media library with `list-media` (`prefix: 'uploads/'`), skip items without media and note them for a future generation pass. Syntax: `![alt](/images/w_800,f_webp,fit_cover/uploads/fichier.webp)` (src pré-transformée via le pipeline `/images/`) ou image de la médiathèque insérée via l'éditeur (alt/format stockés en attributs Comark `![alt]{src:"16:9"}`). 1 inline image per major section otherwise. Only reference media that exists — broken `/images/...` paths have shipped before.
 - **Schema**: recipes get `Recipe` (YGG-82 pending — author/`recipeCuisine`/calories fixed at template level); listicles get `ItemList`; FAQ block → `FAQPage`
 
 ### 6. Review — two passes on the first draft

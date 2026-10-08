@@ -123,18 +123,26 @@ export default defineNuxtConfig({
     // https://mcp-toolkit.nuxt.dev/advanced/sessions#custom-storage-driver.
     // `Cache` is the KV namespace already bound by Alchemy (infra/workers.ts);
     // the base prefix keeps session keys away from other Cache users.
-    storage: {
-      'mcp:sessions': {
-        driver: 'cloudflare-kv-binding',
-        binding: 'Cache',
-        base: 'mcp:sessions',
-      },
-      'mcp:sessions-meta': {
-        driver: 'cloudflare-kv-binding',
-        binding: 'Cache',
-        base: 'mcp:sessions-meta',
-      },
-    },
+    // En dev local (pas de bindings Cloudflare), driver mémoire : les sessions
+    // MCP sont éphémères, ce qui suffit — et évite le 500 « Invalid binding
+    // Cache: undefined » sur chaque requête avec mcp-session-id.
+    storage: process.env.NODE_ENV === 'production'
+      ? {
+          'mcp:sessions': {
+            driver: 'cloudflare-kv-binding',
+            binding: 'Cache',
+            base: 'mcp:sessions',
+          },
+          'mcp:sessions-meta': {
+            driver: 'cloudflare-kv-binding',
+            binding: 'Cache',
+            base: 'mcp:sessions-meta',
+          },
+        }
+      : {
+          'mcp:sessions': { driver: 'memory' },
+          'mcp:sessions-meta': { driver: 'memory' },
+        },
     rollupConfig: {
       plugins: [cloudflareRuntimeModulesPlugin],
     },
