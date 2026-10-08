@@ -52,7 +52,8 @@ function candidateQuestions(query: string) {
 }
 
 interface ClefAnswer {
-  /** Probability 0–1 for noul questions. */
+  /** Noul answer — probability the answer is yes (schema: `{ type, noul }`). */
+  noul?: number
   probability?: number
   value?: unknown
 }
@@ -124,9 +125,11 @@ function createClefRunner(event: H3Event): (input: ClefInput) => Promise<ClefRes
 /** Editorial criteria weights — subject match dominates the score. */
 const WEIGHTS = { subject: 0.4, appetizing: 0.25, clean: 0.2, single: 0.15 } as const
 
-/** Noul answers arrive en nombre nu ou en objet { probability } selon la voie (binding/REST). */
+/** Noul answer : `{ type: 'noul', noul: 0..1 }` (binding) — tolère nombre nu et { probability }. */
 function prob(answer: ClefAnswer | number | undefined): number {
-  const raw = typeof answer === 'number' ? answer : Number(answer?.probability)
+  const raw = typeof answer === 'number'
+    ? answer
+    : Number(answer?.noul ?? answer?.probability)
   return Number.isFinite(raw) ? Math.max(0, Math.min(1, raw)) : 0.5
 }
 
