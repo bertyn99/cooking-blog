@@ -105,8 +105,11 @@ export async function generateMediaImage(
       throw catalogError
     }
 
+    // Flux fallback on the DIRECT binding: it's a native @cf model the runtime
+    // registry knows — routing it through the AI Gateway returned empty
+    // responses (observed 2026-10-08). Gateway stays for catalog models only.
     const workersai = createCmsWorkersAI(ai, {
-      gatewayId,
+      gatewayId: null,
       metadata: options.metadata,
     })
 
