@@ -14,7 +14,7 @@ const CMS_ROOT_DIR = fileURLToPath(new URL('../apps/cms/', import.meta.url))
 const WEB_ROOT_DIR = fileURLToPath(new URL('../apps/web/', import.meta.url))
 
 const NODE_COMPAT = {
-  date: '2025-01-15',
+  date: '2026-05-27',
   flags: ['nodejs_compat'],
 }
 
