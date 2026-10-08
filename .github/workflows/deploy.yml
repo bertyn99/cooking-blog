@@ -77,6 +77,7 @@ jobs:
           PROD_WEB_HOST: ${{ secrets.PROD_WEB_HOST }}
           PROD_CMS_HOST: ${{ secrets.PROD_CMS_HOST }}
           CMS_PREVIEW_TOKEN: ${{ secrets.CMS_PREVIEW_TOKEN }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           NUXT_UMAMI_ID: ${{ secrets.NUXT_UMAMI_ID }}
           NUXT_UMAMI_HOST: ${{ secrets.NUXT_UMAMI_HOST }}
           GITHUB_SHA: ${{ github.sha }}
