@@ -118,6 +118,9 @@ export async function generateMediaImage(
     form.append('width', width)
     form.append('height', height)
 
+    // Response wrapper carries the multipart content-type (with boundary).
+    const formResponse = new Response(form)
+
     const runBinding = ai.run as unknown as (
       model: string,
       input: Record<string, unknown>,
@@ -125,8 +128,8 @@ export async function generateMediaImage(
 
     const output = await runBinding(IMAGE_MODEL_FALLBACK, {
       multipart: {
-        body: form.body,
-        contentType: form.headers.get('content-type') ?? 'multipart/form-data',
+        body: formResponse.body,
+        contentType: formResponse.headers.get('content-type') ?? 'multipart/form-data',
       },
     })
 
