@@ -21,7 +21,7 @@ const MEDIA_GENERATE_LIMIT = {
 } as const
 
 export default defineMcpTool({
-  description: `Generate an image with Workers AI (google/nano-banana-2 by default, bytedance/seedream-5-pro selectable, automatic flux fallback) and store it in the media library. Use when list-media has no adequate image AND stock search (search-stock-media) has no good match — prefer real photos for classic dishes. Returns pathname — use in markdown ![alt](/uploads/<pathname>) or as coverBlobPathname. Rate limited: 15/min.`,
+  description: `Generate an image with Workers AI (google/nano-banana-2 by default, bytedance/seedream-5-pro selectable, automatic flux fallback) and store it in the media library. Use when list-media has no adequate image AND stock search (search-stock-media) has no good match — prefer real photos for classic dishes. Returns pathname (storage key, for coverBlobPathname) and markdownPath (READY for ![alt](markdownPath) — do NOT prepend /uploads/, it already starts with it). Rate limited: 15/min.`,
   annotations: MCP_CREATE,
   inputSchema: {
     prompt: z.string().trim().min(1).max(2000).describe(
@@ -66,6 +66,9 @@ export default defineMcpTool({
 
     return {
       ...ingested,
+      // Markdown-ready path — `pathname` is the storage key (uploads/…) and
+      // prepending /uploads/ to it in content yields a double prefix.
+      markdownPath: `/uploads/${ingested.pathname.replace(/^uploads\//, '')}`,
       modelId: generated.modelId,
       usedFallback: generated.usedFallback,
     }
