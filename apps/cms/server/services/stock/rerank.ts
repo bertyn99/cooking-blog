@@ -18,6 +18,8 @@ export interface StockRerankResult {
   recommendedId: string | null
   /** False when the model call failed and candidates stay in provider order. */
   ranked: boolean
+  /** Raw first response when answers came back empty — shape diagnostics. */
+  rawSample?: string
 }
 
 /** Max candidates evaluated in one rerank pass (one CLEF call each, parallel). */
@@ -202,13 +204,19 @@ export async function rerankStockCandidates(
       questions,
       ...(image ? { images: [image] } : {}),
     })
-    return verdictFromAnswers(item, response.answers ?? {})
+    return { verdict: verdictFromAnswers(item, response.answers ?? {}), raw: response, empty: !Object.keys(response.answers ?? {}).length }
   }))
 
   // Surface per-candidate failure reasons — the MCP response is where we debug
   // model availability; never break the search itself.
+  let rawSample: string | undefined
   const verdicts = settled.map((r, i) => {
-    if (r.status === 'fulfilled') return r.value
+    if (r.status === 'fulfilled') {
+      if (r.value.empty && !rawSample) {
+        rawSample = JSON.stringify(r.value.raw)?.slice(0, 400)
+      }
+      return r.value.verdict
+    }
     const message = r.reason instanceof Error ? r.reason.message : String(r.reason)
     return {
       id: capped[i].id,
@@ -220,7 +228,7 @@ export async function rerankStockCandidates(
 
   const ranking = normalizeVerdicts(capped, verdicts)
   const best = ranking.find(v => v.keep && v.score > 0)
-  return { ranking, recommendedId: best?.id ?? null, ranked: settled.some(r => r.status === 'fulfilled') }
+  return { ranking, recommendedId: best?.id ?? null, ranked: settled.some(r => r.status === 'fulfilled'), rawSample }
 }
 
 /** Fetch a small preview for CLEF vision — max ~350px tall (Pexels `medium`), JPEG/WebP. */
