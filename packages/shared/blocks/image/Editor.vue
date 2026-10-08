@@ -40,6 +40,21 @@ function onImgLoad() {
   }
 }
 
+// A transient failure (deploy window, cold edge cache) sets `data-broken`
+// persistently: the placeholder replaces the <img>, so no load/error event
+// ever fires again — the state dead-ends until the src changes. Probe the
+// src once on mount and clear the flag when the image is actually reachable.
+onMounted(() => {
+  if (!props.node.attrs['data-broken'] || isLikelyBrokenContentImageSrc(src.value)) return
+  const probe = new Image()
+  probe.onload = () => {
+    if (props.node.attrs['data-broken']) {
+      props.updateAttributes({ 'data-broken': null })
+    }
+  }
+  probe.src = src.value
+})
+
 watch(src, (next, prev) => {
   if (next === prev) return
   if (!props.node.attrs['data-broken']) return
