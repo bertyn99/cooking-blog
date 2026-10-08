@@ -71,3 +71,54 @@ export async function serveOptimizedCmsImage(event: H3Event, fullPath: string) {
 
   return new Response(body, { headers: responseHeaders })
 }
+
+/**
+ * Proxy raw CMS media (`/uploads/<file>`) — any media type (image, video, pdf…).
+ * No transforms here: transformed images keep using `/images/{modifiers}/…`.
+ */
+export async function serveCmsMediaFile(event: H3Event, pathname: string) {
+  const config = useRuntimeConfig(event)
+  const originUrl = `${config.public.cmsBaseUrl.replace(/\/$/, '')}/uploads/${pathname.replace(/^\/+/, '')}`
+
+  // Same internal-header forwarding as `serveOptimizedCmsImage`: worker-to-worker
+  // fetches share one Cloudflare-egress rate-limit bucket otherwise.
+  const headers: Record<string, string> = {
+    accept: getHeader(event, 'accept') ?? '*/*',
+  }
+  const clientIp = getHeader(event, 'cf-connecting-ip')
+  if (clientIp && config.cmsPreviewToken) {
+    headers['x-jdc-client-ip'] = clientIp
+    headers['x-jdc-internal'] = config.cmsPreviewToken
+  }
+
+  const origin = await fetch(originUrl, { headers })
+  if (!origin.ok) {
+    if (import.meta.dev) {
+      console.error('[cms-media] origin fetch failed', {
+        originUrl,
+        status: origin.status,
+        statusText: origin.statusText,
+      })
+    }
+    throw createError({
+      statusCode: origin.status === 404 ? 404 : 502,
+      statusMessage: 'Media origin error',
+    })
+  }
+
+  const body = origin.body
+  if (!body) {
+    throw createError({ statusCode: 404 })
+  }
+
+  const responseHeaders: Record<string, string> = {
+    'Content-Type': origin.headers.get('content-type') ?? 'application/octet-stream',
+    'Cache-Control': origin.headers.get('cache-control') ?? LONG_CACHE,
+  }
+  const cacheTag = origin.headers.get('cache-tag')
+  if (cacheTag) {
+    responseHeaders['Cache-Tag'] = cacheTag
+  }
+
+  return new Response(body, { headers: responseHeaders })
+}

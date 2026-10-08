@@ -94,13 +94,13 @@ See [references/templates.md](./references/templates.md) for full skeletons. Sum
 
 Write in **Comark-valid markdown** from the start (JDC renders with `@comark/html` — load the `comark` skill for component syntax when using `::blocks`):
 
-**Images dans le corps d'article : images markdown standard** (PAS de blocs `::image`/`::timeline`/`::table` — ils ne sont pas résolus par le renderer web en prod, vérifié 2026-10-07 : le bloc rend son slot mais l'img est absente) :
+**Images dans le corps d'article : images markdown standard au chemin canonique `/uploads/<fichier>`** (PAS de blocs `::image`/`::timeline`/`::table` — ils ne sont pas résolus par le renderer web en prod, vérifié 2026-10-07 : le bloc rend son slot mais l'img est absente) :
 
 ```markdown
-![Baklava aux noix et au miel, feuilles dorées](/images/w_800,f_webp,fit_cover/uploads/baklava_c439771884.webp)
+![Baklava aux noix et au miel, feuilles dorées](/uploads/baklava_c439771884.webp)
 ```
 
-- Src pré-transformée via le pipeline `/images/` : `/images/w_800,f_webp,fit_cover/uploads/<fichier>` (le fichier vient de `list-media`, préfixe `uploads/`)
+- Src canonique : `/uploads/<fichier>` — le fichier vient de `list-media`, préfixe `uploads/`. ProseImg côté web normalise et applique les transforms (w_800, webp) automatiquement — pas besoin de pré-transformer.
 - 1 image par plat/section, alt descriptif
 - Les blocs `::callout`/`::grid` restent utilisables (composants natifs du thème)
 - Les blocs `::timeline`/`::table`/`::carousel` existent dans le page builder mais ne rendent pas dans les articles — ne pas utiliser dans le corps d'article
@@ -113,7 +113,7 @@ Write in **Comark-valid markdown** from the start (JDC renders with `@comark/htm
 - **Structure**: intro 100–150 words with primary query in the first 2 sentences; H2 every ~300 words; H3 per listicle item
 - **FAQ**: 3–5 questions from SERP PAA + "combien/comment" variants, near the end
 - **Internal links ≥ 2**: pick REAL targets via jdc-cms MCP `list-recipes` / `list-articles` / `list-pages` — 1 up (hub: `/techniques-culinaires/**`, `/recette/recettes-du-monde`, category) + 1 sideways (related recipe/article). Contextual anchors, never "cliquez ici". Verify targets exist (no 404s — this has happened).
-- **Images**: cover + alt text describing the dish; **listicles: 1 image per item** as standard markdown images — match items against the media library with `list-media` (`prefix: 'uploads/'`), skip items without media and note them for a future generation pass. Syntax: `![alt](/images/w_800,f_webp,fit_cover/uploads/fichier.webp)` (src pré-transformée via le pipeline `/images/`) ou image de la médiathèque insérée via l'éditeur (alt/format stockés en attributs Comark `![alt]{src:"16:9"}`). 1 inline image per major section otherwise. Only reference media that exists — broken `/images/...` paths have shipped before.
+- **Images**: cover + alt text describing the dish; **listicles: 1 image per item** as standard markdown images — match items against the media library with `list-media` (`prefix: 'uploads/'`), skip items without media and note them for a future generation pass. Syntax: `![alt](/uploads/fichier.webp)` (chemin média canonique — ProseImg applique les transforms) ou image de la médiathèque insérée via l'éditeur (alt/format stockés en attributs Comark `![alt]{src:"16:9"}`). 1 inline image per major section otherwise. Only reference media that exists — broken image paths have shipped before.
 - **Schema**: recipes get `Recipe` (YGG-82 pending — author/`recipeCuisine`/calories fixed at template level); listicles get `ItemList`; FAQ block → `FAQPage`
 
 ### 6. Review — two passes on the first draft
