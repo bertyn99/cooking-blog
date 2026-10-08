@@ -171,8 +171,16 @@ export async function getPexelsPhotoById(id: string): Promise<StockSearchItem> {
     })
   }
 
-  const data = await response.json() as { photo: PexelsPhoto }
-  return mapPexelsPhoto(data.photo)
+  // The single-photo endpoint returns the photo object directly — NOT wrapped
+  // in `{ photo: … }` (that wrapper only exists on list endpoints).
+  const data = await response.json() as PexelsPhoto
+  if (!data || data.id === undefined) {
+    throw createError({
+      statusCode: 502,
+      statusMessage: 'Réponse Pexels inattendue.',
+    })
+  }
+  return mapPexelsPhoto(data)
 }
 
 const PEXELS_IMAGE_HOST_PATTERN = /(^|\.)pexels\.com$/i
