@@ -59,6 +59,64 @@ interface ClefResponse {
   answers?: Record<string, ClefAnswer>
 }
 
+interface ClefInput {
+  model: string
+  state: string
+  questions: Record<string, unknown>
+  images?: string[]
+}
+
+/**
+ * CLEF runner: `ai.run` binding first, Workers AI REST API as fallback.
+ * The binding fails when the runtime registry (compat date) predates CLEF;
+ * the REST call needs `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_AI_API_TOKEN`.
+ */
+function createClefRunner(event: H3Event): (input: ClefInput) => Promise<ClefResponse> {
+  const env = getCloudflareEnv(event)
+  const binding = env?.AI
+  const accountId = env?.CLOUDFLARE_ACCOUNT_ID
+  const token = env?.CLOUDFLARE_AI_API_TOKEN
+
+  const runRest = accountId && token
+    ? async (input: ClefInput): Promise<ClefResponse> => {
+        const res = await fetch(
+          `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${CLEF_FLASH}`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(input),
+            signal: AbortSignal.timeout(30_000),
+          },
+        )
+        const json = await res.json() as { success?: boolean, result?: ClefResponse, errors?: Array<{ message?: string }> }
+        if (!res.ok || !json.success) {
+          const message = json.errors?.map(e => e.message).filter(Boolean).join('; ') || `HTTP ${res.status}`
+          throw new Error(`REST: ${message}`)
+        }
+        return json.result ?? {}
+      }
+    : null
+
+  if (!binding) {
+    if (!runRest) {
+      return () => Promise.reject(new Error('Ni binding AI ni identifiants REST disponibles'))
+    }
+    return runRest
+  }
+
+  return async (input) => {
+    try {
+      return await (binding.run as unknown as (model: string, inputIn: Record<string, unknown>) => Promise<ClefResponse>)(input.model, input)
+    } catch (bindingError) {
+      if (!runRest) throw bindingError
+      return runRest(input)
+    }
+  }
+}
+
 /** Editorial criteria weights — subject match dominates the score. */
 const WEIGHTS = { subject: 0.4, appetizing: 0.25, clean: 0.2, single: 0.15 } as const
 
@@ -119,19 +177,23 @@ export async function rerankStockCandidates(
     return { ranking: [], recommendedId: null, ranked: false }
   }
 
-  const ai = getCloudflareEnv(event)?.AI
-  if (!ai) {
+  const env = getCloudflareEnv(event)
+  const hasBinding = Boolean(env?.AI)
+  const hasRest = Boolean(env?.CLOUDFLARE_ACCOUNT_ID && env?.CLOUDFLARE_AI_API_TOKEN)
+  if (!hasBinding && !hasRest) {
     return { ranking: normalizeVerdicts(items, []), recommendedId: null, ranked: false }
   }
 
   const capped = items.slice(0, MAX_CANDIDATES)
   const questions = candidateQuestions(query)
-  // Raw binding call — CLEF's state/questions API is not an AI-SDK text model.
-  const runModel = ai.run as unknown as (model: string, input: Record<string, unknown>) => Promise<ClefResponse>
+  // Prefer the binding; fall back to the Workers AI REST API when the runtime
+  // model registry (pinned by the compat date, see infra/workers.ts) predates
+  // CLEF — `ai.run` then fails with "setting '#options'".
+  const runModel = createClefRunner(event)
 
   const settled = await Promise.allSettled(capped.map(async (item) => {
     const image = await fetchStockPreviewImage(item)
-    const response = await runModel(CLEF_FLASH, {
+    const response = await runModel({
       model: 'clef-flash',
       state: `Recipe-blog stock candidate. Query: "${query}". Alt text: ${item.alt || '(none)'}. Dimensions: ${item.width}x${item.height}.`,
       questions,

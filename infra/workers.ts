@@ -14,7 +14,12 @@ const CMS_ROOT_DIR = fileURLToPath(new URL('../apps/cms/', import.meta.url))
 const WEB_ROOT_DIR = fileURLToPath(new URL('../apps/web/', import.meta.url))
 
 const NODE_COMPAT = {
-  date: '2026-05-27',
+  // ⚠️ Do NOT bump past 2025-01-15: newer runtime dates make the Workflows
+  // startup validation reject the script — ScriptStartupError "Workflow
+  // ContentGenerationWorkflow must be exported" (seen 2026-10-08, rolled back).
+  // New Workers AI models missing from this runtime's registry (CLEF) are
+  // called through the REST API instead — see services/stock/rerank.ts.
+  date: '2025-01-15',
   flags: ['nodejs_compat'],
 }
 
@@ -139,6 +144,11 @@ export const workers = Effect.fn(function* (input: {
       NUXT_STRAPI_API_TOKEN: strapiApiToken,
       PEXELS_API_KEY: Config.String('PEXELS_API_KEY').pipe(Config.withDefault('')),
       CMS_PREVIEW_TOKEN: Config.String('CMS_PREVIEW_TOKEN').pipe(Config.withDefault('')),
+      // Workers AI REST fallback — the runtime registry at the pinned compat
+      // date predates CLEF, so `ai.run` cannot validate it. The deploy token
+      // (already a GitHub secret) must include Workers AI Run permission.
+      CLOUDFLARE_ACCOUNT_ID: Config.String('CLOUDFLARE_ACCOUNT_ID').pipe(Config.withDefault('')),
+      CLOUDFLARE_AI_API_TOKEN: Config.String('CLOUDFLARE_API_TOKEN').pipe(Config.withDefault('')),
       ...(isProd ? { NUXT_PUBLIC_CMS_BASE_URL: prodCmsOrigin } : {}),
       ...(isProd && prodWebHost
         ? { NUXT_PUBLIC_SITE_URL: httpsOrigin(prodWebHost) }

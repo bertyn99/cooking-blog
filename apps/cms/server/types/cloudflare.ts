@@ -17,6 +17,9 @@ export interface CloudflareBindings {
   CMS_AI_GATEWAY_ID?: string
   /** Durable generation pipeline (Workflows). */
   CONTENT_GENERATION?: Workflow<GenerationWorkflowParams>
+  /** Workers AI REST fallback (see services/stock/rerank.ts). */
+  CLOUDFLARE_ACCOUNT_ID?: string
+  CLOUDFLARE_AI_API_TOKEN?: string
 }
 
 export interface WorkersCachePurge {
