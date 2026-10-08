@@ -14,12 +14,14 @@ const CMS_ROOT_DIR = fileURLToPath(new URL('../apps/cms/', import.meta.url))
 const WEB_ROOT_DIR = fileURLToPath(new URL('../apps/web/', import.meta.url))
 
 const NODE_COMPAT = {
-  // Runtime registry must know current Workers AI models (CLEF, 2026).
-  // Safe since 2026-10-08: the ContentGenerationWorkflow class moved to the
-  // dedicated `CmsWorkflows` host worker (real export) — at newer dates the
-  // startup validation rejected the CMS script hosting the class itself.
+  // Runtime registry must know current Workers AI models AND their input
+  // schemas — flux-2-klein multipart validation needs >= 2026-09 (5006/#options
+  // at older dates). Safe since 2026-10-08: the ContentGenerationWorkflow
+  // class lives in the dedicated `CmsWorkflows` host worker (real export) —
+  // at newer dates the startup validation rejected the CMS script hosting
+  // the class itself.
   // @see https://linear.app/yggdraz/issue/YGG-127
-  date: '2026-05-27',
+  date: '2026-09-15',
   flags: ['nodejs_compat'],
 }
 
