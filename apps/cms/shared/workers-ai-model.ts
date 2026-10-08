@@ -28,6 +28,14 @@ export const IMAGE_MODEL_ALT = 'bytedance/seedream-5-pro' as const
 /** Workers AI Flux fallback when catalog models fail. */
 export const IMAGE_MODEL_FALLBACK = '@cf/black-forest-labs/flux-2-klein-9b' as const
 
+/**
+ * Fast decision model for the stock re-rank (scoring candidates against
+ * editorial criteria). Small instruct model — quick cold start, deterministic
+ * at temperature 0. The big gemma model is too slow for an MCP call window.
+ * @see https://developers.cloudflare.com/workers-ai/models/llama-3.2-3b-instruct/
+ */
+export const STOCK_RERANK_MODEL = '@cf/meta/llama-3.2-3b-instruct' as const
+
 export type ImageGenerationModelId =
   | typeof IMAGE_MODEL_PRIMARY
   | typeof IMAGE_MODEL_ALT
