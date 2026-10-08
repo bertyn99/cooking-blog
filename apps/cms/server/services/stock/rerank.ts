@@ -109,7 +109,9 @@ function createClefRunner(event: H3Event): (input: ClefInput) => Promise<ClefRes
 
   return async (input) => {
     try {
-      return await (binding.run as unknown as (model: string, inputIn: Record<string, unknown>) => Promise<ClefResponse>)(input.model, input)
+      // The binding takes the full model id; the docs' `model` field inside
+      // the input is only the clef|clef-flash selector.
+      return await (binding.run as unknown as (model: string, inputIn: Record<string, unknown>) => Promise<ClefResponse>)(CLEF_FLASH, input)
     } catch (bindingError) {
       if (!runRest) throw bindingError
       return runRest(input)
