@@ -56,7 +56,7 @@ interface ClefAnswer {
 }
 
 interface ClefResponse {
-  answers?: Record<string, ClefAnswer>
+  answers?: Record<string, ClefAnswer | number>
 }
 
 interface ClefInput {
@@ -122,9 +122,10 @@ function createClefRunner(event: H3Event): (input: ClefInput) => Promise<ClefRes
 /** Editorial criteria weights — subject match dominates the score. */
 const WEIGHTS = { subject: 0.4, appetizing: 0.25, clean: 0.2, single: 0.15 } as const
 
-function prob(answer: ClefAnswer | undefined): number {
-  const p = Number(answer?.probability)
-  return Number.isFinite(p) ? Math.max(0, Math.min(1, p)) : 0.5
+/** Noul answers arrive en nombre nu ou en objet { probability } selon la voie (binding/REST). */
+function prob(answer: ClefAnswer | number | undefined): number {
+  const raw = typeof answer === 'number' ? answer : Number(answer?.probability)
+  return Number.isFinite(raw) ? Math.max(0, Math.min(1, raw)) : 0.5
 }
 
 function geometryBonus(item: StockSearchItem): number {
@@ -135,7 +136,7 @@ function geometryBonus(item: StockSearchItem): number {
 /** Build the verdict from CLEF answers + local geometry — pure, unit-tested. */
 export function verdictFromAnswers(
   item: StockSearchItem,
-  answers: Record<string, ClefAnswer>,
+  answers: Record<string, ClefAnswer | number>,
 ): StockCandidateVerdict {
   const p = {
     subject: prob(answers.subject),
