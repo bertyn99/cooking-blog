@@ -36,6 +36,16 @@ export const IMAGE_MODEL_FALLBACK = '@cf/black-forest-labs/flux-2-klein-9b' as c
  */
 export const STOCK_RERANK_MODEL = '@cf/meta/llama-3.2-3b-instruct' as const
 
+/**
+ * Multimodal decision model (vision) — sees candidate photos and answers
+ * typed editorial questions with probabilities. Used by the stock re-rank.
+ * @see https://developers.cloudflare.com/ai/models/%40cf/cloudflare/clef-flash/
+ */
+export const CLEF_FLASH = '@cf/cloudflare/clef-flash' as const
+
+/** Larger sibling of {@link CLEF_FLASH} — same API, higher fidelity. */
+export const CLEF = '@cf/cloudflare/clef' as const
+
 export type ImageGenerationModelId =
   | typeof IMAGE_MODEL_PRIMARY
   | typeof IMAGE_MODEL_ALT
