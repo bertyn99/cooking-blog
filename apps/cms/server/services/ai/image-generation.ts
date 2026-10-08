@@ -120,6 +120,8 @@ export async function generateMediaImage(
 
     // Response wrapper carries the multipart content-type (with boundary).
     const formResponse = new Response(form)
+    // ArrayBuffer body — the runtime validator rejects ReadableStream inputs.
+    const body = await formResponse.arrayBuffer()
 
     const runBinding = ai.run as unknown as (
       model: string,
@@ -128,7 +130,7 @@ export async function generateMediaImage(
 
     const output = await runBinding(IMAGE_MODEL_FALLBACK, {
       multipart: {
-        body: formResponse.body,
+        body,
         contentType: formResponse.headers.get('content-type') ?? 'multipart/form-data',
       },
     })
