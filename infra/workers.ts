@@ -14,12 +14,12 @@ const CMS_ROOT_DIR = fileURLToPath(new URL('../apps/cms/', import.meta.url))
 const WEB_ROOT_DIR = fileURLToPath(new URL('../apps/web/', import.meta.url))
 
 const NODE_COMPAT = {
-  // ⚠️ Do NOT bump past 2025-01-15: newer runtime dates make the Workflows
-  // startup validation reject the script — ScriptStartupError "Workflow
-  // ContentGenerationWorkflow must be exported" (seen 2026-10-08, rolled back).
-  // New Workers AI models missing from this runtime's registry (CLEF) are
-  // called through the REST API instead — see services/stock/rerank.ts.
-  date: '2025-01-15',
+  // Runtime registry must know current Workers AI models (CLEF, 2026).
+  // Safe since 2026-10-08: the ContentGenerationWorkflow class moved to the
+  // dedicated `CmsWorkflows` host worker (real export) — at newer dates the
+  // startup validation rejected the CMS script hosting the class itself.
+  // @see https://linear.app/yggdraz/issue/YGG-127
+  date: '2026-05-27',
   flags: ['nodejs_compat'],
 }
 
@@ -47,7 +47,7 @@ const NUXT_MEMO = {
     // worker deploy when only the package changed (fast-glob ne matche
     // pas les patterns avec '..').
     'packages-shared/**',
-    'exports.cloudflare.ts',
+    'workflows-host.ts',
     'nuxt.config.ts',
     'app.config.ts',
     'package.json',
@@ -96,9 +96,30 @@ export const workers = Effect.fn(function* (input: {
     collectLogs: true,
   })
 
-  const ContentGeneration = Cloudflare.Workflow<{ runId: string }>('ContentGeneration', {
-    className: 'ContentGenerationWorkflow',
-  })
+  // Nitro v2 cannot emit extra worker exports (`exports.cloudflare.ts` is a
+  // Nitro 3 / Nuxt 4.5.2 feature), so the ContentGenerationWorkflow class is
+  // hosted by a dedicated plain worker and the CMS cross-binds it via
+  // `scriptName` — the Workflows startup validation requires a real export.
+  // @see https://alchemy.run/providers/cloudflare/workflows/#workflow-binding-in-an-async-worker
+  const cmsWorkflows = isAlchemyDev
+    ? undefined
+    : yield* Cloudflare.Worker('CmsWorkflows', {
+        main: fileURLToPath(new URL('../apps/cms/workflows-host.ts', import.meta.url)),
+        env: {
+          DB: input.DB,
+          Media: input.Media,
+          Cache: input.Cache,
+          AI: Cloudflare.Workers.AI(),
+          CMS_AI_GATEWAY_ID: CMS_AI_GATEWAY_ID,
+        },
+        compatibility: NODE_COMPAT,
+      })
+  const ContentGeneration = cmsWorkflows
+    ? Cloudflare.Workflow<{ runId: string }>('ContentGeneration', {
+        className: 'ContentGenerationWorkflow',
+        scriptName: cmsWorkflows.workerName,
+      })
+    : undefined
 
   // Nuxt runtimeConfig only picks up NUXT_* env at runtime on Workers.
   const strapiUrl = Config.String('STRAPI_URL').pipe(Config.withDefault(''))
@@ -108,7 +129,8 @@ export const workers = Effect.fn(function* (input: {
   // runs Nuxt's own dev server under `alchemy dev` with bindings on
   // event.context.cloudflare — wrangler-free.
   // @see https://alchemy.run/cloudflare/frontend/nuxt/
-  // Workflow class stays on nitro's exports.cloudflare.ts seam (no custom main).
+  // Workflow class is hosted by the dedicated `CmsWorkflows` plain worker
+  // (Nitro v2 cannot emit extra exports) — cross-bound via `scriptName`.
   // Workflows are not servable in Website.Nuxt local dev yet — omit the binding
   // so the platform proxy can start; CMS uses processRunOnce fallback (see service.ts).
   const Cms = yield* Cloudflare.Website.Nuxt('Cms', {
@@ -135,7 +157,7 @@ export const workers = Effect.fn(function* (input: {
       CMS_AI_GATEWAY_ID: Config.String('CMS_AI_GATEWAY_ID').pipe(
         Config.withDefault(CMS_AI_GATEWAY_ID)
       ),
-      ...(isAlchemyDev ? {} : { CONTENT_GENERATION: ContentGeneration }),
+      ...(ContentGeneration ? { CONTENT_GENERATION: ContentGeneration } : {}),
       NUXT_SESSION_PASSWORD: Config.String('NUXT_SESSION_PASSWORD'),
       NUXT_OG_IMAGE_SECRET: Config.String('NUXT_OG_IMAGE_SECRET').pipe(Config.withDefault('')),
       STRAPI_URL: strapiUrl,
