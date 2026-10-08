@@ -1,6 +1,8 @@
 /**
- * Public URL for a blob stored in R2 (CMS `/images` route).
- * Pass IPX modifiers for on-demand transforms, e.g. `w_200,f_webp`.
+ * Public URL for a blob stored in R2.
+ * - No modifiers → canonical media path `/uploads/<file>` — serves any media
+ *   type (image, video, pdf…); even generated media lives under `uploads/`.
+ * - With IPX modifiers → image transform path `/images/{modifiers}/<file>`.
  * @see https://github.com/unjs/ipx
  */
 export const MEDIA_IMAGE_IPX = {
@@ -13,7 +15,8 @@ export const MEDIA_IMAGE_IPX = {
 export function mediaPublicUrl(pathname: string, modifiers?: string): string {
   const path = pathname.replace(/^\/+/, '')
   if (!modifiers || modifiers === '_') {
-    return `/images/${path}`
+    const key = path.startsWith('uploads/') ? path.slice('uploads/'.length) : path
+    return `/uploads/${key}`
   }
   return `/images/${modifiers}/${path}`
 }

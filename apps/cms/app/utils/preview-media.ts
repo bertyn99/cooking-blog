@@ -5,7 +5,7 @@ export function resolvePreviewMediaSrc(raw: string | undefined | null): string {
   const value = String(raw || '').trim()
   if (!value) return ''
   if (/^(https?:\/\/|blob:|data:)/.test(value)) return value
-  if (value.startsWith('/images/')) return value
+  if (value.startsWith('/images/') || value.startsWith('/uploads/')) return value
 
   if (value.startsWith('/img/')) {
     const config = useRuntimeConfig()
