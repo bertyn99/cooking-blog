@@ -147,7 +147,12 @@ export default defineNuxtConfig({
       plugins: [cloudflareRuntimeModulesPlugin],
     },
   },
-  compatibilityDate: '2026-05-27',
+  // ⚠️ Build date — keep in sync with runtime needs only. Bumping past
+  // 2025-01-15 changes Nitro's cloudflare_module stitching and DROPS the
+  // exports.cloudflare.ts additional exports (ContentGenerationWorkflow) —
+  // ScriptStartupError at deploy (seen 2026-10-08). The RUNTIME date lives in
+  // infra/workers.ts NODE_COMPAT.
+  compatibilityDate: '2025-01-15',
 
   routeRules: {
     '/api/**': {
