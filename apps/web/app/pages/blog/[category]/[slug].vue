@@ -87,6 +87,11 @@ const modifiedAt = computed(() => article.value?.updatedAt || "");
 const categoryRecipe = computed(() => article.value?.category || ({} as Category));
 const { minutes } = useReadingTime(article.value?.content || "");
 
+const tocLinks = useMarkdownToc(
+  () => `article-toc:${categorySlug.value}:${articleSlug.value}`,
+  () => content.value,
+);
+
 const seo = computed(() => {
   const seoValue = article.value?.seo;
   return Array.isArray(seoValue) ? seoValue[0] || {} : seoValue || {};
@@ -179,6 +184,7 @@ useApplyPageSeo(computed(() => ({
       </div>
     </template>
   </SectionHeroArticle>
+  <BaseToc v-if="tocLinks.length >= 3" :links="tocLinks" class="mb-8" />
   <BaseMarkdownContent :markdown="content" tag="article" />
   <LazyCta />
   <LazySectionYouMayAlsoLike
