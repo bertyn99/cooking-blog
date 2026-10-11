@@ -5,7 +5,14 @@ const { steps } = defineProps<{
   steps: string[];
 }>();
 
-const stepMarkdowns = steps.map((step) => step.slice(3, -1));
+// Les étapes sont numérotées « 1. … » dans le champ step — on retire la
+// numérotation (le cercle du composant l'affiche) et le point final.
+const stepMarkdowns = steps.map((step) =>
+  step
+    .replace(/^\s*\d+[.)]\s*/, "")
+    .replace(/[.]$/, "")
+    .trim(),
+);
 
 const schemaRecipeSteps = stepMarkdowns.map((text) => ({
   "@type": "HowToStep",
