@@ -106,7 +106,6 @@ export const mcpCreateRecipeInput = createRecipeSchema.omit({
 }).shape
 export const mcpUpdateRecipeInput = updateRecipeSchema.omit({
   status: true,
-  step: true,
 }).shape
 
 export const mcpCreatePageInput = createPageSchema.omit({
