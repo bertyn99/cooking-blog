@@ -28,5 +28,5 @@ export async function mcpRecipeResult(event: H3Event, id: number) {
   if (!row) {
     throw createApiError('NOT_FOUND', 'Recette introuvable.')
   }
-  return withMcpContentLinks(event, 'recipe', row)
+  return withMcpContentLinks(event, 'recipe', row, { liveEditable: true })
 }
