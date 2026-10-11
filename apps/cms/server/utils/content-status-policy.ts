@@ -47,8 +47,8 @@ export type ApiKeyWriteMode = 'draft-only' | 'in-place'
 
 /**
  * API-key writes never publish, unpublish, or schedule.
- * `draft-only` (recipes): reject live rows.
- * `in-place` (articles/pages): edit the current row without changing status.
+ * `in-place` (articles/pages/recipes): edit the current row without changing status.
+ * `draft-only` remains available for stricter callers but is no longer used for recipes.
  */
 export function applyApiKeyDraftPolicy(
   existing: { status: PublishableStatus },

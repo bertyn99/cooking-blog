@@ -103,7 +103,7 @@ export async function updateRecipeMutation(
   const statusFields = applyContentPolicy(actor, existing, {
     status: recipeFields.status,
     scheduledAt: recipeFields.scheduledAt,
-  })
+  }, { apiKeyMode: 'in-place' })
 
   const userId = actorUserId(actor)
   const updates: RecipeUpdatePatch = {

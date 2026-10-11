@@ -33,7 +33,7 @@ export default defineNuxtConfig({
     description: 'Articles, recipes, and pages for Journal du Cuistot. Agents never publish.',
     instructions: [
       'Never publish, unpublish, or schedule.',
-      'Articles and pages: update in any status; writable is always true. Recipes: draft-only (403 if live).',
+      'Articles, recipes, and pages: update live rows in place. Agents never publish, unpublish, or schedule.',
       'After create/update, give the human previewUrl. Never publish, unpublish, or schedule.',
       'List categories before setting categoryId. Locale fr. Comark markdown.',
       'Use start-generation-run for notes-to-new-draft; CRUD for precise edits on drafts.',
