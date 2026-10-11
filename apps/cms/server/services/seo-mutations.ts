@@ -44,7 +44,7 @@ async function assertSeoTargetDraft(
   if (contentType === 'recipe') {
     const row = await queries.recipes.findRowById(contentId)
     if (!row) throw createApiError('NOT_FOUND', 'Recette introuvable.')
-    applyApiKeyDraftPolicy(row, {})
+    applyApiKeyDraftPolicy(row, {}, 'in-place')
     return
   }
   const row = await queries.pages.findRowById(contentId)
