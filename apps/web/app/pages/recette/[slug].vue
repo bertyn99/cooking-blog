@@ -79,7 +79,12 @@ const coverSource = computed(() => ({
 
 const link = computed(() => pageUrl.value);
 
-const steps = computed(() => recipe.value?.step?.split("\n\n")[0]?.split("\n") || []);
+const steps = computed(() =>
+  (recipe.value?.step || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+);
 
 interface RecipeFaqItem {
   question: string;
