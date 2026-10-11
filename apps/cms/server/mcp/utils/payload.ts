@@ -48,7 +48,7 @@ export function mcpPagination(page: number, pageSize: number) {
 }
 
 export interface WritableOptions {
-  /** Articles/pages: MCP may update live rows in place. Recipes stay draft-only. */
+  /** Recipes: MCP may update live rows in place (since 2026-10-09). Status changes stay forbidden. */
   liveEditable?: boolean
 }
 

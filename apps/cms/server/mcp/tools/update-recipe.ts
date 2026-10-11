@@ -9,7 +9,7 @@ import { mcpContentToolEnabled } from '../utils/enabled'
 import { MCP_UPDATE, mcpIdInput, mcpUpdateRecipeInput } from '../utils/payload'
 
 export default defineMcpTool({
-  description: 'Update a draft recipe only (403 if published). Accepts ingredients, steps, utensils, nutrition. Returns previewUrl.',
+  description: 'Update a recipe in place — live recipes included (status changes stay forbidden: publishing stays manual). Accepts ingredients, steps, utensils, nutrition. Returns previewUrl.',
   annotations: MCP_UPDATE,
   inputSchema: {
     ...mcpIdInput,
