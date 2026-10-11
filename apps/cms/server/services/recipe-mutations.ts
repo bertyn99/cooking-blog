@@ -98,7 +98,7 @@ export async function updateRecipeMutation(
     throw createApiError('NOT_FOUND', 'Recette introuvable.')
   }
 
-  const { ingredients, nutrition, utensils, steps, faq, ...recipeFields } = data
+  const { ingredients, nutrition, utensils, steps, ...recipeFields } = data
 
   const statusFields = applyContentPolicy(actor, existing, {
     status: recipeFields.status,
@@ -108,8 +108,6 @@ export async function updateRecipeMutation(
   const userId = actorUserId(actor)
   const updates: RecipeUpdatePatch = {
     ...recipeFields,
-    // faq is a JSON column: drizzle must receive a serialized string, not the array
-    ...(faq !== undefined ? { faq: JSON.stringify(faq) } : {}),
     ...authorshipOnUpdate(userId),
     ...(recipeFields.status !== undefined
       ? {
@@ -130,7 +128,6 @@ export async function updateRecipeMutation(
       || utensils !== undefined
       || steps !== undefined
       || nutrition !== undefined
-      || faq !== undefined
     const versionBump = nextVersionAfterHumanReviewEdit(
       existing,
       editorialChanged || relationsChanged,
