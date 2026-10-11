@@ -128,6 +128,7 @@ export async function updateRecipeMutation(
       || utensils !== undefined
       || steps !== undefined
       || nutrition !== undefined
+      || faq !== undefined
     const versionBump = nextVersionAfterHumanReviewEdit(
       existing,
       editorialChanged || relationsChanged,

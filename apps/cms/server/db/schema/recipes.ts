@@ -14,6 +14,7 @@ export const recipes = sqliteTable('recipes', {
   coverDescription: text('cover_description'),
   categoryId: integer('category_id').references(() => categories.id),
   step: text('step'),
+  faq: text('faq'),
   difficulty: text('difficulty', { enum: ['easy', 'medium', 'hard'] }).default('easy'),
   time: integer('time'),
   prepTimeMinutes: integer('prep_time_minutes'),

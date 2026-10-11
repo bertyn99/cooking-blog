@@ -191,6 +191,8 @@ export type Recipe = {
   seo?: SEO[] | SEO;
   seoMeta?: SEO;
   step?: string;
+  /** JSON string: [{ question, answer }] — rendered as FAQ section + FAQPage schema */
+  faq?: string | null;
   tags?: Tag[];
   slug?: string;
   nutrition?: NutritionInfo;
