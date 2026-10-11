@@ -1,4 +1,4 @@
-import { eq, and, sql, desc, inArray, or, like } from 'drizzle-orm'
+import { eq, and, sql, desc, inArray, or, like, type BatchItem } from 'drizzle-orm'
 import type { AppDb } from '../create-db'
 import { schema } from '../create-db'
 import { paginateResult } from '../../utils/pagination'
@@ -150,67 +150,67 @@ export function createRecipeQueries(db: AppDb) {
         nutrition?: NutritionRowInput | null
       },
     ) {
-      return db.transaction(async (tx) => {
-        const result = await tx
-          .update(schema.recipes)
-          .set(updates)
-          .where(eq(schema.recipes.id, id))
-          .returning()
-          .get()
+      // D1 does not support interactive transactions (`begin` fails at the
+      // driver level — see seo.ts). The atomic batch API replaces the former
+      // db.transaction block: all statements apply together or none.
+      const statements: BatchItem<'sqlite'>[] = [
+        db.update(schema.recipes).set(updates).where(eq(schema.recipes.id, id)).returning(),
+      ]
 
-        if (relations.ingredients !== undefined) {
-          await tx.delete(schema.ingredients).where(eq(schema.ingredients.recipeId, id))
-          if (relations.ingredients.length) {
-            await tx.insert(schema.ingredients).values(
-              relations.ingredients.map((ing, i) => ({
-                recipeId: id,
-                name: ing.name,
-                qty: ing.qty,
-                unit: normalizeIngredientUnit(ing.unit),
-                sortOrder: ing.sortOrder ?? i,
-              })),
-            )
-          }
+      if (relations.ingredients !== undefined) {
+        statements.push(db.delete(schema.ingredients).where(eq(schema.ingredients.recipeId, id)))
+        if (relations.ingredients.length) {
+          statements.push(db.insert(schema.ingredients).values(
+            relations.ingredients.map((ing, i) => ({
+              recipeId: id,
+              name: ing.name,
+              qty: ing.qty,
+              unit: normalizeIngredientUnit(ing.unit),
+              sortOrder: ing.sortOrder ?? i,
+            })),
+          ))
         }
+      }
 
-        if (relations.utensils !== undefined) {
-          await tx.delete(schema.recipeUtensils).where(eq(schema.recipeUtensils.recipeId, id))
-          if (relations.utensils.length) {
-            await tx.insert(schema.recipeUtensils).values(
-              relations.utensils.map((row, i) => ({
-                recipeId: id,
-                name: row.name.trim(),
-                note: row.note?.trim() || null,
-                affiliateUrl: row.affiliateUrl?.trim() || null,
-                sortOrder: row.sortOrder ?? i,
-              })),
-            )
-          }
+      if (relations.utensils !== undefined) {
+        statements.push(db.delete(schema.recipeUtensils).where(eq(schema.recipeUtensils.recipeId, id)))
+        if (relations.utensils.length) {
+          statements.push(db.insert(schema.recipeUtensils).values(
+            relations.utensils.map((row, i) => ({
+              recipeId: id,
+              name: row.name.trim(),
+              note: row.note?.trim() || null,
+              affiliateUrl: row.affiliateUrl?.trim() || null,
+              sortOrder: row.sortOrder ?? i,
+            })),
+          ))
         }
+      }
 
-        if (relations.steps !== undefined) {
-          await tx.delete(schema.recipeSteps).where(eq(schema.recipeSteps.recipeId, id))
-          if (relations.steps.length) {
-            await tx.insert(schema.recipeSteps).values(
-              relations.steps.map((row, i) => ({
-                recipeId: id,
-                title: row.title?.trim() || null,
-                instruction: row.instruction,
-                sortOrder: row.sortOrder ?? i,
-              })),
-            )
-          }
+      if (relations.steps !== undefined) {
+        statements.push(db.delete(schema.recipeSteps).where(eq(schema.recipeSteps.recipeId, id)))
+        if (relations.steps.length) {
+          statements.push(db.insert(schema.recipeSteps).values(
+            relations.steps.map((row, i) => ({
+              recipeId: id,
+              title: row.title?.trim() || null,
+              instruction: row.instruction,
+              sortOrder: row.sortOrder ?? i,
+            })),
+          ))
         }
+      }
 
-        if (relations.nutrition !== undefined) {
-          await tx.delete(schema.nutrition).where(eq(schema.nutrition.recipeId, id))
-          if (relations.nutrition && Object.keys(relations.nutrition).length > 0) {
-            await tx.insert(schema.nutrition).values({ recipeId: id, ...relations.nutrition })
-          }
+      if (relations.nutrition !== undefined) {
+        statements.push(db.delete(schema.nutrition).where(eq(schema.nutrition.recipeId, id)))
+        if (relations.nutrition && Object.keys(relations.nutrition).length > 0) {
+          statements.push(db.insert(schema.nutrition).values({ recipeId: id, ...relations.nutrition }))
         }
+      }
 
-        return result
-      })
+      const results = await db.batch(statements)
+      const rows = (results[0] as unknown as Array<typeof schema.recipes.$inferSelect>) ?? []
+      return rows[0]
     },
 
     async replaceIngredients(
