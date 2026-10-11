@@ -7,7 +7,7 @@
 - [ ] `intro` 800–2000 chars : ouverture concrète (jamais opener banni), réponses PAA du cluster (quantités/pers, temps, test de cuisson, vin), 1 histoire courte max
 - [ ] `excerpt` 1-2 phrases (dek)
 - [ ] `ingredients[]` : chaque ligne = `{ name, qty?, unit? }` — unit dans l'enum stricte, préparation dans le nom, pas d'unité dans le nom
-- [ ] `step` : une étape par ligne, 6-10 lignes, ordre chronologique, repères physiques
+- [ ] `step` : **lignes numérotées « 1. … »** (une par ligne, `\n`), 6-12 étapes, ordre chronologique, repères physiques — le composant web affiche son propre numéro et retire le préfixe « N. » + le point final
 - [ ] `utensils[]` : le matériel réellement utile — `affiliateUrl` seulement si produit testé (+ disclosure)
 - [ ] `nutrition` : par portion, 4 clés minimum (calories, glucides, lipides, proteine), unités dans les valeurs
 - [ ] `difficulty` + `time` + `prepTimeMinutes` + `cookTimeMinutes` + `servings` cohérents entre eux et avec les étapes

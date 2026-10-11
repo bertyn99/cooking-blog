@@ -45,7 +45,7 @@ Extraire des 2 premiers résultats organiques (skip Pinterest/forums) :
 ### 3. Rédaction (voice Bertyn)
 
 - **Intro (800–2000 chars, 2-4 paragraphes)** : ouverture concrète (un moment vécu en cuisine — jamais « Vous êtes-vous déjà demandé… », jamais « L'été est là »). Y tisser **les réponses PAA du cluster** : quantités par personne (500 g de moules = 2 kg pour quatre), temps réel, le vin, le test de cuisson. L'intro est la zone SEO principale de la recette — elle rend AU-DESSUS des ingrédients.
-- **Steps (champ `step`, une string)** : **une étape par ligne** (séparées par `\n`, le template prend le premier paragraphe). Ordre chronologique strict, chaque étape avec son repère physique (« jusqu'à ce que les bords frémissent », « doré, pas bruni »). 6-10 étapes.
+- **Steps (champ `step`, une string)** : **lignes numérotées « 1. … »** séparées par `\n` — la convention des recettes existantes (le composant retire la numérotation et affiche son propre cercle numéroté). Ordre chronologique strict, chaque étape avec son repère physique (« jusqu'à ce que les bords frémissent », « doré, pas bruni »). 6-12 étapes. Un `\n\n` interne est toléré (le template rend désormais tous les paragraphes) mais le paragraphe unique reste le format de référence.
 - **Ton** : première personne, ce qui surprend, l'erreur assumée une fois, l'aparté entre parenthèses. Pas de triades, pas d'emoji, pas de « Délicez-vous ».
 
 ### 4. Couverture et images (media loop)
