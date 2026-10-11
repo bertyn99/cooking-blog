@@ -25,6 +25,6 @@ export default defineMcpTool({
       filters: { locale, search, status },
       pagination: mcpPagination(page, pageSize),
     })
-    return mapMcpList(event, 'recipe', result)
+    return mapMcpList(event, 'recipe', result, { liveEditable: true })
   },
 })
