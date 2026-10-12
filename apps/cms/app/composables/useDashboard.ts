@@ -9,6 +9,7 @@ const _useDashboard = () => {
     'g-a': () => router.push('/articles'),
     'g-r': () => router.push('/recipes'),
     'g-p': () => router.push('/pages'),
+    'g-l': () => router.push('/glossaire'),
     'g-c': () => router.push('/categories'),
     'g-m': () => router.push('/media'),
     'g-g': () => router.push('/generate'),

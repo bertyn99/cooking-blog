@@ -139,7 +139,7 @@ function clearCover() {
       <div
         class="relative flex shrink-0 items-center justify-center overflow-hidden rounded-md border border-dashed border-default bg-elevated/40"
         :class="compact
-          ? 'mx-auto aspect-square w-full max-w-[11rem]'
+          ? 'mx-auto aspect-[4/3] w-full max-w-[11rem] lg:max-w-none'
           : previewUrl
             ? 'size-28'
             : 'min-h-[5.5rem] w-full sm:size-28'"

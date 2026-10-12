@@ -2,6 +2,7 @@
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { z } from 'zod'
 import { slugifyString } from '#shared/slug'
+import { articlePublicPath } from '#shared/public-site-paths'
 import type { ContentStatus, PaginatedResponse } from '~/types/cms'
 import type { EditorNavSection } from '~/types/content-editor'
 import { provideDeferredArticleMedia } from '~/composables/useDeferredArticleMedia'
@@ -79,12 +80,21 @@ watch(
 )
 
 const { data: categories } = await useAsyncData('article-category-options', () =>
-  $api<PaginatedResponse<{ id: number, name: string, status: ContentStatus }>>('/api/category-articles', {
+  $api<PaginatedResponse<{ id: number, name: string, slug: string, status: ContentStatus }>>('/api/category-articles', {
     query: { pageSize: 100 },
   }),
 )
 
 const categoryRows = computed(() => categories.value?.data ?? [])
+
+const seoPreviewPath = computed(() => {
+  const slug = state.slug?.trim()
+  if (!slug) {
+    return undefined
+  }
+  const categorySlug = categoryRows.value.find(row => row.id === state.categoryId)?.slug
+  return articlePublicPath(slug, categorySlug)
+})
 
 const editorSections: EditorNavSection[] = [
   { id: 'editor-general', label: 'Général' },
@@ -184,26 +194,26 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
         id="editor-general"
         class="scroll-mt-[7.25rem]"
       >
-        <div class="mb-5">
-          <ContentFieldLabel label="title" />
-          <UFormField name="title" :ui="{ label: 'hidden' }">
-            <UInput
-              v-model="state.title"
-              :size="articleId ? 'lg' : 'xl'"
-              variant="outline"
-              :placeholder="articleId ? 'Titre affiché sur le blog' : 'Titre de l\'article'"
-              class="w-full"
-            />
-          </UFormField>
-        </div>
-
-        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_11rem] lg:items-start">
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_14rem] lg:items-start xl:grid-cols-[minmax(0,1fr)_16rem]">
           <div class="min-w-0 space-y-4">
+            <div>
+              <ContentFieldLabel label="title" />
+              <UFormField name="title" :ui="{ label: 'hidden' }">
+                <UInput
+                  v-model="state.title"
+                  :size="articleId ? 'lg' : 'xl'"
+                  variant="outline"
+                  :placeholder="articleId ? 'Titre affiché sur le blog' : 'Titre de l\'article'"
+                  class="w-full"
+                />
+              </UFormField>
+            </div>
+
             <div class="grid gap-4 md:grid-cols-2">
               <div>
                 <ContentFieldLabel label="slug" />
                 <UFormField name="slug" :ui="{ label: 'hidden' }">
-                  <UInput v-model="state.slug" placeholder="mon-article">
+                  <UInput v-model="state.slug" placeholder="mon-article" class="w-full">
                     <template #trailing>
                       <UButton
                         icon="i-lucide-refresh-cw"
@@ -242,6 +252,8 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
         v-model:keywords="seoState.keywords"
         v-model:meta-robots="seoState.metaRobots"
         :has-entry="hasSeoEntry"
+        :preview-title="state.title"
+        :preview-path="seoPreviewPath"
         anchor="editor-seo"
       />
 

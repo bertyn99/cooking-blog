@@ -1,20 +1,38 @@
 import { z } from 'zod'
+import { GLOSSARY_ICON_KEYS } from '../../../shared/glossary-icons'
 
 const ingredientUnitSchema = z.enum(['none', 'g', 'mg', 'kg', 'l', 'ml', 'cuillere_soupe', 'cuillere_cafe', 'tasse'])
 
-export const ingredientSchema = z.object({
-  name: z.string(),
-  qty: z.number().optional(),
-  unit: ingredientUnitSchema.optional(),
-  sortOrder: z.number().optional(),
-})
+export const ingredientSchema = z.union([
+  z.object({
+    glossaryTermId: z.number().int().positive(),
+    qty: z.number().optional(),
+    unit: ingredientUnitSchema.optional(),
+    note: z.string().optional(),
+    sortOrder: z.number().optional(),
+  }),
+  z.object({
+    name: z.string().min(1),
+    qty: z.number().optional(),
+    unit: ingredientUnitSchema.optional(),
+    note: z.string().optional(),
+    sortOrder: z.number().optional(),
+  }),
+])
 
-export const recipeUtensilSchema = z.object({
-  name: z.string().min(1),
-  note: z.string().optional(),
-  affiliateUrl: z.string().optional(),
-  sortOrder: z.number().optional(),
-})
+export const recipeUtensilSchema = z.union([
+  z.object({
+    glossaryTermId: z.number().int().positive(),
+    note: z.string().optional(),
+    sortOrder: z.number().optional(),
+  }),
+  z.object({
+    name: z.string().min(1),
+    note: z.string().optional(),
+    iconKey: z.enum(GLOSSARY_ICON_KEYS).optional(),
+    sortOrder: z.number().optional(),
+  }),
+])
 
 export const nutritionSchema = z.object({
   lipides: z.string().optional(),

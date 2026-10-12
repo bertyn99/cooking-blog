@@ -35,6 +35,8 @@ const ALLOWED_TABLES = new Set([
   'blobs',
   'categories',
   'category_articles',
+  'glossary_aliases',
+  'glossary_terms',
   'ingredients',
   'nutrition',
   'recipe_steps',
@@ -349,15 +351,37 @@ async function importRecipePage(
       utensils: Record<string, unknown>[]
       nutrition: Record<string, unknown>[]
       steps: Record<string, unknown>[]
+      glossaryTerms?: Record<string, unknown>[]
+      glossaryAliases?: Record<string, unknown>[]
+      glossarySeo?: Record<string, unknown>[]
+      glossaryCovers?: Record<string, unknown>[]
     }
   },
   options: { clearCoverBlob: boolean, transactional: boolean },
 ) {
   const recipeIds = rowIds(page.data)
+  const glossaryTerms = page.related.glossaryTerms ?? []
+  const glossaryAliases = page.related.glossaryAliases ?? []
+  const glossarySeo = page.related.glossarySeo ?? []
+  const glossaryCovers = page.related.glossaryCovers ?? []
   const write = async (writeDb: AppDb) => {
     await upsertByPrimaryKey(writeDb, 'categories', page.related.categories, {
       uniqueSlugLocale: true,
     })
+    if (glossaryCovers.length) {
+      await upsertByPrimaryKey(writeDb, 'blobs', glossaryCovers)
+    }
+    if (glossaryTerms.length) {
+      await upsertByPrimaryKey(writeDb, 'glossary_terms', glossaryTerms, {
+        uniqueSlugLocale: true,
+      })
+    }
+    if (glossaryAliases.length) {
+      await upsertByPrimaryKey(writeDb, 'glossary_aliases', glossaryAliases)
+    }
+    if (glossarySeo.length) {
+      await upsertByPrimaryKey(writeDb, 'seo', glossarySeo)
+    }
     await upsertByPrimaryKey(writeDb, 'recipes', page.data, {
       uniqueSlugLocale: true,
       clearCoverBlob: options.clearCoverBlob,

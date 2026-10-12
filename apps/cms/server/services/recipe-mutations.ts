@@ -16,9 +16,116 @@ import {
   hasRecipeEditorialChanges,
   nextVersionAfterHumanReviewEdit,
 } from '../utils/human-review-publish'
+import { findOrCreateGlossaryStub } from './glossary-mutations'
+import { parseIngredientDisplayName, type GlossaryKind } from '../../shared/glossary-normalize'
+import { glossaryLineTermError } from '../../shared/glossary-lines'
 
 type CreateRecipeInput = z.infer<typeof createRecipeSchema>
 type UpdateRecipeInput = z.infer<typeof updateRecipeSchema>
+type IngredientInput = NonNullable<CreateRecipeInput['ingredients']>[number]
+type UtensilInput = NonNullable<CreateRecipeInput['utensils']>[number]
+
+async function requireGlossaryLineTerm(
+  event: H3Event,
+  glossaryTermId: number,
+  expected: GlossaryKind,
+) {
+  const { glossary } = useQueries(event)
+  const term = await glossary.findRowById(glossaryTermId)
+  const message = glossaryLineTermError(term, expected)
+  if (message) {
+    throw createApiError('VALIDATION_ERROR', message)
+  }
+}
+
+async function resolveIngredientLines(
+  event: H3Event,
+  actor: Actor,
+  lines: IngredientInput[] | undefined,
+  locale: string,
+  meta?: MutationMeta,
+) {
+  if (!lines) return undefined
+  const resolved: Array<{
+    glossaryTermId: number
+    qty?: number
+    unit?: string
+    note?: string | null
+    sortOrder?: number
+  }> = []
+
+  for (const [index, line] of lines.entries()) {
+    if ('glossaryTermId' in line) {
+      await requireGlossaryLineTerm(event, line.glossaryTermId, 'ingredient')
+      const parsedNote = line.note?.trim() || null
+      resolved.push({
+        glossaryTermId: line.glossaryTermId,
+        qty: line.qty,
+        unit: line.unit,
+        note: parsedNote,
+        sortOrder: line.sortOrder ?? index,
+      })
+      continue
+    }
+
+    const parsed = parseIngredientDisplayName(line.name)
+    const term = await findOrCreateGlossaryStub(event, actor, {
+      kind: 'ingredient',
+      name: parsed.name,
+      locale,
+    }, meta)
+    resolved.push({
+      glossaryTermId: term.id,
+      qty: line.qty,
+      unit: line.unit,
+      note: line.note?.trim() || parsed.note,
+      sortOrder: line.sortOrder ?? index,
+    })
+  }
+
+  return resolved
+}
+
+async function resolveUtensilLines(
+  event: H3Event,
+  actor: Actor,
+  lines: UtensilInput[] | undefined,
+  locale: string,
+  meta?: MutationMeta,
+) {
+  if (!lines) return undefined
+  const resolved: Array<{
+    glossaryTermId: number
+    note?: string | null
+    sortOrder?: number
+  }> = []
+
+  for (const [index, line] of lines.entries()) {
+    if ('glossaryTermId' in line) {
+      await requireGlossaryLineTerm(event, line.glossaryTermId, 'ustensile')
+      resolved.push({
+        glossaryTermId: line.glossaryTermId,
+        note: line.note?.trim() || null,
+        sortOrder: line.sortOrder ?? index,
+      })
+      continue
+    }
+
+    const term = await findOrCreateGlossaryStub(event, actor, {
+      kind: 'ustensile',
+      name: line.name,
+      locale,
+      iconKey: 'iconKey' in line ? line.iconKey : null,
+    }, meta)
+    resolved.push({
+      glossaryTermId: term.id,
+      note: line.note?.trim() || null,
+      sortOrder: line.sortOrder ?? index,
+    })
+  }
+
+  return resolved
+}
 
 export async function createRecipeMutation(
   event: H3Event,
@@ -60,11 +167,25 @@ export async function createRecipeMutation(
     ...authorshipOnCreate(userId),
   })
 
-  if (data.ingredients?.length) {
-    await recipes.replaceIngredients(result.id, data.ingredients)
+  const ingredientRows = await resolveIngredientLines(
+    event,
+    actor,
+    data.ingredients,
+    data.locale || 'fr',
+    meta,
+  )
+  if (ingredientRows?.length) {
+    await recipes.replaceIngredients(result.id, ingredientRows)
   }
-  if (data.utensils?.length) {
-    await recipes.replaceUtensils(result.id, data.utensils)
+  const utensilRows = await resolveUtensilLines(
+    event,
+    actor,
+    data.utensils,
+    data.locale || 'fr',
+    meta,
+  )
+  if (utensilRows?.length) {
+    await recipes.replaceUtensils(result.id, utensilRows)
   }
   if (data.steps?.length) {
     await recipes.replaceSteps(result.id, data.steps)
@@ -154,9 +275,17 @@ export async function updateRecipeMutation(
     }
   }
 
+  const locale = data.locale || existing.locale || 'fr'
+  const resolvedIngredients = ingredients !== undefined
+    ? await resolveIngredientLines(event, actor, ingredients ?? [], locale, meta)
+    : undefined
+  const resolvedUtensils = utensils !== undefined
+    ? await resolveUtensilLines(event, actor, utensils ?? [], locale, meta)
+    : undefined
+
   const result = await recipes.updateWithRelations(id, updates, {
-    ingredients: ingredients !== undefined ? (ingredients ?? []) : undefined,
-    utensils: utensils !== undefined ? (utensils ?? []) : undefined,
+    ingredients: resolvedIngredients,
+    utensils: resolvedUtensils,
     steps: steps !== undefined ? (steps ?? []) : undefined,
     nutrition: nutrition !== undefined ? (nutrition ?? null) : undefined,
   })

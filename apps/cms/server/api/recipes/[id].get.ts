@@ -2,6 +2,7 @@ import { parseInclude } from '../../utils/populate'
 import { createApiError } from '../../utils/errors'
 import { useQueries } from '../../utils/db'
 import { serializeRecipeForScope } from '../../utils/serialize-content'
+import { loadAmazonAffiliateTag } from '../../services/glossary-affiliate'
 
 export default defineEventHandler(async (event) => {
   const id = Number.parseInt(getRouterParam(event, 'id') || '', 10)
@@ -20,5 +21,6 @@ export default defineEventHandler(async (event) => {
     throw createApiError('NOT_FOUND', 'Recipe not found')
   }
 
-  return serializeRecipeForScope(recipe, scope)
+  const amazonTag = await loadAmazonAffiliateTag(event)
+  return serializeRecipeForScope(recipe, scope, amazonTag)
 })

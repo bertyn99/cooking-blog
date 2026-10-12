@@ -35,6 +35,11 @@ const links = computed(() => {
       to: '/pages',
       onSelect: () => { open.value = false },
     }, {
+      label: 'Glossaire',
+      icon: 'i-lucide-book-open',
+      to: '/glossaire',
+      onSelect: () => { open.value = false },
+    }, {
       label: 'Planning',
       icon: 'i-lucide-calendar-days',
       to: '/planning',

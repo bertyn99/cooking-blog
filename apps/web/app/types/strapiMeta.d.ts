@@ -77,26 +77,67 @@ export type CategoryArticle = Category;
 
 export type Ingredient = {
   id?: number;
+  glossaryTermId?: number;
   name?: string;
+  slug?: string;
+  path?: string | null;
+  note?: string | null;
   /** Format: float */
   qty?: number;
   /** @enum {string} */
   unit?:
     | "none"
     | "g"
+    | "mg"
     | "kg"
     | "l"
+    | "ml"
     | "cuillère a soupe"
     | "cuillère à café"
+    | "cuillere_soupe"
+    | "cuillere_cafe"
     | "tasse";
 };
 
 export type RecipeUtensil = {
   id?: number;
+  glossaryTermId?: number;
   name?: string;
+  slug?: string;
+  path?: string | null;
   note?: string;
+  iconKey?: string | null;
+  icon?: string | null;
+  resolvedAffiliateUrl?: string | null;
   affiliateUrl?: string;
   sortOrder?: number;
+};
+
+export type GlossaryKind = "ingredient" | "technique" | "ustensile";
+
+export type GlossaryTerm = {
+  id?: number;
+  name?: string;
+  title?: string;
+  slug?: string;
+  kind?: GlossaryKind;
+  description?: string | null;
+  content?: string | null;
+  sortKey?: string;
+  status?: string;
+  iconKey?: string | null;
+  icon?: string | null;
+  brand?: string | null;
+  resolvedAffiliateUrl?: string | null;
+  cover?: Cover | null;
+  coverBlobPathname?: string | null;
+  seo?: SEO | SEO[] | null;
+  aliases?: Array<{ alias: string }>;
+  parent?: { id: number; name: string; slug: string; path?: string | null } | null;
+  forms?: Array<{ id: number; name: string; slug: string; path?: string | null }>;
+  recipes?: Array<{ id: number; title: string; slug: string; path: string }>;
+  publishedAt?: string;
+  updatedAt?: string;
 };
 
 export type Tag = {

@@ -38,6 +38,17 @@ export interface CmsEntryListQuery {
 export type CmsRecipeListQuery = CmsEntryListQuery
 export type CmsArticleListQuery = CmsEntryListQuery
 
+export interface CmsGlossaryListQuery {
+  slug?: string
+  slugs?: readonly string[]
+  kind?: "ingredient" | "technique" | "ustensile"
+  search?: string
+  locale?: string
+  include?: CmsInclude
+  page?: number
+  pageSize?: number
+}
+
 export interface CmsCategoryListQuery {
   include?: CmsInclude
   page?: number

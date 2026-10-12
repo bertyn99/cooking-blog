@@ -1,8 +1,10 @@
 <script setup lang="ts">
 export interface IngredientRow {
+  glossaryTermId?: number
   name: string
   qty?: number
   unit: string
+  note?: string
 }
 
 defineProps<{
@@ -44,36 +46,38 @@ defineExpose({ addRow })
 
   <div
     v-else
-    class="overflow-hidden rounded-lg ring-1 ring-default"
+    class="overflow-visible rounded-lg ring-1 ring-default"
   >
     <div
-      class="grid grid-cols-[minmax(0,1fr)_4.5rem_7.5rem_2.5rem] gap-x-2 border-b border-default bg-elevated/50 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted max-sm:hidden"
+      class="grid grid-cols-[minmax(12rem,1.6fr)_5.5rem_7rem_minmax(8rem,1fr)_2.5rem] gap-x-2 border-b border-default bg-elevated/50 px-3 py-2 text-xs font-medium text-muted max-sm:hidden"
       aria-hidden="true"
     >
       <span>Ingrédient</span>
       <span>Qté</span>
       <span>Unité</span>
+      <span>Note</span>
       <span />
     </div>
 
     <ul
-      class="max-h-[min(28rem,55vh)] divide-y divide-default overflow-y-auto"
+      class="max-h-[min(28rem,55vh)] divide-y divide-default overflow-y-auto overflow-x-visible"
       role="list"
     >
       <li
         v-for="(row, index) in rows"
         :key="index"
-        class="grid gap-2 px-3 py-2.5 transition-colors hover:bg-elevated/25 max-sm:grid-cols-1 sm:grid-cols-[minmax(0,1fr)_4.5rem_7.5rem_2.5rem] sm:items-center sm:gap-x-2"
+        class="grid gap-2 px-3 py-2.5 transition-colors hover:bg-elevated/25 max-sm:grid-cols-1 sm:grid-cols-[minmax(12rem,1.6fr)_5.5rem_7rem_minmax(8rem,1fr)_2.5rem] sm:items-center sm:gap-x-2"
       >
         <UFormField
           label="Ingrédient"
           :name="`ingredient-name-${index}`"
           class="min-w-0 sm:[&_label]:sr-only"
         >
-          <UInput
-            v-model="row.name"
+          <ContentGlossaryTermPicker
+            v-model:glossary-term-id="row.glossaryTermId"
+            v-model:name="row.name"
+            kind="ingredient"
             placeholder="Ex. Beurre doux"
-            class="w-full"
           />
         </UFormField>
 
@@ -89,6 +93,7 @@ defineExpose({ addRow })
             step="any"
             placeholder="—"
             inputmode="decimal"
+            class="tabular-nums"
           />
         </UFormField>
 
@@ -101,6 +106,17 @@ defineExpose({ addRow })
             v-model="row.unit"
             :items="unitOptions"
             class="w-full"
+          />
+        </UFormField>
+
+        <UFormField
+          label="Note"
+          :name="`ingredient-note-${index}`"
+          class="sm:[&_label]:sr-only"
+        >
+          <UInput
+            v-model="row.note"
+            placeholder="pincée, tamisée…"
           />
         </UFormField>
 

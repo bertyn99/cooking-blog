@@ -6,6 +6,13 @@ export const DASHBOARD_HEADER_CHROME_CLASS =
 export const DASHBOARD_SURFACE_CLASS =
   'rounded-lg border border-default/70 bg-default'
 
+/**
+ * Centered editor column. The body content (EditorBodyLayout) and the
+ * teleported section nav (EditorSectionNavTarget) must share it so the
+ * anchor tabs stay aligned with the form column on wide screens.
+ */
+export const EDITOR_COLUMN_CLASS = 'mx-auto w-full max-w-6xl px-2 sm:px-3'
+
 export const DASHBOARD_NAVBAR_UI = {
   root: 'border-b-0 min-h-14',
 } as const

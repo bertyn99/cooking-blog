@@ -10,7 +10,7 @@ export default defineMcpPrompt({
       text: [
         'Recette Journal du Cuistot (fr).',
         '1. list-recipe-categories → categoryId.',
-        '2. create-recipe avec intro, ingredients[], steps[], utensils[] et nutrition si connus.',
+        '2. create-recipe avec intro, ingredients[] ({ glossaryTermId } ou { name } stub), steps[], utensils[] ({ glossaryTermId } ou { name } stub, jamais affiliateUrl) et nutrition si connus.',
         '3. Markdown Comark uniquement dans intro (pas un dump texte à la place des tableaux).',
         '4. upsert-seo optionnel. coverBlobPathname via list-media.',
         '5. Pas de publication.',

@@ -30,6 +30,19 @@ describe('buildMcpContentLinks', () => {
     expect(links.publicUrl).toBeNull()
   })
 
+  it('builds glossary preview and public urls', () => {
+    const links = buildMcpContentLinks({
+      siteOrigin: 'http://localhost:3000',
+      kind: 'glossary',
+      slug: 'amande-en-poudre',
+      status: 'published',
+    })
+    expect(links.previewUrl).toBe(
+      'http://localhost:3000/preview?type=glossary&slug=amande-en-poudre',
+    )
+    expect(links.publicUrl).toBe('http://localhost:3000/glossaire/amande-en-poudre')
+  })
+
   it('nests page preview slugs from parent chain', () => {
     const links = buildMcpContentLinks({
       siteOrigin: 'http://localhost:3000',

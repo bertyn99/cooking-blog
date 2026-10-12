@@ -95,11 +95,55 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.ingredients.recipeId,
       to: r.recipes.id,
     }),
+    term: r.one.glossaryTerms({
+      from: r.ingredients.glossaryTermId,
+      to: r.glossaryTerms.id,
+    }),
   },
   recipeUtensils: {
     recipe: r.one.recipes({
       from: r.recipeUtensils.recipeId,
       to: r.recipes.id,
+    }),
+    term: r.one.glossaryTerms({
+      from: r.recipeUtensils.glossaryTermId,
+      to: r.glossaryTerms.id,
+    }),
+  },
+  glossaryTerms: {
+    cover: r.one.blobs({
+      from: r.glossaryTerms.coverBlobPathname,
+      to: r.blobs.pathname,
+    }),
+    aliases: r.many.glossaryAliases({
+      from: r.glossaryTerms.id,
+      to: r.glossaryAliases.glossaryTermId,
+    }),
+    seo: r.one.seo({
+      from: r.glossaryTerms.id,
+      to: r.seo.glossaryTermId,
+    }),
+    relatedArticle: r.one.articles({
+      from: r.glossaryTerms.relatedArticleId,
+      to: r.articles.id,
+    }),
+    parent: r.one.glossaryTerms({
+      from: r.glossaryTerms.parentId,
+      to: r.glossaryTerms.id,
+    }),
+    ingredients: r.many.ingredients({
+      from: r.glossaryTerms.id,
+      to: r.ingredients.glossaryTermId,
+    }),
+    utensils: r.many.recipeUtensils({
+      from: r.glossaryTerms.id,
+      to: r.recipeUtensils.glossaryTermId,
+    }),
+  },
+  glossaryAliases: {
+    term: r.one.glossaryTerms({
+      from: r.glossaryAliases.glossaryTermId,
+      to: r.glossaryTerms.id,
     }),
   },
   nutrition: {

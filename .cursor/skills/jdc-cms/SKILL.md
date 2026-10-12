@@ -1,6 +1,6 @@
 ---
 name: jdc-cms
-description: Draft and published CMS access for Journal du Cuistot via MCP or REST (articles, recipes, pages). Use when creating or updating content in apps/cms — never Strapi.
+description: Draft and published CMS access for Journal du Cuistot via MCP or REST (articles, recipes, pages, glossary). Use when creating or updating content in apps/cms — never Strapi.
 ---
 
 # Journal du Cuistot CMS (agent)

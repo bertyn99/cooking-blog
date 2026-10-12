@@ -2,7 +2,7 @@ import { createApiError } from '../../../utils/errors'
 import { useQueries } from '../../../utils/db'
 import type { SeoContentType } from '../../../db/queries/seo'
 
-const VALID_CONTENT_TYPES = new Set(['article', 'recipe', 'page'])
+const VALID_CONTENT_TYPES = new Set(['article', 'recipe', 'page', 'glossary'])
 
 export default defineEventHandler(async (event) => {
   const contentType = getRouterParam(event, 'contentType') as SeoContentType

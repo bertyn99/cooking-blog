@@ -3,6 +3,7 @@ import type { ContentWriteScope } from '../../../shared/api-keys'
 import { createArticleSchema, updateArticleSchema } from '../../utils/validations/articles'
 import { createRecipeSchema, updateRecipeSchema } from '../../utils/validations/recipes'
 import { createPageSchema, updatePageSchema } from '../../utils/validations/pages'
+import { createGlossaryTermSchema, updateGlossaryTermSchema } from '../../utils/validations/glossary'
 
 export const MCP_READ_ONLY = {
   readOnlyHint: true,
@@ -67,7 +68,7 @@ export function withWritableList<T extends { status: string }>(
 }
 
 export function contentTypeToScope(
-  contentType: 'article' | 'recipe' | 'page',
+  contentType: 'article' | 'recipe' | 'page' | 'glossary',
 ): ContentWriteScope {
   switch (contentType) {
     case 'article':
@@ -76,6 +77,8 @@ export function contentTypeToScope(
       return 'recipes'
     case 'page':
       return 'pages'
+    case 'glossary':
+      return 'glossary'
     default: {
       const _exhaustive: never = contentType
       return _exhaustive
@@ -116,3 +119,6 @@ export const mcpUpdatePageInput = updatePageSchema.omit({
   status: true,
   scheduledAt: true,
 }).shape
+
+export const mcpCreateGlossaryInput = createGlossaryTermSchema.omit({ status: true }).shape
+export const mcpUpdateGlossaryInput = updateGlossaryTermSchema.omit({ status: true }).shape

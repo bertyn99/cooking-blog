@@ -1,10 +1,11 @@
-import type { Article, Category, Recipe } from '~/types/strapiMeta'
+import type { Article, Category, GlossaryTerm, Recipe } from '~/types/strapiMeta'
 import type { CmsListResponse, CmsPage } from '~/types/cms'
 import {
   cmsCollectionPath,
   toCmsQuery,
   type CmsArticleListQuery,
   type CmsCategoryListQuery,
+  type CmsGlossaryListQuery,
   type CmsPageListQuery,
   type CmsQuery,
   type CmsRecipeListQuery,
@@ -30,5 +31,6 @@ export function useCms() {
     articles: (query?: CmsArticleListQuery) => list<Article>('articles', query),
     categories: (query?: CmsCategoryListQuery) => list<Category>('categories', query),
     articleCategories: (query?: CmsCategoryListQuery) => list<Category>('category-articles', query),
+    glossary: (query?: CmsGlossaryListQuery) => list<GlossaryTerm>('glossary', query),
   }
 }

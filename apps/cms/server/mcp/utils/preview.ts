@@ -2,13 +2,14 @@ import type { H3Event } from 'h3'
 import {
   absolutePublicUrl,
   articlePublicPath,
+  glossaryPublicPath,
   pagePublicPath,
   recipePublicPath,
   type NestedPageParent,
 } from '../../../shared/public-site-paths'
 import { withWritable, type WritableOptions } from './payload'
 
-export type McpPreviewKind = 'article' | 'page' | 'recipe'
+export type McpPreviewKind = 'article' | 'page' | 'recipe' | 'glossary'
 
 export interface McpContentLinkInput {
   siteOrigin: string
@@ -49,6 +50,11 @@ export function buildMcpContentLinks(input: McpContentLinkInput): McpContentLink
     }
     case 'recipe': {
       publicPath = recipePublicPath(input.slug)
+      previewSlug = input.slug
+      break
+    }
+    case 'glossary': {
+      publicPath = glossaryPublicPath(input.slug)
       previewSlug = input.slug
       break
     }

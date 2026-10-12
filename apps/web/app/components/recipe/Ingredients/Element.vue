@@ -27,8 +27,21 @@ const isChecked = ref(false);
     class="whitespace-nowrap py-4 pl-4 pr-4 text-sm text-gray-500 sm:pr-0"
     :class="{ 'line-through': isChecked }"
   >
-    {{ ingredient.qty * multiplicator }}
-    {{ ingredient.unit !== "none" ? ingredient.unit : "" }}
-    {{ ingredient.name }}
+    {{ ingredient.qty ? ingredient.qty * multiplicator : "" }}
+    {{ ingredient.unit && ingredient.unit !== "none" ? ingredient.unit : "" }}
+    <NuxtLink
+      v-if="ingredient.path"
+      :to="ingredient.path"
+      class="text-stone-800 underline decoration-stone-300 hover:text-amber-900"
+    >
+      {{ ingredient.name }}
+    </NuxtLink>
+    <template v-else>
+      {{ ingredient.name }}
+    </template>
+    <span
+      v-if="ingredient.note"
+      class="text-stone-400"
+    > ({{ ingredient.note }})</span>
   </td>
 </template>

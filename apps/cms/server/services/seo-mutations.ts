@@ -24,7 +24,7 @@ export const seoBodySchema = z.object({
   socialMeta: z.array(socialMetaSchema).optional(),
 })
 
-const VALID_CONTENT_TYPES = new Set(['article', 'recipe', 'page'])
+const VALID_CONTENT_TYPES = new Set(['article', 'recipe', 'page', 'glossary'])
 
 async function assertSeoTargetDraft(
   event: H3Event,
@@ -35,21 +35,38 @@ async function assertSeoTargetDraft(
   if (actor.kind !== 'apiKey') return
 
   const queries = useQueries(event)
-  if (contentType === 'article') {
-    const row = await queries.articles.findRowById(contentId)
-    if (!row) throw createApiError('NOT_FOUND', 'Article introuvable.')
-    applyApiKeyDraftPolicy(row, {}, 'in-place')
-    return
+  switch (contentType) {
+    case 'article': {
+      const row = await queries.articles.findRowById(contentId)
+      if (!row) throw createApiError('NOT_FOUND', 'Article introuvable.')
+      applyApiKeyDraftPolicy(row, {}, 'in-place')
+      return
+    }
+    case 'recipe': {
+      const row = await queries.recipes.findRowById(contentId)
+      if (!row) throw createApiError('NOT_FOUND', 'Recette introuvable.')
+      applyApiKeyDraftPolicy(row, {}, 'in-place')
+      return
+    }
+    case 'page': {
+      const row = await queries.pages.findRowById(contentId)
+      if (!row) throw createApiError('NOT_FOUND', 'Page not found')
+      applyApiKeyDraftPolicy(row, {}, 'in-place')
+      return
+    }
+    case 'glossary': {
+      const row = await queries.glossary.findRowById(contentId)
+      if (!row) throw createApiError('NOT_FOUND', 'Terme de glossaire introuvable.')
+      applyApiKeyDraftPolicy({
+        status: row.status === 'published' ? 'published' : 'draft',
+      }, {}, 'in-place')
+      return
+    }
+    default: {
+      const _exhaustive: never = contentType
+      throw new Error(`Unhandled SEO content type: ${_exhaustive}`)
+    }
   }
-  if (contentType === 'recipe') {
-    const row = await queries.recipes.findRowById(contentId)
-    if (!row) throw createApiError('NOT_FOUND', 'Recette introuvable.')
-    applyApiKeyDraftPolicy(row, {}, 'in-place')
-    return
-  }
-  const row = await queries.pages.findRowById(contentId)
-  if (!row) throw createApiError('NOT_FOUND', 'Page not found')
-  applyApiKeyDraftPolicy(row, {}, 'in-place')
 }
 
 export async function upsertSeoMutation(

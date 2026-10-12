@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { articlePublicPath, pagePublicPath, recipePublicPath } from '../../shared/public-site-paths'
+import { articlePublicPath, glossaryPublicPath, glossaryPublicPathIfPublished, pagePublicPath, recipePublicPath } from '../../shared/public-site-paths'
 
 describe('public-site-paths', () => {
   it('builds nested page paths', () => {
@@ -20,3 +20,10 @@ describe('public-site-paths', () => {
     expect(recipePublicPath('tarte')).toBe('/recette/tarte')
   })
 })
+
+  it('only links published glossary terms', () => {
+    expect(glossaryPublicPathIfPublished({ slug: 'farine', status: 'published' })).toBe('/glossaire/farine')
+    expect(glossaryPublicPathIfPublished({ slug: 'farine', status: 'draft' })).toBeNull()
+    expect(glossaryPublicPathIfPublished({ slug: '  ', status: 'published' })).toBeNull()
+    expect(glossaryPublicPathIfPublished(null)).toBeNull()
+  })

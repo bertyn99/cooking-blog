@@ -338,6 +338,8 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
         v-model:keywords="seoState.keywords"
         v-model:meta-robots="seoState.metaRobots"
         :has-entry="hasSeoEntry"
+        :preview-title="state.title"
+        :preview-path="publicPathPreview"
         anchor="editor-seo"
       />
 

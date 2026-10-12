@@ -68,7 +68,7 @@ Les champs, leurs contraintes et pièges — la table complète des unités et l
 | `title` | ≤ 60 chars, requête exacte devant | jamais « Recettes de plat … » |
 | `intro` | 800–2000 chars | les réponses PAA dedans (voir §3) |
 | `slug` | keywords, tirets, sans date/saison | à poser explicitement |
-| `ingredients[]` | `{ name, qty?, unit? }` | **unit enum stricte** : `none, g, mg, kg, l, ml, cuillere_soupe, cuillere_cafe, tasse` — pas d'accents, pas d'autres unités ; les pincées/bouchées vont dans le `name` |
+| `ingredients[]` | `{ glossaryTermId }` **ou** `{ name, qty?, unit?, note? }` | **unit enum stricte** : `none, g, mg, kg, l, ml, cuillere_soupe, cuillere_cafe, tasse` — pas d'accents ; pincées → `note` ou trailing `(…)` dans `name` (stub glossaire draft+noindex si le nom n'existe pas). Préférer `list-glossary-terms` puis `glossaryTermId`. |
 | `step` | string unique, `\n` entre étapes | 6-10 lignes, ordre chronologique |
 | `utensils[]` | `{ name, note?, affiliateUrl? }` | **monétisation** : vrais produits testés + disclosure dans l'article |
 | `nutrition` | `{ calories, glucides, lipides, proteine, sucre, sodium }` (strings) | **par portion**, unités dans la valeur (« 450 kcal », « 18 g ») |

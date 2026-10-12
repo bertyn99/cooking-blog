@@ -396,7 +396,7 @@ const editorExtensions = computed(() => [
         :ui="{
           root: 'flex min-h-0 flex-1 flex-col',
           content: 'min-h-0 flex-1',
-          base: embedded ? '!px-4 !pt-4 !pb-6 sm:!px-5' : '',
+          base: embedded ? '!px-4 !pt-4 !pb-6 sm:!px-5 mx-auto max-w-[46rem]' : '',
         }"
       >
         <DragHandle

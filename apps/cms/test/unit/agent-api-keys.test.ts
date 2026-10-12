@@ -12,15 +12,15 @@ import {
 describe('api key scopes (agent MCP)', () => {
   it('includes transfer and agent scopes in API_KEY_SCOPES', () => {
     expect(TRANSFER_SCOPES).toEqual(['articles', 'recipes', 'media'])
-    expect(AGENT_SCOPES).toEqual(['articles', 'recipes', 'pages', 'write'])
-    expect(API_KEY_SCOPES).toEqual(['articles', 'recipes', 'media', 'pages', 'write'])
+    expect(AGENT_SCOPES).toEqual(['articles', 'recipes', 'pages', 'glossary', 'write'])
+    expect(API_KEY_SCOPES).toEqual(['articles', 'recipes', 'media', 'pages', 'glossary', 'write'])
     expect(API_KEY_SCOPES).toContain('write')
     expect(API_KEY_SCOPES).toContain('pages')
   })
 
   it('normalizes agent scopes', () => {
-    expect(normalizeApiKeyScopes(['write', 'pages', 'articles', 'nope']))
-      .toEqual(['articles', 'pages', 'write'])
+    expect(normalizeApiKeyScopes(['write', 'pages', 'articles', 'glossary', 'nope']))
+      .toEqual(['articles', 'pages', 'glossary', 'write'])
   })
 
   it('normalizeTransferScopes excludes agent scopes', () => {

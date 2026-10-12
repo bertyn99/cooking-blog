@@ -16,6 +16,9 @@ export const MCP_READ_TOOL_NAMES = new Set([
   'list-recipe-categories',
   'list-pages',
   'get-page',
+  'list-glossary-terms',
+  'get-glossary-term',
+  'list-glossary-icons',
   'list-media',
   'search-stock-media',
 ])
