@@ -4,6 +4,7 @@ import { serializeRecipeForScope } from '../../utils/serialize-content'
 import { resolveRecipeCategoryIds } from '../../utils/resolve-category-ids'
 import { isPrivilegedContentRead } from '../../utils/preview-auth'
 import { parseContentStatus, parseCsvParam } from '../../utils/query-params'
+import { loadAmazonAffiliateTag } from '../../services/glossary-affiliate'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -47,8 +48,10 @@ export default defineEventHandler(async (event) => {
     pagination,
   })
 
+  const amazonTag = await loadAmazonAffiliateTag(event)
+
   return {
     ...page,
-    data: page.data.map(row => serializeRecipeForScope(row, scope)),
+    data: page.data.map(row => serializeRecipeForScope(row, scope, amazonTag)),
   }
 })

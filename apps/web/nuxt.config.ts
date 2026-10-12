@@ -127,6 +127,8 @@ export default defineNuxtConfig({
     '/': { isr: 60 * 15 },
     '/blog/**': { isr: 60 * 25 },
     '/recette/**': { isr: 60 * 25 },
+    '/glossaire': { isr: 60 * 25 },
+    '/glossaire/**': { isr: 60 * 25 },
     '/images/**': {
       isr: 60 * 60 * 24 * 30,
       headers: {

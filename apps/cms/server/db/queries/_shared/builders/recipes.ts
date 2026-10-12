@@ -62,10 +62,10 @@ export function buildRecipesWith(include: string[]): RecipesWith | undefined {
         withObj.nutrition = true
         break
       case 'ingredients':
-        withObj.ingredients = true
+        withObj.ingredients = { with: { term: true } }
         break
       case 'utensils':
-        withObj.utensils = true
+        withObj.utensils = { with: { term: true } }
         break
       case 'steps':
         withObj.steps = true

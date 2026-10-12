@@ -37,6 +37,7 @@ const scopeShortLabel: Record<ApiKeyScope, string> = {
   articles: 'Articles',
   recipes: 'Recettes',
   pages: 'Pages',
+  glossary: 'Glossaire',
   media: 'Médias',
   write: 'Écriture',
 }
@@ -46,6 +47,7 @@ const scopeBadgeColor: Record<ApiKeyScope, 'primary' | 'info' | 'warning' | 'neu
   articles: 'info',
   recipes: 'info',
   pages: 'info',
+  glossary: 'info',
   media: 'warning',
 }
 

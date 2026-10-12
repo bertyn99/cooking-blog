@@ -14,6 +14,18 @@ import { recipes } from '../schema/recipes'
 
 export type RecipeUpdatePatch = Partial<Omit<typeof schema.recipes.$inferInsert, 'id' | 'createdAt'>>
 export type NutritionRowInput = Omit<typeof schema.nutrition.$inferInsert, 'id' | 'recipeId'>
+export type RecipeIngredientWrite = {
+  glossaryTermId: number
+  qty?: number
+  unit?: string
+  note?: string | null
+  sortOrder?: number
+}
+export type RecipeUtensilWrite = {
+  glossaryTermId: number
+  note?: string | null
+  sortOrder?: number
+}
 type IngredientUnit = NonNullable<typeof schema.ingredients.$inferInsert['unit']>
 
 function normalizeIngredientUnit(unit?: string): IngredientUnit {
@@ -92,8 +104,8 @@ export function createRecipeQueries(db: AppDb) {
 
     findById(id: number, scope: 'public' | 'admin' = 'public', include: string[] = []) {
       const defaultWith = {
-        ingredients: true,
-        utensils: true,
+        ingredients: { with: { term: true } },
+        utensils: { with: { term: true } },
         steps: true,
         nutrition: true,
         reviews: true,
@@ -144,8 +156,8 @@ export function createRecipeQueries(db: AppDb) {
       id: number,
       updates: RecipeUpdatePatch,
       relations: {
-        ingredients?: Array<{ name: string, qty?: number, unit?: string, sortOrder?: number }>
-        utensils?: Array<{ name: string, note?: string | null, affiliateUrl?: string | null, sortOrder?: number }>
+        ingredients?: RecipeIngredientWrite[]
+        utensils?: RecipeUtensilWrite[]
         steps?: Array<{ title?: string | null, instruction: string, sortOrder?: number }>
         nutrition?: NutritionRowInput | null
       },
@@ -163,9 +175,10 @@ export function createRecipeQueries(db: AppDb) {
           statements.push(db.insert(schema.ingredients).values(
             relations.ingredients.map((ing, i) => ({
               recipeId: id,
-              name: ing.name,
+              glossaryTermId: ing.glossaryTermId,
               qty: ing.qty,
               unit: normalizeIngredientUnit(ing.unit),
+              note: ing.note?.trim() || null,
               sortOrder: ing.sortOrder ?? i,
             })),
           ))
@@ -178,9 +191,8 @@ export function createRecipeQueries(db: AppDb) {
           statements.push(db.insert(schema.recipeUtensils).values(
             relations.utensils.map((row, i) => ({
               recipeId: id,
-              name: row.name.trim(),
+              glossaryTermId: row.glossaryTermId,
               note: row.note?.trim() || null,
-              affiliateUrl: row.affiliateUrl?.trim() || null,
               sortOrder: row.sortOrder ?? i,
             })),
           ))
@@ -215,16 +227,17 @@ export function createRecipeQueries(db: AppDb) {
 
     async replaceIngredients(
       recipeId: number,
-      ingredients: Array<{ name: string, qty?: number, unit?: string, sortOrder?: number }>,
+      ingredients: RecipeIngredientWrite[],
     ) {
       await db.delete(schema.ingredients).where(eq(schema.ingredients.recipeId, recipeId))
       if (ingredients.length) {
         await db.insert(schema.ingredients).values(
           ingredients.map((ing, i) => ({
             recipeId,
-            name: ing.name,
+            glossaryTermId: ing.glossaryTermId,
             qty: ing.qty,
             unit: normalizeIngredientUnit(ing.unit),
+            note: ing.note?.trim() || null,
             sortOrder: ing.sortOrder ?? i,
           })),
         )
@@ -233,16 +246,15 @@ export function createRecipeQueries(db: AppDb) {
 
     async replaceUtensils(
       recipeId: number,
-      utensils: Array<{ name: string, note?: string | null, affiliateUrl?: string | null, sortOrder?: number }>,
+      utensils: RecipeUtensilWrite[],
     ) {
       await db.delete(schema.recipeUtensils).where(eq(schema.recipeUtensils.recipeId, recipeId))
       if (utensils.length) {
         await db.insert(schema.recipeUtensils).values(
           utensils.map((row, i) => ({
             recipeId,
-            name: row.name.trim(),
+            glossaryTermId: row.glossaryTermId,
             note: row.note?.trim() || null,
-            affiliateUrl: row.affiliateUrl?.trim() || null,
             sortOrder: row.sortOrder ?? i,
           })),
         )

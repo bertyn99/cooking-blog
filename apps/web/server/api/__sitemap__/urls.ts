@@ -3,7 +3,7 @@ import type { SitemapUrlInput } from "#sitemap/types";
 import { articlePublicPath } from "~/utils/article-path";
 import { generateSlug } from "~/utils/format";
 import { SITEMAP_EXCLUDED_PAGE_PATHS } from "~/utils/redirect";
-import type { Article, Page, Recipe } from "~/types/strapiMeta";
+import type { Article, GlossaryTerm, Page, Recipe } from "~/types/strapiMeta";
 import { serverCmsFindAll } from "../../utils/sitemap-cms";
 
 function toSitemapLastmod(value?: string | null): string | undefined {
@@ -25,10 +25,11 @@ function isIntentionallyNoindex(robots?: string | null): boolean {
 }
 
 export default defineSitemapEventHandler(async (): Promise<SitemapUrlInput[]> => {
-  const [pages, articles, recipes] = await Promise.all([
+  const [pages, articles, recipes, glossary] = await Promise.all([
     serverCmsFindAll<Page>("pages", { include: ["parent", "seoMeta"] }),
     serverCmsFindAll<Article>("articles", { include: ["category", "seo"] }),
     serverCmsFindAll<Recipe>("recipes", { include: ["cover", "seo"] }),
+    serverCmsFindAll<GlossaryTerm>("glossary", { include: ["seo"] }),
   ]);
 
   const urls: SitemapUrlInput[] = [
@@ -49,6 +50,12 @@ export default defineSitemapEventHandler(async (): Promise<SitemapUrlInput[]> =>
       changefreq: "daily",
       priority: 0.8,
       _sitemap: "recipes",
+    },
+    {
+      loc: "/glossaire",
+      changefreq: "weekly",
+      priority: 0.6,
+      _sitemap: "pages",
     },
   ];
 
@@ -106,6 +113,23 @@ export default defineSitemapEventHandler(async (): Promise<SitemapUrlInput[]> =>
       priority: 0.7,
       changefreq: "daily",
       _sitemap: "recipes",
+    });
+  }
+
+  for (const doc of glossary) {
+    if (!doc.slug?.trim()) {
+      continue;
+    }
+    const seo = Array.isArray(doc.seo) ? doc.seo[0] : doc.seo;
+    if (isIntentionallyNoindex(seo?.metaRobots)) {
+      continue;
+    }
+    urls.push({
+      loc: `/glossaire/${doc.slug}`,
+      lastmod: toSitemapLastmod(doc.updatedAt),
+      priority: 0.5,
+      changefreq: "weekly",
+      _sitemap: "pages",
     });
   }
 

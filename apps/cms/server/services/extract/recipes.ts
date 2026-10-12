@@ -8,6 +8,7 @@ import { extractUploadPathsFromText, rewriteStrapiUploadsInText } from './conten
 import { upsertContentSeo } from './seo'
 import { bumpImportStats, dryRunOutcome, shallowFieldsEqual, stableJson } from './import-row'
 import { schema } from '../../db/create-db'
+import { parseIngredientDisplayName } from '../../../shared/glossary-normalize'
 
 interface StrapiIngredient {
   id?: number
@@ -96,6 +97,34 @@ function mapIngredients(row: StrapiRecipe) {
   }))
 }
 
+async function replaceImportedIngredients(
+  ctx: ExtractContext,
+  recipeId: number,
+  row: StrapiRecipe,
+) {
+  await ctx.db.delete(schema.ingredients).where(eq(schema.ingredients.recipeId, recipeId))
+  const mapped = mapIngredients(row)
+  if (!mapped.length) return
+
+  const values = []
+  for (const ingredient of mapped) {
+    const stub = await ctx.queries.glossary.findOrCreateStub({
+      kind: 'ingredient',
+      name: ingredient.name,
+      locale: row.locale || 'fr',
+    })
+    values.push({
+      recipeId,
+      glossaryTermId: stub.term.id,
+      qty: ingredient.qty,
+      unit: ingredient.unit,
+      note: stub.note,
+      sortOrder: ingredient.sortOrder,
+    })
+  }
+  await ctx.db.insert(schema.ingredients).values(values)
+}
+
 function mapReviews(row: StrapiRecipe) {
   return (row.reviews ?? []).map(review => ({
     star: review.star ?? null,
@@ -127,22 +156,49 @@ async function recipePayloadMatchesDb(
   const existing = await db.select().from(schema.recipes).where(eq(schema.recipes.id, recipeId)).get()
   if (!existing || !shallowFieldsEqual(existing, values, RECIPE_KEYS)) return false
 
-  const ingredients = await db.select().from(schema.ingredients).where(eq(schema.ingredients.recipeId, recipeId)).all()
+  const ingredients = await db
+    .select({
+      name: schema.glossaryTerms.name,
+      qty: schema.ingredients.qty,
+      unit: schema.ingredients.unit,
+      note: schema.ingredients.note,
+      sortOrder: schema.ingredients.sortOrder,
+    })
+    .from(schema.ingredients)
+    .innerJoin(schema.glossaryTerms, eq(schema.ingredients.glossaryTermId, schema.glossaryTerms.id))
+    .where(eq(schema.ingredients.recipeId, recipeId))
+    .all()
   const normalizedIngredients = ingredients
-    .map(i => ({ name: i.name, qty: i.qty, unit: i.unit, sortOrder: i.sortOrder }))
+    .map(ingredient => ({
+      name: ingredient.name,
+      qty: ingredient.qty,
+      unit: ingredient.unit,
+      note: ingredient.note,
+      sortOrder: ingredient.sortOrder,
+    }))
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-  if (stableJson(normalizedIngredients) !== stableJson(mapIngredients(row))) return false
+  const expectedIngredients = mapIngredients(row).map((ingredient) => {
+    const parsed = parseIngredientDisplayName(ingredient.name)
+    return {
+      name: parsed.name,
+      qty: ingredient.qty,
+      unit: ingredient.unit,
+      note: parsed.note,
+      sortOrder: ingredient.sortOrder,
+    }
+  })
+  if (stableJson(normalizedIngredients) !== stableJson(expectedIngredients)) return false
 
   const nutrition = await db.select().from(schema.nutrition).where(eq(schema.nutrition.recipeId, recipeId)).get()
   const nutritionPayload = mapNutrition(row)
   if (stableJson(nutrition ?? null) !== stableJson(nutritionPayload)) return false
 
   const reviews = await db.select().from(schema.reviews).where(eq(schema.reviews.recipeId, recipeId)).all()
-  const normalizedReviews = reviews.map(r => ({
-    star: r.star,
-    content: r.content,
-    authorName: r.authorName,
-    status: r.status,
+  const normalizedReviews = reviews.map(review => ({
+    star: review.star,
+    content: review.content,
+    authorName: review.authorName,
+    status: review.status,
   }))
   if (stableJson(normalizedReviews) !== stableJson(mapReviews(row))) return false
 
@@ -241,15 +297,7 @@ export async function extractRecipes(
         bumpImportStats(stats, 'create')
       }
 
-      await ctx.db.delete(schema.ingredients).where(eq(schema.ingredients.recipeId, recipeId))
-      if (row.ingredients?.length) {
-        await ctx.db.insert(schema.ingredients).values(
-          mapIngredients(row).map(ingredient => ({
-            recipeId,
-            ...ingredient,
-          })),
-        )
-      }
+      await replaceImportedIngredients(ctx, recipeId, row)
 
       const nutritionPayload = mapNutrition(row)
       if (nutritionPayload) {
@@ -292,6 +340,7 @@ export async function extractRecipes(
       }
       await processRow(row)
     }
+    await backfillIngredientFamilies(ctx)
     return stats
   }
 
@@ -299,5 +348,16 @@ export async function extractRecipes(
     await processRow(row)
   }
 
+  await backfillIngredientFamilies(ctx)
   return stats
+}
+
+async function backfillIngredientFamilies(ctx: ExtractContext) {
+  if (ctx.dryRun) return
+  const family = await ctx.queries.glossary.backfillKnownIngredientFamilies()
+  if (family.formsLinked || family.rootsCreated) {
+    ctx.log(
+      `Familles d’ingrédients — racines ${family.rootsCreated}, formes liées ${family.formsLinked}`,
+    )
+  }
 }

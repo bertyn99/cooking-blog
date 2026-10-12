@@ -55,6 +55,7 @@ export function createBlobQueries(db: AppDb) {
       return Promise.all([
         db.update(schema.articles).set({ coverBlobPathname: null }).where(eq(schema.articles.coverBlobPathname, pathname)),
         db.update(schema.recipes).set({ coverBlobPathname: null }).where(eq(schema.recipes.coverBlobPathname, pathname)),
+        db.update(schema.glossaryTerms).set({ coverBlobPathname: null }).where(eq(schema.glossaryTerms.coverBlobPathname, pathname)),
         db.delete(schema.categoryBlobs).where(eq(schema.categoryBlobs.blobPathname, pathname)),
         db.update(schema.socialMeta).set({ imageBlobPathname: null }).where(eq(schema.socialMeta.imageBlobPathname, pathname)),
       ])

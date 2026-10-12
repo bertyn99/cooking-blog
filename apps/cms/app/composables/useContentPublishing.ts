@@ -8,6 +8,7 @@ export type AdminPublishContentType =
   | 'pages'
   | 'categories'
   | 'category-articles'
+  | 'glossary'
 
 export function useContentPublishing(contentType: AdminPublishContentType) {
   const { $api } = useNuxtApp()

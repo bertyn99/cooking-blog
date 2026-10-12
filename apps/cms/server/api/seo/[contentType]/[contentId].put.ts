@@ -7,12 +7,13 @@ import {
 } from '../../../services/seo-mutations'
 import type { SeoContentType } from '../../../db/queries/seo'
 
-const VALID_CONTENT_TYPES = new Set(['article', 'recipe', 'page'])
+const VALID_CONTENT_TYPES = new Set(['article', 'recipe', 'page', 'glossary'])
 
-const CONTENT_SCOPE: Record<SeoContentType, 'articles' | 'recipes' | 'pages'> = {
+const CONTENT_SCOPE: Record<SeoContentType, 'articles' | 'recipes' | 'pages' | 'glossary'> = {
   article: 'articles',
   recipe: 'recipes',
   page: 'pages',
+  glossary: 'glossary',
 }
 
 export default defineEventHandler(async (event) => {

@@ -41,6 +41,23 @@ export function recipePublicPath(recipeSlug: string): string {
   return `/recette/${recipeSlug}`
 }
 
+export function glossaryPublicPath(slug: string): string {
+  return `/glossaire/${slug}`
+}
+
+export function glossaryPublicPathIfPublished(term?: {
+  slug?: string | null
+  status?: string | null
+} | null): string | null {
+  const slug = term?.slug?.trim()
+  if (!slug || term?.status !== 'published') return null
+  return glossaryPublicPath(slug)
+}
+
+export function glossaryIndexPath(): string {
+  return '/glossaire'
+}
+
 export function absolutePublicUrl(siteOrigin: string, path: string): string {
   const base = siteOrigin.replace(/\/$/, '')
   const normalized = path.startsWith('/') ? path : `/${path}`

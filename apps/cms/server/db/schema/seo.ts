@@ -1,5 +1,6 @@
 import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 import { articles } from './articles'
+import { glossaryTerms } from './glossary-terms'
 import { pages } from './pages'
 import { recipes } from './recipes'
 
@@ -8,6 +9,7 @@ export const seo = sqliteTable('seo', {
   articleId: integer('article_id').references(() => articles.id, { onDelete: 'cascade' }),
   recipeId: integer('recipe_id').references(() => recipes.id, { onDelete: 'cascade' }),
   pageId: integer('page_id').references(() => pages.id, { onDelete: 'cascade' }),
+  glossaryTermId: integer('glossary_term_id').references(() => glossaryTerms.id, { onDelete: 'cascade' }),
   description: text('description'),
   keywords: text('keywords'),
   canonicalUrl: text('canonical_url'),
@@ -16,4 +18,5 @@ export const seo = sqliteTable('seo', {
   uniqueIndex('seo_article_id_idx').on(table.articleId),
   uniqueIndex('seo_recipe_id_idx').on(table.recipeId),
   uniqueIndex('seo_page_id_idx').on(table.pageId),
+  uniqueIndex('seo_glossary_term_id_idx').on(table.glossaryTermId),
 ])

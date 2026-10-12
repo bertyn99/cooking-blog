@@ -19,6 +19,18 @@ export async function mcpPageResult(event: H3Event, id: number) {
   return withMcpContentLinks(event, 'page', row, { liveEditable: true })
 }
 
+export async function mcpGlossaryResult(event: H3Event, id: number) {
+  const row = await useQueries(event).glossary.findById(id, ['cover', 'seo', 'aliases'], 'admin')
+  if (!row) {
+    throw createApiError('NOT_FOUND', 'Terme de glossaire introuvable.')
+  }
+  return withMcpContentLinks(event, 'glossary', {
+    ...row,
+    slug: row.slug,
+    status: row.status,
+  })
+}
+
 export async function mcpRecipeResult(event: H3Event, id: number) {
   const row = await useQueries(event).recipes.findById(
     id,

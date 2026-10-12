@@ -147,6 +147,7 @@ export function createMaintenanceQueries(db: AppDb) {
 
     await db.update(schema.articles).set({ coverBlobPathname: null })
     await db.update(schema.recipes).set({ coverBlobPathname: null })
+    await db.update(schema.glossaryTerms).set({ coverBlobPathname: null })
     await db.update(schema.socialMeta).set({ imageBlobPathname: null })
     await db.delete(schema.categoryBlobs)
     await db.delete(schema.legacyStrapiMap).where(eq(schema.legacyStrapiMap.sourceType, 'media'))

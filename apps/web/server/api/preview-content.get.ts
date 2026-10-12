@@ -2,11 +2,28 @@ import { serverCmsFind } from '../utils/cms-fetch'
 import type { NestedParent } from '~/types/strapiMeta'
 import { cmsPageMatchesRequestPath } from '~/utils/format'
 
-const PREVIEW_TYPES = ['article', 'page', 'recipe'] as const
+const PREVIEW_TYPES = ['article', 'page', 'recipe', 'glossary'] as const
 type PreviewType = (typeof PREVIEW_TYPES)[number]
 
 function isPreviewType(value: string): value is PreviewType {
   return (PREVIEW_TYPES as readonly string[]).includes(value)
+}
+
+function collectionForType(type: PreviewType): string {
+  switch (type) {
+    case 'article':
+      return 'articles'
+    case 'page':
+      return 'pages'
+    case 'recipe':
+      return 'recipes'
+    case 'glossary':
+      return 'glossary'
+    default: {
+      const _exhaustive: never = type
+      return _exhaustive
+    }
+  }
 }
 
 function includeForType(type: PreviewType): string[] {
@@ -17,6 +34,8 @@ function includeForType(type: PreviewType): string[] {
       return ['seoMeta', 'parent']
     case 'recipe':
       return ['cover', 'category', 'nutrition', 'ingredients', 'utensils', 'seo']
+    case 'glossary':
+      return ['cover', 'seo', 'aliases']
     default: {
       const _exhaustive: never = type
       return _exhaustive
@@ -46,7 +65,7 @@ export default defineEventHandler(async (event) => {
     headers['x-cms-preview-token'] = token
   }
 
-  const collection = type === 'article' ? 'articles' : type === 'page' ? 'pages' : 'recipes'
+  const collection = collectionForType(type)
   const response = await serverCmsFind(collection, {
     slug: leaf,
     ...(type === 'article' && categorySlug ? { categorySlug } : {}),

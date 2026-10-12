@@ -2,6 +2,7 @@
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { z } from 'zod'
 import { slugifyString } from '#shared/slug'
+import { recipePublicPath } from '#shared/public-site-paths'
 import type { ContentStatus, PaginatedResponse } from '~/types/cms'
 import type { EditorNavSection } from '~/types/content-editor'
 
@@ -23,15 +24,18 @@ const schema = z.object({
 type Schema = z.output<typeof schema>
 
 interface RecipeIngredientRow {
+  glossaryTermId?: number
   name: string
   qty?: number
   unit: z.infer<typeof ingredientUnitSchema>
+  note?: string
 }
 
 interface RecipeUtensilRow {
+  glossaryTermId?: number
   name: string
   note?: string
-  affiliateUrl?: string
+  resolvedAffiliateUrl?: string | null
 }
 
 interface RecipeSeoInitial {
@@ -57,14 +61,17 @@ const props = defineProps<{
     coverAltText?: string | null
     coverDescription?: string | null
     ingredients?: Array<{
+      glossaryTermId?: number
       name: string
       qty?: number | null
       unit?: string | null
+      note?: string | null
     }>
     utensils?: Array<{
+      glossaryTermId?: number
       name: string
       note?: string | null
-      affiliateUrl?: string | null
+      resolvedAffiliateUrl?: string | null
     }>
     nutrition?: RecipeNutritionInitial | null
     seo?: RecipeSeoInitial | null
@@ -100,17 +107,20 @@ const seoState = reactive({
 
 const ingredients = ref<RecipeIngredientRow[]>(
   (props.initial?.ingredients ?? []).map(row => ({
+    glossaryTermId: row.glossaryTermId,
     name: row.name,
     qty: row.qty ?? undefined,
     unit: (row.unit as RecipeIngredientRow['unit']) || 'none',
+    note: row.note ?? undefined,
   })),
 )
 
 const utensils = ref<RecipeUtensilRow[]>(
   (props.initial?.utensils ?? []).map(row => ({
+    glossaryTermId: row.glossaryTermId,
     name: row.name,
     note: row.note ?? undefined,
-    affiliateUrl: row.affiliateUrl ?? undefined,
+    resolvedAffiliateUrl: row.resolvedAffiliateUrl ?? undefined,
   })),
 )
 
@@ -165,12 +175,17 @@ const unitOptions = [
 ]
 
 const { data: categories } = await useAsyncData('recipe-category-options', () =>
-  $api<PaginatedResponse<{ id: number, name: string, status: ContentStatus }>>('/api/categories', {
+  $api<PaginatedResponse<{ id: number, name: string, slug: string, status: ContentStatus }>>('/api/categories', {
     query: { pageSize: 100 },
   }),
 )
 
 const categoryRows = computed(() => categories.value?.data ?? [])
+
+const seoPreviewPath = computed(() => {
+  const slug = state.slug?.trim()
+  return slug ? recipePublicPath(slug) : undefined
+})
 
 const editorSections: EditorNavSection[] = [
   { id: 'editor-general', label: 'Général' },
@@ -218,24 +233,38 @@ async function saveSeo(recipeId: number) {
 
 function buildIngredientsPayload() {
   return ingredients.value
-    .filter(row => row.name.trim())
-    .map((row, index) => ({
-      name: row.name.trim(),
-      qty: row.qty,
-      unit: row.unit,
-      sortOrder: index,
-    }))
+    .filter(row => row.glossaryTermId || row.name.trim())
+    .map((row, index) => row.glossaryTermId
+      ? {
+          glossaryTermId: row.glossaryTermId,
+          qty: row.qty,
+          unit: row.unit,
+          note: row.note?.trim() || undefined,
+          sortOrder: index,
+        }
+      : {
+          name: row.name.trim(),
+          qty: row.qty,
+          unit: row.unit,
+          note: row.note?.trim() || undefined,
+          sortOrder: index,
+        })
 }
 
 function buildUtensilsPayload() {
   return utensils.value
-    .filter(row => row.name.trim())
-    .map((row, index) => ({
-      name: row.name.trim(),
-      note: row.note?.trim() || undefined,
-      affiliateUrl: row.affiliateUrl?.trim() || undefined,
-      sortOrder: index,
-    }))
+    .filter(row => row.glossaryTermId || row.name.trim())
+    .map((row, index) => row.glossaryTermId
+      ? {
+          glossaryTermId: row.glossaryTermId,
+          note: row.note?.trim() || undefined,
+          sortOrder: index,
+        }
+      : {
+          name: row.name.trim(),
+          note: row.note?.trim() || undefined,
+          sortOrder: index,
+        })
 }
 
 function buildNutritionPayload() {
@@ -309,26 +338,26 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
         id="editor-general"
         class="scroll-mt-[7.25rem]"
       >
-        <div class="mb-5">
-          <ContentFieldLabel label="title" />
-          <UFormField name="title" :ui="{ label: 'hidden' }">
-            <UInput
-              v-model="state.title"
-              :size="recipeId ? 'lg' : 'xl'"
-              variant="outline"
-              :placeholder="recipeId ? 'Titre affiché sur le blog' : 'Titre de la recette'"
-              class="w-full"
-            />
-          </UFormField>
-        </div>
-
-        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_11rem] lg:items-start">
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_14rem] lg:items-start xl:grid-cols-[minmax(0,1fr)_16rem]">
           <div class="min-w-0 space-y-4">
+            <div>
+              <ContentFieldLabel label="title" />
+              <UFormField name="title" :ui="{ label: 'hidden' }">
+                <UInput
+                  v-model="state.title"
+                  :size="recipeId ? 'lg' : 'xl'"
+                  variant="outline"
+                  :placeholder="recipeId ? 'Titre affiché sur le blog' : 'Titre de la recette'"
+                  class="w-full"
+                />
+              </UFormField>
+            </div>
+
             <div class="grid gap-4 md:grid-cols-2">
               <div>
                 <ContentFieldLabel label="slug" />
                 <UFormField name="slug" :ui="{ label: 'hidden' }">
-                  <UInput v-model="state.slug" placeholder="ma-recette">
+                  <UInput v-model="state.slug" placeholder="ma-recette" class="w-full">
                     <template #trailing>
                       <UButton
                         icon="i-lucide-refresh-cw"
@@ -382,6 +411,8 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
         v-model:keywords="seoState.keywords"
         v-model:meta-robots="seoState.metaRobots"
         :has-entry="hasSeoEntry"
+        :preview-title="state.title"
+        :preview-path="seoPreviewPath"
         anchor="editor-seo"
       />
 

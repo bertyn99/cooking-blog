@@ -7,7 +7,8 @@ import {
   contentGenerationRuns,
 } from '../schema/content-generation'
 import { createArticleQueries } from './articles'
-import { createRecipeQueries } from './recipes'
+import { createRecipeQueries, type RecipeIngredientWrite } from './recipes'
+import { createGlossaryQueries } from './glossary'
 import { slugifyString } from '../../utils/slug'
 
 /** Initial pipeline only (createRun inserts these). */
@@ -91,6 +92,31 @@ function serializeStepError(error: unknown) {
   }
 }
 
+async function resolveAssembledIngredients(
+  db: AppDb,
+  locale: string,
+  ingredients: AssembleRecipeFields['ingredients'],
+): Promise<RecipeIngredientWrite[] | undefined> {
+  if (!ingredients) return undefined
+  const glossary = createGlossaryQueries(db)
+  const resolved: RecipeIngredientWrite[] = []
+  for (const [index, ing] of ingredients.entries()) {
+    const stub = await glossary.findOrCreateStub({
+      kind: 'ingredient',
+      name: ing.name,
+      locale,
+    })
+    resolved.push({
+      glossaryTermId: stub.term.id,
+      qty: ing.qty,
+      unit: ing.unit,
+      note: stub.note,
+      sortOrder: ing.sortOrder ?? index,
+    })
+  }
+  return resolved
+}
+
 async function applyAssembledDraft(
   db: AppDb,
   input: {
@@ -167,7 +193,11 @@ async function applyAssembledDraft(
 
   const recipeRelations = input.assemble.recipeFields
     ? {
-        ingredients: input.assemble.recipeFields.ingredients,
+        ingredients: await resolveAssembledIngredients(
+          db,
+          locale,
+          input.assemble.recipeFields.ingredients,
+        ),
         steps: input.assemble.recipeFields.steps,
         nutrition: input.assemble.recipeFields.nutrition,
       }

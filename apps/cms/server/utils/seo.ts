@@ -11,6 +11,7 @@ export function getSeoFilter(contentType: string, contentId: number) {
     case 'article': return eq(schema.seo.articleId, contentId)
     case 'recipe': return eq(schema.seo.recipeId, contentId)
     case 'page': return eq(schema.seo.pageId, contentId)
+    case 'glossary': return eq(schema.seo.glossaryTermId, contentId)
     default: throw new Error(`Invalid contentType: ${contentType}`)
   }
 }
@@ -20,6 +21,7 @@ function getSeoQueryWhere(contentType: string, contentId: number): SeoQueryFilte
     case 'article': return { articleId: contentId }
     case 'recipe': return { recipeId: contentId }
     case 'page': return { pageId: contentId }
+    case 'glossary': return { glossaryTermId: contentId }
     default: throw new Error(`Invalid contentType: ${contentType}`)
   }
 }

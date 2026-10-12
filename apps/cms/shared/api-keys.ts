@@ -6,22 +6,23 @@ export const TRANSFER_SCOPES = ['articles', 'recipes', 'media'] as const
  * Content types must be combined with `write` for tools to appear.
  * Overlaps transfer on articles/recipes (same scope string, two jobs).
  */
-export const AGENT_SCOPES = ['articles', 'recipes', 'pages', 'write'] as const
+export const AGENT_SCOPES = ['articles', 'recipes', 'pages', 'glossary', 'write'] as const
 
 /** All selectable scopes when creating a key in the admin UI (unique). */
-export const API_KEY_SCOPES = ['articles', 'recipes', 'media', 'pages', 'write'] as const
+export const API_KEY_SCOPES = ['articles', 'recipes', 'media', 'pages', 'glossary', 'write'] as const
 
 export type TransferScope = (typeof TRANSFER_SCOPES)[number]
 export type AgentScope = (typeof AGENT_SCOPES)[number]
 export type ApiKeyScope = (typeof API_KEY_SCOPES)[number]
 
-export type ContentWriteScope = 'articles' | 'recipes' | 'pages'
+export type ContentWriteScope = 'articles' | 'recipes' | 'pages' | 'glossary'
 
 export const API_KEY_SCOPE_LABELS: Record<ApiKeyScope, string> = {
   articles: 'Articles (transfert — tous statuts)',
   recipes: 'Recettes (transfert — tous statuts)',
   media: 'Médias (transfert — métadonnées + fichiers)',
   pages: 'Pages (agent — brouillons uniquement)',
+  glossary: 'Glossaire (agent — brouillons + MCP)',
   write: 'Écriture agent (MCP + API REST brouillons)',
 }
 
@@ -30,6 +31,7 @@ export const AGENT_SCOPE_LABELS: Record<AgentScope, string> = {
   articles: 'Articles (agent — brouillons + MCP)',
   recipes: 'Recettes (agent — brouillons + MCP)',
   pages: 'Pages (agent — brouillons + MCP)',
+  glossary: 'Glossaire (agent — brouillons + MCP)',
   write: 'Écriture agent (MCP + API REST brouillons)',
 }
 

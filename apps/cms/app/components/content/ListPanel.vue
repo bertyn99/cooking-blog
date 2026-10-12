@@ -11,6 +11,7 @@ export interface ContentRow {
   locale: string
   publishedAt: string | null
   updatedAt: string
+  kind?: string
 }
 
 type ListResponse = {
@@ -27,11 +28,15 @@ const props = withDefaults(defineProps<{
   contentBasePath?: string
   /** Show slug column (hidden for articles list). */
   showSlugColumn?: boolean
+  showKindColumn?: boolean
+  hideScheduledFilter?: boolean
+  showKindFilter?: boolean
 }>(), {
   showSlugColumn: true,
+  showKindColumn: false,
+  hideScheduledFilter: false,
+  showKindFilter: false,
 })
-
-const router = useRouter()
 
 const basePath = computed(() => props.contentBasePath ?? props.endpoint.replace(/^\/api/, ''))
 
@@ -43,15 +48,22 @@ const { $api } = useNuxtApp()
 const search = ref('')
 const debouncedSearch = refDebounced(search, 300)
 const statusFilter = ref<'all' | ContentStatus>('all')
+const kindFilter = ref<'all' | 'ingredient' | 'technique' | 'ustensile'>('all')
 const page = ref(1)
 const pageSize = 10
 
-watch([debouncedSearch, statusFilter], () => {
+const kindLabels: Record<'ingredient' | 'technique' | 'ustensile', string> = {
+  ingredient: 'Ingrédient',
+  technique: 'Technique',
+  ustensile: 'Ustensile',
+}
+
+watch([debouncedSearch, statusFilter, kindFilter], () => {
   page.value = 1
 })
 
 const listKey = computed(() =>
-  `content-list-${props.endpoint}-p${page.value}-q${debouncedSearch.value}-st${statusFilter.value}`,
+  `content-list-${props.endpoint}-p${page.value}-q${debouncedSearch.value}-st${statusFilter.value}-k${kindFilter.value}`,
 )
 
 const { data, status } = await useAsyncData(
@@ -62,9 +74,22 @@ const { data, status } = await useAsyncData(
       pageSize,
       ...(debouncedSearch.value ? { search: debouncedSearch.value } : {}),
       ...(statusFilter.value !== 'all' ? { status: statusFilter.value } : {}),
+      ...(props.showKindFilter && kindFilter.value !== 'all' ? { kind: kindFilter.value } : {}),
     },
   }),
 )
+
+const statusFilterItems = computed(() => {
+  const items = [
+    { label: 'Tous', value: 'all' },
+    { label: 'Brouillon', value: 'draft' },
+    { label: 'Publié', value: 'published' },
+  ]
+  if (!props.hideScheduledFilter) {
+    items.push({ label: 'Planifié', value: 'scheduled' })
+  }
+  return items
+})
 
 watch(
   () => data.value?.meta.pagination.pageCount,
@@ -88,6 +113,19 @@ const columns = computed<TableColumn<ContentRow>[]>(() => {
   const cols: TableColumn<ContentRow>[] = [
     { accessorKey: 'title', header: 'Titre' },
   ]
+  if (props.showKindColumn) {
+    cols.push({
+      accessorKey: 'kind',
+      header: 'Type',
+      cell: ({ row }) => {
+        const kind = row.original.kind
+        if (kind === 'ingredient' || kind === 'technique' || kind === 'ustensile') {
+          return kindLabels[kind]
+        }
+        return kind ?? ''
+      },
+    })
+  }
   if (props.showSlugColumn) {
     cols.push({ accessorKey: 'slug', header: 'Slug' })
   }
@@ -114,7 +152,8 @@ const columns = computed<TableColumn<ContentRow>[]>(() => {
         color: 'neutral',
         variant: 'ghost',
         size: 'sm',
-        onClick: () => router.push(`${basePath.value}/${row.original.id}`),
+        to: `${basePath.value}/${row.original.id}`,
+        'aria-label': 'Modifier',
       }),
     },
   )
@@ -140,12 +179,20 @@ const columns = computed<TableColumn<ContentRow>[]>(() => {
       <div class="flex flex-wrap items-center justify-between gap-1.5">
         <UInput v-model="search" class="max-w-sm" icon="i-lucide-search" placeholder="Rechercher..." />
 
-        <USelect v-model="statusFilter" :items="[
-          { label: 'Tous', value: 'all' },
-          { label: 'Brouillon', value: 'draft' },
-          { label: 'Publié', value: 'published' },
-          { label: 'Planifié', value: 'scheduled' }
-        ]" class="min-w-36" />
+        <div class="flex flex-wrap items-center gap-1.5">
+          <USelect
+            v-if="showKindFilter"
+            v-model="kindFilter"
+            :items="[
+              { label: 'Tous les types', value: 'all' },
+              { label: 'Ingrédient', value: 'ingredient' },
+              { label: 'Technique', value: 'technique' },
+              { label: 'Ustensile', value: 'ustensile' },
+            ]"
+            class="min-w-40"
+          />
+          <USelect v-model="statusFilter" :items="statusFilterItems" class="min-w-36" />
+        </div>
       </div>
 
       <UTable

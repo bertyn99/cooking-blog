@@ -12,3 +12,6 @@ export type PagesQueryFilter = NonNullable<Parameters<HubQuery['pages']['findMan
 export type PagesWith = NonNullable<Parameters<HubQuery['pages']['findMany']>[0]>['with']
 
 export type SeoQueryFilter = NonNullable<Parameters<HubQuery['seo']['findFirst']>[0]>['where']
+
+export type GlossaryQueryFilter = NonNullable<Parameters<HubQuery['glossaryTerms']['findMany']>[0]>['where']
+export type GlossaryWith = NonNullable<Parameters<HubQuery['glossaryTerms']['findMany']>[0]>['with']

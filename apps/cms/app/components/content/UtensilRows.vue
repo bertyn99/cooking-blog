@@ -1,8 +1,9 @@
 <script setup lang="ts">
 export interface UtensilRow {
+  glossaryTermId?: number
   name: string
   note?: string
-  affiliateUrl?: string
+  resolvedAffiliateUrl?: string | null
 }
 
 const rows = defineModel<UtensilRow[]>({ required: true })
@@ -48,7 +49,7 @@ defineExpose({ addRow })
     >
       <span>Ustensile</span>
       <span>Précision</span>
-      <span>Lien affilié</span>
+      <span>Lien d’achat</span>
       <span />
     </div>
 
@@ -66,8 +67,10 @@ defineExpose({ addRow })
           :name="`utensil-name-${index}`"
           class="min-w-0 lg:[&_label]:sr-only"
         >
-          <UInput
-            v-model="row.name"
+          <ContentGlossaryTermPicker
+            v-model:glossary-term-id="row.glossaryTermId"
+            v-model:name="row.name"
+            kind="ustensile"
             placeholder="Ex. Poêle en fonte"
           />
         </UFormField>
@@ -83,17 +86,18 @@ defineExpose({ addRow })
           />
         </UFormField>
 
-        <UFormField
-          label="Lien affilié"
-          :name="`utensil-url-${index}`"
-          class="lg:[&_label]:sr-only"
-        >
-          <UInput
-            v-model="row.affiliateUrl"
-            type="url"
-            placeholder="https://…"
-          />
-        </UFormField>
+        <div class="min-w-0 text-xs text-muted lg:px-1">
+          <a
+            v-if="row.resolvedAffiliateUrl"
+            :href="row.resolvedAffiliateUrl"
+            class="block truncate underline decoration-default"
+            target="_blank"
+            rel="nofollow sponsored noopener"
+          >
+            Lien résolu
+          </a>
+          <span v-else>Sur la fiche glossaire</span>
+        </div>
 
         <div class="flex justify-end lg:justify-center">
           <UButton

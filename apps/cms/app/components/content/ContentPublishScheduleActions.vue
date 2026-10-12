@@ -3,13 +3,16 @@ import type { ContentStatus } from '~/types/cms'
 import type { AdminPublishContentType } from '~/composables/useContentPublishing'
 import SchedulePublicationPickerContent from '~/components/content/SchedulePublicationPickerContent.vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   contentType: AdminPublishContentType
   contentId?: number
   status: string
   ensureSaved: () => Promise<number | undefined>
   redirectAfterPublish?: string
-}>()
+  allowSchedule?: boolean
+}>(), {
+  allowSchedule: true,
+})
 
 const emit = defineEmits<{
   'update:status': [status: ContentStatus]
@@ -82,11 +85,13 @@ async function onConfirmSchedule(dayKey: string) {
         variant="solid"
         :loading="publishing"
         :disabled="scheduling"
-        class="rounded-r-none transition-transform active:scale-[0.98]"
+        :class="allowSchedule ? 'rounded-r-none' : ''"
+        class="transition-transform active:scale-[0.98]"
         @click="onPublishNow"
       />
 
       <UPopover
+        v-if="allowSchedule"
         v-model:open="scheduleOpen"
         :content="{ side: 'bottom', align: 'end' }"
         :ui="{ content: 'p-0' }"

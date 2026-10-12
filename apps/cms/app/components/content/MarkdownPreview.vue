@@ -7,7 +7,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="cms-markdown-preview min-h-[20rem] w-full max-w-none px-4 py-4 sm:px-5">
+  <div class="cms-markdown-preview mx-auto min-h-[20rem] w-full max-w-[46rem] px-4 py-4 sm:px-5">
     <PreviewMarkdown
       v-if="markdown.trim()"
       :value="markdown"

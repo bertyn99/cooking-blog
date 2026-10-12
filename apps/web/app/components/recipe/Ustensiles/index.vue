@@ -5,8 +5,12 @@ const props = defineProps<{
   utensils: RecipeUtensil[]
 }>()
 
+function buyUrl(item: RecipeUtensil) {
+  return item.resolvedAffiliateUrl?.trim() || item.affiliateUrl?.trim() || null
+}
+
 const hasAffiliate = computed(() =>
-  props.utensils.some(u => Boolean(u.affiliateUrl?.trim())),
+  props.utensils.some(u => Boolean(buyUrl(u))),
 )
 
 const sorted = computed(() =>
@@ -27,20 +31,26 @@ const sorted = computed(() =>
 
     <ul class="list-disc space-y-2 pl-5 text-base text-stone-800">
       <li v-for="(item, index) in sorted" :key="`${item.name}-${index}`">
-        <template v-if="item.affiliateUrl">
-          <a
-            :href="item.affiliateUrl"
-            class="font-medium text-amber-800 underline decoration-amber-300/80 hover:text-amber-950"
-            rel="nofollow sponsored noopener"
-            target="_blank"
-          >
-            {{ item.name }}
-          </a>
-        </template>
+        <NuxtLink
+          v-if="item.path"
+          :to="item.path"
+          class="font-medium text-stone-800 underline decoration-stone-300 hover:text-amber-900"
+        >
+          {{ item.name }}
+        </NuxtLink>
         <template v-else>
           {{ item.name }}
         </template>
         <span v-if="item.note" class="text-stone-600"> — {{ item.note }}</span>
+        <a
+          v-if="buyUrl(item)"
+          :href="buyUrl(item)!"
+          class="ml-2 text-sm text-amber-800 underline decoration-amber-300/80 hover:text-amber-950"
+          rel="nofollow sponsored noopener"
+          target="_blank"
+        >
+          Acheter
+        </a>
       </li>
     </ul>
 

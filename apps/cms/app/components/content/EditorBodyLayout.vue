@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { EditorNavSection } from '~/types/content-editor'
+import { EDITOR_COLUMN_CLASS } from '~/utils/dashboard-shell'
 
 defineProps<{
   sections?: EditorNavSection[]
@@ -7,7 +8,10 @@ defineProps<{
 </script>
 
 <template>
-  <div class="mx-auto w-full max-w-4xl px-2 pb-10 pt-2 sm:px-3">
+  <div
+    :class="EDITOR_COLUMN_CLASS"
+    class="pb-10 pt-2"
+  >
     <ContentEditorSectionNav
       v-if="sections?.length"
       :sections="sections"

@@ -127,6 +127,8 @@ export async function migrateLocalDb(
       const statements = splitMigrationStatements(sql)
 
       for (const statement of statements) {
+        const executable = statement.replace(/^\s*--.*$/gm, '').trim()
+        if (!executable) continue
         await client.execute(statement)
       }
 

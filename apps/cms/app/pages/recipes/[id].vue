@@ -6,17 +6,20 @@ const id = computed(() => Number.parseInt(route.params.id as string, 10))
 
 interface RecipeIngredient {
   id?: number
+  glossaryTermId?: number
   name: string
   qty?: number | null
   unit?: string | null
+  note?: string | null
   sortOrder?: number | null
 }
 
 interface RecipeUtensilRow {
   id?: number
+  glossaryTermId?: number
   name: string
   note?: string | null
-  affiliateUrl?: string | null
+  resolvedAffiliateUrl?: string | null
   sortOrder?: number | null
 }
 

@@ -9,6 +9,7 @@ import { ingredients } from '../schema/ingredients'
 import { recipeUtensils } from '../schema/recipe-utensils'
 import { nutrition } from '../schema/nutrition'
 import { recipeSteps } from '../schema/recipe-steps'
+import { glossaryAliases, glossaryTerms } from '../schema/glossary-terms'
 
 const articleTransferColumns = (({ createdByUserId, updatedByUserId, deletedAt, ...columns }) => columns)(
   getTableColumns(articles),
@@ -106,6 +107,28 @@ export function createTransferExportQueries(db: AppDb) {
           : [],
       ])
 
+      const termIds = [...new Set([
+        ...ingredientRows.map(row => row.glossaryTermId),
+        ...utensilRows.map(row => row.glossaryTermId),
+      ].filter((id): id is number => id != null))]
+
+      const [glossaryTermRows, glossaryAliasRows, glossarySeoRows] = termIds.length
+        ? await Promise.all([
+          db.select().from(glossaryTerms).where(inArray(glossaryTerms.id, termIds)).all(),
+          db.select().from(glossaryAliases).where(inArray(glossaryAliases.glossaryTermId, termIds)).all(),
+          db.select().from(seo).where(inArray(seo.glossaryTermId, termIds)).all(),
+        ])
+        : [[], [], []]
+
+      const coverPathnames = [...new Set(
+        glossaryTermRows
+          .map(row => row.coverBlobPathname)
+          .filter((pathname): pathname is string => Boolean(pathname)),
+      )]
+      const glossaryCoverRows = coverPathnames.length
+        ? await db.select().from(blobs).where(inArray(blobs.pathname, coverPathnames)).all()
+        : []
+
       return {
         items: rows,
         related: {
@@ -115,6 +138,10 @@ export function createTransferExportQueries(db: AppDb) {
           utensils: utensilRows,
           nutrition: nutritionRows,
           steps: stepRows,
+          glossaryTerms: glossaryTermRows,
+          glossaryAliases: glossaryAliasRows,
+          glossarySeo: glossarySeoRows,
+          glossaryCovers: glossaryCoverRows,
         },
         nextCursor: nextCursor(ids, opts.limit),
       }

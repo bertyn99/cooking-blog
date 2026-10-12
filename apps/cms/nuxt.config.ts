@@ -30,10 +30,12 @@ export default defineNuxtConfig({
 
   mcp: {
     name: 'Journal du Cuistot CMS',
-    description: 'Articles, recipes, and pages for Journal du Cuistot. Agents never publish.',
+    description: 'Articles, recipes, pages, and glossary for Journal du Cuistot. Agents never publish.',
     instructions: [
       'Never publish, unpublish, or schedule.',
-      'Articles, recipes, and pages: update live rows in place. Agents never publish, unpublish, or schedule.',
+      'Articles, recipes, pages, and glossary: update live rows in place. Agents never publish, unpublish, or schedule.',
+      'Glossary create is always draft + noindex. iconKey is semantic (pan, pot), never an Iconify class.',
+      'Recipe ingredients/utensils take glossaryTermId or a name stub. Affiliate URLs live on the utensil term, not the recipe row.',
       'After create/update, give the human previewUrl. Never publish, unpublish, or schedule.',
       'List categories before setting categoryId. Locale fr. Comark markdown.',
       'Use start-generation-run for notes-to-new-draft; CRUD for precise edits on drafts.',

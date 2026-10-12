@@ -4,7 +4,7 @@ definePageMeta({ layout: "content" });
 
 <script lang="ts" setup>
 import { useGenerateSchemaArianne } from "~/composables/useGenerateSchemaArianne";
-import type { Article, Recipe } from "~/types/strapiMeta";
+import type { Article, GlossaryTerm, Recipe } from "~/types/strapiMeta";
 import type { CmsPage } from "~/types/cms";
 
 const route = useRoute();
@@ -20,7 +20,7 @@ if (!slug || !type) {
 const contentType = type as string;
 const contentSlug = slug as string;
 
-const validTypes = ["page", "recipe", "article"] as const;
+const validTypes = ["page", "recipe", "article", "glossary"] as const;
 if (!validTypes.includes(contentType as (typeof validTypes)[number])) {
   throw createError({
     statusCode: 400,
@@ -37,7 +37,7 @@ const cacheKey = `preview-${contentType}-${contentSlug}`;
 
 const { data: payload, error: fetchError } = await useAsyncData(
   cacheKey,
-  () => $fetch<{ type: string, data: CmsPage | Recipe | Article }>("/api/preview-content", {
+  () => $fetch<{ type: string, data: CmsPage | Recipe | Article | GlossaryTerm }>("/api/preview-content", {
     query: { type: contentType, slug: contentSlug },
   }),
 );
@@ -59,7 +59,17 @@ if (!content.value) {
   });
 }
 
-const titleContent = computed(() => content.value?.title || "No title");
+const titleContent = computed(() => {
+  const value = content.value;
+  if (!value) return "No title";
+  if (contentType === "glossary") {
+    const term = value as GlossaryTerm;
+    return term.name || term.title || "No title";
+  }
+  if ("title" in value && value.title) return value.title;
+  if ("name" in value && value.name) return value.name;
+  return "No title";
+});
 const seo = computed(() => {
   const value = content.value;
   if (!value || !("seo" in value)) {
@@ -120,6 +130,23 @@ const ariane = (() => {
 
     <div v-else-if="contentType === 'article'">
       <PreviewArticleDisplay :article="content as Article" />
+    </div>
+
+    <div v-else-if="contentType === 'glossary'">
+      <h1 class="mb-4 font-serif text-5xl font-normal text-black">
+        {{ titleContent }}
+      </h1>
+      <p
+        v-if="(content as GlossaryTerm)?.description"
+        class="mb-6 max-w-2xl text-lg text-stone-600"
+      >
+        {{ (content as GlossaryTerm).description }}
+      </p>
+      <BaseMarkdownContent
+        v-if="(content as GlossaryTerm)?.content"
+        :markdown="(content as GlossaryTerm).content || ''"
+        tag="article"
+      />
     </div>
   </div>
 </template>

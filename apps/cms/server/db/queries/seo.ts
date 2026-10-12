@@ -4,7 +4,7 @@ import { schema } from '../create-db'
 import { queryInternal } from '../../db/query-errors'
 import { getSeoFilter, getSeoForContent } from '../../utils/seo'
 
-export type SeoContentType = 'article' | 'recipe' | 'page'
+export type SeoContentType = 'article' | 'recipe' | 'page' | 'glossary'
 
 export interface SeoUpsertBody {
   description?: string
@@ -60,6 +60,7 @@ export function createSeoQueries(db: AppDb) {
             articleId: contentType === 'article' ? contentId : null,
             recipeId: contentType === 'recipe' ? contentId : null,
             pageId: contentType === 'page' ? contentId : null,
+            glossaryTermId: contentType === 'glossary' ? contentId : null,
             description: body.description ?? null,
             keywords: body.keywords ?? null,
             canonicalUrl: body.canonicalUrl ?? null,
