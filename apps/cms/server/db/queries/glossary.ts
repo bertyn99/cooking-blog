@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, like, or, sql, type BatchItem } from 'drizzle-orm'
+import { and, eq, inArray, isNull, like, or, sql, type BatchItem } from 'drizzle-orm'
 import type { AppDb } from '../create-db'
 import { schema } from '../create-db'
 import { paginateResult } from '../../utils/pagination'
@@ -15,6 +15,8 @@ import {
 } from '../../../shared/glossary-form-families'
 import type { GlossaryUtensilCategory } from '../../../shared/glossary-icons'
 import type { GlossaryQueryFilter, GlossaryWith } from '../query-types'
+import { chunkIds } from './_shared/id-chunks'
+import { forIdChunks, mapIdChunks } from './_shared/chunked-rows'
 
 export type GlossaryTermInsert = typeof schema.glossaryTerms.$inferInsert
 export type GlossaryTermUpdate = Partial<Omit<GlossaryTermInsert, 'id' | 'createdAt'>>
@@ -71,6 +73,7 @@ function buildGlossaryWith(include: string[]): GlossaryWith {
   }
   return withObj
 }
+
 
 function publishedScopeFilter(isAuthenticated: boolean) {
   return applyPublishedScope(glossaryTerms, {
@@ -238,6 +241,14 @@ export function createGlossaryQueries(db: AppDb) {
         .get()
     },
 
+    findRowsByIds(ids: number[]) {
+      return mapIdChunks(ids, chunk => db
+        .select()
+        .from(glossaryTerms)
+        .where(and(inArray(glossaryTerms.id, chunk), isNull(glossaryTerms.deletedAt)))
+        .all())
+    },
+
     findBySlug(slug: string, locale = 'fr', scope: 'public' | 'admin' = 'public') {
       const filters: NonNullable<GlossaryQueryFilter>[] = [{ slug }, { locale }]
       if (scope !== 'admin') {
@@ -394,6 +405,39 @@ export function createGlossaryQueries(db: AppDb) {
         deletedAt: now,
         updatedAt: now,
       }).where(eq(glossaryTerms.id, id))
+    },
+
+    async softDeleteMany(ids: number[], updatedByUserId: number) {
+      const now = new Date().toISOString()
+      await forIdChunks(ids, chunk => db.update(glossaryTerms).set({
+        deletedAt: now,
+        updatedAt: now,
+        updatedByUserId,
+      }).where(and(inArray(glossaryTerms.id, chunk), isNull(glossaryTerms.deletedAt))))
+    },
+
+    async publishByIds(ids: number[], now: string, updatedByUserId: number) {
+      if (!ids.length) return
+      for (const chunk of chunkIds(ids)) {
+        await db.update(glossaryTerms).set({
+          status: 'published',
+          publishedAt: sql`coalesce(${glossaryTerms.publishedAt}, ${now})`,
+          updatedAt: now,
+          updatedByUserId,
+        }).where(and(inArray(glossaryTerms.id, chunk), isNull(glossaryTerms.deletedAt)))
+      }
+    },
+
+    async unpublishByIds(ids: number[], now: string, updatedByUserId: number) {
+      if (!ids.length) return
+      for (const chunk of chunkIds(ids)) {
+        await db.update(glossaryTerms).set({
+          status: 'draft',
+          publishedAt: null,
+          updatedAt: now,
+          updatedByUserId,
+        }).where(and(inArray(glossaryTerms.id, chunk), isNull(glossaryTerms.deletedAt)))
+      }
     },
 
     async replaceAliases(termId: number, aliases: Array<{ alias: string, aliasNormalized: string, locale: string }>) {

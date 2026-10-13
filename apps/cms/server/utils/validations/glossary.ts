@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { GLOSSARY_KINDS } from '../../../shared/glossary-normalize'
-import { GLOSSARY_ICON_KEYS } from '../../../shared/glossary-icons'
-import { GLOSSARY_UTENSIL_CATEGORIES } from '../../../shared/glossary-icons'
+import { GLOSSARY_ICON_KEYS, GLOSSARY_UTENSIL_CATEGORIES } from '../../../shared/glossary-icons'
 
 const aliasSchema = z.object({
   alias: z.string().min(1),
@@ -34,3 +33,9 @@ export const updateGlossaryTermSchema = createGlossaryTermSchema.partial().exten
   kind: z.enum(GLOSSARY_KINDS).optional(),
   name: z.string().min(1).optional(),
 })
+
+export {
+  CONTENT_BULK_ACTIONS as GLOSSARY_BULK_ACTIONS,
+  type ContentBulkAction as GlossaryBulkAction,
+  bulkContentSchema as bulkGlossaryTermsSchema,
+} from './content-bulk'

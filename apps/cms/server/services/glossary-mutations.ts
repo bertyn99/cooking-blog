@@ -7,10 +7,13 @@ import { applyContentPolicy } from '../utils/content-status-policy'
 import type { Actor } from '../utils/actor'
 import { actorApiKeyId, actorUserId } from '../utils/actor'
 import { recordContentAudit } from './content-audit'
+import { recordBulkAudit, runBulkPerId } from './content-bulk-mutations'
+import { partitionBulkIds } from '../../shared/content-bulk'
 import type { MutationMeta } from './article-mutations'
-import {
+import type {
   createGlossaryTermSchema,
   updateGlossaryTermSchema,
+  GlossaryBulkAction,
 } from '../utils/validations/glossary'
 import {
   glossarySortKey,
@@ -389,6 +392,58 @@ export async function findOrCreateGlossaryStub(
   }
 
   return created.term
+}
+
+export async function bulkGlossaryTermsMutation(
+  event: H3Event,
+  actor: Actor,
+  input: { ids: number[], action: GlossaryBulkAction },
+) {
+  const { glossary } = useQueries(event)
+  const uniqueIds = [...new Set(input.ids)]
+  const rows = await glossary.findRowsByIds(uniqueIds)
+  if (!rows.length) {
+    throw createApiError('NOT_FOUND', 'Aucun terme de glossaire trouvé.')
+  }
+
+  const foundIds = rows.map(row => row.id)
+  const { missingIds } = partitionBulkIds(uniqueIds, foundIds)
+  const userId = actorUserId(actor)
+  const now = new Date().toISOString()
+  let failed: Array<{ id: number, message: string }> = []
+
+  switch (input.action) {
+    case 'delete':
+      await glossary.softDeleteMany(foundIds, userId)
+      break
+    case 'publish':
+      applyContentPolicy(actor, { status: 'draft' }, { status: 'published' })
+      await glossary.publishByIds(foundIds, now, userId)
+      failed = (await runBulkPerId(foundIds, id => syncGlossaryRobotsForStatus(event, id, 'published'))).failed
+      break
+    case 'unpublish':
+      applyContentPolicy(actor, { status: 'published' }, { status: 'draft' })
+      await glossary.unpublishByIds(foundIds, now, userId)
+      failed = (await runBulkPerId(foundIds, id => syncGlossaryRobotsForStatus(event, id, 'draft'))).failed
+      break
+    default: {
+      const _exhaustive: never = input.action
+      throw createApiError('VALIDATION_ERROR', `Action inconnue : ${String(_exhaustive)}`)
+    }
+  }
+
+  await recordBulkAudit(event, actor, 'glossary', foundIds, input.action, {
+    ...(failed.length ? { failed } : {}),
+    ...(missingIds.length ? { missingIds } : {}),
+  })
+
+  return {
+    action: input.action,
+    ids: foundIds,
+    count: foundIds.length,
+    ...(failed.length ? { failed } : {}),
+    ...(missingIds.length ? { missingIds } : {}),
+  }
 }
 
 export {

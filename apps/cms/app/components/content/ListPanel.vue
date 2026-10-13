@@ -31,17 +31,26 @@ const props = withDefaults(defineProps<{
   showKindColumn?: boolean
   hideScheduledFilter?: boolean
   showKindFilter?: boolean
+  enableBulkActions?: boolean
+  bulkNounSingular?: string
+  bulkNounPlural?: string
+  bulkNounFeminine?: boolean
 }>(), {
   showSlugColumn: true,
   showKindColumn: false,
   hideScheduledFilter: false,
   showKindFilter: false,
+  enableBulkActions: false,
+  bulkNounSingular: 'élément',
+  bulkNounPlural: 'éléments',
+  bulkNounFeminine: false,
 })
 
 const basePath = computed(() => props.contentBasePath ?? props.endpoint.replace(/^\/api/, ''))
 
 const UBadge = resolveComponent('UBadge')
 const UButton = resolveComponent('UButton')
+const UCheckbox = resolveComponent('UCheckbox')
 
 const { $api } = useNuxtApp()
 
@@ -66,7 +75,7 @@ const listKey = computed(() =>
   `content-list-${props.endpoint}-p${page.value}-q${debouncedSearch.value}-st${statusFilter.value}-k${kindFilter.value}`,
 )
 
-const { data, status } = await useAsyncData(
+const { data, status, refresh } = await useAsyncData(
   listKey,
   () => $api<ListResponse>(props.endpoint, {
     query: {
@@ -103,16 +112,69 @@ watch(
 const rows = computed(() => data.value?.data ?? [])
 const total = computed(() => data.value?.meta.pagination.total ?? 0)
 
+const bulk = useContentBulkSelection({
+  endpoint: () => props.endpoint,
+  noun: () => ({
+    singular: props.bulkNounSingular,
+    plural: props.bulkNounPlural,
+    feminine: props.bulkNounFeminine,
+  }),
+  refresh,
+  visibleIds: () => rows.value.map(row => row.id),
+})
+const {
+  rowSelection,
+  bulkLoading,
+  deleteConfirmOpen,
+  selectedCount,
+  selectedHint,
+  canBulkChangeStatus,
+  deleteConfirmDescription,
+  bulkStatusItems,
+  clearSelection,
+  trySelect,
+  trySelectMany,
+  confirmBulkDelete,
+} = bulk
+
 const statusColor = {
   draft: 'neutral',
   published: 'success',
   scheduled: 'warning',
 } as const
 
+const selectColumn: TableColumn<ContentRow> = {
+  id: 'select',
+  header: ({ table }) => h(UCheckbox, {
+    'modelValue': table.getIsSomePageRowsSelected()
+      ? 'indeterminate'
+      : table.getIsAllPageRowsSelected(),
+    'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
+      trySelectMany(table.getRowModel().rows.map(row => String(row.id)), !!value),
+    'aria-label': 'Tout sélectionner sur la page',
+  }),
+  cell: ({ row }) => h(UCheckbox, {
+    'modelValue': row.getIsSelected(),
+    'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
+      trySelect(String(row.id), !!value),
+    'aria-label': `Sélectionner ${row.original.title}`,
+  }),
+  enableSorting: false,
+  enableHiding: false,
+  meta: {
+    class: {
+      th: 'w-12 px-3',
+      td: 'w-12 px-3',
+    },
+  },
+}
+
 const columns = computed<TableColumn<ContentRow>[]>(() => {
-  const cols: TableColumn<ContentRow>[] = [
-    { accessorKey: 'title', header: 'Titre' },
-  ]
+  const cols: TableColumn<ContentRow>[] = []
+  if (props.enableBulkActions) {
+    cols.push(selectColumn)
+  }
+  cols.push({ accessorKey: 'title', header: 'Titre' })
   if (props.showKindColumn) {
     cols.push({
       accessorKey: 'kind',
@@ -159,6 +221,10 @@ const columns = computed<TableColumn<ContentRow>[]>(() => {
   )
   return cols
 })
+
+function getRowId(row: ContentRow) {
+  return String(row.id)
+}
 </script>
 
 <template>
@@ -195,11 +261,26 @@ const columns = computed<TableColumn<ContentRow>[]>(() => {
         </div>
       </div>
 
+      <ContentBulkToolbar
+        v-if="enableBulkActions"
+        v-model:delete-open="deleteConfirmOpen"
+        :selected-count="selectedCount"
+        :selected-hint="selectedHint"
+        :can-change-status="canBulkChangeStatus"
+        :status-items="bulkStatusItems"
+        :loading="bulkLoading"
+        :delete-description="deleteConfirmDescription"
+        @clear="clearSelection"
+        @confirm-delete="confirmBulkDelete"
+      />
+
       <UTable
+        v-model:row-selection="rowSelection"
         class="mt-4 shrink-0"
         :data="rows"
         :columns="columns"
-        :loading="status === 'pending'"
+        :loading="status === 'pending' || bulkLoading"
+        :get-row-id="getRowId"
         :ui="DASHBOARD_TABLE_UI"
       />
 
@@ -216,6 +297,7 @@ const columns = computed<TableColumn<ContentRow>[]>(() => {
           show-edges
         />
       </div>
+
     </template>
   </AppDashboardPanel>
 </template>

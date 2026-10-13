@@ -6,5 +6,8 @@
     content-base-path="/articles"
     create-label="Nouvel article"
     :show-slug-column="false"
+    enable-bulk-actions
+    bulk-noun-singular="article"
+    bulk-noun-plural="articles"
   />
 </template>
