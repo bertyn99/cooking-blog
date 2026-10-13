@@ -6,13 +6,14 @@
 - [ ] `slug` posé explicitement : keywords, tirets, sans date/saison
 - [ ] `intro` 800–2000 chars : ouverture concrète (jamais opener banni), réponses PAA du cluster (quantités/pers, temps, test de cuisson, vin), 1 histoire courte max
 - [ ] `excerpt` 1-2 phrases (dek)
-- [ ] `ingredients[]` : chaque ligne = `{ name, qty?, unit? }` — unit dans l'enum stricte, préparation dans le nom, pas d'unité dans le nom
-- [ ] `step` : **lignes numérotées « 1. … »** (une par ligne, `\n`), 6-12 étapes, ordre chronologique, repères physiques — le composant web affiche son propre numéro et retire le préfixe « N. » + le point final
-- [ ] `utensils[]` : le matériel réellement utile — `affiliateUrl` seulement si produit testé (+ disclosure)
+- [ ] Glossaire résolu **avant** création : `list-glossary-terms` pour chaque ingrédient et ustensile (voir `glossary-and-utensils.md`)
+- [ ] `ingredients[]` : `{ glossaryTermId, qty?, unit?, note? }` — à défaut stub `{ name, qty?, unit?, note? }` ; unit dans l'enum stricte ; préparation dans `note` (pas un nouveau terme) ; forme culinaire = fiche `parentId`, pas un alias
+- [ ] `steps[]` : `{ instruction }` × 6-12, ordre chronologique, repères physiques — puis `step` markdown « 1. … » via `update-recipe` si le preview public ne les affiche pas
+- [ ] `utensils[]` : `{ glossaryTermId, note? }` (taille / option dans `note`) — **pas d'`affiliateUrl`** ; icône / ASIN / `partnerUrl` sur la fiche `ustensile`
 - [ ] `nutrition` : par portion, 4 clés minimum (calories, glucides, lipides, proteine), unités dans les valeurs
 - [ ] `difficulty` + `time` + `prepTimeMinutes` + `cookTimeMinutes` + `servings` cohérents entre eux et avec les étapes
 - [ ] `coverBlobPathname` + `coverAltText` + `coverDescription` (media loop, nom complet du plat)
-- [ ] `categoryId` depuis `list-article-categories`
+- [ ] `categoryId` depuis `list-recipe-categories`
 - [ ] `locale` : `fr`
 
 ## Schema Recipe (auto-généré par le template)
@@ -22,7 +23,7 @@ Le web émet le schema depuis les champs : name, totalTime, datePublished, dateM
 ## Liens internes (≥ 2)
 
 - 1 **up** : hub `/recette/recettes-du-monde` ou la catégorie
-- 1 **sideways** : une recette ou un article lié (vérifier la cible existe — les 404 ont déjà été livrés)
+- 1 **sideways** : une recette, un article, ou une fiche glossaire **published** (`/glossaire/<slug>` — un stub draft n'a pas de `path`)
 - Ancres contextuelles variées, jamais « cliquez ici »
 
 ## Passe 1 — Correction
@@ -31,6 +32,9 @@ Le web émet le schema depuis les champs : name, totalTime, datePublished, dateM
 - [ ] Français : grammaire, accords, ponctuation
 - [ ] Comark/source : pas de `**` en titres, pas de HTML cru, pas d'entités échappées
 - [ ] Unités dans l'enum, cohérence servings ↔ ingrédients ↔ étapes
+- [ ] Chaque ingrédient / ustensile pointe un terme du bon `kind` (pas de mismatch)
+- [ ] Stubs volontaires seulement ; pas de doublon glossaire (alias plutôt que nouveau terme)
+- [ ] Ustensiles : pas d'`affiliateUrl` sur la ligne ; affiliation éventuelle sur la fiche
 - [ ] Chaque étape a un repère physique ou temporel
 - [ ] Meta 140–155, keywords propres, excerpt présent
 - [ ] Liens internes : cibles vérifiées, ancres naturelles
@@ -46,7 +50,9 @@ Le web émet le schema depuis les champs : name, totalTime, datePublished, dateM
 ## Render check (previewUrl)
 
 - [ ] 200, pas d'erreur boundary
-- [ ] Intro rendue, ingrédients avec unités, étapes ordonnées, tableau nutrition
+- [ ] Intro rendue, ingrédients avec unités, étapes ordonnées, bloc Ustensiles, tableau nutrition
+- [ ] Lien `/glossaire/…` seulement sur les termes published (sinon nom en texte)
+- [ ] « Acheter » + disclosure seulement si une fiche ustensile a un ASIN / `partnerUrl`
 - [ ] Cover affichée, images inline (si FAQ : section rendue)
 - [ ] Liens internes résolus
 - [ ] Pas de placeholder ni de texte template

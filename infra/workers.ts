@@ -90,12 +90,17 @@ export const workers = Effect.fn(function* (input: {
 
   // Provision AI Gateway (dashboard logs, caching, rate limits).
   // Nuxt CMS uses Workers AI binding + `CMS_AI_GATEWAY_ID` in `workers-ai-provider` (not Effect `QueryGateway`).
+  // `authentication: true` is required for stored provider keys (BYOK) — Google AI Studio, etc.
+  // Worker `env.AI.run(..., { gateway })` stays pre-authenticated; REST / provider-native
+  // calls need `Authorization` / `cf-aig-authorization`.
   // @see https://alchemy.run/cloudflare/ai/ai-gateway/
-  // @see https://alchemy.run/cloudflare/ai/workers-ai
+  // @see https://developers.cloudflare.com/ai-gateway/configuration/authentication/
+  // @see https://developers.cloudflare.com/ai-gateway/configuration/bring-your-own-keys/
   yield* Cloudflare.AI.Gateway('CmsAi', {
     id: CMS_AI_GATEWAY_ID,
     cacheTtl: 60,
     collectLogs: true,
+    authentication: true,
   })
 
   // Nitro v2 cannot emit extra worker exports (`exports.cloudflare.ts` is a

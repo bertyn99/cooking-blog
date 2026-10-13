@@ -6,21 +6,24 @@ Le champ `unit` d'un ingrédient n'accepte QUE ces valeurs (sans accents, en min
 
 | Valeur | Sert à | Exemple d'ingrédient |
 |---|---|---|
-| `none` | pincées, gousses, branches, pièces, boîtes — tout ce qui ne se mesure pas | `{ name: "Gousses d'ail", qty: 2, unit: "none" }` |
-| `g` | grammes (farine, beurre, lardons) | `{ name: "Farine T55", qty: 250, unit: "g" }` |
-| `mg` | milligrammes (rare — sel fin en pâtisserie de précision) | `{ name: "Sel", qty: 500, unit: "mg" }` |
-| `kg` | kilogrammes (moules, viandes en gros) | `{ name: "Moules de Bouchot", qty: 2, unit: "kg" }` |
-| `l` | litres (lait, bouillon) | `{ name: "Lait entier", qty: 0.5, unit: "l" }` |
-| `ml` | millilitres (huile, vin, crème) | `{ name: "Vin blanc sec", qty: 250, unit: "ml" }` |
-| `cuillere_soupe` | cuillère à soupe (huile, farine, crème) | `{ name: "Huile d'olive", qty: 3, unit: "cuillere_soupe" }` |
-| `cuillere_cafe` | cuillère à café (épices, levure, extrait) | `{ name: "Levure sèche", qty: 1, unit: "cuillere_cafe" }` |
-| `tasse` | tasse (amandes, raisins secs) | `{ name: "Raisins secs", qty: 1, unit: "tasse" }` |
+| `none` | pincées, gousses, branches, pièces, boîtes — tout ce qui ne se mesure pas | `{ glossaryTermId, qty: 2, unit: "none" }` |
+| `g` | grammes (farine, beurre, lardons) | `{ glossaryTermId, qty: 250, unit: "g" }` |
+| `mg` | milligrammes (rare — sel fin en pâtisserie de précision) | `{ glossaryTermId, qty: 500, unit: "mg" }` |
+| `kg` | kilogrammes (moules, viandes en gros) | `{ glossaryTermId, qty: 2, unit: "kg" }` |
+| `l` | litres (lait, bouillon) | `{ glossaryTermId, qty: 0.5, unit: "l" }` |
+| `ml` | millilitres (huile, vin, crème) | `{ glossaryTermId, qty: 250, unit: "ml" }` |
+| `cuillere_soupe` | cuillère à soupe (huile, farine, crème) | `{ glossaryTermId, qty: 3, unit: "cuillere_soupe" }` |
+| `cuillere_cafe` | cuillère à café (épices, levure, extrait) | `{ glossaryTermId, qty: 1, unit: "cuillere_cafe" }` |
+| `tasse` | tasse (amandes, raisins secs) | `{ glossaryTermId, qty: 1, unit: "tasse" }` |
 
 ### Pièges d'écriture des ingrédients
 
-- **Pas d'unité dans le `name`** : la quantité vit dans `qty` + `unit`. « 2 gousses d'ail » → `{ name: "Gousses d'ail", qty: 2, unit: "none" }`. MAIS les qualificatifs de préparation restent dans le nom : « Échalotes émincées », « Persil ciselé ».
+Préférer `{ glossaryTermId, qty, unit, note }` après `list-glossary-terms`. Le stub `{ name }` ne sert que si le terme n'existe pas (draft+noindex). Contrat complet : `glossary-and-utensils.md`.
+
+- **Pas d'unité dans le nom du terme** : la quantité vit dans `qty` + `unit`. « 2 gousses d'ail » → terme « Ail » (ou « Gousses d'ail » s'il existe), `{ qty: 2, unit: "none" }`.
+- **Préparation dans `note`**, pas dans le nom : « émincées », « ciselé », « tamisée », « fondu ». Le terme reste « Échalotes », « Persil », « Farine T55 ».
 - **Pas d'accents ni de pluriels dans l'enum** : `cuillere_soupe` (jamais `cuillère_à_soupe`).
-- **Les pincées** : `unit: "none"` et la pincée dans le nom (« Pincée de piment d'Espelette », qty omis ou 1).
+- **Les pincées** : `unit: "none"` et la pincée dans `note` (`note: "une pincée"`), qty omis ou 1. Un `(…)` en fin de `name` stub est strippé vers `note`.
 - **Fraction de quantité** : décimales acceptées (0.5 l = 50 cl).
 
 ## La nutrition — par portion, honnête, indicatif
