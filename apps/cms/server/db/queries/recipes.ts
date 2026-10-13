@@ -1,4 +1,4 @@
-import { eq, and, sql, desc, inArray, or, like, type BatchItem } from 'drizzle-orm'
+import { eq, and, sql, desc, inArray, isNull, or, like, type BatchItem } from 'drizzle-orm'
 import type { AppDb } from '../create-db'
 import { schema } from '../create-db'
 import { paginateResult } from '../../utils/pagination'
@@ -11,6 +11,7 @@ import { mergeConditions, applyPublishedScope, localeFilter, statusFilter } from
 import { reorderByIds } from './_shared/list-page'
 import { reserveUniqueSlugInLocale } from './_shared/reserve-slug'
 import { recipes } from '../schema/recipes'
+import { forIdChunks, mapIdChunks } from './_shared/chunked-rows'
 
 export type RecipeUpdatePatch = Partial<Omit<typeof schema.recipes.$inferInsert, 'id' | 'createdAt'>>
 export type NutritionRowInput = Omit<typeof schema.nutrition.$inferInsert, 'id' | 'recipeId'>
@@ -122,6 +123,14 @@ export function createRecipeQueries(db: AppDb) {
 
     findRowById(id: number) {
       return db.select().from(schema.recipes).where(eq(schema.recipes.id, id)).get()
+    },
+
+    findRowsByIds(ids: number[]) {
+      return mapIdChunks(ids, chunk => db
+        .select()
+        .from(schema.recipes)
+        .where(and(inArray(schema.recipes.id, chunk), isNull(schema.recipes.deletedAt)))
+        .all())
     },
 
     listSlugsInLocale(locale: string) {
@@ -290,6 +299,15 @@ export function createRecipeQueries(db: AppDb) {
         .update(schema.recipes)
         .set({ deletedAt: new Date().toISOString() })
         .where(eq(schema.recipes.id, id))
+    },
+
+    async softDeleteMany(ids: number[], updatedByUserId: number) {
+      const now = new Date().toISOString()
+      await forIdChunks(ids, chunk => db.update(schema.recipes).set({
+        deletedAt: now,
+        updatedAt: now,
+        updatedByUserId,
+      }).where(and(inArray(schema.recipes.id, chunk), isNull(schema.recipes.deletedAt))))
     },
   }
 }

@@ -8,6 +8,8 @@ import {
 } from '#shared/page-hierarchy'
 import { DASHBOARD_TABLE_UI } from '~/utils/dashboard-shell'
 
+type MoveTarget = 'root' | 'existing' | 'new'
+
 interface PageListItem {
   id: number
   name: string
@@ -15,6 +17,7 @@ interface PageListItem {
   slug: string
   status: ContentStatus
   locale: string
+  isHome?: boolean
   parentId: number | null
   parent?: {
     slug: string
@@ -104,6 +107,7 @@ function treeRowIcon(
 
 const router = useRouter()
 const { $api } = useNuxtApp()
+const toast = useToast()
 
 const pagesById = computed(() => {
   const map = new Map<number, PageListItem>()
@@ -123,10 +127,15 @@ function directParentLabel(row: PageTreeRow<PageListItem>): string | null {
 
 const UBadge = resolveComponent('UBadge')
 const UButton = resolveComponent('UButton')
+const UCheckbox = resolveComponent('UCheckbox')
 
 const search = ref('')
 const statusFilter = ref<'all' | ContentStatus>('all')
 const viewMode = ref<ViewMode>('tree')
+const moveOpen = ref(false)
+const moveTarget = ref<MoveTarget>('existing')
+const moveParentId = ref<number | null>(null)
+const newParentName = ref('')
 
 const { data, status, refresh } = await useAsyncData('content-list-pages-tree', async () => {
   const first = await $api<{
@@ -214,6 +223,149 @@ const viewItems = [
   { label: 'Liste', value: 'flat' as const, icon: 'i-lucide-rows-3' },
 ]
 
+const bulk = useContentBulkSelection({
+  endpoint: '/api/pages',
+  noun: { singular: 'page', plural: 'pages', feminine: true },
+  refresh,
+  visibleIds: () => filteredRows.value.map(row => row.id),
+})
+const {
+  rowSelection,
+  bulkLoading,
+  deleteConfirmOpen,
+  selectedIds,
+  selectedCount,
+  selectedHint,
+  canBulkChangeStatus,
+  deleteConfirmDescription,
+  bulkStatusItems,
+  clearSelection,
+  trySelect,
+  trySelectMany,
+  runBulkAction,
+  confirmBulkDelete,
+} = bulk
+
+const selectedRows = computed(() => {
+  const ids = new Set(selectedIds.value)
+  return (data.value?.items ?? []).filter(row => ids.has(row.id))
+})
+const selectedLocales = computed(() =>
+  new Set(selectedRows.value.filter(row => !row.isHome).map(row => row.locale)),
+)
+const mixedLocales = computed(() => selectedLocales.value.size > 1)
+const moveParentPages = computed(() => {
+  const items = data.value?.items ?? []
+  if (selectedLocales.value.size !== 1) return items
+  const locale = [...selectedLocales.value][0]
+  return items.filter(page => page.locale === locale)
+})
+const moveTargetItems = computed(() => [
+  { label: 'Page racine', value: 'root' as const },
+  { label: 'Page existante', value: 'existing' as const, disabled: mixedLocales.value },
+  { label: 'Nouveau parent', value: 'new' as const, disabled: mixedLocales.value },
+])
+
+const selectColumn: TableColumn<PageTreeRow<PageListItem>> = {
+  id: 'select',
+  header: ({ table }) => h(UCheckbox, {
+    'modelValue': table.getIsSomePageRowsSelected()
+      ? 'indeterminate'
+      : table.getIsAllPageRowsSelected(),
+    'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
+      trySelectMany(
+        table.getRowModel().rows
+          .filter(row => !row.original.isHome)
+          .map(row => String(row.id)),
+        !!value,
+      ),
+    'aria-label': 'Tout sélectionner',
+  }),
+  cell: ({ row }) => h(UCheckbox, {
+    'modelValue': row.getIsSelected(),
+    'disabled': Boolean(row.original.isHome),
+    'onUpdate:modelValue': (value: boolean | 'indeterminate') => {
+      if (row.original.isHome) return
+      trySelect(String(row.id), !!value)
+    },
+    'aria-label': row.original.isHome
+      ? 'La page d’accueil ne peut pas être sélectionnée'
+      : `Sélectionner ${pageHierarchyLabel(row.original)}`,
+  }),
+  enableSorting: false,
+  enableHiding: false,
+  meta: {
+    class: {
+      th: 'w-12 px-3',
+      td: 'w-12 px-3',
+    },
+  },
+}
+
+function getRowId(row: PageTreeRow<PageListItem>) {
+  return String(row.id)
+}
+
+const rowSelectionOptions = {
+  enableRowSelection: (row: { original: PageTreeRow<PageListItem> }) => !row.original.isHome,
+}
+
+function resetMoveForm() {
+  moveTarget.value = mixedLocales.value ? 'root' : 'existing'
+  moveParentId.value = null
+  newParentName.value = ''
+}
+
+watch(moveOpen, (open) => {
+  if (!open) resetMoveForm()
+})
+
+watch(mixedLocales, (mixed) => {
+  if (mixed && moveTarget.value !== 'root') {
+    moveTarget.value = 'root'
+  }
+})
+
+async function confirmMove(close: () => void) {
+  if (!selectedIds.value.length || bulkLoading.value) return
+
+  if (mixedLocales.value && moveTarget.value !== 'root') {
+    toast.add({
+      title: 'Langues mélangées',
+      description: 'Placez la sélection à la racine, ou ne sélectionnez qu’une langue.',
+      color: 'warning',
+    })
+    return
+  }
+
+  if (moveTarget.value === 'existing' && moveParentId.value == null) {
+    toast.add({
+      title: 'Choisissez une page parente',
+      color: 'warning',
+    })
+    return
+  }
+
+  if (moveTarget.value === 'new' && !newParentName.value.trim()) {
+    toast.add({
+      title: 'Indiquez le nom du nouveau parent',
+      color: 'warning',
+    })
+    return
+  }
+
+  const extra = moveTarget.value === 'new'
+    ? { newParentName: newParentName.value.trim() }
+    : { parentId: moveTarget.value === 'root' ? null : moveParentId.value }
+
+  const result = await runBulkAction('move', extra)
+  if (result) {
+    moveOpen.value = false
+    resetMoveForm()
+    close()
+  }
+}
+
 const tableMeta = computed(() => {
   if (viewMode.value !== 'tree') {
     return undefined
@@ -243,6 +395,7 @@ const tableUi = computed(() => ({
 
 const columns = computed((): TableColumn<PageTreeRow<PageListItem>>[] => {
   const cols: TableColumn<PageTreeRow<PageListItem>>[] = [
+    selectColumn,
     {
       accessorKey: 'title',
       header: 'Page',
@@ -369,13 +522,102 @@ const columns = computed((): TableColumn<PageTreeRow<PageListItem>>[] => {
         </div>
       </div>
 
+      <ContentBulkToolbar
+        v-model:delete-open="deleteConfirmOpen"
+        :selected-count="selectedCount"
+        :selected-hint="selectedHint"
+        :can-change-status="canBulkChangeStatus"
+        :status-items="bulkStatusItems"
+        :loading="bulkLoading"
+        :delete-description="deleteConfirmDescription"
+        @clear="clearSelection"
+        @confirm-delete="confirmBulkDelete"
+      >
+        <template #before-delete>
+          <UButton
+            label="Déplacer"
+            color="neutral"
+            variant="outline"
+            size="sm"
+            icon="i-lucide-folder-input"
+            :disabled="bulkLoading"
+            @click="moveOpen = true"
+          />
+          <UModal
+            v-model:open="moveOpen"
+            title="Déplacer la sélection"
+            :ui="{ footer: 'justify-end' }"
+          >
+            <template #body>
+              <p class="mb-3 text-sm text-muted">
+                {{ selectedCount > 1
+                  ? `${selectedCount} pages seront rangées sous le parent choisi.`
+                  : 'Cette page sera rangée sous le parent choisi.' }}
+                Les pages déjà sous une page sélectionnée restent à leur place.
+              </p>
+              <URadioGroup
+                v-model="moveTarget"
+                :items="moveTargetItems"
+                class="mb-4"
+              />
+              <p
+                v-if="mixedLocales"
+                class="mb-3 text-sm text-muted"
+              >
+                Langues mélangées : seule la racine est disponible.
+              </p>
+              <p
+                v-if="moveTarget === 'root'"
+                class="text-sm text-muted"
+              >
+                Les pages n’auront plus de parent (racine du site).
+              </p>
+              <ContentPageParentRelationField
+                v-else-if="moveTarget === 'existing'"
+                v-model="moveParentId"
+                :pages="moveParentPages"
+                :exclude-page-ids="selectedIds"
+                field-label="page parente"
+                :show-root-hint="false"
+              />
+              <UFormField
+                v-else
+                label="Nom du nouveau parent"
+                hint="Une page racine brouillon sera créée. Les URL publiques des pages déjà publiées changeront."
+              >
+                <UInput
+                  v-model="newParentName"
+                  placeholder="Ex. Guides, Dossiers…"
+                />
+              </UFormField>
+            </template>
+            <template #footer>
+              <UButton
+                label="Annuler"
+                color="neutral"
+                variant="ghost"
+                :disabled="bulkLoading"
+                @click="moveOpen = false"
+              />
+              <UButton
+                label="Déplacer"
+                :loading="bulkLoading"
+                @click="confirmMove(() => { moveOpen = false })"
+              />
+            </template>
+          </UModal>
+        </template>
+      </ContentBulkToolbar>
+
       <UTable
+        v-model:row-selection="rowSelection"
         class="mt-4 shrink-0"
         :data="filteredRows"
         :columns="columns"
         :meta="tableMeta"
-        :loading="status === 'pending'"
-        :get-row-id="row => String(row.id)"
+        :loading="status === 'pending' || bulkLoading"
+        :get-row-id="getRowId"
+        :row-selection-options="rowSelectionOptions"
         :ui="tableUi"
         :caption="viewMode === 'tree' ? 'Arborescence des pages du site' : 'Liste des pages du site'"
       >

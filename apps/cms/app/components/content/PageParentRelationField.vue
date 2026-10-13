@@ -19,6 +19,10 @@ const props = defineProps<{
   pages: PageOption[]
   /** Page being edited — excluded from picker (and its descendants). */
   excludePageId?: number
+  /** Extra pages to exclude (and their descendants), e.g. a bulk selection. */
+  excludePageIds?: number[]
+  fieldLabel?: string
+  showRootHint?: boolean
 }>()
 
 const search = ref('')
@@ -27,7 +31,11 @@ const listOpen = ref(false)
 const treeRows = computed(() => orderPagesAsTree(props.pages))
 
 const excludedIds = computed(() => {
-  if (props.excludePageId == null) {
+  const seedIds = [
+    ...(props.excludePageId != null ? [props.excludePageId] : []),
+    ...(props.excludePageIds ?? []),
+  ]
+  if (!seedIds.length) {
     return new Set<number>()
   }
   const childrenByParent = new Map<number, number[]>()
@@ -38,8 +46,8 @@ const excludedIds = computed(() => {
       childrenByParent.set(page.parentId, bucket)
     }
   }
-  const blocked = new Set<number>([props.excludePageId])
-  const stack = [props.excludePageId]
+  const blocked = new Set<number>(seedIds)
+  const stack = [...seedIds]
   while (stack.length > 0) {
     const current = stack.pop()!
     for (const childId of childrenByParent.get(current) ?? []) {
@@ -112,7 +120,7 @@ function openPicker() {
 
 <template>
   <div class="space-y-2">
-    <ContentFieldLabel label="parent" :count="model != null ? 1 : 0" />
+    <ContentFieldLabel :label="fieldLabel ?? 'parent'" :count="model != null ? 1 : 0" />
 
     <div
       v-if="selected && selectedRow"
@@ -160,7 +168,7 @@ function openPicker() {
         label="Choisir une page parente"
         @click="openPicker"
       />
-      <span class="text-xs text-muted">Laisser vide pour une page racine</span>
+      <span v-if="showRootHint !== false" class="text-xs text-muted">Laisser vide pour une page racine</span>
     </div>
 
     <template v-else>

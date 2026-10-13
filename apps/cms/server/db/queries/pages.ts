@@ -1,4 +1,4 @@
-import { and, eq, sql, desc, isNull, ne } from 'drizzle-orm'
+import { and, eq, sql, desc, inArray, isNull, ne } from 'drizzle-orm'
 import type { AppDb } from '../create-db'
 import { pages } from '../schema/pages'
 import { paginateResult } from '../../utils/pagination'
@@ -11,6 +11,7 @@ import { mergeConditions, applyPublishedScope, localeFilter } from './_shared/fi
 import { reorderByIds } from './_shared/list-page'
 import { reserveUniqueSlugInLocale } from './_shared/reserve-slug'
 import { queryInternal } from '../query-errors'
+import { forIdChunks, mapIdChunks } from './_shared/chunked-rows'
 
 export interface PageListOptions extends PagesQueryOptions {
   pagination: { offset: number, limit: number, page: number, pageSize: number }
@@ -102,6 +103,22 @@ export function createPageQueries(db: AppDb) {
       return db.select().from(pages).where(eq(pages.id, id)).get()
     },
 
+    findRowsByIds(ids: number[]) {
+      return mapIdChunks(ids, chunk => db
+        .select()
+        .from(pages)
+        .where(and(inArray(pages.id, chunk), isNull(pages.deletedAt)))
+        .all())
+    },
+
+    listParentLinks() {
+      return db
+        .select({ id: pages.id, parentId: pages.parentId })
+        .from(pages)
+        .where(isNull(pages.deletedAt))
+        .all()
+    },
+
     findRowBySlug(slug: string, locale?: string) {
       const conditions = [eq(pages.slug, slug), isNull(pages.deletedAt)]
       if (locale) conditions.push(eq(pages.locale, locale))
@@ -147,6 +164,24 @@ export function createPageQueries(db: AppDb) {
         .set({ deletedAt: now, updatedAt: now })
         .where(eq(pages.id, id))
         .then(() => now)
+    },
+
+    async softDeleteMany(ids: number[], updatedByUserId: number) {
+      const now = new Date().toISOString()
+      await forIdChunks(ids, chunk => db.update(pages).set({
+        deletedAt: now,
+        updatedAt: now,
+        updatedByUserId,
+      }).where(and(inArray(pages.id, chunk), isNull(pages.deletedAt))))
+    },
+
+    async updateParentIdMany(ids: number[], parentId: number | null, updatedByUserId: number) {
+      const now = new Date().toISOString()
+      await forIdChunks(ids, chunk => db.update(pages).set({
+        parentId,
+        updatedAt: now,
+        updatedByUserId,
+      }).where(and(inArray(pages.id, chunk), isNull(pages.deletedAt))))
     },
 
     async clearHomeFlagInLocale(locale: string, exceptPageId?: number) {

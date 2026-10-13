@@ -1,4 +1,4 @@
-import { eq, and, sql, desc, inArray } from 'drizzle-orm'
+import { eq, and, sql, desc, inArray, isNull } from 'drizzle-orm'
 import type { AppDb } from '../create-db'
 import { schema } from '../create-db'
 import { paginateResult } from '../../utils/pagination'
@@ -7,6 +7,7 @@ import { mergeConditions, applyPublishedScope, localeFilter, searchFilter, statu
 import { reorderByIds } from './_shared/list-page'
 import { reserveUniqueSlugInLocale } from './_shared/reserve-slug'
 import { articles } from '../schema/articles'
+import { forIdChunks, mapIdChunks } from './_shared/chunked-rows'
 
 export type ArticleUpdatePatch = Partial<Omit<typeof schema.articles.$inferInsert, 'id' | 'createdAt'>>
 
@@ -101,6 +102,14 @@ export function createArticleQueries(db: AppDb) {
       return db.select().from(schema.articles).where(eq(articles.id, id)).get()
     },
 
+    findRowsByIds(ids: number[]) {
+      return mapIdChunks(ids, chunk => db
+        .select()
+        .from(schema.articles)
+        .where(and(inArray(articles.id, chunk), isNull(articles.deletedAt)))
+        .all())
+    },
+
     listSlugsInLocale(locale: string) {
       return db
         .select({ slug: articles.slug })
@@ -134,6 +143,15 @@ export function createArticleQueries(db: AppDb) {
         .update(schema.articles)
         .set({ deletedAt: new Date().toISOString() })
         .where(eq(articles.id, id))
+    },
+
+    async softDeleteMany(ids: number[], updatedByUserId: number) {
+      const now = new Date().toISOString()
+      await forIdChunks(ids, chunk => db.update(schema.articles).set({
+        deletedAt: now,
+        updatedAt: now,
+        updatedByUserId,
+      }).where(and(inArray(articles.id, chunk), isNull(articles.deletedAt))))
     },
   }
 }

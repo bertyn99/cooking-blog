@@ -2,6 +2,7 @@ import type { H3Event } from 'h3'
 import type { z } from 'zod'
 import { resolveNewPageContent } from '@journalducuistot/shared/content-blocks'
 import { createPageSchema, updatePageSchema } from '../utils/validations/pages'
+import type { BulkPagesInput } from '../utils/validations/content-bulk'
 import { slugifyString } from '../utils/slug'
 import { useDb, useQueries } from '../utils/db'
 import { createApiError, fromQueryError } from '../utils/errors'
@@ -15,6 +16,12 @@ import type { Actor } from '../utils/actor'
 import { actorApiKeyId, actorUserId } from '../utils/actor'
 import { recordContentAudit } from './content-audit'
 import type { MutationMeta } from './article-mutations'
+import { bulkContentMutation, recordBulkAudit } from './content-bulk-mutations'
+import {
+  excludeHomeRows,
+  filterSelectionMoveRoots,
+  partitionBulkIds,
+} from '../../shared/content-bulk'
 
 type CreatePageInput = z.infer<typeof createPageSchema>
 type UpdatePageInput = z.infer<typeof updatePageSchema>
@@ -197,6 +204,129 @@ export async function updatePageMutation(
   })
 
   return updated
+}
+
+export async function bulkPagesMutation(
+  event: H3Event,
+  actor: Actor,
+  input: BulkPagesInput,
+) {
+  if (input.action !== 'move') {
+    return bulkContentMutation(event, actor, 'pages', {
+      ids: input.ids,
+      action: input.action,
+    })
+  }
+
+  const { pages } = useQueries(event)
+  const uniqueIds = [...new Set(input.ids)]
+  const rows = await pages.findRowsByIds(uniqueIds)
+  if (!rows.length) {
+    throw createApiError('NOT_FOUND', 'Aucune page trouvée.')
+  }
+
+  const { missingIds } = partitionBulkIds(uniqueIds, rows.map(row => row.id))
+  const { skippedHomeIds, workRows, workIds } = excludeHomeRows(rows)
+  const userId = actorUserId(actor)
+  const nesting = input.parentId != null || Boolean(input.newParentName)
+
+  if (nesting && !workIds.length) {
+    throw createApiError(
+      'VALIDATION_ERROR',
+      'La page d’accueil ne peut pas avoir de page parente.',
+    )
+  }
+
+  const links = await pages.listParentLinks()
+  const parentIdById = new Map(links.map(link => [link.id, link.parentId]))
+  const moveIds = filterSelectionMoveRoots(workIds.length ? workIds : rows.map(row => row.id), parentIdById)
+
+  if (!moveIds.length) {
+    throw createApiError('VALIDATION_ERROR', 'Aucune page à déplacer.')
+  }
+
+  const locales = [...new Set(
+    workRows.length ? workRows.map(row => row.locale) : rows.map(row => row.locale),
+  )]
+  let parentId: number | null
+  let createdParentId: number | undefined
+
+  if (input.newParentName) {
+    if (locales.length > 1) {
+      throw createApiError(
+        'VALIDATION_ERROR',
+        'Les pages sélectionnées doivent partager la même langue pour créer un parent.',
+      )
+    }
+
+    const parent = await createPageMutation(event, actor, {
+      name: input.newParentName,
+      locale: locales[0] ?? 'fr',
+      status: 'draft',
+      parentId: null,
+    })
+    parentId = parent.id
+    createdParentId = parent.id
+  }
+  else {
+    parentId = input.parentId ?? null
+  }
+
+  if (parentId != null) {
+    const parent = await pages.findRowById(parentId)
+    if (!parent || parent.deletedAt) {
+      throw createApiError('NOT_FOUND', 'Page parente introuvable.')
+    }
+    if (locales.length > 1) {
+      throw createApiError(
+        'VALIDATION_ERROR',
+        'Les pages sélectionnées doivent partager la même langue pour changer de parent.',
+      )
+    }
+    if (locales[0] && parent.locale !== locales[0]) {
+      throw createApiError(
+        'VALIDATION_ERROR',
+        'Le parent doit être dans la même langue que les pages déplacées.',
+      )
+    }
+    if (moveIds.includes(parentId)) {
+      throw createApiError(
+        'VALIDATION_ERROR',
+        'Impossible de déplacer une page sous elle-même.',
+      )
+    }
+
+    for (const id of moveIds) {
+      const cycleDetected = await pages.wouldCreateParentCycle(id, parentId)
+      if (cycleDetected) {
+        throw createApiError(
+          'VALIDATION_ERROR',
+          'Une page ne peut pas être déplacée sous l’un de ses descendants.',
+          { pageId: id, proposedParentId: parentId },
+        )
+      }
+    }
+  }
+
+  await pages.updateParentIdMany(moveIds, parentId, userId)
+
+  await recordBulkAudit(event, actor, 'page', moveIds, 'move', {
+    parentId,
+    ...(createdParentId != null ? { createdParentId } : {}),
+    ...(skippedHomeIds.length ? { skippedHomeIds } : {}),
+    ...(missingIds.length ? { missingIds } : {}),
+  })
+
+  return {
+    action: 'move' as const,
+    ids: moveIds,
+    count: moveIds.length,
+    movedIds: moveIds,
+    parentId,
+    ...(createdParentId != null ? { createdParentId } : {}),
+    ...(skippedHomeIds.length ? { skippedHomeIds } : {}),
+    ...(missingIds.length ? { missingIds } : {}),
+  }
 }
 
 export { createPageSchema, updatePageSchema }

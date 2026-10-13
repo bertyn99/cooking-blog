@@ -8,5 +8,8 @@
     show-kind-column
     show-kind-filter
     hide-scheduled-filter
+    enable-bulk-actions
+    bulk-noun-singular="terme"
+    bulk-noun-plural="termes"
   />
 </template>

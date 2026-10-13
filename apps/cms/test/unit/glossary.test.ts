@@ -32,6 +32,7 @@ import {
   isNoindexRobots,
 } from '../../shared/glossary-robots'
 import { glossaryLineTermError } from '../../shared/glossary-lines'
+import { bulkGlossaryTermsSchema } from '../../server/utils/validations/glossary'
 
 describe('glossary normalize', () => {
   it('trims, lowercases and unaccents for sort_key', () => {
@@ -213,6 +214,23 @@ describe('glossary publish robots', () => {
     expect(glossaryRobotsForStatus('draft')).toBe(GLOSSARY_NOINDEX_ROBOTS)
     expect(isNoindexRobots('noindex,follow')).toBe(true)
     expect(isNoindexRobots('index, follow')).toBe(false)
+  })
+})
+
+describe('glossary bulk schema', () => {
+  it('accepts delete, publish and unpublish with ids', () => {
+    expect(bulkGlossaryTermsSchema.parse({ ids: [1, 2], action: 'delete' }).action).toBe('delete')
+    expect(bulkGlossaryTermsSchema.parse({ ids: [3], action: 'publish' }).ids).toEqual([3])
+    expect(bulkGlossaryTermsSchema.parse({ ids: [4, 5], action: 'unpublish' }).action).toBe('unpublish')
+  })
+
+  it('rejects empty ids, too many ids, and unknown actions', () => {
+    expect(() => bulkGlossaryTermsSchema.parse({ ids: [], action: 'delete' })).toThrow()
+    expect(() => bulkGlossaryTermsSchema.parse({
+      ids: Array.from({ length: 151 }, (_, index) => index + 1),
+      action: 'delete',
+    })).toThrow()
+    expect(() => bulkGlossaryTermsSchema.parse({ ids: [1], action: 'archive' })).toThrow()
   })
 })
 
