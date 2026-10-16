@@ -24,6 +24,8 @@ Chemin public = slugs des ancêtres + slug. Le slug d'une page déjà créée ne
 | 5 | `les-epices-essentielles-en-cuisine` | 14 | 36 caractères. **Hors skill.** Article ou glossaire. |
 | 2 | `les-epices-essentielles-en-cuisine-1` | — | Vide. Doublon. Ne pas remplir. |
 
+| 21 | `lab-blocs` | — | **Lab interne** (draft, `noindex`). Tous les blocs Comark. Ne pas publier. Preview : `/preview?type=page&slug=lab-blocs`. |
+
 Hubs recettes (`recette`, `recettes-du-monde`), accueil, à propos, politique : ne pas les réécrire avec ce skill.
 
 ## Cluster code — pas encore créé

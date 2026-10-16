@@ -1,5 +1,7 @@
 # Quand sortir du paragraphe
 
+Lab visuel (draft, `noindex`, ne pas publier) : page id 21, slug `lab-blocs`. Preview : `https://journalducuistot.fr/preview?type=page&slug=lab-blocs`. Tous les blocs du catalogue y sont posés une fois, dans le layout contenu.
+
 Une page technique reste un texte. Une image, une grille, un tableau ou un diagramme n'entre que si le lecteur doit **voir** une différence, un ordre, ou un choix. Les exemples viennent de Serious Eats, America's Test Kitchen, Ricardo, La-viande.fr, BPI et les fiches de Versailles (octobre 2026). Aucune de ces pages n'utilise un arbre de décision ni une frise : elles utilisent une photo, un face-à-face, ou un tableau.
 
 Les images s'écrivent **uniquement** `![alt](/uploads/<fichier>)`, après `list-media`. Pas de `::image`, pas de `::carousel`. Le `alt` décrit le geste. Une ligne visible sous la photo répète ce que la photo montre, sans « à gauche » ni « ci-dessus » : sur téléphone la grille passe en une colonne.
@@ -89,7 +91,7 @@ Même cadrage dans chaque cellule d'une suite. Une cellule qui coupe la main hor
 
 ## Mermaid
 
-`BaseMarkdown` charge `comark/plugins/mermaid`. Un fence `mermaid` devient `apps/web/app/components/comark/Mermaid.vue` (côté client, look `handDrawn`).
+`BaseMarkdown` charge `comark/plugins/mermaid`. Un fence `mermaid` devient `apps/web/app/components/comark/Mermaid.vue` (côté client, thème `base` Journal du Cuistot : Catamaran, filet yellow-800, coins droits). Ne pas poser de `%%{init:…}%%` dans le fence : la couleur du site vient du plugin.
 
 Un diagramme seulement s'il y a **au moins deux branches**. Six nœuds maximum. Chaque flèche a un mot (oui, non, monter le feu). Le paragraphe sous le schéma dit la même chose. La couleur ne porte pas le sens toute seule. Pas de deuxième schéma sur la page. Si la page doit montrer l'aliment, la photo gagne et le schéma passe sur une autre page, ou disparaît.
 
@@ -115,8 +117,7 @@ flowchart TD
 | Bloc | Moment |
 |---|---|
 | `::callout{type="warning"}` | Un mythe ou un danger. `tip` = le geste qui rate. `info` = la source d'un chiffre. |
-| Tableau markdown | Plusieurs états, mêmes colonnes. |
-| `::table{head rows caption}` | Le même tableau quand chaque cellule doit être étiquetée ANSES ou école. |
+| `::table{head='["A","B"]' rows='[["1","2"]]' caption="…"}` puis `::` | Plusieurs états, mêmes colonnes. Un tableau en pipes `| A | B |` devient un bloc vide sur les pages. |
 | `::recipe-list{source="slugs" slugs="…" limit="3"}` | Deux ou trois recettes publiées qui utilisent le verbe. |
 
 `::hero`, `::newsletter`, `::hubs`, `::person`, `::article-list` restent des sections d'accueil. `create-page` sans `content` les pose tout seul : toujours envoyer le corps.
