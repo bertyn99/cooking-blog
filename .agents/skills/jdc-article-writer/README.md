@@ -8,7 +8,7 @@ Write and publish SEO-optimized French food articles for **Journal du Cuistot** 
 
 ## What it covers
 
-- **Keyword research**: `nuxtseo` CLI (`research keywords`, SERP fallback) + Search Console MCP (`analytics_query` on the jdc property)
+- **Keyword gate**: the query written in the article (title, slug, opening, SEO keywords) — and each recipe query the article targets or links — confirmed with Search Console MCP or the `nuxtseo` CLI (`search analytics keywords` / `research keywords --location-code 2250`)
 - **Competitor analysis**: top-2 SERP pages → intent contract + differentiation gap
 - **8 article templates**: listicle pays/apéro, ingrédient histoire & origine, cuisine & culture, ustensile/matériel (affiliation), livre de cuisine testé, street food/voyage, technique/astuces, saisonnel
 - **Voice**: Bertyn Boulikou — young passionate cook, food history and discovery, first person, anti-AI-slop rules (banned openers from real audit findings)
