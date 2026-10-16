@@ -37,6 +37,7 @@ Le web émet le schema depuis les champs : name, totalTime, datePublished, dateM
 - [ ] Ustensiles : pas d'`affiliateUrl` sur la ligne ; affiliation éventuelle sur la fiche
 - [ ] Chaque étape a un repère physique ou temporel
 - [ ] Meta 140–155, keywords propres, excerpt présent
+- [ ] Mot-clé de la recette (début du title, slug, deux premières phrases de l'intro, `seo.keywords`) revérifié via Search Console MCP (`analytics_query` ou `seo_keywords_research`, `sc-domain:journalducuistot.fr`) **ou** `nuxtseo` (`search analytics keywords` / `research keywords --location-code 2250`). La formulation livrée est celle confirmée par l'outil.
 - [ ] Liens internes : cibles vérifiées, ancres naturelles
 
 ## Passe 2 — Voix

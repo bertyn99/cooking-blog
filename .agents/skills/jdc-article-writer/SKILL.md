@@ -21,21 +21,25 @@ Non-negotiable: data first (keywords + SERP), voice always, drafts only (never p
 
 ## Workflow
 
-### 1. Keyword research (before any writing)
+### 1. Keyword gate — the query written in the article, and in any recipe it targets
 
-Run **both** sources, in this order:
+Mandatory for a new article and for a refresh. Do not keep a keyword you only guessed.
 
-1. **`nuxtseo` CLI** — site `s_7a49d74f`, always `--json --no-input` — the primary keyword + SERP source:
-   - `nuxtseo research keywords --site s_7a49d74f --no-input "<topic>" --json` → keyword ideas with volume/difficulty/intent.
-   - **Empty `keywords` + a `data.message` is a refusal or a low-volume topic, not zero demand** — read `data.serpFallback.topResults`: it ships the current top-ranking pages (position, title, domain, url). This is the competitor list for step 2.
-   - `--min-volume 10` matches the strategy guidance; one topic per call, `--no-related` to widen a dead end.
-   - `research *` spends the Team research limit — batch topics, don't spam seeds. Full protocol (exit codes, envelopes, spend rules): see the `nuxtseo-cli` skill — do not guess flags.
+Extract the wording already in the draft first (`get-article`: front of `title`, `slug`, first two sentences, `seo.keywords`). For a new piece, the candidate is a 1–3 word French seed. Then confirm **that exact string** with **Search Console MCP or the `nuxtseo` CLI** (run the other if the first is empty or a refusal).
+
+1. **Search Console MCP** (`user-search-console`), property `sc-domain:journalducuistot.fr`:
+   - `analytics_query`, dimension `query`, filtered to the article query (last 3 months). Existing impressions win: write for those exact formulations (accents, plurals, « combien », « comment »).
+   - If GSC has no rows yet: `seo_keywords_research` `{ keywords: ["<query>"], country: "fr", language: "fr", type: "stats" }`, then `type: "related"` for variants.
+2. **`nuxtseo` CLI** — site `s_7a49d74f`, always `--json --no-input`. Protocol (exit codes, envelopes, spend): `nuxtseo-cli` skill. Do not guess flags.
+   - Retained demand, no research spend: `nuxtseo search analytics keywords --site s_7a49d74f --search "<query>" --period 3m --json`.
+   - Live volume: `nuxtseo research keywords "<seed, 1-3 words>" --site s_7a49d74f --no-input --location-code 2250 --min-volume 10 --json`. Default `2840` is the United States — always pass `2250` (France, DataForSEO). A seed longer than 3 words is refused (exit `0`, `keywords: []`): read `data.message` before calling it zero demand. `data.serpFallback.topResults` is the competitor list for step 2. `--no-related` widens a dead end. `research *` spends the Team research limit — one seed per call, don't spam.
    - Hard head terms to avoid alone: `recette apéritif été`, `techniques culinaires`, `recettes du monde` (major publishers own them) — differentiate by country/angle instead.
-2. **Search Console MCP** — site `sc-domain:journalducuistot.fr`:
-   - `analytics_query` filtered on the topic query: does the site **already have impressions** for it? Existing demand = write for those exact formulations.
-   - Note query variants Google already associates with us (accents, plurals, "combien…", "comment…") — often better targets than the head term.
 
-Deliverable before writing: primary query + 3–5 variants + volume/difficulty + top-2 competitor URLs (from the SERP fallback) + one differentiation angle.
+The string that goes into the **front of the title**, the **slug**, the **first two sentences**, and **`upsert-seo.keywords`** must be a query one of those calls returned, or a variant they associated (impressions, volume, related). Otherwise change the copy.
+
+**Recipe keywords inside the article.** When the article is about a dish, a recipe listicle, or links `/recette/…` pages, run the same gate on each recipe query before using it as an H2, anchor, or link. Read it from the recipe (`get-recipe`: front of `title`, `slug`, first two sentences of `intro`, `seo.keywords`) — same tools, same France location. A recipe query that neither Search Console nor `nuxtseo` confirms does not become a target. Full recipe gate: `../jdc-recipe-creator/SKILL.md` §1.
+
+Deliverable before writing: primary query + which tool confirmed it (GSC impressions or nuxtseo volume) + 3–5 variants + top-2 competitor URLs + one differentiation angle. If recipes are in scope, the same line for each recipe query.
 
 ### 2. SERP competitor analysis (top 2 pages)
 
@@ -86,7 +90,7 @@ See [references/templates.md](./references/templates.md) for full skeletons. Sum
 | **Ustensile / matériel** | "Guide / Comparatif…" | 6–9k chars | Affiliate priority ([monetization](../../../docs/seo-strategy/monetization.md)): comparison table, honest testing, care tips |
 | **Livre de cuisine découvert** | "J'ai testé [livre]" | 4–6k chars | Why picked up, 3 tested recipes with notes, who it's for, Amazon link + disclosure |
 | **Street food / voyage gourmand** | "Où manger / les meilleures adresses…" | 5–7k chars | Addresses + what to order + one homemade recipe link |
-| **Technique (blog)** | "Comment / Astuces…" | 4–8k chars | Method, mistakes, FAQ; link up to the techniques pillar |
+| **Technique (blog)** | "Comment / Astuces…" | 4–8k chars | A dated blog piece. A permanent node under `/techniques-culinaires` is the `jdc-page-writer` skill, not an article. |
 
 **The migration-web layer (the blog's signature).** Any template can carry a migration story — see [references/cuisine-toile-migrations.md](./references/cuisine-toile-migrations.md): 6 layers (ingredients, techniques, names, people, empires, infrastructures), 5 patterns (merge / split / status-flip / invented tradition / contested birth), 24 verified dish stories and 12 narrative templates with French hooks. Rules: open on the plate, one hero-fact per article, name the human carrier, show the legend then weigh the archive, no sermon, end on the living diaspora.
 
@@ -128,6 +132,7 @@ Never ship the first draft. Run two passes on the draft created in step 6 (via `
 - [ ] **Links**: every internal link resolves (fetch each target — 404s have shipped before), no duplicate targets, anchors natural and varied
 - [ ] **Images**: every referenced path exists in the media library (`list-media`) — dead `/images/...` references have shipped before; alt texts present
 - [ ] **Metadata**: title ≤ 60 chars, description 140–155, excerpt set, keywords clean (no typos/junk), slug unchanged and stable
+- [ ] **Keyword gate replayed** on the query actually written (title, slug, first two sentences, `seo.keywords`) via Search Console MCP or `nuxtseo`. If the article targets or links recipes, the same check on each recipe query (`get-recipe`). Rewrite any wording the tools did not confirm.
 
 **Pass 2 — Amélioration (voice + SEO polish).** The rewrite pass:
 - [ ] **Anti-slop 10-point checklist** (see [references/antislop-fr.md](./references/antislop-fr.md) §8): banned openers gone, no « il convient de », conclusion < 4 lines with an opinion, adjectives backed by facts, no triades, paragraph-length variation
@@ -150,9 +155,9 @@ Then report **both** preview URLs to the human: v2 (corrected) and v3 (improved)
 ### 7. Publish via jdc-cms MCP
 
 1. `create-article` with `{ title, content (markdown), excerpt, slug, categoryId, coverBlobPathname, coverAltText, coverDescription }` — **status stays draft**
-2. `upsert-seo` `{ contentType: 'article', contentId, description, keywords }`
+2. `upsert-seo` `{ contentType: 'article', contentId, description, keywords }` — keywords are the queries the §1 gate confirmed (article, and any recipe queries the piece targets), not guessed strings
 3. Then run the two review passes above (step 6) on the draft
-4. Report the final `previewUrl` + changelog to the human. **Never publish, unpublish, or schedule via MCP.** Recipes are draft-only (403 if live).
+4. Report the final `previewUrl` + changelog to the human, including the primary query and which tool confirmed it (Search Console MCP or `nuxtseo`), plus each recipe query checked the same way. **Never publish, unpublish, or schedule via MCP.** Recipes are draft-only (403 if live).
 5. List categories with `list-article-categories` before setting `categoryId` — no `uncategorized`.
 
 ### 8. After the human publishes

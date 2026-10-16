@@ -33,11 +33,21 @@ Non-negotiable: **data first** (keywords + SERP), **quantities everywhere** (le 
 - `list-recipes` (search sur le plat) — une recette existante sur le même plat = **update** de celle-ci, pas une création.
 - `list-recipe-categories` — connaître la `categoryId` avant toute création (jamais uncategorized). Ce n'est **pas** `list-article-categories`.
 
-### 1. Keyword research
+### 1. Keyword gate — la requête qui vit dans la recette
 
-1. **`nuxtseo` CLI** : `nuxtseo research keywords --site s_7a49d74f --no-input "recette <plat>" --json` — volumes, variantes (« <plat> maison », « <plat> facile », « cuisson <plat> »). Le SERP fallback (`data.serpFallback.topResults`) = la liste des concurrents.
-2. **Search Console MCP** : `analytics_query` filtré PAGE/QUERY — la demande existante vaut de l'or : quantités par personne, temps de cuisson, accompagnement, vin.
-3. **Livrable avant d'écrire** : requête primaire + 3-5 variantes + le cluster PAA (combien par personne, calories, cuisson, conservation) + 2 URLs concurrentes + l'angle (l'histoire du plat, la technique qui change tout).
+Obligatoire pour une création **et** pour un update. Extraire d'abord le mot-clé déjà écrit dans la recette (`get-recipe` : début du `title`, `slug`, deux premières phrases de l'`intro`, `seo.keywords`). Pour une création, le candidat est le nom court du plat (1 à 3 mots) plus « recette <plat> ».
+
+Cette formulation exacte doit être confirmée par **Search Console MCP ou le CLI `nuxtseo`** (l'autre si le premier est vide ou un refus). Ne pas garder un mot-clé seulement deviné.
+
+1. **Search Console MCP** (`user-search-console`), propriété `sc-domain:journalducuistot.fr` :
+   - `analytics_query`, dimension `query`, filtre sur la requête de la recette (3 derniers mois). Les impressions existantes gagnent : écrire pour ces formulations exactes (accents, pluriels, « combien », « comment », « par personne »).
+   - Si GSC n'a pas encore de lignes : `seo_keywords_research` `{ keywords: ["<requête>"], country: "fr", language: "fr", type: "stats" }` (puis `type: "related"` pour les variantes).
+2. **`nuxtseo` CLI** — site `s_7a49d74f`, toujours `--json --no-input`. Protocole (codes de sortie, enveloppes, dépenses) : skill `nuxtseo-cli`. Ne pas inventer de flags.
+   - Demande déjà retenue, sans dépense research : `nuxtseo search analytics keywords --site s_7a49d74f --search "<requête>" --period 3m --json`.
+   - Volume live : `nuxtseo research keywords "<graine 1-3 mots>" --site s_7a49d74f --no-input --location-code 2250 --min-volume 10 --json`. Le défaut `2840` est les États-Unis — toujours `2250` (France, DataForSEO). Une graine de plus de 3 mots est refusée (exit `0`, `keywords: []`) : lire `data.message` avant de conclure « zéro demande ». `data.serpFallback.topResults` = les concurrents. Variantes utiles : « <plat> maison », « <plat> facile », « cuisson <plat> ».
+3. Le texte qui entre dans le **début du `title`**, le **`slug`**, les **deux premières phrases de l'`intro`** et **`upsert-seo.keywords`** est une requête renvoyée par l'un de ces appels, ou une variante qu'ils associent (impressions, volume, related). Sinon, changer la copie.
+
+**Livrable avant d'écrire** : requête primaire + l'outil qui l'a confirmée (impressions GSC ou volume nuxtseo) + 3-5 variantes + le cluster PAA (combien par personne, calories, cuisson, conservation) + 2 URLs concurrentes + l'angle (l'histoire du plat, la technique qui change tout).
 
 ### 2. SERP — contrat d'intention (top 2)
 
@@ -102,8 +112,8 @@ Les champs, leurs contraintes et pièges — unités / nutrition dans `reference
 ### 7. SEO
 
 `upsert-seo` `{ contentType: 'recipe', contentId, description, keywords }` :
-- Description 140–155 chars : requête exacte + quantité PAA + bénéfice
-- Keywords : requête primaire + variantes réelles (pas de junk)
+- Description 140–155 chars : requête exacte (celle du gate §1) + quantité PAA + bénéfice
+- Keywords : requête primaire confirmée par Search Console ou `nuxtseo` + variantes réelles (pas de junk, pas de requête non vérifiée)
 
 Le **schema Recipe** est auto-généré par le template depuis ces champs — un champ manquant (temps, ingrédients, nutrition) = un trou dans le schema. YGG-82 suit l'ajout author/recipeCuisine au niveau template.
 
@@ -111,7 +121,7 @@ Une fiche glossaire créée pour la recette : `upsert-seo` `{ contentType: 'glos
 
 ### 8. Review — deux passes
 
-**Passe 1 — Correction** : faits (temps, quantités, températures vs sources), français, unités de l'enum, cohérence servings↔ingrédients↔étapes, chaque ligne a un `glossaryTermId` (ou stub volontaire), ustensiles sans `affiliateUrl`, liens internes ≥ 2 (ciblés et vivants — vérifier qu'ils existent ; un terme **published** peut servir de lien `/glossaire/<slug>`), alt de cover présent, meta 140-155.
+**Passe 1 — Correction** : faits (temps, quantités, températures vs sources), français, unités de l'enum, cohérence servings↔ingrédients↔étapes, chaque ligne a un `glossaryTermId` (ou stub volontaire), ustensiles sans `affiliateUrl`, liens internes ≥ 2 (ciblés et vivants — vérifier qu'ils existent ; un terme **published** peut servir de lien `/glossaire/<slug>`), alt de cover présent, meta 140-155. **Rejouer le gate §1 sur le mot-clé réellement écrit** (title, slug, intro, `seo.keywords`) via Search Console MCP ou `nuxtseo` — si la formulation de la recette n'est pas celle confirmée, la corriger avant de livrer.
 
 **Passe 2 — Voix** : checklist anti-slop (10 points, fichier article), verdict court, aparté, cause physique dans une étape, l'empreinte vécue. Relire à voix haute — rien qu'on ne dirait pas à table.
 
@@ -119,7 +129,7 @@ Une fiche glossaire créée pour la recette : `upsert-seo` `{ contentType: 'glos
 
 ### 9. Reporting
 
-`previewUrl` au humain + changelog des deux passes + **termes glossaire réutilisés vs stubs créés**. **La publication est manuelle.** Après publication : GSC `inspection_inspect` + annotation nuxtseo (voir le workflow complet dans `../jdc-article-writer/SKILL.md` §8).
+`previewUrl` au humain + changelog des deux passes + **termes glossaire réutilisés vs stubs créés** + la requête primaire et l'outil qui l'a confirmée (Search Console MCP ou `nuxtseo`). **La publication est manuelle.** Après publication : GSC `inspection_inspect` + annotation nuxtseo (voir le workflow complet dans `../jdc-article-writer/SKILL.md` §8).
 
 ## Monétisation
 

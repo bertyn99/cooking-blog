@@ -4,7 +4,7 @@ Créer et améliorer les recettes SEO de [journalducuistot.fr](https://journaldu
 
 ## Fichiers
 
-- `SKILL.md` — le workflow complet (recherche → rédaction → media loop → glossaire → création → review)
+- `SKILL.md` — le workflow complet (gate mot-clé Search Console ou nuxtseo → rédaction → media loop → glossaire → création → review)
 - `references/glossary-and-utensils.md` — contrat glossaire : lookup, stubs, formes culinaires, `iconKey`, affiliation ustensile
 - `references/units-and-nutrition.md` — l'enum des unités (stricte) + la méthode nutrition par portion
 - `references/recipe-checklist.md` — checklist champs, schema Recipe, deux passes de review

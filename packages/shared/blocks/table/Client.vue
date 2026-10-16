@@ -38,23 +38,23 @@ const rows = computed(() => parseJsonArray<string[][]>(props.rows, [])
   <JdcPublicSurface>
     <figure
       v-if="rows.length || head.length"
-      class="my-6"
+      class="my-8"
     >
-      <div class="overflow-x-auto rounded-lg border border-stone-200 bg-white">
-        <table class="w-full border-collapse text-left text-[15px]">
-          <caption
-            v-if="caption"
-            class="caption-bottom px-1 pb-2 pt-3 text-sm text-neutral-500"
-          >
-            {{ caption }}
-          </caption>
+      <figcaption
+        v-if="caption"
+        class="jdc-serif mb-3 text-sm text-toned"
+      >
+        {{ caption }}
+      </figcaption>
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-80 border-collapse text-left text-[15px]">
           <thead v-if="head.length">
-            <tr class="bg-amber-100/70">
+            <tr class="border-b border-yellow-800">
               <th
                 v-for="(cell, i) in head"
                 :key="`h-${i}`"
                 scope="col"
-                class="px-4 py-2.5 font-serif text-sm font-bold text-neutral-900"
+                class="jdc-serif py-3 pr-6 text-sm font-normal text-highlighted first:pl-0 last:pr-0"
               >
                 {{ cell }}
               </th>
@@ -64,13 +64,15 @@ const rows = computed(() => parseJsonArray<string[][]>(props.rows, [])
             <tr
               v-for="(row, i) in rows"
               :key="`r-${i}`"
-              class="border-t border-stone-200"
-              :class="i % 2 === 1 ? 'bg-stone-50' : 'bg-white'"
+              class="border-b border-default last:border-b-0"
             >
               <td
                 v-for="(cell, j) in row"
                 :key="`c-${j}`"
-                class="px-4 py-2.5 text-neutral-700"
+                class="py-3 pr-6 last:pr-0"
+                :class="j === 0
+                  ? 'jdc-serif text-highlighted'
+                  : 'text-toned'"
               >
                 {{ cell }}
               </td>
