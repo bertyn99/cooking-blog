@@ -4,7 +4,7 @@ Pages CMS de [journalducuistot.fr](https://journalducuistot.fr) sous `/technique
 
 ## Mots qui déclenchent le skill
 
-page technique jdc, techniques culinaires, méthode de cuisson, comment saisir, comment braiser, comment rôtir, cuisson vapeur, friture, pochage, grillade, étouffée, code de la cuisine, mise en place, sauces mères, points de cuisson, sécurité alimentaire maison, hub techniques, réécrire une page CMS, hero newsletter par défaut, slugify name, grille 2 colonnes, mermaid technique, prompt photo culinaire
+page technique jdc, techniques culinaires, méthode de cuisson, comment saisir, comment braiser, comment rôtir, cuisson vapeur, friture, pochage, grillade, étouffée, code de la cuisine, mise en place, sauces mères, points de cuisson, sécurité alimentaire maison, hub techniques, réécrire une page CMS, hero newsletter par défaut, slugify name, grille 2 colonnes, mermaid technique, prompt photo culinaire, encadré callout, ::table JSON, tableau pipes vide, lab-blocs
 
 ## Fichiers
 
@@ -12,7 +12,7 @@ page technique jdc, techniques culinaires, méthode de cuisson, comment saisir, 
 - `references/page-map.md` — ids des pages déjà en ligne, et le cluster code encore à créer
 - `references/method-page.md` — squelette d'une feuille verbe, chiffres et mythes
 - `references/code-page.md` — squelette d'une décision, phrases ANSES à ne pas arrondir
-- `references/page-blocks.md` — quand une photo, une grille (2, 3 ou 4 colonnes), un tableau ou un Mermaid
+- `references/page-blocks.md` — catalogue Comark partagé (images, callout, grille, `::table`, mermaid ; timeline/carrousel = articles)
 
 ## Références partagées
 

@@ -74,10 +74,10 @@ Une cause.
 
 Étapes numérotées. Chaque étape a un repère (son, couleur, liquide).
 
-Une photo pleine largeur si la main doit se copier. Deux photos côte à côte seulement pour deux résultats au même point d'arrivée — syntaxe dans `page-blocks.md`. Un diagramme Mermaid seulement s'il y a deux branches (tendre ou coriace), pas pour répéter ces étapes.
+Une photo pleine largeur si la main doit se copier. Deux photos côte à côte seulement pour deux résultats au même point d'arrivée — syntaxe dans `page-blocks.md`. Un diagramme Mermaid seulement s'il y a deux branches (tendre ou coriace), pas pour répéter ces étapes. Un `::table` si plusieurs pièces ou plusieurs températures, pas une grille de couleurs.
 
 ::callout{type="warning"}
-Le mythe, et le contre-test, avec le nom de la source.
+Le mythe, et le contre-test, avec le nom de la source. Pas le mot « Attention » en tête : l'icône suffit.
 ::
 
 ## Comment savoir que c'est cuit

@@ -7,7 +7,7 @@ Shared rules:
 - One H2 per idea; H3 per listicle item (`## ` / `### ` in markdown).
 - FAQ block (3–5 Q) near the end, sourced from SERP `people_also_ask` + "combien/comment" variants.
 - End with internal links already placed in the body (not a link dump): 1 up (hub/pillar) + 1–2 sideways (recipes/articles).
-- Tables where data helps (quantities, temps, comparatifs) — they win snippets.
+- Tables where data helps (quantities, temps, comparatifs) — they win snippets. Syntax: `../jdc-page-writer/references/page-blocks.md`.
 
 ---
 
@@ -44,7 +44,7 @@ Title:      [X] en cuisine : tout savoir sur … (culinary frame, never health)
 Intro:      first encounter / what surprised you about X
 H2: Origine et histoire       — where it comes from, how it spread
                                 (trade routes, empires, why it matters)
-H2: Les variétés (ou formes)  — table: variété / goût / usage
+H2: Les variétés (ou formes)  — ::table: variété / goût / usage
 H2: Comment l'utiliser        — dosages, when to add during cooking,
                                 pairings (3–4 concrete dishes)
 H2: Bien choisir et conserver — selection, storage, shelf life
@@ -84,7 +84,7 @@ This is the strongest differentiation format: competitor recipes pages rarely do
 Title:      [Ustensile] : comment choisir (guide [année sans — evergreen])
 Intro:      the buying confusion, stated honestly
 H2: Les critères qui comptent vraiment (matière, poids, prix)
-H2: Comparatif — TABLE: modèle / matière / usage / prix indicatif
+H2: Comparatif — ::table: modèle / matière / usage / prix indicatif
 H2: Par profil              — débutant / régulier / passionné
 H2: Entretien et durée de vie
 FAQ:                        — inox vs antiadhésif, culotter, garantie
@@ -160,12 +160,12 @@ Use the [migration-web framework](./cuisine-toile-migrations.md): pick ONE of th
 Title:      [Plat] : l'histoire méconnue / d'où vient vraiment…
 Intro:      open on the reader's plate, then detonate the hero-fact
             (« Votre tempura préféré porte le nom d'un jeûne catholique. »)
-::timeline  — the chronology as a frise block (5–6 dated items;
-            block syntax at the end of this file)
+::timeline  — the chronology as a frise (4–6 dated items;
+            syntax in page-blocks.md)
 H2: La légende            — tell the myth properly (it's part of the dish)
 H2: Ce que disent les archives — dates, carriers, the merge/split
 H2: [Plat] aujourd'hui    — the living diaspora (end on the web)
-::table     — key dates or quantities in a styled table (optional)
+::table     — key dates or quantities (optional; not a pipe table)
 FAQ:                      — origine, différences régionales, accompagnement
 Length:     6–10k chars
 Links out:  the recipe(s) + country listicle + recettes-du-monde hub
@@ -179,10 +179,15 @@ Any other template (listicle, ingrédient) can carry a migration story as an enr
 
 ## Illustration blocks (Comark)
 
-Three styled blocks exist for articles/recipes (JDC design: stone neutrals, amber accents, Merriweather headings):
+Canonical syntax and when-to-use: `../jdc-page-writer/references/page-blocks.md`.
 
-- `::timeline{items='[{"date":"1680","title":"…","text":"…"}]'}` then `::` — chronologic frise (template 9: one item per date, text ≤ 2 lines)
-- `::table{head='["A","B"]' rows='[["1","2"]]' caption="…"}` then `::` — quantities, comparatifs, key dates (striped, amber header)
-- `::carousel{images='[{"src":"uploads/x.png","alt":"…"}]'}` then `::` — 2–6 images with descriptive alts (arrows + dots)
+On an article, in practice:
 
-Close every block with `::`. JSON goes inside single-quoted Comark attrs — no unescaped single quotes inside strings. Render check after writing: no raw `::block` text visible on the preview (occurrences inside the `<script>` hydration payload are fine).
+| Template | Bloc |
+|---|---|
+| 1 listicle | Photo markdown par item. Un `::callout{type="tip"}` pour composer le plateau. |
+| 2 ingrédient | `::table` variétés / goûts / usages. |
+| 4 ustensile | `::table` comparatif. `::callout{type="info"}` pour le lien affilié + mention. |
+| 9 histoire | `::timeline` (4–6 dates) puis éventuellement un `::table` de dates. |
+
+Callout : la phrase *est* le sujet (pas « Info » / « Astuce » à l'écran). Fermer chaque bloc avec `::`. JSON dans `'…'` sans apostrophe ASCII. Un `::` visible sur le preview = cassé.

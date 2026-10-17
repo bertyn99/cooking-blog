@@ -4,7 +4,7 @@ Write and publish SEO-optimized French food articles for **Journal du Cuistot** 
 
 ## Auto-trigger keywords
 
-écrire un article jdc, article journal du cuistot, rédiger un article de cuisine, listicle apéritif, tout savoir sur [ingrédient], histoire d'un plat, origine recette, guide ustensiles, comparatif poêle, j'ai testé livre de cuisine, street food article, recherche de mots-clés cuisine, mot-clé food français, analyse SERP recette, créer un brouillon article CMS, jdc-cms article, apéritif [pays] recettes, cuisine africaine article, épices article, marinades, technique culinaire article, FAQ recette, maillage interne article, meta description article cuisine
+écrire un article jdc, article journal du cuistot, rédiger un article de cuisine, listicle apéritif, tout savoir sur [ingrédient], histoire d'un plat, origine recette, guide ustensiles, comparatif poêle, j'ai testé livre de cuisine, street food article, recherche de mots-clés cuisine, mot-clé food français, analyse SERP recette, créer un brouillon article CMS, jdc-cms article, apéritif [pays] recettes, cuisine africaine article, épices article, marinades, technique culinaire article, FAQ recette, maillage interne article, meta description article cuisine, encadré callout article, tableau comparatif ::table, frise timeline, mermaid article
 
 ## What it covers
 
@@ -18,4 +18,5 @@ Write and publish SEO-optimized French food articles for **Journal du Cuistot** 
 ## References
 
 - `references/templates.md` — per-type skeletons and differentiation levers
+- `../jdc-page-writer/references/page-blocks.md` — Comark blocks shared with pages (`::callout`, `::grid`, `::table`, `::timeline`, mermaid)
 - [SEO strategy docs](../../../docs/seo-strategy/) — keyword validation, priorities & silos, monetization, audits
