@@ -9,7 +9,7 @@ description: |
 
   Use when: writing a new JDC article, refreshing an existing one, researching keywords for a
   recipe/ingredient/ustensil topic, analyzing competitor pages, creating CMS drafts, or inserting
-  ::callout / ::table / ::timeline / mermaid in an article.
+  ::callout / ::table / ::timeline / ::faq / mermaid in an article.
 ---
 
 # JDC article writer
@@ -107,7 +107,7 @@ Write in **Comark-valid markdown** from the start. Blocks, syntax, and when to u
 
 - Src : `/uploads/<fichier>` (préfixe `uploads/` en médiathèque). ProseImg applique w_800 / webp — ne pas pré-transformer.
 - 1 image par plat / item de listicle, alt descriptif.
-- **Blocs article / recette :** `::callout`, `::grid`, `::table`, `::timeline`, fence `mermaid`. Un tableau `| pipes |` rend un bloc vide : toujours `::table{head rows caption}`.
+- **Blocs article / recette :** `::callout`, `::grid`, `::table`, `::timeline`, `::faq`, fence `mermaid`. Un tableau `| pipes |` rend un bloc vide : toujours `::table{head rows caption}`.
 - **Pas sur un article :** `::hero`, `::newsletter`, `::hubs`, `::person`, `::recipe-list`, `::article-list`. Préférer une photo ou une grille à `::carousel`.
 
 - **Title** ≤ 60 chars, exact query front-loaded, evergreen (no "pour l'été"), natural French — never "Recettes de plat Apéritif"
@@ -115,7 +115,7 @@ Write in **Comark-valid markdown** from the start. Blocks, syntax, and when to u
 - **Slug**: keywords only, hyphens, no dates/seasons — set explicitly to keep it stable
 - **Excerpt**: 1–2 sentences (used as dek/fallback)
 - **Structure**: intro 100–150 words with primary query in the first 2 sentences; H2 every ~300 words; H3 per listicle item
-- **FAQ**: 3–5 questions from SERP PAA + "combien/comment" variants, near the end
+- **FAQ**: 3–5 questions from SERP PAA + "combien/comment" variants, near the end, as `::faq` (emits FAQPage)
 - **Internal links ≥ 2**: pick REAL targets via jdc-cms MCP `list-recipes` / `list-articles` / `list-pages` — 1 up (hub: `/techniques-culinaires/**`, `/recette/recettes-du-monde`, category) + 1 sideways (related recipe/article). Contextual anchors, never "cliquez ici". Verify targets exist (no 404s — this has happened).
 - **Images**: cover + alt text describing the dish; **listicles: 1 image per item** — workflow de décision dans `references/image-selection-criteria.md` : `list-media` d'abord (image existante gagne), puis `search-stock-media` (re-rank par critères, `recommendedId`), `import-stock-media`, et `generate-media` en dernier recours. Syntax: `![alt](/uploads/fichier.webp)`. Skip items without adequate media and note them — never reference a non-existent path.
 - **Schema**: recipes get `Recipe` (YGG-82 pending — author/`recipeCuisine`/calories fixed at template level); listicles get `ItemList`; FAQ block → `FAQPage`

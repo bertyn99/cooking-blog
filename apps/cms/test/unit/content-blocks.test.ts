@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
   assertPageDocument,
   catalogEntryForTag,
+  defaultSectionMarkdown,
   fieldKindMeta,
   nextUnusedBlockId,
+  parseFaqItems,
   parsePageContent,
   pageContentRoundTrip,
   propCountLabel,
@@ -65,6 +67,37 @@ Astuce
     expect(round).toContain('![Un plat](/img/hero.jpg "4:3")')
     expect(round).toContain('::grid{cols="2"}')
     expect(round).toContain('::callout{type="tip"}')
+  })
+
+  it('lifts faq out of prose and round-trips JSON items', async () => {
+    const md = `::faq{items='[{"question":"Quelle huile pour saisir ?","answer":"Une huile qui tient le vif."}]'}
+#title
+Questions fréquentes
+::`
+
+    const doc = await parsePageContent(md)
+    expect(doc.blocks[0]).toMatchObject({
+      kind: 'section',
+      tag: 'faq',
+      slots: { title: 'Questions fréquentes' },
+    })
+    if (doc.blocks[0]?.kind !== 'section') throw new Error('expected section')
+    expect(String(doc.blocks[0].props.items)).toContain('Quelle huile')
+    const round = await serializePageDocument(doc)
+    expect(round).toContain('::faq{')
+    expect(round).toContain('#title')
+    expect(round).toContain('Questions fréquentes')
+    expect(parseFaqItems(String(doc.blocks[0].props.items))).toEqual([
+      { question: 'Quelle huile pour saisir ?', answer: 'Une huile qui tient le vif.' },
+    ])
+  })
+
+  it('inserts faq with single-quoted JSON items', () => {
+    const snippet = defaultSectionMarkdown('faq')
+    expect(snippet.startsWith("::faq{items='")).toBe(true)
+    expect(snippet).toContain('#title')
+    expect(snippet).toContain('Questions fréquentes')
+    expect(parseFaqItems(catalogEntryForTag('faq').defaultProps.items as string)).toHaveLength(2)
   })
 
   it('round-trips homepage seed markdown', async () => {

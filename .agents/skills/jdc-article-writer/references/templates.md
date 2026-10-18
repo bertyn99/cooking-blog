@@ -5,7 +5,7 @@ Skeletons per article type. All in French, Bertyn's voice (see SKILL.md §3). Ad
 Shared rules:
 - Primary query in the first 2 sentences of the intro and in the title.
 - One H2 per idea; H3 per listicle item (`## ` / `### ` in markdown).
-- FAQ block (3–5 Q) near the end, sourced from SERP `people_also_ask` + "combien/comment" variants.
+- FAQ block (3–5 Q) near the end as `::faq`, sourced from SERP `people_also_ask` + "combien/comment" variants.
 - End with internal links already placed in the body (not a link dump): 1 up (hub/pillar) + 1–2 sideways (recipes/articles).
 - Tables where data helps (quantities, temps, comparatifs) — they win snippets. Syntax: `../jdc-page-writer/references/page-blocks.md`.
 

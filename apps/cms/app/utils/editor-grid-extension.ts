@@ -6,6 +6,7 @@ import {
   syncGridColumnCount,
 } from '~/utils/editor-grid-columns'
 import {
+  clampGridVariant,
   parseGridMarkdownToken,
   renderGridMarkdownNode,
 } from '~/utils/editor-grid-markdown'
@@ -14,7 +15,7 @@ import { createMdcContainerMarkdownSpec } from '~/utils/editor-mdc-container'
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     grid: {
-      setGrid: (attrs?: { cols?: number }) => ReturnType
+      setGrid: (attrs?: { cols?: number, variant?: 'media' | 'cards' }) => ReturnType
       setGridCols: (cols: number) => ReturnType
     }
   }
@@ -22,8 +23,8 @@ declare module '@tiptap/core' {
 
 const baseMarkdown = createMdcContainerMarkdownSpec({
   nodeName: 'grid',
-  allowedAttributes: ['cols'],
-  defaultAttributes: { cols: 2 },
+  allowedAttributes: ['cols', 'variant'],
+  defaultAttributes: { cols: 2, variant: 'media' },
 })
 
 function emptyColumnJson() {
@@ -49,6 +50,14 @@ export const ContentGrid = Node.create({
           'data-cols': String(clampGridCols(attributes.cols)),
         }),
       },
+      variant: {
+        default: 'media',
+        parseHTML: element => clampGridVariant(element.getAttribute('data-variant')),
+        renderHTML: attributes => {
+          const variant = clampGridVariant(attributes.variant)
+          return variant === 'cards' ? { 'data-variant': 'cards' } : {}
+        },
+      },
     }
   },
 
@@ -68,9 +77,10 @@ export const ContentGrid = Node.create({
     return {
       setGrid: attrs => ({ commands }) => {
         const cols = clampGridCols(attrs?.cols ?? 2)
+        const variant = clampGridVariant(attrs?.variant)
         return commands.insertContent({
           type: this.name,
-          attrs: { cols },
+          attrs: { cols, variant },
           content: Array.from({ length: cols }, () => emptyColumnJson()),
         })
       },

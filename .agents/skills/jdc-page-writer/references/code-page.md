@@ -70,9 +70,10 @@ Ce qui est une habitude de cuisine, nommé comme telle. Pas le mot « Info » en
 
 Un `::table` dès que goût et sécurité se croisent (colonnes : repère, degré, source). Syntaxe dans `page-blocks.md`. Pas de tableau markdown en pipes.
 
-## Questions fréquentes
-
-Trois questions de la requête, réponses courtes.
+::faq{items='[{"question":"Question prise de la requête ?","answer":"Réponse courte, sans apostrophe ASCII."}]'}
+#title
+Questions fréquentes
+::
 
 Lien vers le hub code, et vers la méthode qui s'en sert (saisir, braiser), pas vers une recette inventée.
 ```

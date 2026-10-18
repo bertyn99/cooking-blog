@@ -12,7 +12,7 @@ page technique jdc, techniques culinaires, méthode de cuisson, comment saisir, 
 - `references/page-map.md` — ids des pages déjà en ligne, et le cluster code encore à créer
 - `references/method-page.md` — squelette d'une feuille verbe, chiffres et mythes
 - `references/code-page.md` — squelette d'une décision, phrases ANSES à ne pas arrondir
-- `references/page-blocks.md` — catalogue Comark partagé (images, callout, grille, `::table`, mermaid ; timeline/carrousel = articles)
+- `references/page-blocks.md` — catalogue Comark partagé (images, callout, grille, `::table`, `::faq`, mermaid ; timeline/carrousel = articles)
 
 ## Références partagées
 

@@ -8,8 +8,8 @@ Chemin public = slugs des ancêtres + slug. Le slug d'une page déjà créée ne
 
 | Id | Slug | Parent | Rôle pour ce skill |
 |---|---|---|---|
-| 14 | `techniques-culinaires` | — | Hub. Réécrit 2026-10-16 : une section par enfant réel. |
-| 18 | `methodes-de-cuisson` | 14 | Sous-hub. Réécrit : plus de « à venir ». |
+| 14 | `techniques-culinaires` | — | Hub. Réécrit 2026-10-18 : photo, mermaid, `::grid variant="cards"`. |
+| 18 | `methodes-de-cuisson` | 14 | Sous-hub. Réécrit 2026-10-18 : photos, mermaid, cartes par verbe. |
 | 3 | `saisir-viande-parfaitement` | 18 | Méthode. Feuille courte. |
 | 16 | `art-de-rotir-guide-complet` | 18 | Méthode. H1 poulet rôti au four. |
 | 10 | `guide-friture-maison` | 18 | Méthode. Huile ≤ 180 °C DREETS. |
@@ -19,14 +19,14 @@ Chemin public = slugs des ancêtres + slug. Le slug d'une page déjà créée ne
 | 17 | `guide-braisage-plats-mijotes` | 18 | Méthode. Plus de `## **`. |
 | 19 | `technique-cuisson-etouffee` | 18 | Méthode. Liens morts retirés. |
 | 4 | `preparation-des-ingredients` | 14 | Code (mise en place). Ne pas recréer. |
-| 13 | `techniques-de-decoupes` | 14 | Code (tailles + couteau). |
+| 13 | `techniques-de-decoupes` | 14 | Code. Réécrit 2026-10-18 : griffe, grille julienne/bâtonnet/brunoise, cartes. |
 | 15 | `conservation-aliments` | 14 | Code (froid ANSES). |
 | 5 | `les-epices-essentielles-en-cuisine` | 14 | 36 caractères. **Hors skill.** Article ou glossaire. |
 | 2 | `les-epices-essentielles-en-cuisine-1` | — | Vide. Doublon. Ne pas remplir. |
 
 | 21 | `lab-blocs` | — | **Lab interne** (draft, `noindex`). Tous les blocs Comark. Ne pas publier. Preview : `/preview?type=page&slug=lab-blocs`. |
 
-Hubs recettes : `recette` (11), `recettes-du-monde` (1). Accueil (20) : `update-page` a échoué (`Failed query: begin`) ; SEO via `upsert-seo` seulement.
+Hubs recettes : `recette` (11), `recettes-du-monde` (1). Accueil (20) : seed `HOME_PAGE_MARKDOWN` (hero / person / hubs). `update-page` MCP déclenche encore `updateAsHome` + `BEGIN` tant que le CMS n’a pas le correctif `switchingHome`.
 
 ## Drafts créés 2026-10-16 (ne pas publier)
 

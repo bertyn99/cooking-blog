@@ -11,7 +11,8 @@
    shared theme: packages/shared/app/assets/css/jdc-theme.css (v2 —
    watched via the memo include on ../packages/shared/**). */
 :root {
-  --ui-header-height: 24rem;
+  /* Matches SectionBasicHeader (`h-24`, fixed). UMain / UPageAside read this. */
+  --ui-header-height: 6rem;
   --ui-radius: 0.375rem;
   --ui-primary: var(--ui-color-primary-600);
 }

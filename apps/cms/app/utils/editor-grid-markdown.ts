@@ -17,12 +17,19 @@ export function isEmptyParagraphJson(block: unknown): boolean {
   return b.type === 'paragraph' && (!b.content || b.content.length === 0)
 }
 
+export type GridVariant = 'media' | 'cards'
+
+export function clampGridVariant(value: unknown): GridVariant {
+  return value === 'cards' ? 'cards' : 'media'
+}
+
 /** Build TipTap grid JSON from flat MDC children (one block per CSS grid cell). */
 export function parseGridMarkdownToken(
   token: { attributes?: Record<string, unknown>, tokens?: unknown[] },
   h: Pick<GridMarkdownHelpers, 'parseChildren' | 'createNode'>,
 ) {
   const cols = clampGridCols(token.attributes?.cols ?? 2)
+  const variant = clampGridVariant(token.attributes?.variant)
   const rawChildren = (h.parseChildren(token.tokens || []) || []) as unknown[]
   const packed = packBlocksIntoColumns(rawChildren, cols)
   const columnNodes = packed.map((blocks) => {
@@ -32,7 +39,7 @@ export function parseGridMarkdownToken(
   while (columnNodes.length < cols) {
     columnNodes.push(h.createNode('gridColumn', {}, [h.createNode('paragraph', {}, [])]))
   }
-  return h.createNode('grid', { cols }, columnNodes)
+  return h.createNode('grid', { cols, variant }, columnNodes)
 }
 
 /** Flatten column stacks back to MDC `::grid` body markdown. */
@@ -41,6 +48,7 @@ export function renderGridMarkdownNode(
   h: Pick<GridMarkdownHelpers, 'renderChildren'>,
 ): string {
   const cols = clampGridCols(node.attrs?.cols)
+  const variant = clampGridVariant(node.attrs?.variant)
   const columnNodes = (node.content || []) as Array<{ content?: unknown[] }>
   const stacks = columnNodes.map((col) => {
     const blocks = col.content || []
@@ -53,7 +61,10 @@ export function renderGridMarkdownNode(
   const flat = allEmpty
     ? [{ type: 'paragraph', content: [] }]
     : zipColumnsToBlocks(stacks)
-  const attrs = serializeMdcAttributes({ cols })
+  const attrs = serializeMdcAttributes({
+    cols,
+    variant: variant === 'cards' ? 'cards' : undefined,
+  })
   const attrString = attrs ? `{${attrs}}` : ''
   const rendered = h.renderChildren(flat as never[], '\n\n')
   return `::grid${attrString}\n\n${rendered}\n\n::`

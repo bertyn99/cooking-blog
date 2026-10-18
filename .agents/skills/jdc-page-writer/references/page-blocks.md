@@ -9,7 +9,7 @@ Lab visuel (draft, `noindex`, ne pas publier) : page id 21, slug `lab-blocs`. Pr
 | Surface | Renderer | Blocs |
 |---|---|---|
 | Page CMS | `PageMarkdown` | Tout le catalogue, y compris les sections d'accueil |
-| Article / recette | `ArticleMarkdown` | `callout`, `grid`, `table`, `timeline`, `carousel` + images markdown + fence `mermaid` |
+| Article / recette | `ArticleMarkdown` | `callout`, `grid`, `table`, `timeline`, `carousel`, `faq` + images markdown + fence `mermaid` |
 
 Jamais `::image`. Jamais `::hero` / `::newsletter` / `::hubs` / `::person` / `::article-list` dans un article. `::recipe-list` seulement sur une page (deux ou trois recettes publiées du verbe).
 
@@ -29,6 +29,7 @@ Rendu commun : filet **yellow-800**, coins **droits**, Catamaran / Merriweather.
 | Un choix à **au moins deux branches** | Un fence `mermaid`, six nœuds max |
 | Une suite droite (saisir, déglacer, mouiller) | Liste numérotée |
 | Une histoire datée (article, pas une méthode) | `::timeline`, 4–6 items |
+| 3–5 questions fréquentes (PAA, combien / comment) | `::faq` — pas un `## Questions fréquentes` en prose |
 
 ## Images
 
@@ -60,6 +61,8 @@ Un seul `warning` par page méthode. Le degré ANSES reste dans l'encadré ou le
 
 `cols` = 2, 3 ou 4. Pas de prop `rows` : le nombre de `:::div` fait les rangées. Le téléphone empile dans l'ordre du markdown.
 
+Deux présentations, **pas un nouveau bloc** : `variant` oublié = photos (défaut). `variant="cards"` enveloppe chaque cellule dans un `UPageCard` Nuxt UI (filet, coins droits). Les comparaisons photo restent en `media`. Les listes de feuilles (méthodes, hub) passent en cartes.
+
 ```markdown
 ::grid{cols="2"}
 :::div
@@ -76,6 +79,29 @@ Four doux puis saisie : rosé jusqu'à la croûte, même cœur.
 ```
 
 Même cadrage dans une suite. Une cellule qui coupe la main hors du geste redevient une photo pleine largeur. Quatre points de cuisson : un `::table` (nom, aspect, température, source). Une grille `cols="4"` seulement si chaque légende porte tout ça — la couleur seule ne tient pas une fois empilée.
+
+Hub ou sous-hub, une carte par enfant réel :
+
+```markdown
+::grid{cols="2" variant="cards"}
+:::div
+### Saisir
+
+Peu de gras, feu vif, sans couvercle.
+
+[Comment saisir une viande](/techniques-culinaires/methodes-de-cuisson/saisir-viande-parfaitement)
+:::
+:::div
+### Braiser
+
+Colorer, puis liquide à mi-hauteur, couvercle.
+
+[Comment braiser une viande](/techniques-culinaires/methodes-de-cuisson/guide-braisage-plats-mijotes)
+:::
+::
+```
+
+Titre `###`, une ou deux phrases, un lien. Pas d'image dans une carte : la photo reste en `::grid` sans `variant`, ou pleine largeur.
 
 ## Tableau — `::table`
 
@@ -100,6 +126,33 @@ Articles d'histoire / migration. **Pas sur une page méthode** : une suite de ge
 ```
 
 4–6 items. `text` ≤ 2 lignes. Une date par item. Le paragraphe autour dit la même chose.
+
+## FAQ — `::faq`
+
+Accordéon Nuxt UI (`UAccordion`, `type="multiple"`, réponses laissées dans le DOM) + schema `FAQPage` / `Question` via Unhead (`defineWebPage({ '@type': 'FAQPage' })` + `defineQuestion`). Ne pas coller de JSON-LD dans le markdown.
+
+```markdown
+::faq{items='[{"question":"Quelle huile pour saisir ?","answer":"Une huile qui tient le vif. Le beurre seul brunit trop tôt."}]'}
+#title
+Questions fréquentes
+::
+```
+
+3–5 questions du SERP / PAA. JSON dans des `'…'` : pas d'apostrophe ASCII dans une réponse (`l’huile` typographique, ou reformuler). Recettes : le champ CMS `faq` passe par le même composant.
+
+## Schema (Unhead / Nuxt SEO)
+
+Le markdown n'émet pas de JSON-LD. Les types utiles sont déjà branchés :
+
+| Type | Où | Pas pour |
+|---|---|---|
+| `FAQPage` + `Question` | Bloc `::faq`, champ recette `faq` | Coller un script dans le corps |
+| `Recipe` | Route `/recette/:slug` | Une page méthode |
+| `Article` | Route article | Une page CMS |
+| `BreadcrumbList` | Pages, depuis les parents | Recalculer à la main |
+| `WebSite` + identité | `app.vue` / `nuxt.config` | Le bloc `::person` |
+
+Pas de `HowTo` : Google l'a restreint, et on n'a pas de bloc d'étapes. Pas de `ItemList` tant qu'il n'y a pas de listicle dédié. Google ne montre plus les rich results FAQ depuis le 7 mai 2026 ; le markup Schema.org reste.
 
 ## Mermaid
 

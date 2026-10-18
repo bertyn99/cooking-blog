@@ -38,6 +38,8 @@ export interface ContentBlockField {
   visibleWhen?: Record<string, string>
   /** Sibling field filled from the media library alt when this media is picked. */
   altKey?: string
+  /** Skip this attr in markdown when the stored value still equals `default`. */
+  omitDefault?: boolean
 }
 
 /** Named Comark slots (`#title`, `#default`) shown as nested tree rows. */

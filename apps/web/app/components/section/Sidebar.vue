@@ -3,8 +3,7 @@ import { SITE_AUTHOR_NAME } from "~/composables/useSitePageUrl";
 </script>
 
 <template>
-  <aside class="w-full lg:w-1/4 space-y-8">
-    <div class="w-full h-64"></div>
+  <div class="w-full space-y-8">
     <div
       class="w-full flex flex-col gap-4 items-center border border-stone-200"
     >
@@ -89,5 +88,5 @@ import { SITE_AUTHOR_NAME } from "~/composables/useSitePageUrl";
     </div>
 
     <RecipeLatest />
-  </aside>
+  </div>
 </template>
