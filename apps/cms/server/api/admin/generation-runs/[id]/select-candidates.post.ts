@@ -4,6 +4,7 @@ import { requireEditor } from '../../../../utils/http-auth'
 import { validateBody } from '../../../../utils/validate'
 import { createApiError, fromQueryError } from '../../../../utils/errors'
 import { serializeGenerationRunForApi } from '../../../../utils/serialize-generation-run'
+import { defineEventHandler, getRouterParam, readBody } from 'nuxt/server'
 
 const schema = z.object({
   candidateIds: z.array(z.string().min(1)).min(1).max(40),

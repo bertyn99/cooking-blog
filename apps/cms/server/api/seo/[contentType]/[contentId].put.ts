@@ -6,6 +6,7 @@ import {
   upsertSeoMutation,
 } from '../../../services/seo-mutations'
 import type { SeoContentType } from '../../../db/queries/seo'
+import { defineEventHandler, getRouterParam, readBody } from 'nuxt/server'
 
 const VALID_CONTENT_TYPES = new Set(['article', 'recipe', 'page', 'glossary'])
 

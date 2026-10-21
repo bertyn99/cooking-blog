@@ -4,6 +4,7 @@ import { seedAgentUser } from '../db/seed/agent'
 import { resolveSeedAdminInput, seedAdminPayloadSchema } from '../db/seed/defaults'
 import { ensureEditorDefaults, ensureHomePage } from '../services/ensure-home-page'
 import { useDb } from '../utils/db'
+import { defineTask } from 'nitropack/runtime'
 
 export default defineTask({
   meta: {

@@ -5,6 +5,7 @@ import { validateBody } from '../../../../utils/validate'
 import { createApiError, fromQueryError } from '../../../../utils/errors'
 import { serializeGenerationRunForApi } from '../../../../utils/serialize-generation-run'
 import { GENERATION_REVIEW_ACTIONS } from '../../../../services/generation/review-event'
+import { defineEventHandler, getRouterParam, readBody } from 'nuxt/server'
 
 const schema = z.object({
   action: z.enum(GENERATION_REVIEW_ACTIONS),

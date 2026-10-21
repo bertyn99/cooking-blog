@@ -3,6 +3,7 @@ import { updateStaffUserSchema } from '../../../../shared/validators/staff'
 import { requireAdmin } from '../../../utils/http-auth'
 import { createApiError } from '../../../utils/errors'
 import { useStaffService } from '../../../services/staff-service'
+import { defineEventHandler, getRouterParam, readBody } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const session = await requireAdmin(event)

@@ -7,6 +7,7 @@ import {
 } from '../../utils/auth/seed-admin-access'
 import { createApiError } from '../../utils/errors'
 import { useDb } from '../../utils/db'
+import { defineEventHandler, readBody } from 'nuxt/server'
 
 /**
  * Create the initial CMS admin on production (D1).

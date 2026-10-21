@@ -3,6 +3,7 @@ import { requireAbility } from '../../../../utils/http-auth'
 import { useQueries } from '../../../../utils/db'
 import { createApiError } from '../../../../utils/errors'
 import { syncGlossaryRobotsForStatus } from '../../../../services/glossary-mutations'
+import { defineEventHandler, getRouterParam } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   await requireAbility(event, canPublishContent)

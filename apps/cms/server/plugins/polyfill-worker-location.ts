@@ -1,3 +1,4 @@
+import { defineNitroPlugin } from 'nitropack/runtime'
 /**
  * Fix `self.location` for the Workers bundle.
  *

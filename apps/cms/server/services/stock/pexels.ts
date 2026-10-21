@@ -1,3 +1,4 @@
+import { createError } from 'nuxt/server'
 export interface PexelsPhotoSrc {
   original: string
   large2x: string

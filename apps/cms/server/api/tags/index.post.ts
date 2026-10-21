@@ -4,6 +4,7 @@ import { requireEditor } from '../../utils/http-auth'
 import { validateBody } from '../../utils/validate'
 import { slugifyString } from '../../utils/slug'
 import { createApiError } from '../../utils/errors'
+import { defineEventHandler, readBody, setResponseStatus } from 'nuxt/server'
 
 const createTagSchema = z.object({
   name: z.string().min(1),

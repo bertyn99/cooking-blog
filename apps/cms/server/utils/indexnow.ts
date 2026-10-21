@@ -1,4 +1,5 @@
 import { absolutePublicUrl } from '#shared/public-site-paths'
+import { useRuntimeConfig } from 'nuxt/server'
 
 /**
  * Fire-and-forget IndexNow ping through the public site's relay endpoint

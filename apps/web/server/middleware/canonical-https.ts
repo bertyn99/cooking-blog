@@ -1,3 +1,4 @@
+import { defineEventHandler, getRequestURL, sendRedirect } from 'nuxt/server'
 /**
  * Canonical origin + path enforcement (prod only).
  *

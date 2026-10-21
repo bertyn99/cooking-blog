@@ -1,6 +1,8 @@
 import { canEditContent } from '../../../shared/abilities'
 import { useQueries } from '../../utils/db'
 import { createApiError } from '../../utils/errors'
+import { defineEventHandler, getRouterParam } from 'nuxt/server'
+import { sendNoContent } from 'h3'
 
 export default defineEventHandler(async (event) => {
   await requireUserSession(event)

@@ -6,6 +6,7 @@ import { useQueries } from '../../utils/db'
 import { loadAmazonAffiliateTag, attachResolvedAffiliate } from '../../services/glossary-affiliate'
 import { serializeGlossaryForScope } from '../../utils/serialize-content'
 import { createApiError } from '../../utils/errors'
+import { defineEventHandler, readBody, setResponseStatus } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const actor = await requireWriteActor(event, 'glossary')

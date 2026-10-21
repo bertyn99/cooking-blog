@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3'
 import { getCloudflareEnv } from './cloudflare-env'
+import { useRuntimeConfig } from 'nuxt/server'
 
 /**
  * AI Gateway id for media/content generation calls.
@@ -14,6 +15,6 @@ export function resolveMediaGenerationGatewayId(event: H3Event): string | null {
   if (import.meta.dev) {
     return null
   }
-  const fromConfig = useRuntimeConfig(event).cmsAiGatewayId
+  const fromConfig = useRuntimeConfig().cmsAiGatewayId
   return typeof fromConfig === 'string' && fromConfig.length > 0 ? fromConfig : null
 }

@@ -8,6 +8,7 @@ import {
   TRANSFER_PULL_CONFIRM_PHRASE,
   parseTransferPullInput,
 } from '../../../../shared/transfer-pull'
+import { defineEventHandler, readBody } from 'nuxt/server'
 
 const PULL_ERRORS: Record<string, string> = {
   ORIGIN_REQUIRED: 'Indiquez l’URL d’origine du CMS distant.',

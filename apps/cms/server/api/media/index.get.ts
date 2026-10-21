@@ -1,4 +1,5 @@
 import { listMedia } from '../../utils/media'
+import { defineEventHandler, getQuery } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)

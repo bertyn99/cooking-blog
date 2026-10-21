@@ -5,6 +5,7 @@ import { createApiError } from '../../../utils/errors'
 import { requireEditor } from '../../../utils/http-auth'
 import { useKvStore } from '../../../utils/kv'
 import { createRequestRateLimiter } from '../../../utils/rate-limit'
+import { defineEventHandler, getQuery } from 'nuxt/server'
 
 const STOCK_SEARCH_LIMIT = {
   prefix: 'media-stock-search',

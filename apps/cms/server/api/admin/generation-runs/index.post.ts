@@ -5,6 +5,7 @@ import { validateBody } from '../../../utils/validate'
 import { fromQueryError } from '../../../utils/errors'
 import { serializeGenerationRunForApi } from '../../../utils/serialize-generation-run'
 import { useGenerationArtifactStore } from '../../../services/generation/artifact-storage'
+import { defineEventHandler, readBody, setResponseStatus } from 'nuxt/server'
 
 const sourcePackSchema = z.object({
   sourceKind: z.enum(['paste', 'article', 'ebook']).default('paste'),

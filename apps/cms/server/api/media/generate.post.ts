@@ -13,6 +13,7 @@ import { resolveMediaGenerationGatewayId } from '../../utils/media-generation-ga
 import { useKvStore } from '../../utils/kv'
 import { createRequestRateLimiter } from '../../utils/rate-limit'
 import { isAbortError, resolveRequestAbortSignal } from '../../utils/request-abort'
+import { defineEventHandler, readBody, setResponseStatus } from 'nuxt/server'
 
 const MEDIA_GENERATE_LIMIT = {
   prefix: 'media-generate',

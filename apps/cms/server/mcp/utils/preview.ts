@@ -8,6 +8,7 @@ import {
   type NestedPageParent,
 } from '../../../shared/public-site-paths'
 import { withWritable, type WritableOptions } from './payload'
+import { useRuntimeConfig } from 'nuxt/server'
 
 export type McpPreviewKind = 'article' | 'page' | 'recipe' | 'glossary'
 
@@ -27,7 +28,7 @@ export interface McpContentLinks {
 }
 
 export function siteOriginFromEvent(event: H3Event): string {
-  const config = useRuntimeConfig(event)
+  const config = useRuntimeConfig()
   return String(config.public.siteUrl || 'http://localhost:3000').replace(/\/$/, '')
 }
 

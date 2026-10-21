@@ -7,6 +7,7 @@ import { useDb } from '../utils/db'
 import { recordContentAudit } from '../services/content-audit'
 import { actorApiKeyId, actorUserId } from '../utils/actor'
 import { isMcpReadToolName, mcpKillSwitchOff } from './utils/enabled'
+import { createError } from 'nuxt/server'
 
 const MCP_RATE = {
   prefix: 'mcp:req',

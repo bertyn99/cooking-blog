@@ -5,11 +5,12 @@ import { getStrapiReachability } from '../../../services/strapi-reachability'
 import { getStrapiImportStepCoverage } from '../../../services/strapi-import-coverage'
 import { useQueries } from '../../../utils/db'
 import { requireAbility } from '../../../utils/http-auth'
+import { defineEventHandler, getQuery, useRuntimeConfig } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   await requireAbility(event, canAccessImport)
 
-  const config = useRuntimeConfig(event)
+  const config = useRuntimeConfig()
   const query = getQuery(event)
   const forceConnection = query.testConnection === 'true'
 

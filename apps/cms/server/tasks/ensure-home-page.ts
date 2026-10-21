@@ -1,5 +1,6 @@
 import { useDb } from '../utils/db'
 import { ensureEditorDefaults, ensureHomePage } from '../services/ensure-home-page'
+import { defineTask } from 'nitropack/runtime'
 
 export default defineTask({
   meta: {

@@ -7,6 +7,7 @@ import { createApiError } from '../../utils/errors'
 import { useKvStore } from '../../utils/kv'
 import { useQueries } from '../../utils/db'
 import type { H3Event } from 'h3'
+import { defineEventHandler, readBody } from 'nuxt/server'
 
 const LOGIN_LIMIT = {
   prefix: 'login:fail',

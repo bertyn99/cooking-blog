@@ -1,5 +1,7 @@
 import { deleteMediaBlob } from '../../utils/media'
 import { canEditContent } from '../../../shared/abilities'
+import { createError, defineEventHandler, readBody } from 'nuxt/server'
+import { sendNoContent } from 'h3'
 
 export default defineEventHandler(async (event) => {
   await requireUserSession(event)

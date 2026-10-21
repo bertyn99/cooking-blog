@@ -1,4 +1,5 @@
 import { serveCmsImage } from '../../utils/serve-image'
+import { createError, defineEventHandler, getRouterParam } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const pathname = getRouterParam(event, 'pathname')

@@ -3,6 +3,7 @@ import { createD1Db, type AppDb } from '../db/create-db'
 import { createDbQueries } from '../db/queries'
 import { getCloudflareEnv } from './cloudflare-env'
 import { getLocalDb } from '../db/client'
+import { createError } from 'nuxt/server'
 
 /**
  * Whether HTTP handlers and tasks should use the Cloudflare D1 binding.

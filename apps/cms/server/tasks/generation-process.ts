@@ -1,6 +1,7 @@
 import { createLogger } from 'evlog'
 import { isSqliteBusyError } from '../utils/sqlite-busy'
 import { useContentGenerationService } from '../services/generation/service'
+import { defineTask } from 'nitropack/runtime'
 
 export default defineTask({
   meta: {

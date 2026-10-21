@@ -1,5 +1,6 @@
 import { createMediaFolder } from '../../utils/media'
 import { canEditContent } from '../../../shared/abilities'
+import { createError, defineEventHandler, readBody, setResponseStatus } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   await requireUserSession(event)

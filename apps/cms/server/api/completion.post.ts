@@ -22,6 +22,8 @@ import { requireEditor } from '../utils/http-auth'
 import { useKvStore } from '../utils/kv'
 import { toLogError } from '../utils/logging'
 import { createRequestRateLimiter } from '../utils/rate-limit'
+import { defineEventHandler, readBody, useRuntimeConfig } from 'nuxt/server'
+import { sendStream, setResponseHeader } from 'h3'
 
 const COMPLETION_LIMIT = {
   prefix: 'completion',
@@ -50,7 +52,7 @@ function resolveCompletionGatewayId(event: H3Event, envGatewayId?: string): stri
   if (import.meta.dev) {
     return null
   }
-  const fromConfig = useRuntimeConfig(event).cmsAiGatewayId
+  const fromConfig = useRuntimeConfig().cmsAiGatewayId
   return typeof fromConfig === 'string' && fromConfig.length > 0 ? fromConfig : null
 }
 

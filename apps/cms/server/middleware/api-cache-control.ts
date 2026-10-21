@@ -1,3 +1,4 @@
+import { defineEventHandler, getRequestURL, setHeader } from 'h3'
 /**
  * Workers Cache (Alchemy `cache` on the CMS worker) must not store API JSON —
  * stale empty lists were served for `/api/categories` after import.

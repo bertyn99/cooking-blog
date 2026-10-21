@@ -1,5 +1,6 @@
 import { requireAdmin } from '../../../utils/http-auth'
 import { useApiKeyService } from '../../../services/api-key-service'
+import { defineEventHandler, readBody } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const session = await requireAdmin(event)

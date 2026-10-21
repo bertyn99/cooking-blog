@@ -5,6 +5,7 @@ import {
   updateArticleMutation,
   updateArticleSchema,
 } from '../../services/article-mutations'
+import { defineEventHandler, getRouterParam, readBody } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const actor = await requireWriteActor(event, 'articles')

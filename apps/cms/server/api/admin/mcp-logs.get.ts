@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { useQueries } from '../../utils/db'
 import { createApiError } from '../../utils/errors'
 import { requireAdmin } from '../../utils/http-auth'
+import { defineEventHandler, getQuery } from 'nuxt/server'
 
 const MAX_PAGE_SIZE = 100
 const MAX_PAGE = Math.floor(Number.MAX_SAFE_INTEGER / MAX_PAGE_SIZE)

@@ -1,5 +1,6 @@
 import { createMCPClient, type MCPClient } from '@ai-sdk/mcp'
 import type { ToolSet } from 'ai'
+import { useRuntimeConfig } from 'nuxt/server'
 
 const SEO_TOOL_ALLOWLIST = new Set([
   'keyword_research',

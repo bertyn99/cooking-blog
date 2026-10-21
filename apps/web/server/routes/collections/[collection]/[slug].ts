@@ -1,3 +1,4 @@
+import { createError, defineEventHandler, getRouterParam, sendRedirect } from 'nuxt/server'
 /**
  * Legacy collection URLs → recipe detail.
  * `/collections/recettes-marocaines/batbout-farci` → `/recette/batbout-farci`

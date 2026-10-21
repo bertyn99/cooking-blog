@@ -5,6 +5,7 @@ import { requireAbility } from '../../utils/http-auth'
 import { createApiError } from '../../utils/errors'
 import { useQueries } from '../../utils/db'
 import { isBootstrapMode } from '../../utils/auth/bootstrap'
+import { defineEventHandler, readBody } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)

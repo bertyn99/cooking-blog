@@ -5,6 +5,7 @@ import { validateBody } from '../../../../utils/validate'
 import { createApiError, fromQueryError } from '../../../../utils/errors'
 import type { ContentMediaType } from '../../../../db/queries/media-folders'
 import { assertContentRowExists } from '../../../../utils/assert-content-exists'
+import { defineEventHandler, getRouterParam, readBody } from 'nuxt/server'
 
 const schema = z.object({
   items: z.array(z.object({

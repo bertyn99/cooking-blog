@@ -5,6 +5,7 @@ import { slugifyString } from '../../utils/slug'
 import { useQueries } from '../../utils/db'
 import { requireEditor } from '../../utils/http-auth'
 import { applyInitialContentStatusPolicy } from '../../utils/content-status-policy'
+import { defineEventHandler, readBody } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const session = await requireEditor(event)

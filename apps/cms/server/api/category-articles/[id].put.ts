@@ -4,6 +4,7 @@ import { createApiError } from '../../utils/errors'
 import { useQueries } from '../../utils/db'
 import { requireEditor } from '../../utils/http-auth'
 import { applyContentStatusPolicy } from '../../utils/content-status-policy'
+import { defineEventHandler, getRouterParam, readBody } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const session = await requireEditor(event)

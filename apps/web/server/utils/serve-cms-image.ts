@@ -1,6 +1,8 @@
 import type { H3Event } from 'h3'
 import { buildIpxImagePath, parseIpxImagePath } from '../../../cms/shared/ipx-image-path'
 import { toCmsStoragePath } from '../../shared/media-public-path'
+import { getHeader } from 'h3'
+import { createError, useRuntimeConfig } from 'nuxt/server'
 
 const LONG_CACHE = 'public, max-age=31536000, stale-while-revalidate=604800'
 
@@ -20,7 +22,7 @@ export async function serveOptimizedCmsImage(event: H3Event, fullPath: string) {
     throw createError({ statusCode: 404 })
   }
 
-  const config = useRuntimeConfig(event)
+  const config = useRuntimeConfig()
   const originUrl = `${config.public.cmsBaseUrl.replace(/\/$/, '')}/images/${originPath}`
 
   // Worker-to-worker fetches reach the CMS with a Cloudflare egress IP in
@@ -77,7 +79,7 @@ export async function serveOptimizedCmsImage(event: H3Event, fullPath: string) {
  * No transforms here: transformed images keep using `/images/{modifiers}/…`.
  */
 export async function serveCmsMediaFile(event: H3Event, pathname: string) {
-  const config = useRuntimeConfig(event)
+  const config = useRuntimeConfig()
   const originUrl = `${config.public.cmsBaseUrl.replace(/\/$/, '')}/uploads/${pathname.replace(/^\/+/, '')}`
 
   // Same internal-header forwarding as `serveOptimizedCmsImage`: worker-to-worker

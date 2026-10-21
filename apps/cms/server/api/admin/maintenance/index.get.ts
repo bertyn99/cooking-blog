@@ -4,6 +4,7 @@ import { useMaintenanceService } from '../../../services/maintenance-purge'
 import { getStrapiImportStatus } from '../../../services/strapi-import-status'
 import { resolveDatabaseSource } from '../../../utils/db'
 import { requireAbility } from '../../../utils/http-auth'
+import { defineEventHandler } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   await requireAbility(event, canAccessMaintenance)

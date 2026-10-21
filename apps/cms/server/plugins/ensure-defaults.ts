@@ -2,6 +2,7 @@ import type { H3Event } from 'h3'
 import { createLogger } from 'evlog'
 import { prefersD1Database, useDb } from '../utils/db'
 import { ensureEditorDefaults, ensureHomePage } from '../services/ensure-home-page'
+import { defineNitroPlugin } from 'nitropack/runtime'
 
 export default defineNitroPlugin((nitroApp) => {
   const log = createLogger({ plugin: 'ensure-defaults' })

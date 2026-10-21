@@ -3,6 +3,7 @@ import { canEditContent } from '../../../../shared/abilities'
 import { useDashboardService } from '../../../services/dashboard-service'
 import { createApiError } from '../../../utils/errors'
 import { requireAbility } from '../../../utils/http-auth'
+import { defineEventHandler, getQuery } from 'nuxt/server'
 
 const querySchema = z.object({
   locale: z.string().default('fr'),

@@ -5,6 +5,7 @@ import {
   apiKeyHasWriteScope,
   type ContentWriteScope,
 } from '../../../shared/api-keys'
+import { useRuntimeConfig } from 'nuxt/server'
 
 /** Tool names that are reads — audited as `mcp.tool`, not via content mutations. */
 export const MCP_READ_TOOL_NAMES = new Set([
@@ -31,7 +32,7 @@ function flagOff(value: unknown): boolean {
 export function mcpKillSwitchOff(event?: H3Event): boolean {
   if (event) {
     try {
-      const configured = useRuntimeConfig(event).cmsMcpEnabled
+      const configured = useRuntimeConfig().cmsMcpEnabled
       if (configured !== undefined && configured !== null && String(configured) !== '') {
         return flagOff(configured)
       }

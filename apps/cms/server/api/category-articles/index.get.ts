@@ -1,5 +1,6 @@
 import { parsePagination } from '../../utils/pagination'
 import { useQueries } from '../../utils/db'
+import { defineEventHandler, getQuery } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)

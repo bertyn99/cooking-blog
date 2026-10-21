@@ -3,6 +3,7 @@ import { createApiError } from '../../utils/errors'
 import { useQueries } from '../../utils/db'
 import { serializeRecipeForScope } from '../../utils/serialize-content'
 import { loadAmazonAffiliateTag } from '../../services/glossary-affiliate'
+import { defineEventHandler, getQuery, getRouterParam } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const id = Number.parseInt(getRouterParam(event, 'id') || '', 10)

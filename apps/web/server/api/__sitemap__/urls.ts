@@ -1,4 +1,6 @@
-import { defineSitemapEventHandler } from "#imports";
+// @nuxtjs/sitemap v9 registers defineSitemapEventHandler on the #sitemap nitro
+// alias (#sitemap/server) — it's no longer re-exported through #imports types.
+import { defineSitemapEventHandler } from "#sitemap/server";
 import type { SitemapUrlInput } from "#sitemap/types";
 import { articlePublicPath } from "~/utils/article-path";
 import { generateSlug } from "~/utils/format";

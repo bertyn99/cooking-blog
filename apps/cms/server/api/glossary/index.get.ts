@@ -8,6 +8,7 @@ import { loadAmazonAffiliateTag, attachResolvedAffiliate } from '../../services/
 import { serializeGlossaryForScope, serializeGlossaryFamilyRef } from '../../utils/serialize-content'
 import { glossarySiblingForms } from '../../../shared/glossary-family'
 import { recipePublicPath } from '../../../shared/public-site-paths'
+import { defineEventHandler, getQuery } from 'nuxt/server'
 
 function parseFlag(value: unknown): boolean {
   const raw = Array.isArray(value) ? value[0] : value

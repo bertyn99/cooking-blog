@@ -2,6 +2,7 @@ import { useContentGenerationService } from '../../../services/generation/servic
 import { requireEditor } from '../../../utils/http-auth'
 import { createApiError } from '../../../utils/errors'
 import { serializeGenerationRunForApi } from '../../../utils/serialize-generation-run'
+import { defineEventHandler, getRouterParam } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   await requireEditor(event)

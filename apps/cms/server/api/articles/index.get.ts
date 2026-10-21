@@ -5,6 +5,7 @@ import { serializeArticleForScope } from '../../utils/serialize-content'
 import { resolveArticleCategoryIds } from '../../utils/resolve-category-ids'
 import { isPrivilegedContentRead } from '../../utils/preview-auth'
 import { parseContentStatus, parseCsvParam } from '../../utils/query-params'
+import { defineEventHandler, getQuery } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)

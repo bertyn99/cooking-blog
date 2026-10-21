@@ -14,6 +14,8 @@ import { getClientIp } from './client-ip'
 import { useMediaStorage } from './media-storage'
 import { createRequestRateLimiter } from './rate-limit'
 import { useKvStore } from './kv'
+import { getHeader } from 'h3'
+import { createError, useRuntimeConfig } from 'nuxt/server'
 
 const LONG_CACHE = 'public, max-age=31536000, stale-while-revalidate=604800'
 
@@ -43,7 +45,7 @@ export async function serveCmsImage(event: H3Event, fullPath: string) {
   // The web Worker proxies image requests and forwards the real client IP
   // (`x-jdc-client-ip`), proven with the shared preview token — worker-to-worker
   // fetches would otherwise share one Cloudflare-egress rate-limit bucket.
-  const config = useRuntimeConfig(event)
+  const config = useRuntimeConfig()
   const forwardedIp = config.cmsPreviewToken
     && getHeader(event, 'x-jdc-internal') === config.cmsPreviewToken
     ? getHeader(event, 'x-jdc-client-ip')

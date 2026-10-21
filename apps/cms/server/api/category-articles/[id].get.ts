@@ -1,5 +1,6 @@
 import { createApiError } from '../../utils/errors'
 import { useQueries } from '../../utils/db'
+import { defineEventHandler, getRouterParam } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))

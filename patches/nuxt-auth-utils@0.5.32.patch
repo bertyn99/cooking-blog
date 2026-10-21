@@ -1,0 +1,730 @@
+diff --git a/dist/runtime/server/lib/oauth/apple.js b/dist/runtime/server/lib/oauth/apple.js
+index e03c145b9d0d5f8e121632d9e9547048d16600f5..27e34c8c54514ebca5a953c1c85fb287d43e6d51 100644
+--- a/dist/runtime/server/lib/oauth/apple.js
++++ b/dist/runtime/server/lib/oauth/apple.js
+@@ -2,7 +2,7 @@ import { eventHandler, getRequestHeader, readBody, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken, signJwt, verifyJwt } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthAppleEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/atlassian.js b/dist/runtime/server/lib/oauth/atlassian.js
+index 50d84ad26b72eeb5c669221e04509e0ff7736735..6809d9475ffe94c821642627eba2f5c6560d5b07 100644
+--- a/dist/runtime/server/lib/oauth/atlassian.js
++++ b/dist/runtime/server/lib/oauth/atlassian.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthAtlassianEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/auth0.js b/dist/runtime/server/lib/oauth/auth0.js
+index 738131030c0ff1970418afa4912313fcea62a05d..2a5313c64f26545f43e3b153519bd1aab791bacc 100644
+--- a/dist/runtime/server/lib/oauth/auth0.js
++++ b/dist/runtime/server/lib/oauth/auth0.js
+@@ -2,7 +2,7 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthAuth0EventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.auth0, {
+diff --git a/dist/runtime/server/lib/oauth/authentik.js b/dist/runtime/server/lib/oauth/authentik.js
+index 9b01c0bbfa15eb0de5eb8a0fe578950bd2ad88b7..f116c2baefdb82d56d702165722d29a9b109bb8d 100644
+--- a/dist/runtime/server/lib/oauth/authentik.js
++++ b/dist/runtime/server/lib/oauth/authentik.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthAuthentikEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.authentik);
+diff --git a/dist/runtime/server/lib/oauth/azureb2c.js b/dist/runtime/server/lib/oauth/azureb2c.js
+index 1d93b649d72496c4eb598fea41b97bf5671530f7..f555786d2a24af274d1ef9783f71d8e1824c20f1 100644
+--- a/dist/runtime/server/lib/oauth/azureb2c.js
++++ b/dist/runtime/server/lib/oauth/azureb2c.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, requestAccessToken, handlePkceVerifier, handleState, handleInvalidState } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthAzureB2CEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.azureb2c, {
+diff --git a/dist/runtime/server/lib/oauth/battledotnet.js b/dist/runtime/server/lib/oauth/battledotnet.js
+index 4a820b44bcc00fbf82f18b74a96d654ebae02652..0777fd3b23c0ce838b4f39782787ac75a1bc4f0c 100644
+--- a/dist/runtime/server/lib/oauth/battledotnet.js
++++ b/dist/runtime/server/lib/oauth/battledotnet.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthBattledotnetEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.battledotnet, {
+diff --git a/dist/runtime/server/lib/oauth/box.js b/dist/runtime/server/lib/oauth/box.js
+index f562a268e83ba5b7f8575a5177530f16e79369f6..4dec5675a962313db949529eda4b2f1e007ef049 100644
+--- a/dist/runtime/server/lib/oauth/box.js
++++ b/dist/runtime/server/lib/oauth/box.js
+@@ -2,7 +2,7 @@ import { eventHandler, getQuery, sendRedirect, createError } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { getOAuthRedirectURL, handleAccessTokenErrorResponse, handleInvalidState, handleMissingConfiguration, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthBoxEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.box, {
+diff --git a/dist/runtime/server/lib/oauth/cognito.js b/dist/runtime/server/lib/oauth/cognito.js
+index 685a44be459b19210edcd77d5dbf9d80f18e00a1..ae779a94b2cd4368be9601fc9aa0ffc444c66df6 100644
+--- a/dist/runtime/server/lib/oauth/cognito.js
++++ b/dist/runtime/server/lib/oauth/cognito.js
+@@ -3,7 +3,7 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { discovery } from "openid-client";
+ import { withQuery } from "ufo";
+ import { getOAuthRedirectURL, handleAccessTokenErrorResponse, handleInvalidState, handleMissingConfiguration, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthCognitoEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.cognito, {
+diff --git a/dist/runtime/server/lib/oauth/discord.js b/dist/runtime/server/lib/oauth/discord.js
+index 5788b862e152239aa571d0f4999c9c2d1a2fa742..1798a5cdc1b49c7cc2f24b1d183bfbb6457ea6e3 100644
+--- a/dist/runtime/server/lib/oauth/discord.js
++++ b/dist/runtime/server/lib/oauth/discord.js
+@@ -2,7 +2,7 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthDiscordEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.discord, {
+diff --git a/dist/runtime/server/lib/oauth/dropbox.js b/dist/runtime/server/lib/oauth/dropbox.js
+index 0f8f342e83acd997036c63be462fbe0b75b30bb5..dd7e3bd24998b69a04d9af32ddafe75e91742e75 100644
+--- a/dist/runtime/server/lib/oauth/dropbox.js
++++ b/dist/runtime/server/lib/oauth/dropbox.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthDropboxEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.dropbox, {
+diff --git a/dist/runtime/server/lib/oauth/facebook.js b/dist/runtime/server/lib/oauth/facebook.js
+index 60eae38e703f3d408dd277920d34c4fa0ff255e6..9a6978f7d3c142d968eb81a3e4ea896180be96af 100644
+--- a/dist/runtime/server/lib/oauth/facebook.js
++++ b/dist/runtime/server/lib/oauth/facebook.js
+@@ -2,7 +2,7 @@ import { eventHandler, getQuery, sendRedirect, createError } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthFacebookEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/gitea.js b/dist/runtime/server/lib/oauth/gitea.js
+index 8099d7d62f8a9c9bca3836a48819423c395190a3..3cfdc286b55f8c2351bb898f17dc141a75777b01 100644
+--- a/dist/runtime/server/lib/oauth/gitea.js
++++ b/dist/runtime/server/lib/oauth/gitea.js
+@@ -9,7 +9,8 @@ import {
+   handleState,
+   requestAccessToken
+ } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthGiteaEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/github.js b/dist/runtime/server/lib/oauth/github.js
+index bbbcfeab6e85f4c8aa9d90fac229dd76bc154ed9..40bb36a3e81ef5d5148e205f5e317b077d32360e 100644
+--- a/dist/runtime/server/lib/oauth/github.js
++++ b/dist/runtime/server/lib/oauth/github.js
+@@ -2,7 +2,7 @@ import { eventHandler, getQuery, sendRedirect, createError } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { getOAuthRedirectURL, handleAccessTokenErrorResponse, handleInvalidState, handleMissingConfiguration, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthGitHubEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.github, {
+diff --git a/dist/runtime/server/lib/oauth/gitlab.js b/dist/runtime/server/lib/oauth/gitlab.js
+index e57c6960a9a79f3854c82eab3b973914605bf981..13ca5e8cd06af6494b7f1c6ee3a5debd953df44b 100644
+--- a/dist/runtime/server/lib/oauth/gitlab.js
++++ b/dist/runtime/server/lib/oauth/gitlab.js
+@@ -9,7 +9,8 @@ import {
+   handleState,
+   requestAccessToken
+ } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthGitLabEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/google.js b/dist/runtime/server/lib/oauth/google.js
+index c7447204941d78c3ee045c96d886709e05b2d6cf..fef12a2f3630e1c8f5ababa9bbb9a786c322c48e 100644
+--- a/dist/runtime/server/lib/oauth/google.js
++++ b/dist/runtime/server/lib/oauth/google.js
+@@ -2,7 +2,7 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthGoogleEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/heroku.js b/dist/runtime/server/lib/oauth/heroku.js
+index 99ae39a3e6aaa65235427d90f643478b096ea7ae..74d8db036cdd3a6d47ae6570410cf75c92539ca8 100644
+--- a/dist/runtime/server/lib/oauth/heroku.js
++++ b/dist/runtime/server/lib/oauth/heroku.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, requestAccessToken, handleState, handleInvalidState } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthHerokuEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/hubspot.js b/dist/runtime/server/lib/oauth/hubspot.js
+index 63737cc196935b909f71caa1957b584eee8cc329..d30cbc0187418bed2d2a43acee18c96ebb938dee 100644
+--- a/dist/runtime/server/lib/oauth/hubspot.js
++++ b/dist/runtime/server/lib/oauth/hubspot.js
+@@ -9,7 +9,7 @@ import {
+   handleState,
+   requestAccessToken
+ } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthHubspotEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.hubspot);
+diff --git a/dist/runtime/server/lib/oauth/instagram.js b/dist/runtime/server/lib/oauth/instagram.js
+index e4918a6ca56cfb8fe5797b82a8cbc5cf85c4f56a..aa211e1f5737f3dc58433d181fa2fb0ee8a11c30 100644
+--- a/dist/runtime/server/lib/oauth/instagram.js
++++ b/dist/runtime/server/lib/oauth/instagram.js
+@@ -2,7 +2,7 @@ import { eventHandler, getQuery, sendRedirect, createError } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthInstagramEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/keycloak.js b/dist/runtime/server/lib/oauth/keycloak.js
+index d32e13031f53bac1084d652513d8f21d09c89673..cec3fa117866ad1d8c7fdee6df2c871d3f399fc0 100644
+--- a/dist/runtime/server/lib/oauth/keycloak.js
++++ b/dist/runtime/server/lib/oauth/keycloak.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthKeycloakEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/kick.js b/dist/runtime/server/lib/oauth/kick.js
+index a3cd10d45fc879911936cd8d3a8a01238754a5ad..2654f2194984f60d568603add649bbb21f569edf 100644
+--- a/dist/runtime/server/lib/oauth/kick.js
++++ b/dist/runtime/server/lib/oauth/kick.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleAccessTokenErrorResponse, handleInvalidState, handleMissingConfiguration, getOAuthRedirectURL, requestAccessToken, handlePkceVerifier, handleState } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthKickEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.kick, {
+diff --git a/dist/runtime/server/lib/oauth/line.js b/dist/runtime/server/lib/oauth/line.js
+index 3a013207d92e305c853d682c8e988f82c0cf176f..8a74922d57edde20059114f2fa8dfd0e902cbde0 100644
+--- a/dist/runtime/server/lib/oauth/line.js
++++ b/dist/runtime/server/lib/oauth/line.js
+@@ -2,7 +2,7 @@ import { eventHandler, getQuery, sendRedirect, createError } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthLineEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/linear.js b/dist/runtime/server/lib/oauth/linear.js
+index 53fe7c8eaf07b34f2b566a4b5a21329630b086f5..01d089e816e68d82e0153be8411e1fc47f872ebf 100644
+--- a/dist/runtime/server/lib/oauth/linear.js
++++ b/dist/runtime/server/lib/oauth/linear.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthLinearEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.linear, {
+diff --git a/dist/runtime/server/lib/oauth/linkedin.js b/dist/runtime/server/lib/oauth/linkedin.js
+index 3e7f68e5bf288b98b1cc66dc4121b913d7e8a936..4b9dccb6e16e461d8b5181d0d1d555c7cc9196ab 100644
+--- a/dist/runtime/server/lib/oauth/linkedin.js
++++ b/dist/runtime/server/lib/oauth/linkedin.js
+@@ -2,7 +2,7 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthLinkedInEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.linkedin, {
+diff --git a/dist/runtime/server/lib/oauth/livechat.js b/dist/runtime/server/lib/oauth/livechat.js
+index 8712ba059741559bdbe521de63d525386f690505..fc48ae2d2095e8f8e3f40fadbff76f34c85992e8 100644
+--- a/dist/runtime/server/lib/oauth/livechat.js
++++ b/dist/runtime/server/lib/oauth/livechat.js
+@@ -9,7 +9,7 @@ import {
+   handleState,
+   requestAccessToken
+ } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthLiveChatEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/microsoft.js b/dist/runtime/server/lib/oauth/microsoft.js
+index 2e22c7ed0cbe9a6f59db58e7cdc11c28fbab0e95..deb918f204f0dce5b838745de25fc2bb8b490e28 100644
+--- a/dist/runtime/server/lib/oauth/microsoft.js
++++ b/dist/runtime/server/lib/oauth/microsoft.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthMicrosoftEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.microsoft, {
+diff --git a/dist/runtime/server/lib/oauth/oidc.js b/dist/runtime/server/lib/oauth/oidc.js
+index 365ec2f7d5fdb4304c86011d38e72d2f437a78e7..da339aeb08e527fe24196ea037d77f55ce875133 100644
+--- a/dist/runtime/server/lib/oauth/oidc.js
++++ b/dist/runtime/server/lib/oauth/oidc.js
+@@ -1,4 +1,4 @@
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ import { defu } from "defu";
+ import { createError, eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+diff --git a/dist/runtime/server/lib/oauth/okta.js b/dist/runtime/server/lib/oauth/okta.js
+index 849d82b2c9cf7ac80fa46d0df2fd117904a6dc22..a04b8f9059d8dec8214b4102ba8df2d7f5819ed7 100644
+--- a/dist/runtime/server/lib/oauth/okta.js
++++ b/dist/runtime/server/lib/oauth/okta.js
+@@ -2,7 +2,7 @@ import { eventHandler, getQuery, sendRedirect, createError } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleState, handleInvalidState, handleAccessTokenErrorResponse, getOAuthRedirectURL, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ const openIdConfigCache = /* @__PURE__ */ new Map();
+ const DEFAULT_CACHE_TTL = 1e3 * 60 * 60 * 24;
+ export function defineOAuthOktaEventHandler({ config, onSuccess, onError }) {
+diff --git a/dist/runtime/server/lib/oauth/ory.js b/dist/runtime/server/lib/oauth/ory.js
+index a06874eca76803dfb8d8e685f2ca56e202fcaa08..f103e86617679b9c248fe1aa62e5f8193751f1ea 100644
+--- a/dist/runtime/server/lib/oauth/ory.js
++++ b/dist/runtime/server/lib/oauth/ory.js
+@@ -10,7 +10,8 @@ import {
+   handleState,
+   requestAccessToken
+ } from "../utils.js";
+-import { createError, useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthOryEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.ory, {
+diff --git a/dist/runtime/server/lib/oauth/osu.js b/dist/runtime/server/lib/oauth/osu.js
+index cde61eb59f938ceaf9594670c582c7661627ff19..68ecf3d8f90d1c90ca8758b641802ce518f7839f 100644
+--- a/dist/runtime/server/lib/oauth/osu.js
++++ b/dist/runtime/server/lib/oauth/osu.js
+@@ -2,7 +2,7 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, requestAccessToken, handleState, handleInvalidState } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthOsuEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.osu, {
+diff --git a/dist/runtime/server/lib/oauth/paypal.js b/dist/runtime/server/lib/oauth/paypal.js
+index 9ebf38d411175f1c73fadf88d44da9e2c067d952..e0003eeeee9517cad66e8c8224ba11fb71ee41bb 100644
+--- a/dist/runtime/server/lib/oauth/paypal.js
++++ b/dist/runtime/server/lib/oauth/paypal.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthPaypalEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.paypal, {
+diff --git a/dist/runtime/server/lib/oauth/polar.js b/dist/runtime/server/lib/oauth/polar.js
+index 38d63c050876fd14fccd38aa6d27027980f67a79..77da0d6a8d3530a31263e9fc73436f237765f389 100644
+--- a/dist/runtime/server/lib/oauth/polar.js
++++ b/dist/runtime/server/lib/oauth/polar.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleAccessTokenErrorResponse, handleInvalidState, handleMissingConfiguration, getOAuthRedirectURL, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthPolarEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.polar, {
+diff --git a/dist/runtime/server/lib/oauth/riotgames.js b/dist/runtime/server/lib/oauth/riotgames.js
+index d68dd04412e1000cf9387d8771a68b239d0b60e6..4111963c7f8fc5d0d070449a535b31812c958dd2 100644
+--- a/dist/runtime/server/lib/oauth/riotgames.js
++++ b/dist/runtime/server/lib/oauth/riotgames.js
+@@ -2,7 +2,7 @@ import { createError, eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { getOAuthRedirectURL, handleAccessTokenErrorResponse, handleInvalidState, handleMissingConfiguration, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthRiotGamesEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.riotgames, {
+diff --git a/dist/runtime/server/lib/oauth/roblox.js b/dist/runtime/server/lib/oauth/roblox.js
+index 354212b0f86feaa679f169241c9bb48937b6e9ab..5b6b8f488fede871af8b5b2d81fc9454d8276082 100644
+--- a/dist/runtime/server/lib/oauth/roblox.js
++++ b/dist/runtime/server/lib/oauth/roblox.js
+@@ -2,7 +2,7 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthRobloxEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.roblox, {
+diff --git a/dist/runtime/server/lib/oauth/salesforce.js b/dist/runtime/server/lib/oauth/salesforce.js
+index 6bb796137cd2a26201984d9cc53ca2881d14ba84..0e14ea049e7f4b86dd68b40ac204a2b3cac3d357 100644
+--- a/dist/runtime/server/lib/oauth/salesforce.js
++++ b/dist/runtime/server/lib/oauth/salesforce.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, requestAccessToken, handleState, handleInvalidState } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthSalesforceEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/seznam.js b/dist/runtime/server/lib/oauth/seznam.js
+index a9c1e298fe286a84d2abc47437ec74b80e9de27e..a3f56133a3224bb4517ce8ccfcc7415b1f6c9eb5 100644
+--- a/dist/runtime/server/lib/oauth/seznam.js
++++ b/dist/runtime/server/lib/oauth/seznam.js
+@@ -2,7 +2,7 @@ import defu from "defu";
+ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { getOAuthRedirectURL, handleAccessTokenErrorResponse, handleInvalidState, handleMissingConfiguration, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthSeznamEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.seznam, {
+diff --git a/dist/runtime/server/lib/oauth/shopifyCustomer.js b/dist/runtime/server/lib/oauth/shopifyCustomer.js
+index 7687859a904870e4d79c1b0e4d6a96e0df73388c..54b0e9b70bb17680da99b806d9bc8ca9d8931f50 100644
+--- a/dist/runtime/server/lib/oauth/shopifyCustomer.js
++++ b/dist/runtime/server/lib/oauth/shopifyCustomer.js
+@@ -2,7 +2,7 @@ import { createError, eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { getOAuthRedirectURL, handleAccessTokenErrorResponse, handleInvalidState, handleMissingConfiguration, handlePkceVerifier, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthShopifyCustomerEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/slack.js b/dist/runtime/server/lib/oauth/slack.js
+index 2abf259721c06938a72042ea4d847d5aabefb22c..5a78757c785c587598e0bd222bae210add5727c8 100644
+--- a/dist/runtime/server/lib/oauth/slack.js
++++ b/dist/runtime/server/lib/oauth/slack.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, requestAccessToken, handleState, handleInvalidState } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthSlackEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/spotify.js b/dist/runtime/server/lib/oauth/spotify.js
+index 61640d407423ab4ac8a8903f8a347c656d822638..5cb1906cc16500381be5d68966e1c5f2e8dc562d 100644
+--- a/dist/runtime/server/lib/oauth/spotify.js
++++ b/dist/runtime/server/lib/oauth/spotify.js
+@@ -2,7 +2,7 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthSpotifyEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.spotify, {
+diff --git a/dist/runtime/server/lib/oauth/steam.js b/dist/runtime/server/lib/oauth/steam.js
+index a6d1f7fd066851b4a92d0d342fc040129893dbd6..0a217ee6c53577772310055773a460b1c7d535f8 100644
+--- a/dist/runtime/server/lib/oauth/steam.js
++++ b/dist/runtime/server/lib/oauth/steam.js
+@@ -2,7 +2,7 @@ import { eventHandler, createError, getQuery, getRequestURL, sendRedirect } from
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleInvalidState, handleMissingConfiguration, handleState } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthSteamEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.steam, {
+diff --git a/dist/runtime/server/lib/oauth/strava.js b/dist/runtime/server/lib/oauth/strava.js
+index 05d1119ce342c7b5563427f46c6059c822d9b3c4..405609688c70439d333987c37233698db36a2e6b 100644
+--- a/dist/runtime/server/lib/oauth/strava.js
++++ b/dist/runtime/server/lib/oauth/strava.js
+@@ -9,7 +9,8 @@ import {
+   handleState,
+   requestAccessToken
+ } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthStravaEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/tiktok.js b/dist/runtime/server/lib/oauth/tiktok.js
+index b1ea0e1110e49290b1f7132846521590a90fa9a2..58d4d97aba770c648ccdf1b95f1ee98a1e0ce7d9 100644
+--- a/dist/runtime/server/lib/oauth/tiktok.js
++++ b/dist/runtime/server/lib/oauth/tiktok.js
+@@ -3,7 +3,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleAccessTokenErrorResponse, handleInvalidState, handleMissingConfiguration, getOAuthRedirectURL, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthTikTokEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.tiktok, {
+diff --git a/dist/runtime/server/lib/oauth/twitch.js b/dist/runtime/server/lib/oauth/twitch.js
+index 037ae71ed47ce792111d7bc8c8e11387d070e0d1..06f5f423e8cca1ed3defa96f9f43a146ba4dad90 100644
+--- a/dist/runtime/server/lib/oauth/twitch.js
++++ b/dist/runtime/server/lib/oauth/twitch.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthTwitchEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.twitch, {
+diff --git a/dist/runtime/server/lib/oauth/vk.js b/dist/runtime/server/lib/oauth/vk.js
+index 8fed9ee3765cd1ec92fe2d44c77449e67245a6cd..94e3814c76450f1f223fe333640acbfa5114b3ab 100644
+--- a/dist/runtime/server/lib/oauth/vk.js
++++ b/dist/runtime/server/lib/oauth/vk.js
+@@ -10,7 +10,8 @@ import {
+   handleState,
+   requestAccessToken
+ } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthVKEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/workos.js b/dist/runtime/server/lib/oauth/workos.js
+index 72a3f5839e0a23f18b82858aafef0de5220e072b..94f638732325ccb5c2d2c427679ebcfbf6b7125a 100644
+--- a/dist/runtime/server/lib/oauth/workos.js
++++ b/dist/runtime/server/lib/oauth/workos.js
+@@ -2,7 +2,7 @@ import { eventHandler, getQuery, sendRedirect, getRequestIP, getRequestHeader }
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthWorkOSEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.workos, { screen_hint: "sign-in" });
+diff --git a/dist/runtime/server/lib/oauth/x.js b/dist/runtime/server/lib/oauth/x.js
+index 2b0e7b70b87c17385ea879ffba698b0654feea12..d98639ec0aa28786794efce704c35c050d9e9159 100644
+--- a/dist/runtime/server/lib/oauth/x.js
++++ b/dist/runtime/server/lib/oauth/x.js
+@@ -1,4 +1,4 @@
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ import { defu } from "defu";
+ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+diff --git a/dist/runtime/server/lib/oauth/xsuaa.js b/dist/runtime/server/lib/oauth/xsuaa.js
+index 55a16e8c58449cb0d0a1879cb0a3b0ca2c56ac3f..ef0385e547fbe531a89f14666cb1e06da3956344 100644
+--- a/dist/runtime/server/lib/oauth/xsuaa.js
++++ b/dist/runtime/server/lib/oauth/xsuaa.js
+@@ -2,7 +2,7 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, handleInvalidState, handleState, requestAccessToken } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthXSUAAEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.xsuaa);
+diff --git a/dist/runtime/server/lib/oauth/yandex.js b/dist/runtime/server/lib/oauth/yandex.js
+index 44ba79d17670cedce0a6fbba7141b7e9cb285655..cb05b88a63526b7b92de15ef5d0d2f46ef91010e 100644
+--- a/dist/runtime/server/lib/oauth/yandex.js
++++ b/dist/runtime/server/lib/oauth/yandex.js
+@@ -9,7 +9,7 @@ import {
+   handleState,
+   requestAccessToken
+ } from "../utils.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineOAuthYandexEventHandler({
+   config,
+   onSuccess,
+diff --git a/dist/runtime/server/lib/oauth/zitadel.js b/dist/runtime/server/lib/oauth/zitadel.js
+index c0336b38dd43b207ee2658c4a8e4a414edb98a05..c3b79adb32ef1270f09c28f355294d2320a7169a 100644
+--- a/dist/runtime/server/lib/oauth/zitadel.js
++++ b/dist/runtime/server/lib/oauth/zitadel.js
+@@ -2,7 +2,8 @@ import { eventHandler, getQuery, sendRedirect } from "h3";
+ import { hasProtocol, withQuery } from "ufo";
+ import { defu } from "defu";
+ import { handleMissingConfiguration, handleAccessTokenErrorResponse, getOAuthRedirectURL, requestAccessToken, handleState, handlePkceVerifier, handleInvalidState } from "../utils.js";
+-import { useRuntimeConfig, createError } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
++import { createError } from "h3";
+ export function defineOAuthZitadelEventHandler({ config, onSuccess, onError }) {
+   return eventHandler(async (event) => {
+     config = defu(config, useRuntimeConfig(event).oauth?.zitadel, {
+diff --git a/dist/runtime/server/lib/utils.js b/dist/runtime/server/lib/utils.js
+index 92640af97f138e702087900c6092ff02e2b8a512..6676c1c405214ad00bcf6de2fde3bad0037e0a46 100644
+--- a/dist/runtime/server/lib/utils.js
++++ b/dist/runtime/server/lib/utils.js
+@@ -4,7 +4,7 @@ import { FetchError } from "ofetch";
+ import { snakeCase, upperFirst } from "scule";
+ import * as jose from "jose";
+ import { subtle, getRandomValues } from "uncrypto";
+-import { createError } from "#imports";
++import { createError } from "h3";
+ const isDevelopment = process.env.NODE_ENV === "development";
+ const OAUTH_COOKIE_MAX_AGE = 60 * 10;
+ export function getOAuthRedirectURL(event) {
+diff --git a/dist/runtime/server/lib/webauthn/authenticate.js b/dist/runtime/server/lib/webauthn/authenticate.js
+index 9b4a4f6e21a444facd74dae2862d0b6fa5805c79..86a0427cd81d850bcb16183e670c7476ccffc6e4 100644
+--- a/dist/runtime/server/lib/webauthn/authenticate.js
++++ b/dist/runtime/server/lib/webauthn/authenticate.js
+@@ -3,7 +3,7 @@ import { generateAuthenticationOptions, verifyAuthenticationResponse } from "@si
+ import defu from "defu";
+ import { getRandomValues } from "uncrypto";
+ import { base64URLStringToBuffer, bufferToBase64URLString } from "@simplewebauthn/browser";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineWebAuthnAuthenticateEventHandler({
+   storeChallenge,
+   getChallenge,
+diff --git a/dist/runtime/server/lib/webauthn/register.js b/dist/runtime/server/lib/webauthn/register.js
+index d41e1abdd4e1836482fe372a6d5d05c6d3c68449..6722f32b1c2fa78df7a8dbac8700f015c8c71dd5 100644
+--- a/dist/runtime/server/lib/webauthn/register.js
++++ b/dist/runtime/server/lib/webauthn/register.js
+@@ -3,7 +3,7 @@ import { generateRegistrationOptions, verifyRegistrationResponse } from "@simple
+ import defu from "defu";
+ import { bufferToBase64URLString } from "@simplewebauthn/browser";
+ import { getRandomValues } from "uncrypto";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function defineWebAuthnRegisterEventHandler({
+   storeChallenge,
+   getChallenge,
+diff --git a/dist/runtime/server/routes/atproto/client-metadata.json.get.js b/dist/runtime/server/routes/atproto/client-metadata.json.get.js
+index bb8e7d5ea603a36d78c6a04c68847dca840632bb..f1951acf797b7bf4bfb4d0a2a3fa103088a18451 100644
+--- a/dist/runtime/server/routes/atproto/client-metadata.json.get.js
++++ b/dist/runtime/server/routes/atproto/client-metadata.json.get.js
+@@ -1,7 +1,7 @@
+ import { defineEventHandler, createError } from "h3";
+ import { getAtprotoClientMetadata } from "../../utils/atproto.js";
+ import { atprotoProviders, getClientMetadataFilename } from "../../../utils/atproto.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export default defineEventHandler((event) => {
+   const path = event.path.slice(1);
+   const runtimeConfig = useRuntimeConfig(event);
+diff --git a/dist/runtime/server/utils/atproto.js b/dist/runtime/server/utils/atproto.js
+index 743fe7fe659b787e9c0a945c43e47b3e7b693a51..01154303de32792ff9dbd2462a8449d60f7d1064 100644
+--- a/dist/runtime/server/utils/atproto.js
++++ b/dist/runtime/server/utils/atproto.js
+@@ -1,7 +1,7 @@
+ import { getRequestURL } from "h3";
+ import { getOAuthRedirectURL } from "../lib/utils.js";
+ import { getClientMetadataFilename } from "../../utils/atproto.js";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export function getAtprotoClientMetadata(event, provider, config) {
+   const providerRuntimeConfig = useRuntimeConfig(event).oauth[provider];
+   const scopes = [.../* @__PURE__ */ new Set(["atproto", ...config?.scope ?? [], ...providerRuntimeConfig.scope ?? []])];
+diff --git a/dist/runtime/server/utils/password.js b/dist/runtime/server/utils/password.js
+index 2c7f1bff27bff42793615939c6b179e093d37bb5..b0f7ca29360fec14ed61fd4d6053795fe9c50689 100644
+--- a/dist/runtime/server/utils/password.js
++++ b/dist/runtime/server/utils/password.js
+@@ -1,6 +1,6 @@
+ import { Hash } from "@adonisjs/hash";
+ import { Scrypt } from "@adonisjs/hash/drivers/scrypt";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ let _hash;
+ function getHash() {
+   if (!_hash) {
+diff --git a/dist/runtime/server/utils/session.js b/dist/runtime/server/utils/session.js
+index 7876216af7bd0c015b2a6206e03ebebc32aaf445..a6d19c638c43272a7df842290bd4cd5ac06cf8d8 100644
+--- a/dist/runtime/server/utils/session.js
++++ b/dist/runtime/server/utils/session.js
+@@ -1,7 +1,7 @@
+ import { useSession, createError, isEvent } from "h3";
+ import { defu } from "defu";
+ import { createHooks } from "hookable";
+-import { useRuntimeConfig } from "#imports";
++import { useRuntimeConfig } from "nuxt/server";
+ export const sessionHooks = createHooks();
+ export async function getUserSession(event) {
+   const session = await _useSession(event);
