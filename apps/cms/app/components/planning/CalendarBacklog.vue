@@ -12,15 +12,21 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <UPageCard title="À planifier" class="h-fit lg:sticky lg:top-4">
-    <p class="mb-3 text-sm text-muted">
-      Brouillons sans date. Glissez-les sur un jour du calendrier pour planifier à 9h (Paris).
-    </p>
+  <UPageCard class="h-fit lg:sticky lg:top-4">
+    <template #title>
+      <span class="flex items-center gap-1.5">
+        À planifier
+        <UBadge :label="String(items.length)" color="neutral" variant="subtle" size="sm" />
+      </span>
+    </template>
 
-    <div
-      v-if="loading"
-      class="space-y-2"
-    >
+    <template #description>
+      <p class="text-sm text-muted">
+        Brouillons sans date. Glissez-les sur un jour du calendrier pour planifier à 9h (Paris).
+      </p>
+    </template>
+
+    <div v-if="loading" class="space-y-2">
       <USkeleton v-for="index in 4" :key="index" class="h-14 w-full" />
     </div>
 
