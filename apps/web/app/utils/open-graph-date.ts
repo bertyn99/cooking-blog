@@ -1,5 +1,5 @@
-const ISO_DATE_TIME
-  = /^\d{4}-\d{2}-\d{2}(?:[T\s]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/
+const ISO_DATE_TIME =
+  /^\d{4}-\d{2}-\d{2}(?:[T\s]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/
 
 /** ISO 8601 datetime for Open Graph article:* and Twitter meta. */
 export function formatOpenGraphDateTime(value?: string | null): string | undefined {
@@ -8,14 +8,14 @@ export function formatOpenGraphDateTime(value?: string | null): string | undefin
     return undefined
   }
 
-  const normalized = /[T\s]/.test(raw)
-    ? raw.replace(/\s+/, 'T')
-    : `${raw}T12:00:00.000Z`
+  const normalized = /[T\s]/.test(raw) ? raw.replace(/\s+/, 'T') : `${raw}T12:00:00.000Z`
 
   const parsed = new Date(normalized)
   if (Number.isNaN(parsed.getTime())) {
     return undefined
   }
 
-  return parsed.toISOString()
+  // ISO 8601 without fractional seconds — Open Graph validators reject
+  // `…T07:52:07.005Z` (milliseconds) as an invalid article:* date.
+  return parsed.toISOString().replace(/\.\d{3}Z$/, 'Z')
 }
