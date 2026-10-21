@@ -1,9 +1,7 @@
-import type { NitroRouteConfig } from 'nitropack/types';
+import type { NitroRouteConfig } from 'nitropack/types'
 
 /** CMS page slugs that 301 elsewhere — omit from sitemap to avoid duplicate signals. */
-export const SITEMAP_EXCLUDED_PAGE_PATHS = new Set([
-  '/les-epices-essentielles-en-cuisine-1',
-]);
+export const SITEMAP_EXCLUDED_PAGE_PATHS = new Set(['/les-epices-essentielles-en-cuisine-1'])
 
 const listRedirects: Record<string, NitroRouteConfig> = {
   '/sitemap-pages.xml': {
@@ -19,6 +17,43 @@ const listRedirects: Record<string, NitroRouteConfig> = {
   // Legacy absolute paths still present in imported markdown.
   '/articles/**': {
     redirect: { to: '/blog/**', statusCode: 301 },
+  },
+
+  // Old plural recipe route still linked from imported article content
+  // (e.g. /blog/cuisine-sante/tous-savoir-sur-le-coriandre). @see YGG-190
+  '/recettes/**': {
+    redirect: { to: '/recette/**', statusCode: 301 },
+  },
+
+  // Pre-migration recipe URL → blog article replacement. @see YGG-189
+  '/recette/les-ustensiles-de-cuisine-indispensables-pour-les-cuisiniers-debutants': {
+    redirect: {
+      to: '/blog/materiels-ustensils/les-10-ustensiles-de-cuisine-indispensables',
+      statusCode: 301,
+    },
+  },
+
+  // Root-level URLs still linked from imported article content. @see YGG-190
+  '/epices-indiennes-decouvrez-la-magie-des-saveurs-de-l-inde': {
+    redirect: {
+      to: '/blog/astuces-de-cuisine/comment-utiliser-les-epices-et-les-herbes-aromatiques',
+      statusCode: 301,
+    },
+  },
+  '/les-sauces-indispensables-pour-la-cuisine-asiatique': {
+    redirect: {
+      to: '/blog/gastronomie-culture/les-sauces-indispensables-pour-la-cuisine-asiatique',
+      statusCode: 301,
+    },
+  },
+
+  // Uncategorized category duplicate of the gastronomie-culture article.
+  // @see YGG-81 (canonicalize duplicate page URLs)
+  '/blog/uncategorized/les-sauces-indispensables-pour-la-cuisine-asiatique': {
+    redirect: {
+      to: '/blog/gastronomie-culture/les-sauces-indispensables-pour-la-cuisine-asiatique',
+      statusCode: 301,
+    },
   },
 
   '/techniques-de-cuisine/**': {
@@ -127,5 +162,5 @@ const listRedirects: Record<string, NitroRouteConfig> = {
       statusCode: 301,
     },
   },
-};
-export default listRedirects;
+}
+export default listRedirects
