@@ -5,6 +5,7 @@ import { isPublishableContentType } from '../content-types'
 import { createApiError } from '../errors'
 import { requireAbility } from '../http-auth'
 import { canPublishContent } from '../../../shared/abilities'
+import { getRouterParam, readBody } from 'nuxt/server'
 
 function parseContentId(event: H3Event): number {
   const id = Number.parseInt(getRouterParam(event, 'id') || '', 10)

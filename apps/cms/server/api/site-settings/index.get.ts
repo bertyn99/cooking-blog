@@ -1,5 +1,6 @@
 import { canEditContent } from '../../../shared/abilities'
 import { useQueries } from '../../utils/db'
+import { defineEventHandler } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   await requireUserSession(event)

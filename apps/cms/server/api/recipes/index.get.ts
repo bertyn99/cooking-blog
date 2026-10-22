@@ -5,6 +5,7 @@ import { resolveRecipeCategoryIds } from '../../utils/resolve-category-ids'
 import { isPrivilegedContentRead } from '../../utils/preview-auth'
 import { parseContentStatus, parseCsvParam } from '../../utils/query-params'
 import { loadAmazonAffiliateTag } from '../../services/glossary-affiliate'
+import { defineEventHandler, getQuery } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)

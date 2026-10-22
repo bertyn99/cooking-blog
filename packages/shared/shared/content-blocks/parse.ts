@@ -34,6 +34,10 @@ function attrsToProps(
     else if (typeof value === 'number' || typeof value === 'string') {
       out[key] = value
     }
+    else if (Array.isArray(value) || isAttrRecord(value)) {
+      // Comark JSON attrs (`items='[…]'`) arrive already parsed.
+      out[key] = JSON.stringify(value)
+    }
   }
   return out
 }

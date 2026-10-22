@@ -4,6 +4,7 @@ import { PAGES_RELATIONS } from '../../db/queries/_shared/builders/pages'
 import { useQueries } from '../../utils/db'
 import { isPrivilegedContentRead } from '../../utils/preview-auth'
 import { parseOptionalBoolean } from '../../utils/query-params'
+import { defineEventHandler, getQuery } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)

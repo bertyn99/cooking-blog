@@ -3,6 +3,7 @@ import { useQueries } from '../../utils/db'
 import { validateBody } from '../../utils/validate'
 import { createApiError } from '../../utils/errors'
 import { canAccessAdminApi } from '../../../shared/abilities'
+import { defineEventHandler, getRouterParam, readBody } from 'nuxt/server'
 
 const schema = z.object({
   value: z.unknown(),

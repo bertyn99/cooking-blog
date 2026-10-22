@@ -15,6 +15,7 @@ import { useKvStore } from '../../../utils/kv'
 import { createApiError } from '../../../utils/errors'
 import { validateBody } from '../../../utils/validate'
 import { requireAbility } from '../../../utils/http-auth'
+import { defineEventHandler, readBody, useRuntimeConfig } from 'nuxt/server'
 
 const entityStatsSchema = z.object({
   created: z.number(),
@@ -54,7 +55,7 @@ export default defineEventHandler(async (event) => {
   await requireAbility(event, canAccessImport)
 
   const body = validateBody(bodySchema, await readBody(event))
-  const config = useRuntimeConfig(event)
+  const config = useRuntimeConfig()
 
   if (!config.strapiUrl) {
     throw createApiError('VALIDATION_ERROR', 'STRAPI_URL non configuré')

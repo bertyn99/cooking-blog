@@ -79,8 +79,6 @@ export default defineNuxtConfig({
     '@journalducuistot/shared',
     '@nuxt/ui',
     '@nuxtjs/seo',
-    'nuxt-ai-ready',
-    'nuxt-skew-protection',
     '@nuxt/fonts',
     '@nuxt/icon',
     '@nuxtjs/partytown',
@@ -103,8 +101,11 @@ export default defineNuxtConfig({
 
   fonts: {
     families: [
-      { name: 'Catamaran', provider: 'google' },
-      { name: 'Merriweather', provider: 'google' },
+      // provider 'google' = @nuxt/fonts resolution; global: true is required for
+      // families referenced by OG image templates (v7 resolves via @nuxt/fonts).
+      // @see nuxtseo.com/docs/og-image/migration-guide/v7
+      { name: 'Catamaran', provider: 'google', global: true },
+      { name: 'Merriweather', provider: 'google', global: true },
     ],
   },
 
@@ -198,10 +199,9 @@ export default defineNuxtConfig({
   seo: {
     redirectToCanonicalSiteUrl: siteEnv === 'production',
     meta: {
-      description: siteDescription,
+      // description + ogType are set by nuxt-seo-utils v9 from site config.
       author: SITE_AUTHOR_NAME,
       ogLocale: 'fr_FR',
-      ogType: 'website',
       twitterCard: 'summary_large_image',
     },
   },
@@ -211,6 +211,9 @@ export default defineNuxtConfig({
       type: 'd1',
       bindingName: 'AI_READY_DB',
     },
+    // botNegotiation is a top-level aiReady option (offers Markdown to AI bots
+    // even when their Accept header prefers HTML; requires cache variance).
+    botNegotiation: true,
     contentSignal: {
       aiTrain: true,
       search: true,
@@ -257,6 +260,10 @@ export default defineNuxtConfig({
       notes: 'Journal du cuistot — recettes et articles de cuisine en français (fr-FR).',
     },
   },
+
+  // OG Image v7 resolves fonts through @nuxt/fonts (pinned in `fonts` above) —
+  // the default system-font stack (Segoe UI…) can't resolve.
+  // @see nuxtseo.com/docs/og-image/migration-guide/v7
 
   skewProtection: {
     updateStrategy: 'polling',

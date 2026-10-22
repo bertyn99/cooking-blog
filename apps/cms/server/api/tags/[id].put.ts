@@ -3,6 +3,7 @@ import { useQueries } from '../../utils/db'
 import { requireEditor } from '../../utils/http-auth'
 import { validateBody } from '../../utils/validate'
 import { createApiError } from '../../utils/errors'
+import { defineEventHandler, getRouterParam, readBody } from 'nuxt/server'
 
 const updateTagSchema = z.object({
   name: z.string().min(1).optional(),

@@ -4,6 +4,7 @@ import {
   createPageMutation,
   createPageSchema,
 } from '../../services/page-mutations'
+import { defineEventHandler, readBody } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const actor = await requireWriteActor(event, 'pages')

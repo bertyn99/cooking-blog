@@ -1,6 +1,7 @@
 import { generateSlug } from "~/utils/format";
 import type { Article, GlossaryTerm, Page, Recipe } from "~/types/strapiMeta";
 import { serverCmsFindAll } from "../utils/sitemap-cms";
+import { defineEventHandler } from 'nuxt/server'
 
 function isIntentionallyNoindex(robots?: string | null): boolean {
   if (!robots) {

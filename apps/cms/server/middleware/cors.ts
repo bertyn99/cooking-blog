@@ -1,3 +1,4 @@
+import { defineEventHandler, getMethod, getRequestHeader, getRequestURL, setHeader, setResponseStatus } from 'h3'
 /**
  * Browser CORS for public reads.
  *

@@ -2,6 +2,8 @@ import { createLogger } from 'evlog'
 import { z } from 'zod'
 import { STRAPI_IMPORT_STEPS } from '../../shared/strapi-import'
 import { acquireStrapiImportLock, getStrapiImportStatus } from '../services/strapi-import-status'
+import { useRuntimeConfig } from 'nuxt/server'
+import { defineTask } from 'nitropack/runtime'
 import {
   executeStrapiImportToCompletion,
   primeStrapiImportStatus,

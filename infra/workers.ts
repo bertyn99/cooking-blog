@@ -244,7 +244,8 @@ export const workers = Effect.fn(function* (input: {
       NUXT_PUBLIC_CMS_BASE_URL: cmsOrigin,
       NUXT_PUBLIC_SITE_URL: siteUrl,
       CMS_PREVIEW_TOKEN: Config.String('CMS_PREVIEW_TOKEN').pipe(Config.withDefault('')),
-      NUXT_OG_IMAGE_SECRET: ogImageSecretValue,
+      // OG Image v7 signs URLs with Nuxt's app secret (was NUXT_OG_IMAGE_SECRET).
+      NUXT_APP_SECRET: ogImageSecretValue,
       STRAPI_URL: strapiUrlValue,
       NUXT_UMAMI_ID: umamiId,
       ...(isProd && umamiHost ? { NUXT_UMAMI_HOST: umamiHost } : {}),

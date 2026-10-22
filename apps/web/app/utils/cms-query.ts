@@ -5,8 +5,9 @@ export const CMS_FETCH_DEFAULTS = {
   timeout: 10_000,
   retry: 1,
   retryDelay: 250,
-  retryStatusCodes: [408, 429, 502, 503, 504],
-} as const
+  // mutable number[] — ofetch FetchOptions.retryStatusCodes is not readonly
+  retryStatusCodes: [408, 429, 502, 503, 504] as number[],
+}
 
 export type CmsInclude = string | readonly string[]
 

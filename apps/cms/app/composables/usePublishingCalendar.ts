@@ -15,11 +15,11 @@ export interface CalendarFilters {
 }
 
 export function scheduledAtIsoForDay(dayKey: string): string {
-  const [year, month, day] = dayKey.split('-').map(part => Number.parseInt(part, 10))
-  const date = new CalendarDate(year, month, day)
+  const [year, month, day] = dayKey.split('-').map((part) => Number.parseInt(part, 10))
+  const date = new CalendarDate(year!, month!, day!)
   const zoned = toZoned(
     toCalendarDateTime(date, new Time(DEFAULT_PUBLISH_HOUR, 0)),
-    CALENDAR_TIME_ZONE,
+    CALENDAR_TIME_ZONE
   )
   return zoned.toAbsoluteString()
 }
@@ -28,11 +28,9 @@ export function usePublishingCalendar() {
   const { $api } = useNuxtApp()
   const toast = useToast()
 
-  const placeholder = shallowRef(new CalendarDate(
-    new Date().getFullYear(),
-    new Date().getMonth() + 1,
-    1,
-  ))
+  const placeholder = shallowRef(
+    new CalendarDate(new Date().getFullYear(), new Date().getMonth() + 1, 1)
+  )
 
   const filters = reactive<CalendarFilters>({
     types: [...parseCalendarTypesParam(undefined)],
@@ -41,30 +39,48 @@ export function usePublishingCalendar() {
   })
 
   const monthRange = computed(() =>
-    monthRangeFromParts(placeholder.value.year, placeholder.value.month),
+    monthRangeFromParts(placeholder.value.year, placeholder.value.month)
   )
 
   const { data, status, refresh } = useAsyncData(
     'publishing-calendar',
-    () => $api<{ data: CalendarItem[], backlog: CalendarItem[] }>('/api/admin/calendar', {
-      query: {
-        from: monthRange.value.from,
-        to: monthRange.value.to,
-        locale: filters.locale,
-        types: filters.types.join(','),
-        includePublished: filters.includePublished ? 'true' : 'false',
-      },
-    }),
-    { watch: [monthRange, () => filters.includePublished, () => filters.types.join(','), () => filters.locale] },
+    () =>
+      $api<{ data: CalendarItem[]; backlog: CalendarItem[] }>('/api/admin/calendar', {
+        query: {
+          from: monthRange.value.from,
+          to: monthRange.value.to,
+          locale: filters.locale,
+          types: filters.types.join(','),
+          includePublished: filters.includePublished ? 'true' : 'false',
+        },
+      }),
+    {
+      watch: [
+        monthRange,
+        () => filters.includePublished,
+        () => filters.types.join(','),
+        () => filters.locale,
+      ],
+    }
   )
 
-  const items = shallowRef<CalendarItem[]>([])
-  const backlog = shallowRef<CalendarItem[]>([])
+  /**
+   * Optimistic overlay for reschedule mutations. Derived read-models stay
+   * computeds so SSR renders the same lists the client hydrates with — a
+   * `watch(data)` callback does not flush server-side and used to cause
+   * hydration mismatches (empty server render vs filled client lists).
+   */
+  const overlay = shallowRef<{ items?: CalendarItem[]; backlog?: CalendarItem[] }>({})
 
-  watch(data, (value) => {
-    items.value = value?.data ?? []
-    backlog.value = value?.backlog ?? []
-  }, { immediate: true })
+  const items = computed<CalendarItem[]>(() => overlay.value.items ?? data.value?.data ?? [])
+  const backlog = computed<CalendarItem[]>(
+    () => overlay.value.backlog ?? data.value?.backlog ?? []
+  )
+
+  // Fresh server data wins over any optimistic overlay.
+  watch(data, () => {
+    overlay.value = {}
+  })
 
   const itemsByDay = computed(() => groupCalendarItemsByDay(items.value))
 
@@ -75,35 +91,23 @@ export function usePublishingCalendar() {
   }
 
   function findItem(key: string): CalendarItem | undefined {
-    return [...items.value, ...backlog.value].find(entry => itemKey(entry) === key)
+    return [...items.value, ...backlog.value].find((entry) => itemKey(entry) === key)
   }
 
   function replaceItem(updated: CalendarItem) {
     const key = itemKey(updated)
-    const inData = items.value.findIndex(entry => itemKey(entry) === key)
-    if (inData >= 0) {
-      const next = [...items.value]
-      next[inData] = updated
-      items.value = next
-      return
+    overlay.value = {
+      items: items.value.map((entry) => (itemKey(entry) === key ? updated : entry)),
+      backlog: backlog.value.map((entry) => (itemKey(entry) === key ? updated : entry)),
     }
-    const inBacklog = backlog.value.findIndex(entry => itemKey(entry) === key)
-    if (inBacklog >= 0) {
-      const next = [...backlog.value]
-      next[inBacklog] = updated
-      backlog.value = next
-    }
-  }
-
-  function removeFromBacklog(item: CalendarItem) {
-    backlog.value = backlog.value.filter(entry => itemKey(entry) !== itemKey(item))
   }
 
   function upsertOnCalendar(item: CalendarItem) {
-    removeFromBacklog(item)
     const key = itemKey(item)
-    const without = items.value.filter(entry => itemKey(entry) !== key)
-    items.value = [...without, item]
+    overlay.value = {
+      items: [...items.value.filter((entry) => itemKey(entry) !== key), item],
+      backlog: backlog.value.filter((entry) => itemKey(entry) !== key),
+    }
   }
 
   async function rescheduleItem(item: CalendarItem, dayKey: string) {
@@ -143,12 +147,13 @@ export function usePublishingCalendar() {
           : `Prévu le ${scheduledDate.toLocaleDateString('fr-FR', { timeZone: CALENDAR_TIME_ZONE })} à ${DEFAULT_PUBLISH_HOUR}h`,
         color: 'success',
       })
-    }
-    catch {
+    } catch {
       replaceItem(previous)
       if (previous.status === 'draft') {
-        backlog.value = [...backlog.value, previous]
-        items.value = items.value.filter(entry => itemKey(entry) !== itemKey(previous))
+        overlay.value = {
+          items: items.value.filter((entry) => itemKey(entry) !== itemKey(previous)),
+          backlog: [...backlog.value, previous],
+        }
       }
       toast.add({
         title: 'Erreur',
@@ -156,8 +161,7 @@ export function usePublishingCalendar() {
         color: 'error',
       })
       await refresh()
-    }
-    finally {
+    } finally {
       rescheduling.value = false
     }
   }

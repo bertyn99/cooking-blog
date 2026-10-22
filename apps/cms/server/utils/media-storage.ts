@@ -5,6 +5,7 @@ import type { H3Event } from 'h3'
 import { MAX_IMAGE_UPLOAD_BYTES, maxImageUploadSizeLabel } from '../../shared/media'
 import { optimizeImageBuffer } from '../../shared/image-optimize-pipeline'
 import { useR2 } from './r2'
+import { createError } from 'nuxt/server'
 
 const UPLOAD_PREFIX = 'uploads/'
 

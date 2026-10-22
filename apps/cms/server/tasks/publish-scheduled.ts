@@ -1,6 +1,7 @@
 import { createLogger } from 'evlog'
 import { usePublishingService } from '../services/publishing-service'
 import { isSqliteBusyError } from '../utils/sqlite-busy'
+import { defineTask } from 'nitropack/runtime'
 
 export default defineTask({
   meta: {

@@ -6,6 +6,7 @@ import { loadAmazonAffiliateTag, attachResolvedAffiliate } from '../../services/
 import { serializeGlossaryForScope, serializeGlossaryFamilyRef } from '../../utils/serialize-content'
 import { glossarySiblingForms } from '../../../shared/glossary-family'
 import { recipePublicPath } from '../../../shared/public-site-paths'
+import { defineEventHandler, getQuery, getRouterParam } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const id = Number.parseInt(getRouterParam(event, 'id') || '', 10)

@@ -1,6 +1,7 @@
 import { createLogger } from 'evlog'
 import { seedGlossaryFamilies } from '../db/seed/glossary-families'
 import { useDb } from '../utils/db'
+import { defineTask } from 'nitropack/runtime'
 
 export default defineTask({
   meta: {

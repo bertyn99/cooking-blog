@@ -20,6 +20,7 @@ import type { ApiKeyRow } from '../db/queries/api-keys'
 import type { Actor } from './actor'
 import { attachRequestUser, requireAuthenticatedSession } from './http-auth'
 import { resolveDbBackedUser } from './session-user'
+import { getHeader } from 'h3'
 
 export type AuthenticatedApiKey = ReturnType<typeof toPublicApiKey> & {
   row: ApiKeyRow

@@ -4,6 +4,7 @@ import {
   type ContentBlockField,
   type ContentBlockSlot,
 } from './schema'
+import { DEFAULT_FAQ_ITEMS_JSON } from './faq'
 
 export const SECTION_BLOCK_TAGS = [
   'hero',
@@ -24,6 +25,7 @@ export const LIFTED_BLOCK_TAGS = [
   ...SECTION_BLOCK_TAGS,
   'grid',
   'callout',
+  'faq',
   'image',
 ] as const
 
@@ -319,7 +321,7 @@ export const CONTENT_BLOCK_CATALOG: ContentBlockDefinition[] = [
     tag: 'grid',
     family: 'mdc',
     label: 'Grille',
-    description: 'Colonnes Comark (`::grid`).',
+    description: 'Colonnes Comark (`::grid`). Photos par défaut, ou cartes Nuxt UI (`variant="cards"`).',
     icon: 'i-lucide-layout-grid',
     insertable: true,
     fields: [
@@ -333,6 +335,17 @@ export const CONTENT_BLOCK_CATALOG: ContentBlockDefinition[] = [
           { label: '2', value: '2' },
           { label: '3', value: '3' },
           { label: '4', value: '4' },
+        ],
+      },
+      {
+        key: 'variant',
+        label: 'Présentation',
+        input: 'select',
+        default: 'media',
+        omitDefault: true,
+        options: [
+          { label: 'Photos', value: 'media' },
+          { label: 'Cartes', value: 'cards' },
         ],
       },
     ],
@@ -359,6 +372,32 @@ export const CONTENT_BLOCK_CATALOG: ContentBlockDefinition[] = [
       },
     ],
     slots: [{ name: 'default', label: 'DEFAULT', input: 'textarea', placeholder: 'Texte de l’encadré' }],
+  }),
+  defineBlock({
+    tag: 'faq',
+    family: 'mdc',
+    label: 'FAQ',
+    description: 'Questions fréquentes (`::faq`) : accordéon Nuxt UI + schema FAQPage.',
+    icon: 'i-lucide-circle-help',
+    insertable: true,
+    fields: [
+      {
+        key: 'items',
+        label: 'Questions (JSON)',
+        input: 'textarea',
+        default: DEFAULT_FAQ_ITEMS_JSON,
+        placeholder: '[{"question":"…","answer":"…"}]',
+      },
+    ],
+    slots: [
+      {
+        name: 'title',
+        label: 'TITLE',
+        input: 'text',
+        default: 'Questions fréquentes',
+        placeholder: 'Titre de la FAQ',
+      },
+    ],
   }),
   defineBlock({
     tag: 'image',

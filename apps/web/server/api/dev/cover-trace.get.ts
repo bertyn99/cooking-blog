@@ -1,5 +1,6 @@
 import { formatCoverUrlFromSource, buildCoverUrlTrace } from "~/composables/useFormatCover";
 import { serverCmsFind } from "../../utils/cms-fetch";
+import { createError, defineEventHandler, getQuery } from 'nuxt/server'
 
 /** Dev-only: compare CMS cover fields → public `/images` URL → CMS fetch URL. */
 export default defineEventHandler(async (event) => {

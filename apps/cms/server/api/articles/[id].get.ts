@@ -2,6 +2,7 @@ import { parseInclude } from '../../utils/populate'
 import { createApiError } from '../../utils/errors'
 import { useQueries } from '../../utils/db'
 import { serializeArticleForScope } from '../../utils/serialize-content'
+import { defineEventHandler, getQuery, getRouterParam } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const id = Number.parseInt(getRouterParam(event, 'id') || '', 10)

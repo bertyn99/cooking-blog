@@ -8,6 +8,7 @@ import { requireEditor } from '../utils/http-auth'
 import { useKvStore } from '../utils/kv'
 import { toLogError } from '../utils/logging'
 import { createRequestRateLimiter } from '../utils/rate-limit'
+import { defineEventHandler, readBody, useRuntimeConfig } from 'nuxt/server'
 
 const LIMIT = {
   prefix: 'proofread',
@@ -60,8 +61,8 @@ export default defineEventHandler(async (event) => {
   const gatewayId = import.meta.dev
     ? null
     : env.CMS_AI_GATEWAY_ID ||
-      (typeof useRuntimeConfig(event).cmsAiGatewayId === 'string'
-        ? (useRuntimeConfig(event).cmsAiGatewayId as string)
+      (typeof useRuntimeConfig().cmsAiGatewayId === 'string'
+        ? (useRuntimeConfig().cmsAiGatewayId as string)
         : null)
 
   log.set({

@@ -3,11 +3,10 @@ name: jdc-page-writer
 description: |
   Write French technique pages for journalducuistot.fr under
   /techniques-culinaires: one cooking verb, or one kitchen decision.
-  Images are ![alt](/uploads/…).
+  Comark: ![alt](/uploads/…), ::callout, ::grid, ::table, ::faq, mermaid fence.
 
-  Use when: rewriting saisir, braiser, the techniques hub, or a code page
-  (mise en place, doneness), or when create-page inserts a hero and
-  newsletter, or the slug came out wrong.
+  Use when: rewriting saisir, braiser, a code page, create-page inserting
+  a hero, a pipe table that renders empty, or a callout titled Info / Astuce.
 ---
 
 # JDC page writer
@@ -27,7 +26,7 @@ Non-negotiable: **one URL per verb**, **the query is the task** (« comment brai
 
 **Toolchain:** `nuxtseo` CLI (site `s_7a49d74f`) + **Search Console MCP** (`sc-domain:journalducuistot.fr`) + **jdc-cms MCP** (`list-pages`, `get-page`, `create-page`, `update-page`, `upsert-seo`, `list-recipes`). Protocole CLI : skill `nuxtseo-cli`. Voix : `../jdc-article-writer/references/antislop-fr.md` et `voice-arsenal.md`.
 
-**Cartes :** `references/page-map.md` (ids réels), `references/method-page.md`, `references/code-page.md`, `references/page-blocks.md` (images, blocs partagés, Mermaid).
+**Cartes :** `references/page-map.md` (ids réels), `references/method-page.md`, `references/code-page.md`, `references/page-blocks.md` (images et blocs Comark, **partagé avec le skill article**).
 
 ## Workflow
 
@@ -69,7 +68,7 @@ Le `title`, le `#` unique, et `upsert-seo.keywords` portent cette tâche. Sinon,
 Comark markdown. Le template public (`BasePageBody`) n'imprime pas `title` : le seul H1 est le `#` du corps. Un deuxième `#` est un bug.
 
 - `##` et `###` sans gras autour du titre (`## **...**` a déjà cassé des feuilles).
-- Photos, grilles, tableaux, Mermaid, et le prompt d'image : `references/page-blocks.md`.
+- Photos, `::callout` / `::grid` / `::table` / `::faq`, Mermaid : `references/page-blocks.md`. Pas de `::timeline` ni de `::carousel` sur une feuille technique.
 - Un composant qui manque se crée dans `packages/shared/blocks/<tag>/`. La page appelle `::<tag>`.
 - Ouverture : le geste et la condition qui le fait marcher (poêle assez chaude pour colorer, liquide à mi-hauteur). Pas de « Bienvenue », pas de « Dans cet article ».
 - Un chiffre = la source dans la phrase + ce qu'il mesure (huile, thermostat du four, liquide, à cœur). Deux sources en désaccord : les deux chiffres restent. Détail des conflits connus : le squelette du type.
@@ -96,7 +95,7 @@ Puis `upsert-seo` `{ contentType: "page", contentId, description, keywords }` :
 - Description 140–155 caractères : la tâche + le test de réussite (fourchette qui s'enfonce, huile qui ne fume pas).
 - Keywords : la requête confirmée au §1 + variantes réellement renvoyées par l'outil.
 
-Le site émet déjà `BreadcrumbList` depuis la chaîne de parents. Ne pas ajouter de JSON-LD dans le markdown. Pas de `HowTo`, pas de `FAQPage`, pas de `Recipe`, pas d'`Article` : une FAQ visible sous `## Questions fréquentes` suffit (Google ne montre plus ces rich results).
+Le site émet déjà `BreadcrumbList` depuis la chaîne de parents. Ne pas coller de JSON-LD dans le markdown. Pas de `HowTo`, pas de `Recipe`, pas d'`Article` : le bloc `::faq` émet `FAQPage` + `Question` (Unhead / Nuxt SEO). Google ne montre plus les rich results FAQ (2026-05-07) ; le schema reste valide.
 
 ### 5. Review — deux passes
 
@@ -104,7 +103,7 @@ Le site émet déjà `BreadcrumbList` depuis la chaîne de parents. Ne pas ajout
 
 - Type déclaré, et le corps le respecte (séquence, ou décision).
 - Un seul `#`. Titres `##` sans `**`.
-- Rejouer `references/page-blocks.md` : syntaxe image, légendes de grille, branches du diagramme, prompt calé sur le style du site.
+- Rejouer `references/page-blocks.md` : image markdown, callout sans titre générique, `::table` / `::faq` JSON (pas de pipes), légendes de grille, branches du diagramme.
 - Chaque température a une source et un objet. Les degrés de goût (bleu, saignant) et les degrés ANSES ne partagent pas une ligne.
 - Gate §1 rejoué sur `title`, `#`, et keywords.
 - Chaque lien interne répond (pas de `/bases-culinaires/`). Parent et feuilles se lient dans les deux sens.
@@ -114,7 +113,7 @@ Le site émet déjà `BreadcrumbList` depuis la chaîne de parents. Ne pas ajout
 
 Checklist anti-slop du skill article. Une cause physique. Un mythe français encore répété, défait en une phrase. Un aparté. Rien qu'on ne dirait pas au-dessus de la poêle.
 
-**Render check** sur `previewUrl` : 200, un H1, les étapes ou les décisions visibles, le callout du mythe rendu, les photos chargées dans l'ordre de la grille, le diagramme Mermaid dessiné s'il y en a un, les liens résolus, pas de hero/newsletter parasite sur une feuille technique.
+**Render check** sur `previewUrl` : 200, un H1, les étapes ou les décisions visibles, le callout du mythe (icône + phrase, pas « Attention » à l'écran), les photos dans l'ordre de la grille, le `::table` rempli (pas un bloc vide), le SVG Mermaid dessiné s'il y en a un, les liens résolus, pas de hero/newsletter parasite sur une feuille technique.
 
 ### 6. Reporting
 

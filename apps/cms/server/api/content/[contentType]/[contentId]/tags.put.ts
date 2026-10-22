@@ -5,6 +5,7 @@ import { validateBody } from '../../../../utils/validate'
 import { createApiError, fromQueryError } from '../../../../utils/errors'
 import type { TaggableContentType } from '../../../../db/queries/tags'
 import { assertContentRowExists } from '../../../../utils/assert-content-exists'
+import { defineEventHandler, getRouterParam, readBody } from 'nuxt/server'
 
 const bodySchema = z.object({
   tagIds: z.array(z.number().int().positive()),

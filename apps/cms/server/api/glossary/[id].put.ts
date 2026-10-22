@@ -6,6 +6,7 @@ import { updateGlossaryTermMutation } from '../../services/glossary-mutations'
 import { useQueries } from '../../utils/db'
 import { loadAmazonAffiliateTag, attachResolvedAffiliate } from '../../services/glossary-affiliate'
 import { serializeGlossaryForScope } from '../../utils/serialize-content'
+import { defineEventHandler, getRouterParam, readBody } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const actor = await requireWriteActor(event, 'glossary')

@@ -3,6 +3,7 @@ import { ingestImageBuffer } from '../../utils/ingest-image-buffer'
 import { requireMcpMediaTool } from '../utils/actor'
 import { mcpMediaListEnabled } from '../utils/enabled'
 import { MCP_CREATE } from '../utils/payload'
+import { createError } from 'nuxt/server'
 
 const MAX_BYTES = 8 * 1024 * 1024
 

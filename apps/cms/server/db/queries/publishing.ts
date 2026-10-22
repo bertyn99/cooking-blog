@@ -1,4 +1,4 @@
-import { and, eq, isNotNull, isNull, lte } from 'drizzle-orm'
+import { and, eq, inArray, isNotNull, isNull, lte } from 'drizzle-orm'
 import type { AppDb } from '../create-db'
 import { schema } from '../create-db'
 import { queryConflict, queryNotFound, isQueryError } from '../../db/query-errors'
@@ -133,7 +133,7 @@ async function publishDueVersioned(
   contentType: PublishableContentType,
   table: VersionedContentTable,
   now: string,
-): Promise<{ published: number, skipped: number }> {
+): Promise<{ published: number, skipped: number, publishedIds: number[] }> {
   const due = await db
     .select({ id: table.id })
     .from(table)
@@ -142,6 +142,7 @@ async function publishDueVersioned(
 
   let published = 0
   let skipped = 0
+  const publishedIds: number[] = []
 
   for (const row of due) {
     try {
@@ -158,6 +159,7 @@ async function publishDueVersioned(
         }
       })
       published++
+      publishedIds.push(row.id)
     }
     catch (error) {
       if (isQueryError(error) && error.code === 'CONFLICT') {
@@ -168,14 +170,14 @@ async function publishDueVersioned(
     }
   }
 
-  return { published, skipped }
+  return { published, skipped, publishedIds }
 }
 
 async function publishDueSimple(
   db: AppDb,
   table: Exclude<SchedulableTable, VersionedContentTable>,
   now: string,
-): Promise<number> {
+): Promise<number[]> {
   const due = await db
     .select({ id: table.id })
     .from(table)
@@ -186,33 +188,131 @@ async function publishDueSimple(
     await publishSimpleRow(db as PublishDb, table, row.id, now)
   }
 
-  return due.length
+  return due.map(row => row.id)
+}
+
+/** Public URL path of a published article/recipe/page (sitemap-equivalent). */
+async function publicPath(
+  db: AppDb,
+  contentType: PublishableContentType,
+  id: number,
+): Promise<string | null> {
+  if (contentType === 'articles') {
+    const row = await db
+      .select({ slug: schema.articles.slug, categorySlug: schema.categoryArticles.slug })
+      .from(schema.articles)
+      .leftJoin(schema.categoryArticles, eq(schema.articles.categoryId, schema.categoryArticles.id))
+      .where(and(eq(schema.articles.id, id), isNull(schema.articles.deletedAt)))
+      .get()
+    if (!row) {
+      return null
+    }
+    return `/blog/${row.categorySlug || 'uncategorized'}/${row.slug}`
+  }
+
+  if (contentType === 'recipes') {
+    const row = await db
+      .select({ slug: schema.recipes.slug })
+      .from(schema.recipes)
+      .where(and(eq(schema.recipes.id, id), isNull(schema.recipes.deletedAt)))
+      .get()
+    return row ? `/recette/${row.slug}` : null
+  }
+
+  if (contentType === 'pages') {
+    const row = await db
+      .select({
+        slug: schema.pages.slug,
+        parentId: schema.pages.parentId,
+        isHome: schema.pages.isHome,
+      })
+      .from(schema.pages)
+      .where(and(eq(schema.pages.id, id), isNull(schema.pages.deletedAt)))
+      .get()
+    if (!row) {
+      return null
+    }
+    if (row.isHome) {
+      return '/'
+    }
+
+    const segments = [row.slug]
+    let parentId = row.parentId
+    // Hierarchical path — walk the parent chain (guarded against cycles).
+    while (parentId && segments.length < 10) {
+      const parent = await db
+        .select({
+          slug: schema.pages.slug,
+          parentId: schema.pages.parentId,
+          isHome: schema.pages.isHome,
+        })
+        .from(schema.pages)
+        .where(and(eq(schema.pages.id, parentId), isNull(schema.pages.deletedAt)))
+        .get()
+      if (!parent || parent.isHome) {
+        break
+      }
+      segments.unshift(parent.slug)
+      parentId = parent.parentId
+    }
+    return `/${segments.join('/')}`
+  }
+
+  // categories / category-articles have no dedicated public URL.
+  return null
 }
 
 export function createPublishingQueries(db: AppDb) {
   return {
-    async publishDueScheduled(): Promise<{ published: number, skipped: number }> {
+    async publishDueScheduled(): Promise<{
+      published: number
+      skipped: number
+      publishedRefs: Array<{ contentType: PublishableContentType, id: number }>
+    }> {
       const now = new Date().toISOString()
 
       let published = 0
       let skipped = 0
+      const publishedRefs: Array<{ contentType: PublishableContentType, id: number }> = []
 
       const articlesResult = await publishDueVersioned(db, 'articles', schema.articles, now)
       published += articlesResult.published
       skipped += articlesResult.skipped
+      for (const id of articlesResult.publishedIds) publishedRefs.push({ contentType: 'articles', id })
 
       const recipesResult = await publishDueVersioned(db, 'recipes', schema.recipes, now)
       published += recipesResult.published
       skipped += recipesResult.skipped
+      for (const id of recipesResult.publishedIds) publishedRefs.push({ contentType: 'recipes', id })
 
       const pagesResult = await publishDueVersioned(db, 'pages', schema.pages, now)
       published += pagesResult.published
       skipped += pagesResult.skipped
+      for (const id of pagesResult.publishedIds) publishedRefs.push({ contentType: 'pages', id })
 
-      published += await publishDueSimple(db, schema.categories, now)
-      published += await publishDueSimple(db, schema.categoryArticles, now)
+      published += (await publishDueSimple(db, schema.categories, now)).length
+      published += (await publishDueSimple(db, schema.categoryArticles, now)).length
 
-      return { published, skipped }
+      return { published, skipped, publishedRefs }
+    },
+
+    /** Sitemap-equivalent public paths for published content (IndexNow pings). */
+    async resolvePublicPaths(
+      contentType: PublishableContentType,
+      ids: number[],
+    ): Promise<string[]> {
+      if (ids.length === 0) {
+        return []
+      }
+
+      const paths: string[] = []
+      for (const id of ids) {
+        const path = await publicPath(db, contentType, id)
+        if (path) {
+          paths.push(path)
+        }
+      }
+      return paths
     },
 
     async publish(contentType: PublishableContentType, id: number, actor?: PublishActorContext) {

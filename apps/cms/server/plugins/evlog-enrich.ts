@@ -1,4 +1,5 @@
 import { createDefaultEnrichers } from 'evlog/enrichers'
+import { defineNitroPlugin } from 'nitropack/runtime'
 
 const enrichRequest = createDefaultEnrichers()
 

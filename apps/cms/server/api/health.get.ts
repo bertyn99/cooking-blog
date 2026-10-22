@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import { useDb } from '../utils/db'
+import { defineEventHandler, setResponseStatus } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   try {

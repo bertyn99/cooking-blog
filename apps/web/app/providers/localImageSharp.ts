@@ -1,5 +1,7 @@
 import { joinURL } from 'ufo'
-import { createOperationsGenerator, defineProvider } from '#image'
+// @nuxt/image 2.x: the `#image` specifier was removed — helpers come from the
+// package's public `./runtime` export instead.
+import { createOperationsGenerator, defineProvider } from '@nuxt/image/runtime'
 import { toPublicMediaKey } from '#shared/media-public-path'
 
 /**

@@ -1,4 +1,5 @@
 import { syncSessionUserFromDb } from '../utils/session-user'
+import { defineEventHandler } from 'nuxt/server'
 
 const PUBLIC_API_PATHS = new Set([
   '/api/auth/login',

@@ -4,6 +4,7 @@ import { requireEditor } from '../../utils/http-auth'
 import { validateBody } from '../../utils/validate'
 import { createApiError } from '../../utils/errors'
 import { safeHrefSchema } from '../../utils/validations/safe-href'
+import { defineEventHandler, getRouterParam, readBody } from 'nuxt/server'
 
 const schema = z.object({
   label: z.string().min(1).optional(),

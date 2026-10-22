@@ -1,6 +1,7 @@
 import { createApiError } from '../../../utils/errors'
 import { useQueries } from '../../../utils/db'
 import type { SeoContentType } from '../../../db/queries/seo'
+import { defineEventHandler, getRouterParam } from 'nuxt/server'
 
 const VALID_CONTENT_TYPES = new Set(['article', 'recipe', 'page', 'glossary'])
 

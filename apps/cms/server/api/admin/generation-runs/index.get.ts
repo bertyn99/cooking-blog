@@ -3,6 +3,7 @@ import { createContentGenerationQueries } from '../../../db/queries/content-gene
 import { requireEditor } from '../../../utils/http-auth'
 import { serializeGenerationRunForApi } from '../../../utils/serialize-generation-run'
 import { useDb } from '../../../utils/db'
+import { defineEventHandler, getQuery } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const session = await requireEditor(event)

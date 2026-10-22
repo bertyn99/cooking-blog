@@ -4,6 +4,7 @@ import {
   createRecipeMutation,
   createRecipeSchema,
 } from '../../services/recipe-mutations'
+import { defineEventHandler, readBody, setResponseStatus } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const actor = await requireWriteActor(event, 'recipes')

@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { getLocalDb } from '../db/client'
 import { hydrateStrapiMedia } from '../services/hydrate-strapi-media'
 import { prefersD1Database, useDb } from '../utils/db'
+import { useRuntimeConfig } from 'nuxt/server'
+import { defineTask } from 'nitropack/runtime'
 
 const payloadSchema = z.object({
   dryRun: z.boolean().optional(),

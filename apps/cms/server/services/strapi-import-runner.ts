@@ -10,6 +10,7 @@ import {
   setStrapiImportStatus,
 } from './strapi-import-status'
 import { useDb } from '../utils/db'
+import { useRuntimeConfig } from 'nuxt/server'
 
 export type StrapiImportJobOutcome = {
   result: Awaited<ReturnType<typeof runStrapiImport>>
@@ -21,7 +22,7 @@ export async function executeStrapiImportJob(
   input: Required<Pick<StrapiImportRunBody, 'dryRun'>> & StrapiImportRunBody,
   lockId: string,
 ): Promise<StrapiImportJobOutcome | undefined> {
-  const config = useRuntimeConfig(event)
+  const config = useRuntimeConfig()
   const db = useDb(event)
   const current = await getStrapiImportStatus(event)
   const startedAt = current.startedAt ?? new Date().toISOString()

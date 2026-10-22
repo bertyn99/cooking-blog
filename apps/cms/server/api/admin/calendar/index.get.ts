@@ -4,6 +4,7 @@ import { parseCalendarTypesParam } from '../../../../shared/calendar'
 import { useCalendarService } from '../../../services/calendar-service'
 import { createApiError } from '../../../utils/errors'
 import { requireAbility } from '../../../utils/http-auth'
+import { defineEventHandler, getQuery } from 'nuxt/server'
 
 const calendarQuerySchema = z.object({
   from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),

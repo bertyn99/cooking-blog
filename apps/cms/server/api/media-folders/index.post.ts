@@ -3,6 +3,7 @@ import { useQueries } from '../../utils/db'
 import { requireEditor } from '../../utils/http-auth'
 import { validateBody } from '../../utils/validate'
 import { createApiError } from '../../utils/errors'
+import { defineEventHandler, readBody, setResponseStatus } from 'nuxt/server'
 
 const schema = z.object({
   name: z.string().min(1),

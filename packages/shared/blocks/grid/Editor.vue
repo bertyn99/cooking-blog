@@ -8,6 +8,7 @@ import BlockPropBadges from '../../app/components/BlockPropBadges.vue'
 const props = defineProps(nodeViewProps)
 
 const colCount = computed(() => clampGridCols(props.node.attrs.cols))
+const variant = computed(() => props.node.attrs.variant === 'cards' ? 'cards' : 'media')
 const rootEl = ref<HTMLElement | null>(null)
 
 const colOptions = [
@@ -15,6 +16,11 @@ const colOptions = [
   { value: 2, label: '2', aria: '2 colonnes' },
   { value: 3, label: '3', aria: '3 colonnes' },
   { value: 4, label: '4', aria: '4 colonnes' },
+] as const
+
+const variantOptions = [
+  { value: 'media' as const, label: 'Photos', aria: 'Présentation photos' },
+  { value: 'cards' as const, label: 'Cartes', aria: 'Présentation cartes' },
 ] as const
 
 function setCols(n: number) {
@@ -29,6 +35,10 @@ function setCols(n: number) {
     schema: props.editor.schema,
     dispatch: tr => props.editor.view.dispatch(tr),
   })
+}
+
+function setVariant(next: 'media' | 'cards') {
+  props.updateAttributes({ variant: next })
 }
 
 /**
@@ -85,6 +95,7 @@ watch(colCount, scheduleApplyGridLayout)
       ref="rootEl"
       class="cms-editor-grid group/grid my-5 overflow-hidden rounded-xl border border-default/80 bg-elevated/40 shadow-sm dark:bg-elevated/20"
       :data-cols="colCount"
+      :data-variant="variant"
     >
       <div
         class="cms-editor-block-chrome flex items-center gap-3 border-b border-default/70 bg-default/80 px-3 py-2 backdrop-blur-sm"
@@ -105,17 +116,39 @@ watch(colCount, scheduleApplyGridLayout)
             </p>
             <p class="text-[11px] text-muted">
               {{ colCount }} colonne{{ colCount > 1 ? 's' : '' }}
+              · {{ variant === 'cards' ? 'cartes' : 'photos' }}
             </p>
           </div>
         </div>
         <BlockPropBadges
           class="hidden sm:flex"
           :fields="catalogEntryForTag('grid').fields"
-          :values="{ cols: colCount }"
+          :values="{ cols: colCount, variant }"
         />
 
         <div
           class="ml-auto inline-flex items-center rounded-lg bg-elevated p-0.5 ring-1 ring-default"
+          role="group"
+          aria-label="Présentation de la grille"
+        >
+          <button
+            v-for="opt in variantOptions"
+            :key="opt.value"
+            type="button"
+            class="inline-flex h-7 items-center rounded-md px-2 text-[11px] font-medium transition-colors"
+            :class="variant === opt.value
+              ? 'bg-default text-highlighted shadow-sm ring-1 ring-default'
+              : 'text-muted hover:text-default'"
+            :aria-label="opt.aria"
+            :aria-pressed="variant === opt.value"
+            @click="setVariant(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+
+        <div
+          class="inline-flex items-center rounded-lg bg-elevated p-0.5 ring-1 ring-default"
           role="group"
           aria-label="Nombre de colonnes"
         >

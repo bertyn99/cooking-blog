@@ -4,6 +4,7 @@ import { generateSlug } from "~/utils/format";
 import type { Article, Page, Recipe, SEO } from "~/types/strapiMeta";
 import { serverCmsFindAll } from "../utils/sitemap-cms";
 import { getPublicSiteOrigin } from "../utils/site-url";
+import { defineEventHandler, setHeader } from 'h3'
 
 function getSeoDescription(seo: SEO[] | SEO | undefined, seoMeta?: SEO) {
   if (seoMeta?.description) return seoMeta.description;

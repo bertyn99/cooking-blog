@@ -6,6 +6,7 @@ import { requireEditor } from '../../../utils/http-auth'
 import { ingestImageBuffer } from '../../../utils/ingest-image-buffer'
 import { useKvStore } from '../../../utils/kv'
 import { createRequestRateLimiter } from '../../../utils/rate-limit'
+import { defineEventHandler, readBody, setResponseStatus } from 'nuxt/server'
 
 const STOCK_IMPORT_LIMIT = {
   prefix: 'media-stock-import',

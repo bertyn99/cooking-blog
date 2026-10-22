@@ -26,6 +26,12 @@ import {
 type CreatePageInput = z.infer<typeof createPageSchema>
 type UpdatePageInput = z.infer<typeof updatePageSchema>
 
+function compactDefined<T extends Record<string, unknown>>(patch: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(patch).filter(([, value]) => value !== undefined),
+  ) as Partial<T>
+}
+
 function assertHomePageRules(isHome: boolean | undefined, parentId: number | null | undefined) {
   if (!isHome) return
   if (parentId != null) {
@@ -159,7 +165,7 @@ export async function updatePageMutation(
   const now = new Date().toISOString()
   const userId = actorUserId(actor)
   const locale = body.locale ?? existing.locale
-  const patch = {
+  const patch = compactDefined({
     name: body.name,
     title: body.title,
     content: body.content,
@@ -178,12 +184,14 @@ export async function updatePageMutation(
       : {}),
     ...authorshipOnUpdate(userId),
     updatedAt: now,
-  }
+  })
+
+  const switchingHome = Boolean(nextIsHome && !existing.isHome)
 
   let updated
   try {
-    updated = nextIsHome
-      ? await pages.updateAsHome(id, locale, patch)
+    updated = switchingHome
+      ? await pages.updateAsHome(id, locale, { ...patch, isHome: true, parentId: null })
       : await pages.updateById(id, patch)
   }
   catch (error) {

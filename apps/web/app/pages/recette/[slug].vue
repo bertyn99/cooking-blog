@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { Category, Cover, Ingredient, Recipe, RecipeUtensil, SEO } from "~/types/strapiMeta";
+import { parseFaqItems } from "@journalducuistot/shared/content-blocks";
 
 definePageMeta({
   layout: "content",
@@ -86,40 +87,7 @@ const steps = computed(() =>
     .filter(Boolean)
 );
 
-interface RecipeFaqItem {
-  question: string;
-  answer: string;
-}
-
-const faqItems = computed<RecipeFaqItem[]>(() => {
-  const raw = recipe.value?.faq;
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw) as Array<{ question?: unknown, answer?: unknown }>;
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .map((item) => ({
-        question: String(item?.question ?? "").trim(),
-        answer: String(item?.answer ?? "").trim(),
-      }))
-      .filter((item) => item.question && item.answer);
-  } catch {
-    return [];
-  }
-});
-
-useSchemaOrg(faqItems.value.length
-  ? [
-      {
-        "@type": "FAQPage",
-        mainEntity: faqItems.value.map((item) => ({
-          "@type": "Question",
-          name: item.question,
-          acceptedAnswer: { "@type": "Answer", text: item.answer },
-        })),
-      },
-    ]
-  : []);
+const faqItems = computed(() => parseFaqItems(recipe.value?.faq));
 
 const date = computed(() => recipe.value?.publishedAt || "");
 const dateModified = computed(() => recipe.value?.updatedAt || "");
@@ -220,17 +188,11 @@ useApplyPageSeo(computed(() => ({
   <RecipeUstensiles :utensils="utensils" />
   <RecipeNutritional :data="formated" />
   <LazyRecipeSteps :steps="steps" />
-  <section v-if="faqItems.length" class="prose md:prose-lg lg:prose-xl max-w-4xl">
-    <h2>FAQ : vos questions sur cette recette</h2>
-    <div v-for="item in faqItems" :key="item.question" class="mb-6">
-      <h3 class="mb-1 font-semibold text-black">
-        {{ item.question }}
-      </h3>
-      <p class="text-stone-700">
-        {{ item.answer }}
-      </p>
-    </div>
-  </section>
+  <BlockFaqClient v-if="faqItems.length" :items="faqItems">
+    <template #title>
+      FAQ : vos questions sur cette recette
+    </template>
+  </BlockFaqClient>
   <LazyCta />
   <LazySectionYouMayAlsoLike :category="categoryRecipe.slug ?? ''" type-content="recipes"
     class="print:hidden" />

@@ -2,6 +2,7 @@ import { validateBody } from '../../utils/validate'
 import { requireWriteActor } from '../../utils/write-auth'
 import { bulkGlossaryTermsSchema } from '../../utils/validations/glossary'
 import { bulkGlossaryTermsMutation } from '../../services/glossary-mutations'
+import { defineEventHandler, readBody } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const actor = await requireWriteActor(event, 'glossary')

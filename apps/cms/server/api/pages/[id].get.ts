@@ -2,6 +2,7 @@ import { parseInclude } from '../../utils/populate'
 import { createApiError } from '../../utils/errors'
 import { PAGES_RELATIONS } from '../../db/queries/_shared/builders/pages'
 import { useQueries } from '../../utils/db'
+import { defineEventHandler, getQuery, getRouterParam } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))

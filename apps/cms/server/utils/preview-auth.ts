@@ -1,5 +1,7 @@
 import { timingSafeEqual } from 'node:crypto'
 import type { H3Event } from 'h3'
+import { getHeader } from 'h3'
+import { useRuntimeConfig } from 'nuxt/server'
 
 export function previewTokenMatches(expected: string | undefined, provided: string | undefined): boolean {
   const left = (expected ?? '').trim()
@@ -16,7 +18,7 @@ export function previewTokenMatches(expected: string | undefined, provided: stri
 }
 
 export function isCmsPreviewRequest(event: H3Event): boolean {
-  const expected = String(useRuntimeConfig(event).cmsPreviewToken || '')
+  const expected = String(useRuntimeConfig().cmsPreviewToken || '')
   const provided = getHeader(event, 'x-cms-preview-token')
   return previewTokenMatches(expected, provided)
 }

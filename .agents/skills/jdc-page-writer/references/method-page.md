@@ -25,7 +25,7 @@ Ne pas construire une page neuve sur le triptyque concentration / expansion / mi
 5. **Un test de fin.** Sonde pour un cœur, fourchette pour un braisé, couleur et huile qui ne fume pas pour une friture. Pas le test du pouce.
 6. **Un mythe français encore répété**, en un appel `::callout{type="warning"}`, avec le contre-test.
 7. **Le récipient et le danger dans la même phrase.** Fonte ou inox pour une saisie forte. Cocotte lourde et couvercle pour un braisé. Friture : aliment sec, huile qui ne fume pas.
-8. **Questions fréquentes** — 3 ou 4, prises du bloc « Autres questions » de la requête. Visibles. Pas de schema FAQ dans le markdown.
+8. **Questions fréquentes** — 3 ou 4, prises du bloc « Autres questions » de la requête, en `::faq` (accordéon + schema). Pas de JSON-LD collé dans le markdown.
 9. **La suite** — lien vers le parent, deux ou trois `/recette/…` publiées, un frère si c'est la question d'après.
 
 Pas de longueur cible. Couvrir ces neuf points. Une feuille tient en général entre 4 000 et 8 000 caractères. Au-delà, une décision réutilisable doit partir sur une page code.
@@ -74,21 +74,20 @@ Une cause.
 
 Étapes numérotées. Chaque étape a un repère (son, couleur, liquide).
 
-Une photo pleine largeur si la main doit se copier. Deux photos côte à côte seulement pour deux résultats au même point d'arrivée — syntaxe dans `page-blocks.md`. Un diagramme Mermaid seulement s'il y a deux branches (tendre ou coriace), pas pour répéter ces étapes.
+Une photo pleine largeur si la main doit se copier. Deux photos côte à côte seulement pour deux résultats au même point d'arrivée — syntaxe dans `page-blocks.md`. Un diagramme Mermaid seulement s'il y a deux branches (tendre ou coriace), pas pour répéter ces étapes. Un `::table` si plusieurs pièces ou plusieurs températures, pas une grille de couleurs.
 
 ::callout{type="warning"}
-Le mythe, et le contre-test, avec le nom de la source.
+Le mythe, et le contre-test, avec le nom de la source. Pas le mot « Attention » en tête : l'icône suffit.
 ::
 
 ## Comment savoir que c'est cuit
 
 Un test. Pour porc, volaille, haché : la phrase ANSES, avec l'URL.
 
-## Questions fréquentes
-
-### Question prise du SERP ?
-
-Réponse courte.
+::faq{items='[{"question":"Question prise du SERP ?","answer":"Réponse courte, sans apostrophe ASCII."}]'}
+#title
+Questions fréquentes
+::
 
 Vers le [guide des méthodes](/techniques-culinaires/methodes-de-cuisson), puis deux recettes réelles.
 ````

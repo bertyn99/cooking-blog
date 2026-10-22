@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CalendarDate } from '@internationalized/date'
+import { today, getLocalTimeZone, type CalendarDate, type DateValue } from '@internationalized/date'
 import type { CalendarItem } from '#shared/calendar'
 import { calendarDayKeyFromParts } from '#shared/calendar'
 
@@ -11,7 +11,7 @@ const props = defineProps<{
 const placeholder = defineModel<CalendarDate>('placeholder', { required: true })
 
 const emit = defineEmits<{
-  reschedule: [payload: { key: string, dayKey: string }]
+  reschedule: [payload: { key: string; dayKey: string }]
   open: [item: CalendarItem]
 }>()
 
@@ -20,21 +20,33 @@ const dropTargetDay = ref<string | null>(null)
 
 const maxVisibleEvents = 3
 
-function dayKey(day: CalendarDate): string {
+const todayDate = today(getLocalTimeZone())
+
+function dayKey(day: DateValue): string {
   return calendarDayKeyFromParts(day.year, day.month, day.day)
 }
 
-function eventsForDay(day: CalendarDate): CalendarItem[] {
+function isToday(day: DateValue): boolean {
+  return day.compare(todayDate) === 0
+}
+
+function eventsForDay(day: DateValue): CalendarItem[] {
   return props.itemsByDay.get(dayKey(day)) ?? []
 }
 
-function resolveDragKey(event: DragEvent): string | null {
-  return event.dataTransfer?.getData('application/x-cms-calendar-item')
-    || event.dataTransfer?.getData('text/plain')
-    || dragItemKey.value
+function overflowEvents(day: DateValue): CalendarItem[] {
+  return eventsForDay(day).slice(maxVisibleEvents)
 }
 
-function onDragOver(day: CalendarDate, event: DragEvent) {
+function resolveDragKey(event: DragEvent): string | null {
+  return (
+    event.dataTransfer?.getData('application/x-cms-calendar-item') ||
+    event.dataTransfer?.getData('text/plain') ||
+    dragItemKey.value
+  )
+}
+
+function onDragOver(day: DateValue, event: DragEvent) {
   event.preventDefault()
   if (event.dataTransfer) {
     event.dataTransfer.dropEffect = 'move'
@@ -42,13 +54,13 @@ function onDragOver(day: CalendarDate, event: DragEvent) {
   dropTargetDay.value = dayKey(day)
 }
 
-function onDragLeave(day: CalendarDate) {
+function onDragLeave(day: DateValue) {
   if (dropTargetDay.value === dayKey(day)) {
     dropTargetDay.value = null
   }
 }
 
-function onDrop(day: CalendarDate, event: DragEvent) {
+function onDrop(day: DateValue, event: DragEvent) {
   event.preventDefault()
   const key = resolveDragKey(event)
   dropTargetDay.value = null
@@ -65,24 +77,27 @@ function onDrop(day: CalendarDate, event: DragEvent) {
 </script>
 
 <template>
-  <UPageCard title="Calendrier" :ui="{ body: 'p-0 sm:p-0' }">
-    <div class="border-b border-default px-4 py-3">
+  <UPageCard title="Calendrier" :ui="{ root: 'min-w-0', body: 'p-0 sm:p-0' }">
+    <template #description>
       <p class="text-sm text-muted">
-        Glissez les contenus <strong>planifiés</strong> ou les brouillons du panneau latéral.
-        Les contenus <strong>publiés</strong> restent visibles mais ne peuvent pas être déplacés.
+        Glissez les contenus <strong>planifiés</strong> ou les brouillons du panneau latéral. Les
+        contenus <strong>publiés</strong> restent visibles mais ne peuvent pas être déplacés.
       </p>
-    </div>
+    </template>
 
     <div class="relative p-2 sm:p-4" :class="loading ? 'opacity-60' : ''">
       <UCalendar
         v-model:placeholder="placeholder"
+        :month-controls="false"
+        :year-controls="false"
         :view-control="false"
         :week-starts-on="1"
         locale="fr-FR"
         class="w-full"
         :ui="{
+          heading: 'sr-only',
           grid: 'w-full',
-          gridRow: 'grid-cols-7 gap-px',
+          gridRow: 'grid-cols-7 gap-px justify-items-stretch',
           cell: 'min-h-0 p-0',
           cellTrigger: [
             'h-auto min-h-[7.5rem] w-full flex-col items-stretch justify-start rounded-md border border-transparent p-1 text-left font-normal',
@@ -93,14 +108,28 @@ function onDrop(day: CalendarDate, event: DragEvent) {
       >
         <template #day="{ day }">
           <div
-            class="flex h-full min-h-[7rem] w-full flex-col gap-1"
-            :class="dropTargetDay === dayKey(day) ? 'rounded-md ring-2 ring-primary/40' : ''"
+            class="flex h-full min-h-[7rem] w-full flex-col gap-1 rounded-md transition"
+            :class="[
+              isToday(day) ? 'ring-1 ring-primary/40' : '',
+              dropTargetDay === dayKey(day) ? 'bg-primary/5 ring-2 ring-primary/50' : '',
+            ]"
             @dragover="onDragOver(day, $event)"
             @dragleave="onDragLeave(day)"
             @drop="onDrop(day, $event)"
           >
-            <span class="text-xs font-semibold text-muted tabular-nums">
+            <span
+              class="text-xs font-semibold tabular-nums"
+              :class="isToday(day) ? 'flex items-center gap-1 text-primary' : 'text-muted'"
+            >
               {{ day.day }}
+              <UBadge
+                v-if="isToday(day)"
+                label="Aujourd'hui"
+                color="primary"
+                variant="subtle"
+                size="xs"
+                class="hidden xl:inline-flex"
+              />
             </span>
 
             <div class="flex flex-1 flex-col gap-0.5 overflow-hidden">
@@ -112,14 +141,27 @@ function onDrop(day: CalendarDate, event: DragEvent) {
                 @open="emit('open', $event)"
               />
 
-              <button
-                v-if="eventsForDay(day).length > maxVisibleEvents"
-                type="button"
-                class="text-left text-[10px] text-primary hover:underline"
-                @click.stop
-              >
-                +{{ eventsForDay(day).length - maxVisibleEvents }} autre(s)
-              </button>
+              <UPopover v-if="overflowEvents(day).length > 0" :content="{ align: 'start' }">
+                <UButton
+                  color="primary"
+                  variant="ghost"
+                  size="xs"
+                  class="h-auto px-1 py-0 text-[10px]"
+                  :label="`+${overflowEvents(day).length} autre${overflowEvents(day).length > 1 ? 's' : ''}`"
+                  @click.stop
+                />
+
+                <template #content>
+                  <div class="flex max-h-64 w-72 flex-col gap-1 overflow-y-auto p-2">
+                    <PlanningCalendarEventCard
+                      v-for="item in overflowEvents(day)"
+                      :key="`${item.contentType}:${item.id}`"
+                      :item="item"
+                      @open="emit('open', $event)"
+                    />
+                  </div>
+                </template>
+              </UPopover>
             </div>
           </div>
         </template>

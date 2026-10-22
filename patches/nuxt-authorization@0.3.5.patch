@@ -1,0 +1,11 @@
+diff --git a/dist/runtime/server/utils/bouncer.js b/dist/runtime/server/utils/bouncer.js
+index 680999c87a97b0e5655b7c31aa696df81be7e404..ce17e83fe095378111cd92a2e97597a4f52abe0b 100644
+--- a/dist/runtime/server/utils/bouncer.js
++++ b/dist/runtime/server/utils/bouncer.js
+@@ -1,5 +1,5 @@
+ import { allows as _allows, denies as _denies, authorize as _authorize, AuthorizationError } from "../../../utils";
+-import { createError } from "#imports";
++import { createError } from "nuxt/server";
+ export async function allows(event, ability, ...args) {
+   const user = await event.context.$authorization.resolveServerUser();
+   return _allows(ability, user, ...args);

@@ -3,6 +3,7 @@ import { useQueries } from '../../../utils/db'
 import { createApiError } from '../../../utils/errors'
 import { useMediaStorage } from '../../../utils/media-storage'
 import { isAllowedMediaAssetPath } from '../../../../shared/image-delivery-policy'
+import { defineEventHandler, getQuery } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   await requireApiKey(event, 'media')

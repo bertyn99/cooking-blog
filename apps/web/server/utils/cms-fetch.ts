@@ -1,4 +1,5 @@
 import type { CmsListResponse } from '~/types/cms'
+import { useRuntimeConfig } from 'nuxt/server'
 import {
   CMS_FETCH_DEFAULTS,
   cmsCollectionPath,

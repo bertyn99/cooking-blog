@@ -8,6 +8,7 @@ import { useMaintenanceService } from '../../../services/maintenance-purge'
 import { createApiError } from '../../../utils/errors'
 import { requireAbility } from '../../../utils/http-auth'
 import { validateBody } from '../../../utils/validate'
+import { defineEventHandler, readBody } from 'nuxt/server'
 
 const bodySchema = z.object({
   targets: z.array(z.enum(MAINTENANCE_PURGE_TARGETS)).min(1),

@@ -13,6 +13,7 @@ import {
   type ImageAspectRatio,
   type ImageGenerationModelId,
 } from '../../../shared/workers-ai-model'
+import { createError } from 'nuxt/server'
 
 const MEDIA_GENERATE_LIMIT = {
   prefix: 'media-generate',

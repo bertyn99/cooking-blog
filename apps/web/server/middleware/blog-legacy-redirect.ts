@@ -1,5 +1,6 @@
 import type { Article } from "~/types/strapiMeta";
 import { serverCmsFind } from "../utils/cms-fetch";
+import { createError, defineEventHandler, getRequestURL, sendRedirect } from 'nuxt/server'
 
 /**
  * Legacy `/blog/:slug` → `/blog/:category/:slug`.

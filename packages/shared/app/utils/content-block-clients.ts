@@ -3,7 +3,7 @@ import type { Component } from 'vue'
 // Articles/recipes : PAS de bloc ::image — les images d'article sont des
 // images markdown natives ![alt](src), rendues par ProseImg (transforms
 // /images/). Le bloc image partagé reste disponible pour les pages.
-const PROSE_TAGS = ['callout', 'grid', 'timeline', 'table', 'carousel'] as const
+const PROSE_TAGS = ['callout', 'grid', 'timeline', 'table', 'carousel', 'faq'] as const
 
 function kebabFromClientPath(path: string): string | null {
   const match = path.match(/\/blocks\/([^/]+)\/Client\.vue$/)

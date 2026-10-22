@@ -137,6 +137,49 @@ describe('grid markdown round-trip helpers', () => {
     expect(md).toBe('::grid{cols="2"}\n\nonly\n\n::')
   })
 
+  it('parses and serializes variant=cards', () => {
+    const parsed = parseGridMarkdownToken(
+      {
+        attributes: { cols: 2, variant: 'cards' },
+        tokens: [{ id: 'a' }, { id: 'b' }],
+      },
+      {
+        parseChildren: tokens => tokens,
+        createNode,
+      },
+    ) as { attrs: { cols: number, variant: string } }
+
+    expect(parsed.attrs.variant).toBe('cards')
+
+    const md = renderGridMarkdownNode(
+      {
+        attrs: { cols: 2, variant: 'cards' },
+        content: [
+          { content: [{ type: 'paragraph', content: [{ type: 'text', text: 'left' }] }] },
+          { content: [{ type: 'paragraph', content: [{ type: 'text', text: 'right' }] }] },
+        ],
+      },
+      {
+        renderChildren: (nodes) =>
+          (nodes as Array<{ content?: Array<{ text?: string }> }>)
+            .map(n => n.content?.[0]?.text ?? '')
+            .join('\n\n'),
+      },
+    )
+    expect(md).toBe('::grid{cols="2" variant="cards"}\n\nleft\n\nright\n\n::')
+  })
+
+  it('omits default media variant on render', () => {
+    const parsed = parseGridMarkdownToken(
+      { attributes: { cols: 2, variant: 'media' }, tokens: [] },
+      {
+        parseChildren: tokens => tokens,
+        createNode,
+      },
+    ) as { attrs: { variant: string } }
+    expect(parsed.attrs.variant).toBe('media')
+  })
+
   it('detects empty paragraph json', () => {
     expect(isEmptyParagraphJson({ type: 'paragraph', content: [] })).toBe(true)
     expect(isEmptyParagraphJson({ type: 'paragraph', content: [{ type: 'text' }] })).toBe(false)

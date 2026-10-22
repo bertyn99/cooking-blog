@@ -8,7 +8,8 @@ description: |
   on-page SEO, and draft creation via the jdc-cms MCP.
 
   Use when: writing a new JDC article, refreshing an existing one, researching keywords for a
-  recipe/ingredient/ustensil topic, analyzing competitor pages, or creating CMS drafts.
+  recipe/ingredient/ustensil topic, analyzing competitor pages, creating CMS drafts, or inserting
+  ::callout / ::table / ::timeline / ::faq / mermaid in an article.
 ---
 
 # JDC article writer
@@ -96,26 +97,25 @@ See [references/templates.md](./references/templates.md) for full skeletons. Sum
 
 ### 5. On-page checklist (every article)
 
-Write in **Comark-valid markdown** from the start (JDC renders with `@comark/html` — load the `comark` skill for component syntax when using `::blocks`):
+Write in **Comark-valid markdown** from the start. Blocks, syntax, and when to use them: `../jdc-page-writer/references/page-blocks.md` (shared with the page skill). Load the `comark` skill only if a fence fails to parse.
 
-**Images dans le corps d'article : images markdown standard au chemin canonique `/uploads/<fichier>`** (PAS de blocs `::image`/`::timeline`/`::table` — ils ne sont pas résolus par le renderer web en prod, vérifié 2026-10-07 : le bloc rend son slot mais l'img est absente) :
+**Images:** markdown only, after `list-media`. Never `::image`.
 
 ```markdown
 ![Baklava aux noix et au miel, feuilles dorées](/uploads/baklava_c439771884.webp)
 ```
 
-- Src canonique : `/uploads/<fichier>` — le fichier vient de `list-media`, préfixe `uploads/`. ProseImg côté web normalise et applique les transforms (w_800, webp) automatiquement — pas besoin de pré-transformer.
-- 1 image par plat/section, alt descriptif
-- Les blocs `::callout`/`::grid` restent utilisables (composants natifs du thème)
-- Les blocs `::timeline`/`::table`/`::carousel` existent dans le page builder mais ne rendent pas dans les articles — ne pas utiliser dans le corps d'article
-
+- Src : `/uploads/<fichier>` (préfixe `uploads/` en médiathèque). ProseImg applique w_800 / webp — ne pas pré-transformer.
+- 1 image par plat / item de listicle, alt descriptif.
+- **Blocs article / recette :** `::callout`, `::grid`, `::table`, `::timeline`, `::faq`, fence `mermaid`. Un tableau `| pipes |` rend un bloc vide : toujours `::table{head rows caption}`.
+- **Pas sur un article :** `::hero`, `::newsletter`, `::hubs`, `::person`, `::recipe-list`, `::article-list`. Préférer une photo ou une grille à `::carousel`.
 
 - **Title** ≤ 60 chars, exact query front-loaded, evergreen (no "pour l'été"), natural French — never "Recettes de plat Apéritif"
 - **Meta description** 140–155 chars, exact query + benefit, written (not auto-generated)
 - **Slug**: keywords only, hyphens, no dates/seasons — set explicitly to keep it stable
 - **Excerpt**: 1–2 sentences (used as dek/fallback)
 - **Structure**: intro 100–150 words with primary query in the first 2 sentences; H2 every ~300 words; H3 per listicle item
-- **FAQ**: 3–5 questions from SERP PAA + "combien/comment" variants, near the end
+- **FAQ**: 3–5 questions from SERP PAA + "combien/comment" variants, near the end, as `::faq` (emits FAQPage)
 - **Internal links ≥ 2**: pick REAL targets via jdc-cms MCP `list-recipes` / `list-articles` / `list-pages` — 1 up (hub: `/techniques-culinaires/**`, `/recette/recettes-du-monde`, category) + 1 sideways (related recipe/article). Contextual anchors, never "cliquez ici". Verify targets exist (no 404s — this has happened).
 - **Images**: cover + alt text describing the dish; **listicles: 1 image per item** — workflow de décision dans `references/image-selection-criteria.md` : `list-media` d'abord (image existante gagne), puis `search-stock-media` (re-rank par critères, `recommendedId`), `import-stock-media`, et `generate-media` en dernier recours. Syntax: `![alt](/uploads/fichier.webp)`. Skip items without adequate media and note them — never reference a non-existent path.
 - **Schema**: recipes get `Recipe` (YGG-82 pending — author/`recipeCuisine`/calories fixed at template level); listicles get `ItemList`; FAQ block → `FAQPage`
@@ -127,7 +127,7 @@ Never ship the first draft. Run two passes on the draft created in step 6 (via `
 **Pass 1 — Correction (facts, structure, mechanics).** Objective only:
 - [ ] **Facts vs sources**: every date, origin, quantity, cooking time, name checked against the research notes and URLs from steps 1–2 (legend stated as legend, archive as archive)
 - [ ] **French**: grammar, spelling, agreements, punctuation (no AI-perfect uniformity either — natural but clean)
-- [ ] **Comark syntax**: the body must be valid Comark markdown (JDC renders with `@comark/html`). Check: no unclosed `::component` blocks, valid props syntax, no raw HTML that the renderer drops, headings/list/image syntax intact, no escaped-entity garbage (`&amp;`, `&#x27;`) in the source. Load the `comark` skill for the exact syntax when in doubt — a broken component renders as raw text on the page.
+- [ ] **Comark syntax**: replay `../jdc-page-writer/references/page-blocks.md`. No unclosed `::`, JSON attrs in single quotes (no ASCII `'` inside cells), images are `![alt](/uploads/…)`, `::table` not pipes, callout body is the sentence (no « Info / Astuce / Attention »). A visible `::` or `**` on the preview is a broken block.
 - [ ] **Structure**: single H1; primary query in the first 2 sentences; ≥3 H2s in logical order; FAQ block present; listicle items consistent but varied in length
 - [ ] **Links**: every internal link resolves (fetch each target — 404s have shipped before), no duplicate targets, anchors natural and varied
 - [ ] **Images**: every referenced path exists in the media library (`list-media`) — dead `/images/...` references have shipped before; alt texts present
@@ -145,7 +145,8 @@ Then run the **render check** on the final `previewUrl` (the draft must display 
 
 - [ ] Preview returns **200** (no error boundary / Nuxt error page); title carries the `[PREVIEW]` prefix (expected — it disappears once published)
 - [ ] Title + meta description in the HTML match the review result
-- [ ] Single H1, all H2/H3 render as headings (no raw `##` or unrendered `::component` markers leaking as text — a visible `::` or `**` means broken Comark)
+- [ ] Single H1, all H2/H3 render as headings (no raw `##` or unrendered `::` / `**`)
+- [ ] Callouts show icon + readable sentence; tables show header + rows (not an empty box); a timeline, if used, shows dates
 - [ ] Images load (no 502/404 — check at least cover + first inline image)
 - [ ] Every internal link resolves; FAQ section renders
 - [ ] No leftover placeholder, comment or template text

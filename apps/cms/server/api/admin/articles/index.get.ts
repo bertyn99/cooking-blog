@@ -2,6 +2,7 @@ import { parseInclude } from '../../../utils/populate'
 import { parsePagination } from '../../../utils/pagination'
 import { parseContentStatus } from '../../../utils/query-params'
 import { useQueries } from '../../../utils/db'
+import { defineEventHandler, getQuery } from 'nuxt/server'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)

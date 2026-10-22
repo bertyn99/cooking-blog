@@ -18,6 +18,10 @@ function serializeProps(block: SectionBlock, def: ContentBlockDefinition): strin
   for (const key of def.allowedProps) {
     const value = block.props[key]
     if (value === undefined || value === null || value === '') continue
+    const field = def.fields.find(item => item.key === key)
+    if (field?.omitDefault && field.default !== undefined && String(value) === String(field.default)) {
+      continue
+    }
     if (value === true) {
       parts.push(key)
     }

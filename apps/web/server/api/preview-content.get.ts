@@ -1,6 +1,7 @@
 import { serverCmsFind } from '../utils/cms-fetch'
 import type { NestedParent } from '~/types/strapiMeta'
 import { cmsPageMatchesRequestPath } from '~/utils/format'
+import { createError, defineEventHandler, getQuery, useRuntimeConfig } from 'nuxt/server'
 
 const PREVIEW_TYPES = ['article', 'page', 'recipe', 'glossary'] as const
 type PreviewType = (typeof PREVIEW_TYPES)[number]
@@ -58,7 +59,7 @@ export default defineEventHandler(async (event) => {
   const parentSlug = isNested ? slugParts[slugParts.length - 2] : undefined
   const categorySlug = isNested ? slugParts[0] : undefined
 
-  const config = useRuntimeConfig(event)
+  const config = useRuntimeConfig()
   const token = String(config.cmsPreviewToken || '').trim()
   const headers: Record<string, string> = {}
   if (token) {

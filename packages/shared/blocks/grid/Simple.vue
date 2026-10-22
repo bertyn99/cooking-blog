@@ -6,8 +6,10 @@ defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(defineProps<{
   cols?: string | number
+  variant?: string
 } & ContentBlockSimpleChromeProps>(), {
   cols: 2,
+  variant: 'media',
   expanded: false,
 })
 
@@ -23,13 +25,16 @@ const emit = defineEmits<{
 <template>
   <BlockSimpleChrome
     tag="grid"
-    :values="props.values ?? { cols: props.cols }"
+    :values="props.values ?? { cols: props.cols, variant: props.variant }"
     :expanded="props.expanded"
     :slot-values="props.slotValues"
     @update:slot-values="emit('update:slotValues', $event)"
     @update:values="emit('update:values', $event)"
   >
-    <BlockGridClient :cols="props.cols">
+    <BlockGridClient
+      :cols="props.cols"
+      :variant="props.variant"
+    >
       <slot />
     </BlockGridClient>
     <template

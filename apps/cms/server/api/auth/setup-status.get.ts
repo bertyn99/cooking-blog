@@ -4,6 +4,7 @@ import {
   hasValidAdminSeedSecret,
 } from '../../utils/auth/seed-admin-access'
 import { createApiError } from '../../utils/errors'
+import { defineEventHandler } from 'nuxt/server'
 
 /**
  * Public setup hints for production (no secrets, no user emails).

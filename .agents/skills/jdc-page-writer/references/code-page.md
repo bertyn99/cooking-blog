@@ -65,12 +65,15 @@ La décision, en deux phrases. Pas l'histoire du sel.
 ## Le gras qui porte
 
 ::callout{type="info"}
-Ce qui est une habitude de cuisine, nommé comme telle.
+Ce qui est une habitude de cuisine, nommé comme telle. Pas le mot « Info » en tête.
 ::
 
-## Questions fréquentes
+Un `::table` dès que goût et sécurité se croisent (colonnes : repère, degré, source). Syntaxe dans `page-blocks.md`. Pas de tableau markdown en pipes.
 
-Trois questions de la requête, réponses courtes.
+::faq{items='[{"question":"Question prise de la requête ?","answer":"Réponse courte, sans apostrophe ASCII."}]'}
+#title
+Questions fréquentes
+::
 
 Lien vers le hub code, et vers la méthode qui s'en sert (saisir, braiser), pas vers une recette inventée.
 ```
