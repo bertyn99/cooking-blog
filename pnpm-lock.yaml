@@ -64,6 +64,15 @@ patchedDependencies:
   '@distilled.cloud/nuxt@0.17.1':
     hash: 87c605e3d495ca9e5f6fe7ffcfd31d9f0b72b4a27eb878475077e6cfaa92fc89
     path: patches/@distilled.cloud__nuxt@0.17.1.patch
+  '@vue/runtime-core@3.5.42':
+    hash: cea509800dd89534f204b1ab3022deaf13c1abe3cedfd431e4e6b50b8a6c87b1
+    path: patches/@vue__runtime-core@3.5.42.patch
+  '@vue/runtime-core@3.5.43':
+    hash: 1f4ac194a9a9d8df84ceab7a4f2189f9cc8d9af69cf735d7fb51d195669955aa
+    path: patches/@vue__runtime-core@3.5.43.patch
+  '@vue/runtime-core@3.5.44':
+    hash: 8671fd50c23a8cfd56110b9a7a6e4d65ad2c81e1fd51f84746213868aac6a854
+    path: patches/@vue__runtime-core@3.5.44.patch
   nuxt-auth-utils@0.5.32:
     hash: 8b8ef91709b09e401a6258bbdd98566ff63189497787fe145bbfdf44816e4226
     path: patches/nuxt-auth-utils@0.5.32.patch
@@ -15397,17 +15406,17 @@ snapshots:
     dependencies:
       '@vue/shared': 3.5.44
 
-  '@vue/runtime-core@3.5.42':
+  '@vue/runtime-core@3.5.42(patch_hash=cea509800dd89534f204b1ab3022deaf13c1abe3cedfd431e4e6b50b8a6c87b1)':
     dependencies:
       '@vue/reactivity': 3.5.42
       '@vue/shared': 3.5.42
 
-  '@vue/runtime-core@3.5.43':
+  '@vue/runtime-core@3.5.43(patch_hash=1f4ac194a9a9d8df84ceab7a4f2189f9cc8d9af69cf735d7fb51d195669955aa)':
     dependencies:
       '@vue/reactivity': 3.5.43
       '@vue/shared': 3.5.43
 
-  '@vue/runtime-core@3.5.44':
+  '@vue/runtime-core@3.5.44(patch_hash=8671fd50c23a8cfd56110b9a7a6e4d65ad2c81e1fd51f84746213868aac6a854)':
     dependencies:
       '@vue/reactivity': 3.5.44
       '@vue/shared': 3.5.44
@@ -15415,21 +15424,21 @@ snapshots:
   '@vue/runtime-dom@3.5.42':
     dependencies:
       '@vue/reactivity': 3.5.42
-      '@vue/runtime-core': 3.5.42
+      '@vue/runtime-core': 3.5.42(patch_hash=cea509800dd89534f204b1ab3022deaf13c1abe3cedfd431e4e6b50b8a6c87b1)
       '@vue/shared': 3.5.42
       csstype: 3.2.3
 
   '@vue/runtime-dom@3.5.43':
     dependencies:
       '@vue/reactivity': 3.5.43
-      '@vue/runtime-core': 3.5.43
+      '@vue/runtime-core': 3.5.43(patch_hash=1f4ac194a9a9d8df84ceab7a4f2189f9cc8d9af69cf735d7fb51d195669955aa)
       '@vue/shared': 3.5.43
       csstype: 3.2.3
 
   '@vue/runtime-dom@3.5.44':
     dependencies:
       '@vue/reactivity': 3.5.44
-      '@vue/runtime-core': 3.5.44
+      '@vue/runtime-core': 3.5.44(patch_hash=8671fd50c23a8cfd56110b9a7a6e4d65ad2c81e1fd51f84746213868aac6a854)
       '@vue/shared': 3.5.44
       csstype: 3.2.3
 

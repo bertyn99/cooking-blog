@@ -20,7 +20,9 @@ const dateFormatted = useDateFormat(props.date, "DD-MM-YYYY");
     class="flex flex-wrap divide-y md:divide-y-0 md:divide-x py-1 items-center gap-6 print:hidden"
   >
     <div class="flex gap-2">
-      <nuxt-img
+      <!-- plain <img>: <nuxt-img> crashes SSR in prod (Vue useTemplateRef
+           prod-only redefinition, nuxt#31817) — a static avatar needs no pipeline -->
+      <img
         data-del="avatar"
         src="/img/author.jpg"
         :alt="`Portrait de ${SITE_AUTHOR_NAME}`"

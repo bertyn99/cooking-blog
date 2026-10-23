@@ -1,0 +1,20 @@
+diff --git a/dist/runtime-core.esm-bundler.js b/dist/runtime-core.esm-bundler.js
+index e9706084fd13899046f62249f9d7130b8508fb09..32ff41acb23e604f90f888f6a8964e52e07e1611 100644
+--- a/dist/runtime-core.esm-bundler.js
++++ b/dist/runtime-core.esm-bundler.js
+@@ -1779,8 +1779,13 @@ function useTemplateRef(key) {
+   const r = shallowRef(null);
+   if (i) {
+     const refs = i.refs === EMPTY_OBJ ? i.refs = {} : i.refs;
+-    if (!!(process.env.NODE_ENV !== "production") && isTemplateRefKey(refs, key)) {
+-      warn$1(`useTemplateRef('${key}') already exists.`);
++    // PATCH(jdc): apply the duplicate-key guard in production too — the
++    // dev-only guard made prod throw "Cannot redefine property: imgEl" when
++    // <NuxtImg> (useTemplateRef) is set up twice on one instance.
++    // See nuxt/nuxt#31817, nuxt/nuxt#33042.
++    if (isTemplateRefKey(refs, key)) {
++      if (!!(process.env.NODE_ENV !== "production"))
++        warn$1(`useTemplateRef('${key}') already exists.`);
+     } else {
+       Object.defineProperty(refs, key, {
+         enumerable: true,

@@ -1,7 +1,12 @@
 import type { NitroRouteConfig } from 'nitropack/types'
 
 /** CMS page slugs that 301 elsewhere — omit from sitemap to avoid duplicate signals. */
-export const SITEMAP_EXCLUDED_PAGE_PATHS = new Set(['/les-epices-essentielles-en-cuisine-1'])
+export const SITEMAP_EXCLUDED_PAGE_PATHS = new Set([
+  '/les-epices-essentielles-en-cuisine-1',
+  // legal pages are intentionally noindex — keep them out of the sitemap
+  '/politique-de-confidentialite',
+  '/mentions-legales',
+])
 
 const listRedirects: Record<string, NitroRouteConfig> = {
   '/sitemap-pages.xml': {
