@@ -1,0 +1,17 @@
+diff --git a/dist/runtime-core.esm-bundler.js b/dist/runtime-core.esm-bundler.js
+index f0905f8afe50421feed03b208b19afb26e4bbb73..f6d627164bce6a581b91c78543cf40fed70a316a 100644
+--- a/dist/runtime-core.esm-bundler.js
++++ b/dist/runtime-core.esm-bundler.js
+@@ -1726,8 +1726,10 @@ function useTemplateRef(key) {
+   const r = shallowRef(null);
+   if (i) {
+     const refs = i.refs === EMPTY_OBJ ? i.refs = {} : i.refs;
+-    if (!!(process.env.NODE_ENV !== "production") && isTemplateRefKey(refs, key)) {
+-      warn$1(`useTemplateRef('${key}') already exists.`);
++    // PATCH(jdc): guard in production too (nuxt/nuxt#31817, nuxt/nuxt#33042)
++    if (isTemplateRefKey(refs, key)) {
++      if (!!(process.env.NODE_ENV !== "production"))
++        warn$1(`useTemplateRef('${key}') already exists.`);
+     } else {
+       Object.defineProperty(refs, key, {
+         enumerable: true,
