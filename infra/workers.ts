@@ -205,7 +205,12 @@ export const workers = Effect.fn(function* (input: {
     Config.withDefault('http://localhost:3000'),
   )
   const siteUrl = isProd ? httpsOrigin(prodWebHost) : siteUrlFromEnv
-  const ogImageSecret = Config.String('NUXT_OG_IMAGE_SECRET').pipe(Config.withDefault(''))
+  // feeds the worker's NUXT_APP_SECRET binding (og-image v7 URL signing).
+  // Read the NEW name first, fall back to the old one so pre-existing
+  // secrets keep working either way.
+  const ogImageSecret = Config.String('NUXT_APP_SECRET').pipe(
+    Config.orElse(() => Config.String('NUXT_OG_IMAGE_SECRET')),
+  ).pipe(Config.withDefault(''))
   const umamiId = isProd
     ? yield* Config.String('NUXT_UMAMI_ID').pipe(Config.withDefault(''))
     : ''
