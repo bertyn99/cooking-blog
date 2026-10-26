@@ -21,7 +21,7 @@
   },
   "peerDependencies": {
     "@comark/vue": "^0.7.0",
-    "@nuxt/ui": "^4.11.0",
+    "@nuxt/ui": "catalog:",
     "@tiptap/core": ">=2.0.0",
     "@tiptap/vue-3": ">=2.0.0",
     "nuxt": "catalog:",
