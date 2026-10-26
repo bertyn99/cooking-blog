@@ -73,6 +73,9 @@ jobs:
           NUXT_SESSION_PASSWORD: ${{ secrets.NUXT_SESSION_PASSWORD }}
           NUXT_OG_IMAGE_SECRET: ${{ secrets.NUXT_OG_IMAGE_SECRET }}
           NUXT_APP_SECRET: ${{ secrets.NUXT_APP_SECRET }}
+          PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+          PINTEREST_BOARD_ID: ${{ secrets.PINTEREST_BOARD_ID }}
+          PINTEREST_BOARDS: ${{ secrets.PINTEREST_BOARDS }}
           STRAPI_URL: ${{ secrets.STRAPI_URL }}
           STRAPI_API_TOKEN: ${{ secrets.STRAPI_API_TOKEN }}
           PROD_WEB_HOST: ${{ secrets.PROD_WEB_HOST }}

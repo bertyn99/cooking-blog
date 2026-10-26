@@ -74,6 +74,11 @@ export default defineNuxtConfig({
     cmsAiGatewayId: process.env.CMS_AI_GATEWAY_ID || 'jdc-cms-ai',
     /** Pexels API key for Stock tab (server-only). */
     pexelsApiKey: process.env.PEXELS_API_KEY || '',
+    /** Pinterest pin pipeline (server-only). Empty = disabled (rows stay pending). */
+    pinterestAccessToken: process.env.PINTEREST_ACCESS_TOKEN || '',
+    pinterestDefaultBoardId: process.env.PINTEREST_BOARD_ID || '',
+    /** JSON map `{ "cuisine-sante": "<boardId>", "*": "<defaultBoardId>" }` — Pin→Board→Page. */
+    pinterestBoards: process.env.PINTEREST_BOARDS || '',
     /** Kill switch for `/mcp` (`0` / `false` / `off` = empty catalog). Default on. */
     cmsMcpEnabled: process.env.CMS_MCP_ENABLED || '1',
     /** Shared with apps/web so `/preview` can load drafts. Empty in production unless set. */
@@ -113,6 +118,9 @@ export default defineNuxtConfig({
       ? {
           scheduledTasks: {
             '*/5 * * * *': 'publish-scheduled',
+            // Pinterest drain: 2×/hour, DAILY_PIN_CAP keeps the account in the
+            // 3–10 pins/day band (pinterest-growth cadence rule).
+            '13,43 * * * *': 'pinterest-publish-due',
             // Fallback poller if Workflow create failed / local legacy runs.
             '2-57/5 * * * *': 'generation-process',
           },

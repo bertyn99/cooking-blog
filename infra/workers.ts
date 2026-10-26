@@ -118,6 +118,10 @@ export const workers = Effect.fn(function* (input: {
           Cache: input.Cache,
           AI: Cloudflare.Workers.AI(),
           CMS_AI_GATEWAY_ID: CMS_AI_GATEWAY_ID,
+          // Pinterest pin pipeline (server-side only; empty = disabled).
+          PINTEREST_ACCESS_TOKEN: Config.String('PINTEREST_ACCESS_TOKEN').pipe(Config.withDefault('')),
+          PINTEREST_BOARD_ID: Config.String('PINTEREST_BOARD_ID').pipe(Config.withDefault('')),
+          PINTEREST_BOARDS: Config.String('PINTEREST_BOARDS').pipe(Config.withDefault('')),
         },
         compatibility: NODE_COMPAT,
       })

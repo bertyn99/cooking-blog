@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import { useEvent } from 'nitropack/runtime'
 import { apiKeyHasScope, type ContentWriteScope } from '../../../shared/api-keys'
 import { createApiError } from '../../utils/errors'
 import { requireActorFromContext } from '../../utils/write-auth'

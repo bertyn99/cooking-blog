@@ -8,6 +8,7 @@ import { fromQueryError } from '../utils/errors'
 import { queryValidation } from '../db/query-errors'
 import { useDb } from '../utils/db'
 import { pingIndexNow } from '../utils/indexnow'
+import { usePinterestService } from './pinterest-service'
 
 function parsePublishableContentType(contentType: string): PublishableContentType {
   if (!isPublishableContentType(contentType)) {
@@ -49,16 +50,35 @@ export function createPublishingService(db: AppDb) {
     }
   }
 
+  /**
+   * Best-effort Pinterest enqueue — inserts `pending` pin rows (cover + body
+   * images, spaced ≥72h). Never throws; the `pinterest-publish-due` task does
+   * the actual pinning within the account cadence cap.
+   */
+  const enqueuePins = async (refs: Array<{ contentType: PublishableContentType, id: number }>) => {
+    try {
+      const pinterest = createPinterestService(db)
+      for (const ref of refs) {
+        await pinterest.enqueueForContent(ref.contentType, ref.id)
+      }
+    }
+    catch {
+      // Pinterest enqueue is opportunistic.
+    }
+  }
+
   return {
     publishDueScheduled: async () => {
       const result = await mapQueryErrors(() => publishing.publishDueScheduled())
       await pingPublished(result.publishedRefs)
+      await enqueuePins(result.publishedRefs)
       return result
     },
     publish: async (contentType: string, id: number, actor?: PublishActorContext) => {
       const result = await mapQueryErrors(async () =>
         publishing.publish(parsePublishableContentType(contentType), id, actor))
       await pingPublished([{ contentType: parsePublishableContentType(contentType), id }])
+      await enqueuePins([{ contentType: parsePublishableContentType(contentType), id }])
       return result
     },
     schedule: (contentType: string, id: number, scheduledAt: string) =>
