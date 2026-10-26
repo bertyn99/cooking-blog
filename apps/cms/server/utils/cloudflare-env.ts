@@ -42,7 +42,14 @@ export function getCloudflareEnv(event?: H3Event): CloudflareBindings | undefine
     }
   }
   catch {
-    // No request context (e.g. some task runners)
+    // No request context (cron / workflows)
+  }
+
+  // Nitro's Cloudflare `scheduled()` handler sets this so tasks can reach
+  // bindings without an H3 request. @see nitropack cloudflare `_module-handler`.
+  const fromGlobal = (globalThis as { __env__?: CloudflareBindings }).__env__
+  if (fromGlobal?.DB || fromGlobal?.AI) {
+    return fromGlobal
   }
 
   return undefined
