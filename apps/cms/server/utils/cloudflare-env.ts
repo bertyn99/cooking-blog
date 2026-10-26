@@ -1,5 +1,4 @@
 import type { H3Event } from 'h3'
-import { useEvent } from 'nitropack/runtime'
 import type { CloudflareBindings, WorkersCachePurge } from '../types/cloudflare'
 
 /** Shape of the Cloudflare runtime object attached to the request (env + ExecutionContext). */
@@ -34,19 +33,8 @@ export function getCloudflareEnv(event?: H3Event): CloudflareBindings | undefine
     return fromEvent
   }
 
-  try {
-    const current = useEvent()
-    const fromAsync = getCloudflareRuntime(current)?.env
-    if (fromAsync?.DB || fromAsync?.AI) {
-      return fromAsync
-    }
-  }
-  catch {
-    // No request context (cron / workflows)
-  }
-
-  // Nitro's Cloudflare `scheduled()` handler sets this so tasks can reach
-  // bindings without an H3 request. @see nitropack cloudflare `_module-handler`.
+  // Cron / workflows have no request. Nitro's Cloudflare `scheduled()` sets
+  // this so tasks can reach bindings. @see nitropack cloudflare `_module-handler`.
   const fromGlobal = (globalThis as { __env__?: CloudflareBindings }).__env__
   if (fromGlobal?.DB || fromGlobal?.AI) {
     return fromGlobal

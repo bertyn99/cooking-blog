@@ -1,12 +1,5 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-
-vi.mock('nitropack/runtime', () => ({
-  useEvent: () => {
-    throw new Error('no request')
-  },
-}))
-
-const { getCloudflareEnv } = await import('../../server/utils/cloudflare-env')
+import { afterEach, describe, expect, it } from 'vitest'
+import { getCloudflareEnv } from '../../server/utils/cloudflare-env'
 
 describe('getCloudflareEnv', () => {
   afterEach(() => {
