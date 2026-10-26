@@ -1,9 +1,9 @@
-import { and, eq, inArray, isNotNull, isNull, lte } from 'drizzle-orm'
+import { and, eq, isNotNull, isNull, lte } from 'drizzle-orm'
 import type { AppDb } from '../create-db'
 import { schema } from '../create-db'
 import { queryConflict, queryNotFound, isQueryError } from '../../db/query-errors'
 import type { PublishableContentType } from '../../utils/content-types'
-import { createContentRevisionQueries } from './content-revisions'
+import { publishSnapshotBatchItems } from './content-revisions'
 import { assertHumanReviewAllowsPublish } from '../../utils/human-review-publish'
 
 type SchedulableTable =
@@ -34,7 +34,7 @@ export interface PublishActorContext {
   actorUserId?: number | null
 }
 
-type PublishDb = Pick<AppDb, 'select' | 'update' | 'insert' | 'transaction'>
+type PublishDb = Pick<AppDb, 'select' | 'update' | 'insert' | 'batch'>
 
 function getContentConfig(contentType: PublishableContentType) {
   return CONTENT_TABLES[contentType]
@@ -61,7 +61,6 @@ async function publishVersionedRow(
   now: string,
   actor?: PublishActorContext,
 ) {
-  const revisions = createContentRevisionQueries(db as AppDb)
   const row = await db
     .select()
     .from(table)
@@ -75,6 +74,14 @@ async function publishVersionedRow(
   const currentVersion = row.version ?? 1
   const nextVersion = currentVersion + 1
   const firstPublishedAt = 'firstPublishedAt' in row ? row.firstPublishedAt : null
+  const publishedPatch = {
+    status: 'published' as const,
+    publishedAt: now,
+    scheduledAt: null,
+    updatedAt: now,
+    version: nextVersion,
+    ...(!firstPublishedAt ? { firstPublishedAt: now } : {}),
+  }
 
   if (contentType === 'articles' || contentType === 'recipes') {
     await assertHumanReviewAllowsPublish(
@@ -86,30 +93,17 @@ async function publishVersionedRow(
     )
   }
 
-  await db.update(table).set({
-    status: 'published',
-    publishedAt: now,
-    scheduledAt: null,
-    updatedAt: now,
-    version: nextVersion,
-    ...(!firstPublishedAt ? { firstPublishedAt: now } : {}),
-  }).where(eq(table.id, id))
-
-  const published = await db
-    .select()
-    .from(table)
-    .where(eq(table.id, id))
-    .get()
-
-  if (published) {
-    await revisions.recordPublishSnapshot({
+  // D1 rejects SQL BEGIN — drizzle Issue #4212. batch() is the D1 transaction.
+  await db.batch([
+    db.update(table).set(publishedPatch).where(eq(table.id, id)),
+    ...publishSnapshotBatchItems(db, {
       contentType,
       contentId: id,
       version: nextVersion,
-      snapshot: rowToSnapshot(published as Record<string, unknown>),
+      snapshot: rowToSnapshot({ ...row, ...publishedPatch }),
       actorUserId: actor?.actorUserId,
-    })
-  }
+    }),
+  ])
 
   return true
 }
@@ -146,18 +140,10 @@ async function publishDueVersioned(
 
   for (const row of due) {
     try {
-      await db.transaction(async (tx) => {
-        const ok = await publishVersionedRow(
-          tx as PublishDb,
-          contentType,
-          table,
-          row.id,
-          now,
-        )
-        if (!ok) {
-          throw queryNotFound(`${contentType} not found`)
-        }
-      })
+      const ok = await publishVersionedRow(db, contentType, table, row.id, now)
+      if (!ok) {
+        throw queryNotFound(`${contentType} not found`)
+      }
       published++
       publishedIds.push(row.id)
     }

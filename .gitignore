@@ -5,6 +5,7 @@ node_modules
 .nitro
 .cache
 .output
+/output/
 .wrangler
 .env
 .cursor/mcp.json

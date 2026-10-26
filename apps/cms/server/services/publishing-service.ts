@@ -1,14 +1,13 @@
 import type { H3Event } from 'h3'
 import type { PublishActorContext } from '../db/queries/publishing'
-import { createPublishingQueries } from '../db/queries/publishing'
-import type { AppDb } from '../db/create-db'
+import type { DbQueries } from '../db/queries'
 import type { PublishableContentType } from '../utils/content-types'
 import { isPublishableContentType } from '../utils/content-types'
 import { fromQueryError } from '../utils/errors'
 import { queryValidation } from '../db/query-errors'
-import { useDb } from '../utils/db'
+import { useQueries } from '../utils/db'
 import { pingIndexNow } from '../utils/indexnow'
-import { usePinterestService } from './pinterest-service'
+import { createPinterestService } from './pinterest-service'
 
 function parsePublishableContentType(contentType: string): PublishableContentType {
   if (!isPublishableContentType(contentType)) {
@@ -26,9 +25,9 @@ async function mapQueryErrors<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
-/** Publishing workflow — delegates all persistence to `db/queries/publishing`. */
-export function createPublishingService(db: AppDb) {
-  const publishing = createPublishingQueries(db)
+/** Publishing workflow — persistence via `useQueries` / `createDbQueries`. */
+export function createPublishingService(queries: DbQueries, event?: H3Event) {
+  const { publishing } = queries
 
   /** Best-effort search-engine discovery ping — never blocks or fails a publish. @see YGG-193 */
   const pingPublished = async (refs: Array<{ contentType: PublishableContentType, id: number }>) => {
@@ -57,9 +56,11 @@ export function createPublishingService(db: AppDb) {
    */
   const enqueuePins = async (refs: Array<{ contentType: PublishableContentType, id: number }>) => {
     try {
-      const pinterest = createPinterestService(db)
+      const pinterest = createPinterestService(queries, event)
       for (const ref of refs) {
-        await pinterest.enqueueForContent(ref.contentType, ref.id)
+        if (ref.contentType === 'articles' || ref.contentType === 'recipes') {
+          await pinterest.enqueueForContent(ref.contentType, ref.id)
+        }
       }
     }
     catch {
@@ -89,5 +90,5 @@ export function createPublishingService(db: AppDb) {
 }
 
 export function usePublishingService(event?: H3Event) {
-  return createPublishingService(useDb(event))
+  return createPublishingService(useQueries(event), event)
 }

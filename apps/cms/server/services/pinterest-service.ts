@@ -1,9 +1,7 @@
 import { generateText } from 'ai'
 import type { H3Event } from 'h3'
 import { useRuntimeConfig } from 'nuxt/server'
-import type { AppDb } from '../db/create-db'
-import { createPinterestQueries } from '../db/queries/pinterest'
-import { createPublishingQueries } from '../db/queries/publishing'
+import type { DbQueries } from '../db/queries'
 import { WORKERS_AI_MODEL } from '../../shared/workers-ai-model'
 import { absolutePublicUrl } from '#shared/public-site-paths'
 import {
@@ -22,11 +20,10 @@ import {
 } from '../utils/pinterest'
 import { createCmsWorkersAI } from '../utils/cms-workers-ai'
 import { getCloudflareEnv } from '../utils/cloudflare-env'
-import { useDb } from '../utils/db'
+import { useQueries } from '../utils/db'
 
-export function createPinterestService(db: AppDb, event?: H3Event) {
-  const queries = createPinterestQueries(db)
-  const publishing = createPublishingQueries(db)
+export function createPinterestService(queries: DbQueries, event?: H3Event) {
+  const { pinterest, publishing } = queries
   const config = getPinterestConfig()
 
   /**
@@ -37,7 +34,7 @@ export function createPinterestService(db: AppDb, event?: H3Event) {
    */
   async function enqueueForContent(contentType: 'articles' | 'recipes', id: number): Promise<number> {
     try {
-      const meta = await queries.loadContentMeta(contentType, id)
+      const meta = await pinterest.loadContentMeta(contentType, id)
       if (!meta) {
         return 0
       }
@@ -52,7 +49,7 @@ export function createPinterestService(db: AppDb, event?: H3Event) {
         }
       }
 
-      const existing = await queries.existingImageKeys(contentType, id)
+      const existing = await pinterest.existingImageKeys(contentType, id)
       const fresh = candidates.filter(c => !existing.has(c.imagePath)).slice(0, MAX_PINS_PER_CONTENT)
       if (fresh.length === 0) {
         return 0
@@ -61,7 +58,7 @@ export function createPinterestService(db: AppDb, event?: H3Event) {
       const schedule = buildNotBeforeSchedule(fresh.length)
       let enqueued = 0
       for (const [i, candidate] of fresh.entries()) {
-        const inserted = await queries.insertPendingPin({
+        const inserted = await pinterest.insertPendingPin({
           contentType,
           contentId: id,
           imagePath: candidate.imagePath,
@@ -125,10 +122,10 @@ export function createPinterestService(db: AppDb, event?: H3Event) {
 
     const dayStart = new Date()
     dayStart.setUTCHours(0, 0, 0, 0)
-    const alreadyToday = await queries.countPinnedSince(dayStart.toISOString())
+    const alreadyToday = await pinterest.countPinnedSince(dayStart.toISOString())
     let remaining = Math.max(0, DAILY_PIN_CAP - alreadyToday)
 
-    const rows = await queries.dueRows(options.limit ?? remaining + 4)
+    const rows = await pinterest.dueRows(options.limit ?? remaining + 4)
     let pinned = 0
     let failed = 0
     let attempted = 0
@@ -141,10 +138,10 @@ export function createPinterestService(db: AppDb, event?: H3Event) {
       }
 
       const contentType = row.contentType as 'articles' | 'recipes'
-      const meta = await queries.loadContentMeta(contentType, row.contentId)
+      const meta = await pinterest.loadContentMeta(contentType, row.contentId)
       if (!meta) {
         // Unpublished/deleted since enqueue — drop the row quietly.
-        await queries.markError(row.id, 'content_unpublished')
+        await pinterest.markError(row.id, 'content_unpublished')
         attempted++
         continue
       }
@@ -152,7 +149,7 @@ export function createPinterestService(db: AppDb, event?: H3Event) {
       attempted++
       const publicPath = await publishing.resolvePublicPaths(contentType, [meta.id]).then(p => p[0])
       if (!publicPath) {
-        await queries.markError(row.id, 'public_path_unresolved')
+        await pinterest.markError(row.id, 'public_path_unresolved')
         failed++
         continue
       }
@@ -169,7 +166,7 @@ export function createPinterestService(db: AppDb, event?: H3Event) {
       })
 
       if (result.ok && result.pinId) {
-        await queries.markPinned(row.id, {
+        await pinterest.markPinned(row.id, {
           pinId: result.pinId,
           boardId,
           title: copy.title,
@@ -179,7 +176,7 @@ export function createPinterestService(db: AppDb, event?: H3Event) {
         remaining--
       }
       else {
-        await queries.markError(row.id, result.error ?? 'unknown_error')
+        await pinterest.markError(row.id, result.error ?? 'unknown_error')
         failed++
       }
     }
@@ -192,7 +189,7 @@ export function createPinterestService(db: AppDb, event?: H3Event) {
     let enqueued = 0
     const counts: { articles: number, recipes: number, enqueued: number } = { articles: 0, recipes: 0, enqueued: 0 }
     for (const contentType of ['articles', 'recipes'] as const) {
-      const ids = await queries.publishedWithoutPins(contentType)
+      const ids = await pinterest.publishedWithoutPins(contentType)
       counts[contentType] = ids.length
       for (const id of ids) {
         enqueued += await enqueueForContent(contentType, id)
@@ -203,12 +200,12 @@ export function createPinterestService(db: AppDb, event?: H3Event) {
   }
 
   async function summary() {
-    return queries.summary()
+    return pinterest.summary()
   }
 
   return { enqueueForContent, processDue, backfill, summary }
 }
 
 export function usePinterestService(event?: H3Event) {
-  return createPinterestService(useDb(event), event)
+  return createPinterestService(useQueries(event), event)
 }

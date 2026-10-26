@@ -7,6 +7,8 @@ import { createCategoryArticleQueries } from './category-articles'
 import { createUserQueries } from './users'
 import { createSeoQueries } from './seo'
 import { createPublishingQueries } from './publishing'
+import { createPinterestQueries } from './pinterest'
+import { createContentRevisionQueries } from './content-revisions'
 import { createCalendarQueries } from './calendar'
 import { createDashboardQueries } from './dashboard'
 import { createMaintenanceQueries } from './maintenance'
@@ -37,6 +39,8 @@ export function createDbQueries(db: AppDb) {
     users: createUserQueries(db),
     seo: createSeoQueries(db),
     publishing: createPublishingQueries(db),
+    pinterest: createPinterestQueries(db),
+    contentRevisions: createContentRevisionQueries(db),
     calendar: createCalendarQueries(db),
     dashboard: createDashboardQueries(db),
     maintenance: createMaintenanceQueries(db),
