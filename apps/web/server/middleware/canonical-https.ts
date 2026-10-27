@@ -28,6 +28,14 @@ export default defineEventHandler((event) => {
   const url = getRequestURL(event, { xForwardedHost: true, xForwardedProto: true })
   if (url.hostname !== site.hostname) return
 
+  // Never redirect API routes. Internal Nitro fetches (`event.$fetch('/api/…')`,
+  // e.g. the sitemap source at `/api/__sitemap__/urls`) carry no
+  // `x-forwarded-proto`, so h3 resolves them as `http://<site-host>/…` — a 301
+  // here returns an HTML body that @nuxtjs/sitemap reads as
+  // "Received HTML response instead of JSON" and renders empty sitemaps.
+  // @see YGG-194
+  if (url.pathname.startsWith('/api/')) return
+
   if (url.protocol === 'http:') {
     return sendRedirect(event, `https://${site.host}${url.pathname}${url.search}`, 301)
   }
