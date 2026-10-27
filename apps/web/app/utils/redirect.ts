@@ -24,10 +24,14 @@ const listRedirects: Record<string, NitroRouteConfig> = {
     redirect: { to: '/blog/**', statusCode: 301 },
   },
 
-  // Old plural recipe route still linked from imported article content
-  // (e.g. /blog/cuisine-sante/tous-savoir-sur-le-coriandre). @see YGG-190
-  '/recettes/**': {
-    redirect: { to: '/recette/**', statusCode: 301 },
+  // Old plural recipe route still linked from imported article content.
+  // Route-rules wildcard maps segments 1:1, which breaks the legacy nested
+  // scheme (/recettes/{cat}/{slug} → /recette/{cat}/{slug} → 404: no nested
+  // recipe route exists). The deeper paths are handled by
+  // server/routes/recettes/[...slug].ts, which flattens to the recipe slug;
+  // the bare listing path has no slug to flatten. @see YGG-190, YGG-194
+  '/recettes': {
+    redirect: { to: '/recette', statusCode: 301 },
   },
 
   // Pre-migration recipe URL → blog article replacement. @see YGG-189

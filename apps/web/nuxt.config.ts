@@ -140,6 +140,10 @@ export default defineNuxtConfig({
     '/rss.xml': { isr: 60 * 60 * 24 * 3 },
     '/preview': { robots: false },
     '/preview/**': { robots: false },
+    // Nitro skew-protection endpoint — internal only, but Googlebot crawled it
+    // into the GSC 404 report. Disallow keeps it out of robots + index.
+    '/__skew': { robots: false },
+    '/__skew/**': { robots: false },
     ...listRedirects,
 
     '/*/**': {
