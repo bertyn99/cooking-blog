@@ -77,5 +77,10 @@ useApplyPageSeo(computed(() => ({
 
 <template>
   <SchemaOrgBreadcrumb :itemListElement="ariane" />
+  <!-- CMS pages never render an H1 in content (markdown headings are
+       demoted to h2), so the page title must come from here. -->
+  <h1 class="mb-4 block font-serif text-5xl font-normal text-black align-baseline">
+    {{ titleContent }}
+  </h1>
   <BasePageBody :content="pageContent" />
 </template>
