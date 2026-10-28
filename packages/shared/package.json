@@ -13,6 +13,7 @@
     "./content-image": "./shared/content-image.ts",
     "./content-editor/grid-columns": "./shared/content-editor/grid-columns.ts",
     "./content-editor/canvas-editor": "./shared/content-editor/canvas-editor.ts",
+    "./recipe-origin": "./shared/recipe-origin.ts",
     "./markdown": "./app/utils/content-block-clients.ts",
     "./blocks/*": "./blocks/*"
   },

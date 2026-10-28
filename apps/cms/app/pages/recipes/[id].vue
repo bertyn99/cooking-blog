@@ -38,6 +38,7 @@ interface RecipeDetail {
   coverAltText?: string | null
   coverDescription?: string | null
   cover?: { pathname: string, originalName: string | null } | null
+  origin?: Array<{ country: string, continent: string }> | null
   ingredients?: RecipeIngredient[] | null
   utensils?: RecipeUtensilRow[] | null
   nutrition?: {
@@ -91,6 +92,7 @@ const { data: recipe, status } = await useAsyncData(
         time: recipe.time ?? undefined,
         categoryId: recipe.categoryId ?? undefined,
         status: recipe.status,
+        origin: recipe.origin ?? [],
         coverBlobPathname: recipe.coverBlobPathname,
         coverAltText: recipe.coverAltText ?? null,
         coverDescription: recipe.coverDescription ?? null,

@@ -5,20 +5,28 @@ import { slugifyString } from '#shared/slug'
 import { recipePublicPath } from '#shared/public-site-paths'
 import type { ContentStatus, PaginatedResponse } from '~/types/cms'
 import type { EditorNavSection } from '~/types/content-editor'
+import type { RecipeOrigin } from '#shared/recipe-origin'
+import { RECIPE_ORIGIN_COUNTRY_OPTIONS, RECIPE_ORIGIN_CONTINENTS, recipeOriginCountryContinent } from '#shared/recipe-origin'
 
 const ingredientUnitSchema = z.enum(['none', 'g', 'mg', 'kg', 'l', 'ml', 'cuillere_soupe', 'cuillere_cafe', 'tasse'])
+
+const recipeOriginRowSchema = z.object({
+  country: z.string().min(1),
+  continent: z.string().min(1),
+})
 
 const schema = z.object({
   title: z.string().min(1, 'Titre requis'),
   slug: z.string().optional(),
   intro: z.string().optional(),
-  step: z.string().optional(),
+  step: z.string(),
   difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
   time: z.number().int().positive().optional(),
   categoryId: z.number().optional(),
-  coverBlobPathname: z.string().nullable().optional(),
-  coverAltText: z.string().nullable().optional(),
-  coverDescription: z.string().nullable().optional(),
+  origin: z.array(recipeOriginRowSchema).optional(),
+  coverBlobPathname: z.string().nullable(),
+  coverAltText: z.string().nullable(),
+  coverDescription: z.string().nullable(),
 })
 
 type Schema = z.output<typeof schema>
@@ -60,6 +68,7 @@ const props = defineProps<{
     coverDisplayName?: string | null
     coverAltText?: string | null
     coverDescription?: string | null
+    origin?: RecipeOrigin[] | null
     ingredients?: Array<{
       glossaryTermId?: number
       name: string
@@ -132,6 +141,48 @@ const nutritionState = reactive({
   glucides: props.initial?.nutrition?.glucides ?? '',
   sodium: props.initial?.nutrition?.sodium ?? '',
 })
+
+// Culinary origins — a recipe may carry several (curry japonais = Indienne + Japonaise).
+const origins = ref<Array<{ country: string, continent: string }>>(
+  (props.initial?.origin ?? []).map(origin => ({
+    country: origin.country,
+    continent: origin.continent,
+  })),
+)
+
+const originCountryOptions: Array<{ label: string, value: string }> = RECIPE_ORIGIN_COUNTRY_OPTIONS
+  .map(option => ({ label: option.label, value: option.key }))
+const originContinentOptions: Array<{ label: string, value: string }> = RECIPE_ORIGIN_CONTINENTS
+  .map(continent => ({ label: continent.label, value: continent.key }))
+
+function addOrigin() {
+  if (origins.value.length >= 4) return
+  origins.value.push({ country: '', continent: '' })
+}
+
+function removeOrigin(index: number) {
+  origins.value.splice(index, 1)
+}
+
+function updateOriginCountry(index: number, value: unknown) {
+  const row = origins.value[index]
+  if (!row) return
+  row.country = typeof value === 'string' ? value : ''
+  const derived = recipeOriginCountryContinent(row.country)
+  if (derived) row.continent = derived
+}
+
+function updateOriginContinent(index: number, value: unknown) {
+  const row = origins.value[index]
+  if (!row) return
+  row.continent = typeof value === 'string' ? value : ''
+}
+
+function buildOriginPayload() {
+  return origins.value
+    .filter(row => row.country && row.continent)
+    .map(row => ({ country: row.country, continent: row.continent }))
+}
 
 const hasNutritionEntry = computed(() =>
   Object.values(nutritionState).some(v => String(v).trim()),
@@ -289,6 +340,7 @@ async function saveRecipe(): Promise<number | undefined> {
     difficulty: state.difficulty,
     time: state.time,
     categoryId: state.categoryId,
+    origin: buildOriginPayload(),
     coverBlobPathname: state.coverBlobPathname ?? undefined,
     coverAltText: state.coverAltText,
     coverDescription: state.coverDescription,
@@ -393,13 +445,63 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
                 </UFormField>
               </div>
             </div>
+
+            <!-- Origines culinaires (schema.org recipeCuisine) — plusieurs possibles -->
+            <div>
+              <ContentFieldLabel label="origines" />
+              <p class="mb-2 text-xs text-neutral-500">
+                Tradition(s) culinaire(s) — une recette peut avoir plusieurs origines (ex. curry japonais : indienne + japonaise).
+              </p>
+              <div class="flex flex-col gap-2">
+                <div
+                  v-for="(origin, index) in origins"
+                  :key="index"
+                  class="flex items-center gap-2"
+                >
+                  <USelect
+                    :model-value="origin.country"
+                    :items="originCountryOptions"
+                    placeholder="Pays / tradition"
+                    class="w-48"
+                    icon="i-lucide-globe"
+                    @update:model-value="(value: unknown) => updateOriginCountry(index, value)"
+                  />
+                  <USelect
+                    :model-value="origin.continent"
+                    :items="originContinentOptions"
+                    placeholder="Continent"
+                    class="w-40"
+                    @update:model-value="(value: unknown) => updateOriginContinent(index, value)"
+                  />
+                  <UButton
+                    icon="i-lucide-trash-2"
+                    color="error"
+                    variant="ghost"
+                    size="xs"
+                    aria-label="Supprimer cette origine"
+                    @click="removeOrigin(index)"
+                  />
+                </div>
+              </div>
+              <UButton
+                v-if="origins.length < 4"
+                icon="i-lucide-plus"
+                color="neutral"
+                variant="outline"
+                size="xs"
+                class="mt-2"
+                @click="addOrigin"
+              >
+                Ajouter une origine
+              </UButton>
+            </div>
           </div>
 
           <ContentCoverField
             v-model="state.coverBlobPathname"
             v-model:cover-alt-text="state.coverAltText"
             v-model:cover-description="state.coverDescription"
-            :display-name="initial?.coverDisplayName"
+            :display-name="initial?.coverDisplayName ?? null"
             :content-title="state.title"
             compact
           />

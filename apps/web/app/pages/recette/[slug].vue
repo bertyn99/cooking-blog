@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { Category, Cover, Ingredient, Recipe, RecipeUtensil, SEO } from "~/types/strapiMeta";
 import { parseFaqItems } from "@journalducuistot/shared/content-blocks";
+import { recipeOriginCuisineText } from "@journalducuistot/shared/recipe-origin";
 
 definePageMeta({
   layout: "content",
@@ -50,6 +51,14 @@ const time = computed(() => recipe.value?.time || "10");
 const difficulty = computed(() => recipe.value?.difficulty || "easy");
 const categoryRecipe = computed(() => recipe.value?.category || ({} as Category));
 const intro = computed(() => recipe.value?.intro || recipe.value?.Intro || "No intro");
+
+// Culinary traditions for Recipe schema.org recipeCuisine (e.g. "Indienne, Japonaise")
+const recipeCuisine = computed(() => recipeOriginCuisineText(recipe.value?.origin));
+// SchemaOrgRecipe types `author`/`keywords` strictly: name object + string array.
+const recipeKeywords = computed(() => {
+  const value = seo.value?.keywords;
+  return value ? [value] : undefined;
+});
 
 const ingredients = computed(
   () => recipe.value?.ingredients || recipe.value?.Ingredient || ([] as Ingredient[]),
@@ -146,8 +155,10 @@ useApplyPageSeo(computed(() => ({
     { name: titleContent, item: `/recette/${recipeSlug}` },
   ]" />
   <SchemaOrgRecipe :name="titleContent" :totalTime="`PT${time}M`" :datePublished="dateFormattedDisplay"
-    :dateModified="dateModifiedFormatted" :author="SITE_AUTHOR_NAME" :keywords="seo?.keywords"
-    :recipeCategory="categoryRecipe.name" />
+    :dateModified="dateModifiedFormatted" :author="{ name: SITE_AUTHOR_NAME }" :keywords="recipeKeywords"
+    :recipeCategory="categoryRecipe.name" :recipeCuisine="recipeCuisine"
+    :prepTime="recipe?.prepTimeMinutes ? `PT${recipe.prepTimeMinutes}M` : undefined"
+    :cookTime="recipe?.cookTimeMinutes ? `PT${recipe.cookTimeMinutes}M` : undefined" />
   <div>
     <h1 itemprop="name" class="block mb-4 font-serif text-5xl font-normal text-black align-baseline">
       {{ titleContent }}

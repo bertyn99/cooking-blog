@@ -3,12 +3,15 @@ import { sqliteTable, text, integer, uniqueIndex, index } from 'drizzle-orm/sqli
 import { blobs } from './blobs'
 import { categories } from './categories'
 import { users } from './users'
+import type { RecipeOrigin } from '#shared/recipe-origin'
 
 export const recipes = sqliteTable('recipes', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   title: text('title').notNull(),
   intro: text('intro'),
   slug: text('slug').notNull(),
+  /** Culinary origins — array of { country, continent }; see #shared/recipe-origin */
+  origin: text('origin', { mode: 'json' }).$type<RecipeOrigin[]>(),
   coverBlobPathname: text('cover_blob_pathname').references(() => blobs.pathname),
   coverAltText: text('cover_alt_text'),
   coverDescription: text('cover_description'),

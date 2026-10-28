@@ -155,6 +155,7 @@ export async function createRecipeMutation(
     prepTimeMinutes: data.prepTimeMinutes,
     cookTimeMinutes: data.cookTimeMinutes,
     servings: data.servings,
+    origin: data.origin,
     coverBlobPathname: data.coverBlobPathname,
     coverAltText: data.coverAltText,
     coverDescription: data.coverDescription,

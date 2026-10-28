@@ -29,6 +29,7 @@ const RECIPE_EDITORIAL_KEYS = [
   'prepTimeMinutes',
   'cookTimeMinutes',
   'servings',
+  'origin',
   'coverBlobPathname',
   'coverAltText',
   'coverDescription',

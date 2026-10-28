@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { Category, Cover, Ingredient, NutritionInfo, Recipe, RecipeUtensil } from "~/types/strapiMeta";
+import { recipeOriginCuisineText } from "@journalducuistot/shared/recipe-origin";
 
 const { recipe } = defineProps<{
   recipe: Recipe;
@@ -58,6 +59,14 @@ const seoKeywords = computed(() => {
   const item = Array.isArray(seoValue) ? seoValue[0] : seoValue;
   return item?.keywords;
 });
+
+// Culinary traditions for Recipe schema.org recipeCuisine (e.g. "Indienne, Japonaise") — NOT the
+// course category, which is a different schema field (recipeCategory).
+const recipeCuisine = computed(() => recipeOriginCuisineText(recipe?.origin));
+const recipeKeywords = computed(() => {
+  const value = seoKeywords.value;
+  return value ? [value] : undefined;
+});
 </script>
 
 <template>
@@ -70,7 +79,7 @@ const seoKeywords = computed(() => {
     :dateModified="dateModifiedFormatted" :author="{
       name: SITE_AUTHOR_NAME,
       image: authorImageUrl,
-    }" :keywords="seoKeywords" :recipeCuisine="categoryRecipe" />
+    }" :keywords="recipeKeywords" :recipeCuisine="recipeCuisine" />
 
   <div>
     <h1 itemprop="name" class="block mb-4 font-serif text-5xl font-normal text-black align-baseline">

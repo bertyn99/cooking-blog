@@ -240,6 +240,11 @@ export type Recipe = {
   /** @enum {string} */
   difficulty?: "easy" | "medium" | "hard";
   time?: number;
+  prepTimeMinutes?: number;
+  cookTimeMinutes?: number;
+  servings?: number;
+  /** Culinary origins — { country, continent } pairs, duplicates deduped. See @journalducuistot/shared/recipe-origin */
+  origin?: Array<{ country: string, continent: string }>;
   /** Format: date-time */
   createdAt?: string;
   /** Format: date-time */
