@@ -11,10 +11,12 @@ const toast = useToast()
 const { copy, copied, isSupported } = useClipboard()
 const mcpEndpoint = useMcpEndpoint()
 
-const requiredScopes = AGENT_SCOPES.map(scope => ({
-  label: AGENT_SCOPE_LABELS[scope],
-  value: scope,
-}))
+const requiredScopes = AGENT_SCOPES
+  .filter(scope => scope !== 'schedule')
+  .map(scope => ({
+    label: AGENT_SCOPE_LABELS[scope],
+    value: scope,
+  }))
 
 const agentTabs: TabsItem[] = [
   { label: 'Cursor', icon: 'i-lucide-mouse-pointer-2', slot: 'cursor', value: 'cursor' },
@@ -139,6 +141,9 @@ async function copyEndpoint() {
           >
             {{ scope.label }}
           </UBadge>
+          <span class="text-xs text-muted">
+            — optionnel : ajoutez le droit « Planification » pour activer les outils MCP de planification (schedule / unschedule).
+          </span>
         </div>
       </div>
     </div>

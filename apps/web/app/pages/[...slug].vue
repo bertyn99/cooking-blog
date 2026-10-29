@@ -20,7 +20,23 @@ function slugPartsFromParam(slug: unknown): string[] {
 const slugArray = computed(() => slugPartsFromParam(route.params.slug));
 const requestPath = computed(() => normalizePagePath(`/${slugArray.value.join("/")}`));
 
-if (slugArray.value.length === 0 || slugArray.value[0] === " ") {
+const RESERVED_ROOT_SLUGS = new Set([
+  "_nuxt",
+  "_ipx",
+  "api",
+  "images",
+  "uploads",
+  "img",
+  "sw.js",
+]);
+
+const rootSlug = slugArray.value[0];
+if (
+  slugArray.value.length === 0
+  || !rootSlug
+  || rootSlug === " "
+  || RESERVED_ROOT_SLUGS.has(rootSlug)
+) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 

@@ -20,7 +20,7 @@ Create French recipes for [journalducuistot.fr](https://journalducuistot.fr) tha
 
 Non-negotiable: **data first** (keywords + SERP), **quantities everywhere** (le cluster PAA gagne toujours), **drafts only** (never publish via MCP), **voice always**, **glossary first** (ingrédients et ustensiles = fiches, pas des strings libres).
 
-**Toolchain:** `nuxtseo` CLI (site `s_7a49d74f`) + **Search Console MCP** (`sc-domain:journalducuistot.fr`) + **jdc-cms MCP** (`create-recipe`, `update-recipe`, `get-recipe`, `list-recipes`, `list-recipe-categories`, `upsert-seo`, media loop, `list-glossary-terms` / `create-glossary-term` / `update-glossary-term` / `list-glossary-icons`). Protocole CLI : voir le skill `nuxtseo-cli`.
+**Toolchain:** `nuxtseo` CLI (site `s_7a49d74f`) + **Search Console MCP** (`sc-domain:journalducuistot.fr`) + **jdc-cms MCP** (`create-recipe`, `update-recipe`, `get-recipe`, `list-recipes`, `list-recipe-categories`, `create-recipe-category`, `upsert-seo`, media loop, `list-glossary-terms` / `create-glossary-term` / `update-glossary-term` / `list-glossary-icons`). Protocole CLI : voir le skill `nuxtseo-cli`.
 
 **Voix et anti-slop** : réutiliser les références du skill article — `../jdc-article-writer/references/antislop-fr.md` et `../jdc-article-writer/references/voice-arsenal.md` (les 5 patterns + listes noires s'appliquent aux intros de recettes).
 
@@ -31,7 +31,7 @@ Non-negotiable: **data first** (keywords + SERP), **quantities everywhere** (le 
 ### 0. Inventaire — ne pas créer un doublon
 
 - `list-recipes` (search sur le plat) — une recette existante sur le même plat = **update** de celle-ci, pas une création.
-- `list-recipe-categories` — connaître la `categoryId` avant toute création (jamais uncategorized). Ce n'est **pas** `list-article-categories`.
+- `list-recipe-categories` — connaître la `categoryId` avant toute création (jamais uncategorized). Ce n'est **pas** `list-article-categories`. Catégorie manquante ? `create-recipe-category` la crée en **draft** (publication manuelle dans l'admin).
 
 ### 1. Keyword gate — la requête qui vit dans la recette
 

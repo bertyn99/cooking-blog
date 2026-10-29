@@ -2,7 +2,7 @@
 import JdcCoverMedia from '../../app/components/JdcCoverMedia.vue'
 import JdcPublicSurface from '../../app/components/JdcPublicSurface.vue'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   src?: string
   alt?: string
   title?: string

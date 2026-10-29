@@ -88,6 +88,8 @@ function actionLabel(action: string) {
   if (action === 'mcp.tool') return 'Outil MCP'
   if (action === 'content.create') return 'Création'
   if (action === 'content.update') return 'Mise à jour'
+  if (action === 'content.schedule') return 'Planification'
+  if (action === 'content.unschedule') return 'Annulation planification'
   return action
 }
 

@@ -1,7 +1,12 @@
 import type { AppDb } from '../db/create-db'
 import { schema } from '../db/create-db'
 
-export type ContentAuditAction = 'content.create' | 'content.update' | 'mcp.tool'
+export type ContentAuditAction =
+  | 'content.create'
+  | 'content.update'
+  | 'content.schedule'
+  | 'content.unschedule'
+  | 'mcp.tool'
 
 export async function recordContentAudit(
   db: AppDb,

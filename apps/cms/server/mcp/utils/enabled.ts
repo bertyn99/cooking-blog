@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3'
 import {
   apiKeyHasContentWriteScope,
+  apiKeyHasScheduleScope,
   apiKeyHasScope,
   apiKeyHasWriteScope,
   type ContentWriteScope,
@@ -57,6 +58,17 @@ export function mcpContentToolEnabled(
     return false
   }
   return true
+}
+
+/** True when the request has a write API key with the given content scope AND the `schedule` scope. */
+export function mcpScheduleToolEnabled(
+  event: H3Event,
+  contentScope: ContentWriteScope,
+): boolean {
+  if (mcpKillSwitchOff(event)) return false
+  const actor = event.context.actor
+  if (!actor || actor.kind !== 'apiKey') return false
+  return apiKeyHasScheduleScope(actor.apiKey.scopes, contentScope)
 }
 
 export function mcpAnyContentToolEnabled(

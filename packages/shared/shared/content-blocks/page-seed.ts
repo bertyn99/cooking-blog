@@ -1,13 +1,13 @@
 /** Published homepage seed (Accueil). */
-export const HOME_PAGE_MARKDOWN = `::hero{image="/img/hero.jpg" alt="Cuisine africaine maison" ctaHref="/recette" ctaSecondaryHref="/techniques-culinaires"}
+export const HOME_PAGE_MARKDOWN = `::hero{image="/img/hero.jpg" alt="Cuisine africaine maison" ctaHref="/recette" ctaSecondaryHref="/blog"}
 #title
 Cuisine africaine, recettes de saison
 #description
-Yassa, pastilla, techniques. Des plats qu’on refait vraiment chez soi.
+Plats du quotidien, techniques et notes de fourneau — des recettes qu’on refait vraiment, sans catalogue interminable.
 #cta
 Voir les recettes
 #cta-secondary
-Les techniques
+Lire le journal
 ::
 
 ::person{image="/img/author.jpg" alt="Portrait de Bertyn Boulikou" href="/a-propos"}

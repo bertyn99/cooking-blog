@@ -1,9 +1,12 @@
 import { z } from 'zod'
 import type { ContentWriteScope } from '../../../shared/api-keys'
+import { scheduledAtIsoForDay } from '../../../shared/calendar'
+import { createApiError } from '../../utils/errors'
 import { createArticleSchema, updateArticleSchema } from '../../utils/validations/articles'
 import { createRecipeSchema, updateRecipeSchema } from '../../utils/validations/recipes'
 import { createPageSchema, updatePageSchema } from '../../utils/validations/pages'
 import { createGlossaryTermSchema, updateGlossaryTermSchema } from '../../utils/validations/glossary'
+import { createRecipeCategorySchema } from '../../utils/validations/categories'
 
 export const MCP_READ_ONLY = {
   readOnlyHint: true,
@@ -23,6 +26,12 @@ export const MCP_UPDATE = {
   openWorldHint: false,
 } as const
 
+export const MCP_SCHEDULE = {
+  readOnlyHint: false,
+  idempotentHint: true,
+  openWorldHint: false,
+} as const
+
 export const mcpIdInput = {
   id: z.number().int().positive().describe('Content id'),
 }
@@ -37,6 +46,28 @@ export const mcpContentStatusInput = {
   status: z.enum(['draft', 'published', 'scheduled']).optional()
     .describe('Filter by status; omit to list all'),
   search: z.string().optional().describe('Title/slug search'),
+}
+
+/** Planification input — full ISO datetime, or `YYYY-MM-DD` (published at 09:00 Europe/Paris). */
+export const mcpScheduledAtInput = {
+  scheduledAt: z.string().min(1)
+    .describe('Publication datetime: ISO 8601 (2026-11-05T14:30:00Z) or a day key YYYY-MM-DD (published at 09:00 Europe/Paris)'),
+}
+
+/** Normalize `scheduledAt`: day keys become 09:00 Europe/Paris, datetimes become UTC ISO. */
+export function resolveMcpScheduledAt(input: string): string {
+  const dayKey = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input.trim())
+  if (dayKey) {
+    return scheduledAtIsoForDay(input.trim())
+  }
+  const parsed = new Date(input)
+  if (Number.isNaN(parsed.getTime())) {
+    throw createApiError(
+      'VALIDATION_ERROR',
+      'scheduledAt invalide — utilisez un ISO 8601 (2026-11-05T14:30:00Z) ou un jour YYYY-MM-DD.',
+    )
+  }
+  return parsed.toISOString()
 }
 
 export function mcpPagination(page: number, pageSize: number) {
@@ -122,3 +153,9 @@ export const mcpUpdatePageInput = updatePageSchema.omit({
 
 export const mcpCreateGlossaryInput = createGlossaryTermSchema.omit({ status: true }).shape
 export const mcpUpdateGlossaryInput = updateGlossaryTermSchema.omit({ status: true }).shape
+
+/** Recipe categories: MCP creates drafts only — status/publishedAt are not agent-writable. */
+export const mcpCreateRecipeCategoryInput = createRecipeCategorySchema.omit({
+  status: true,
+  publishedAt: true,
+}).shape

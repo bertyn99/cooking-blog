@@ -30,14 +30,14 @@ export default defineNuxtConfig({
 
   mcp: {
     name: 'Journal du Cuistot CMS',
-    description: 'Articles, recipes, pages, and glossary for Journal du Cuistot. Agents never publish.',
+    description: 'Articles, recipes, pages, and glossary for Journal du Cuistot. Publishing stays manual; scheduling is opt-in via the schedule key scope.',
     instructions: [
-      'Never publish, unpublish, or schedule.',
-      'Articles, recipes, pages, and glossary: update live rows in place. Agents never publish, unpublish, or schedule.',
+      'Never publish or unpublish. Planning is allowed only through schedule-*/unschedule-* tools, which require the schedule key scope.',
+      'Articles, recipes, pages, and glossary: update live rows in place. Never change status via create/update tools.',
       'Glossary create is always draft + noindex. iconKey is semantic (pan, pot), never an Iconify class.',
       'Recipe ingredients/utensils take glossaryTermId or a name stub. Affiliate URLs live on the utensil term, not the recipe row.',
-      'After create/update, give the human previewUrl. Never publish, unpublish, or schedule.',
-      'List categories before setting categoryId. Locale fr. Comark markdown.',
+      'After create/update, give the human previewUrl. Publish and unpublish stay manual.',
+      'List categories before setting categoryId. create-recipe-category makes a draft recipe category; the human publishes it in the admin. Locale fr. Comark markdown.',
       'Use start-generation-run for notes-to-new-draft; CRUD for precise edits on drafts.',
     ].join(' '),
     route: '/mcp',

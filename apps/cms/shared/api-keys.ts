@@ -4,12 +4,13 @@ export const TRANSFER_SCOPES = ['articles', 'recipes', 'media'] as const
 /**
  * Agent MCP / draft REST scopes.
  * Content types must be combined with `write` for tools to appear.
+ * `schedule` unlocks the MCP schedule + unschedule planning tools (opt-in).
  * Overlaps transfer on articles/recipes (same scope string, two jobs).
  */
-export const AGENT_SCOPES = ['articles', 'recipes', 'pages', 'glossary', 'write'] as const
+export const AGENT_SCOPES = ['articles', 'recipes', 'pages', 'glossary', 'write', 'schedule'] as const
 
 /** All selectable scopes when creating a key in the admin UI (unique). */
-export const API_KEY_SCOPES = ['articles', 'recipes', 'media', 'pages', 'glossary', 'write'] as const
+export const API_KEY_SCOPES = ['articles', 'recipes', 'media', 'pages', 'glossary', 'write', 'schedule'] as const
 
 export type TransferScope = (typeof TRANSFER_SCOPES)[number]
 export type AgentScope = (typeof AGENT_SCOPES)[number]
@@ -24,6 +25,7 @@ export const API_KEY_SCOPE_LABELS: Record<ApiKeyScope, string> = {
   pages: 'Pages (agent — brouillons uniquement)',
   glossary: 'Glossaire (agent — brouillons + MCP)',
   write: 'Écriture agent (MCP + API REST brouillons)',
+  schedule: 'Planification agent (MCP — programmer ou annuler une publication)',
 }
 
 /** Labels in the Agent checkbox group (articles/recipes are MCP + drafts, not clone-only). */
@@ -33,6 +35,7 @@ export const AGENT_SCOPE_LABELS: Record<AgentScope, string> = {
   pages: 'Pages (agent — brouillons + MCP)',
   glossary: 'Glossaire (agent — brouillons + MCP)',
   write: 'Écriture agent (MCP + API REST brouillons)',
+  schedule: 'Planification agent (MCP — programmer ou annuler une publication)',
 }
 
 export const TRANSFER_SCOPE_SET = new Set<string>(TRANSFER_SCOPES)
@@ -72,4 +75,12 @@ export function apiKeyHasContentWriteScope(
   contentScope: ContentWriteScope,
 ): boolean {
   return apiKeyHasWriteScope(scopes) && apiKeyHasScope(scopes, contentScope)
+}
+
+/** MCP planning tools (schedule + unschedule) need `write` + content scope + `schedule`. */
+export function apiKeyHasScheduleScope(
+  scopes: readonly string[],
+  contentScope: ContentWriteScope,
+): boolean {
+  return apiKeyHasContentWriteScope(scopes, contentScope) && apiKeyHasScope(scopes, 'schedule')
 }

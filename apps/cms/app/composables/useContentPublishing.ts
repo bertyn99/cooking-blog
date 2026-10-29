@@ -1,6 +1,6 @@
 import type { CalendarDate } from '@internationalized/date'
 import type { ContentStatus } from '~/types/cms'
-import { scheduledAtIsoForDay } from '~/composables/usePublishingCalendar'
+import { scheduledAtIsoForDay } from '#shared/calendar'
 
 export type AdminPublishContentType =
   | 'articles'

@@ -1,3 +1,5 @@
+import { CalendarDate, Time, toCalendarDateTime, toZoned } from '@internationalized/date'
+
 export const CALENDAR_CONTENT_TYPES = ['articles', 'recipes', 'pages'] as const
 
 export type CalendarContentType = (typeof CALENDAR_CONTENT_TYPES)[number]
@@ -38,6 +40,17 @@ export function resolveCalendarAt(
 
 export function isCalendarItemDraggable(status: CalendarContentStatus): boolean {
   return status === 'scheduled' || status === 'draft'
+}
+
+/** ISO instant of the default publish time (09:00 Europe/Paris) for a `YYYY-MM-DD` day key. */
+export function scheduledAtIsoForDay(dayKey: string): string {
+  const [year, month, day] = dayKey.split('-').map((part) => Number.parseInt(part, 10))
+  const date = new CalendarDate(year!, month!, day!)
+  const zoned = toZoned(
+    toCalendarDateTime(date, new Time(DEFAULT_PUBLISH_HOUR, 0)),
+    CALENDAR_TIME_ZONE
+  )
+  return zoned.toAbsoluteString()
 }
 
 export function contentEditPath(contentType: CalendarContentType, id: number): string {

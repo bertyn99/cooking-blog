@@ -40,6 +40,7 @@ const scopeShortLabel: Record<ApiKeyScope, string> = {
   glossary: 'Glossaire',
   media: 'Médias',
   write: 'Écriture',
+  schedule: 'Planification',
 }
 
 const scopeBadgeColor: Record<ApiKeyScope, 'primary' | 'info' | 'warning' | 'neutral'> = {
@@ -49,6 +50,7 @@ const scopeBadgeColor: Record<ApiKeyScope, 'primary' | 'info' | 'warning' | 'neu
   pages: 'info',
   glossary: 'info',
   media: 'warning',
+  schedule: 'warning',
 }
 
 const { $api } = useNuxtApp()

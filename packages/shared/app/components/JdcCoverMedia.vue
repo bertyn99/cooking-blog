@@ -23,6 +23,7 @@ const props = withDefaults(
 )
 
 const nuxtApp = useNuxtApp()
+const runtimeConfig = useRuntimeConfig()
 const hasImageModule = '$img' in nuxtApp
 // Join at runtime: Nuxt's production build statically matches the image
 // component name (NUXT_B3004) and hard-fails hosts without @nuxt/image (CMS).
@@ -38,7 +39,7 @@ const isStaticOrRemote = computed(() => {
 const resolvedStaticSrc = computed(() => {
   const src = props.src || ''
   if (!src.startsWith('/img/')) return src
-  const site = String(useRuntimeConfig().public.siteUrl || '').replace(/\/$/, '')
+  const site = String(runtimeConfig.public.siteUrl || '').replace(/\/$/, '')
   if (!site || !import.meta.client) return src
   try {
     const siteOrigin = new URL(site, window.location.origin).origin

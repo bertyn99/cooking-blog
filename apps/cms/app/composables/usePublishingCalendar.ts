@@ -1,4 +1,4 @@
-import { CalendarDate, Time, toCalendarDateTime, toZoned } from '@internationalized/date'
+import { CalendarDate } from '@internationalized/date'
 import type { CalendarContentType, CalendarItem } from '#shared/calendar'
 import {
   CALENDAR_TIME_ZONE,
@@ -6,6 +6,7 @@ import {
   groupCalendarItemsByDay,
   monthRangeFromParts,
   parseCalendarTypesParam,
+  scheduledAtIsoForDay,
 } from '#shared/calendar'
 
 export interface CalendarFilters {
@@ -14,15 +15,7 @@ export interface CalendarFilters {
   locale: string
 }
 
-export function scheduledAtIsoForDay(dayKey: string): string {
-  const [year, month, day] = dayKey.split('-').map((part) => Number.parseInt(part, 10))
-  const date = new CalendarDate(year!, month!, day!)
-  const zoned = toZoned(
-    toCalendarDateTime(date, new Time(DEFAULT_PUBLISH_HOUR, 0)),
-    CALENDAR_TIME_ZONE
-  )
-  return zoned.toAbsoluteString()
-}
+export { scheduledAtIsoForDay }
 
 export function usePublishingCalendar() {
   const { $api } = useNuxtApp()

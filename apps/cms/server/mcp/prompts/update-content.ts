@@ -11,7 +11,7 @@ export default defineMcpPrompt({
         'Articles et pages : get-* puis update-* quel que soit le statut (writable=true). Ne change jamais le statut.',
         'Recettes : writable=true seulement en brouillon ; 403 si publié.',
         'Après create/update, donner previewUrl à l’humain. publicUrl n’existe que si status=published.',
-        'Ne jamais publier, planifier ou dépublier via MCP.',
+        'Publication et dépublication manuelles. Planification possible uniquement via schedule-*/unschedule-* si la clé a le scope « schedule ».',
       ].join('\n'),
     },
   }],
