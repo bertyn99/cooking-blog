@@ -64,12 +64,20 @@ const rows = computed<CategoryRow[]>(() => [
 
 const loading = computed(() => recipeStatus.value === 'pending' || articleStatus.value === 'pending')
 
+const selected = ref<CategoryRow | null>(null)
+const modalOpen = computed({
+  get: () => selected.value !== null,
+  set: (open: boolean) => {
+    if (!open) selected.value = null
+  },
+})
+
 function onRowSelect(_event: Event, row: TableRow<CategoryRow>) {
-  const data = row.original
-  void navigateTo({
-    path: `/categories/${data.id}`,
-    query: { type: data.type === 'Blog' ? 'blog' : 'recette' },
-  })
+  selected.value = row.original
+}
+
+async function refreshLists() {
+  await Promise.all([refreshRecipeCategories(), refreshArticleCategories()])
 }
 
 const columns: TableColumn<CategoryRow>[] = [
@@ -113,6 +121,34 @@ const columns: TableColumn<CategoryRow>[] = [
           <ContentStatusBadge :status="row.original.status" />
         </template>
       </UTable>
+
+      <UModal
+        v-model:open="modalOpen"
+        :title="selected ? `Modifier « ${selected.name} »` : 'Modifier la catégorie'"
+        :description="selected?.type === 'Blog' ? 'Catégorie blog (articles)' : 'Catégorie recette'"
+        :ui="{ content: 'max-w-lg' }"
+      >
+        <template #body>
+          <ContentCategoryForm
+            v-if="selected"
+            :key="`${selected.type}-${selected.id}`"
+            :category-id="selected.id"
+            :category-type="selected.type === 'Blog' ? 'blog' : 'recette'"
+            @saved="refreshLists"
+          />
+        </template>
+
+        <template #footer>
+          <div class="flex w-full justify-end">
+            <UButton
+              label="Fermer"
+              color="neutral"
+              variant="ghost"
+              @click="modalOpen = false"
+            />
+          </div>
+        </template>
+      </UModal>
     </template>
   </AppDashboardPanel>
 </template>

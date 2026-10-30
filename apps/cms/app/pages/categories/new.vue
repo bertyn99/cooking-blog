@@ -5,7 +5,7 @@
     </template>
 
     <template #body>
-      <ContentCategoryForm />
+      <ContentCategoryForm @cancel="navigateTo('/categories')" />
     </template>
   </AppDashboardPanel>
 </template>

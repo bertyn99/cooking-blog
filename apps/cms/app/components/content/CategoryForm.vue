@@ -9,6 +9,11 @@ const props = defineProps<{
   categoryType?: 'blog' | 'recette'
 }>()
 
+const emit = defineEmits<{
+  saved: []
+  cancel: []
+}>()
+
 const schema = z.object({
   type: z.enum(['blog', 'recette']),
   name: z.string().min(1, 'Nom requis'),
@@ -104,6 +109,11 @@ if (categoryId.value) {
   void loadCategory()
 }
 
+function onStatusChange(status: ContentStatus) {
+  contentStatus.value = status
+  emit('saved')
+}
+
 async function onSubmit(_event: FormSubmitEvent<Schema>) {
   saving.value = true
   try {
@@ -115,6 +125,7 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
       description: categoryId.value ? undefined : 'Brouillon créé — vous pouvez publier ou planifier.',
       color: 'success',
     })
+    emit('saved')
   }
   catch {
     toast.add({
@@ -178,16 +189,15 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
         :content-type="adminContentType"
         :content-id="categoryId"
         :status="contentStatus"
-        redirect-after-publish="/categories"
         :ensure-saved="saveCategory"
-        @update:status="contentStatus = $event"
+        @update:status="onStatusChange"
       />
 
       <UButton
-        to="/categories"
         label="Annuler"
         color="neutral"
         variant="ghost"
+        @click="emit('cancel')"
       />
     </div>
   </UForm>
