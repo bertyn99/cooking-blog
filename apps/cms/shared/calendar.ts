@@ -1,5 +1,3 @@
-import { CalendarDate, Time, toCalendarDateTime, toZoned } from '@internationalized/date'
-
 export const CALENDAR_CONTENT_TYPES = ['articles', 'recipes', 'pages'] as const
 
 export type CalendarContentType = (typeof CALENDAR_CONTENT_TYPES)[number]
@@ -42,15 +40,36 @@ export function isCalendarItemDraggable(status: CalendarContentStatus): boolean 
   return status === 'scheduled' || status === 'draft'
 }
 
+/** Offset (minutes) of `timeZone` at a given instant — no dependency, Worker-safe. */
+function timeZoneOffsetMinutes(instant: Date, timeZone: string): number {
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
+  const parts = new Map(dtf.formatToParts(instant).map(part => [part.type, part.value] as const))
+  const asUtc = Date.UTC(
+    Number(parts.get('year')),
+    Number(parts.get('month'))! - 1,
+    Number(parts.get('day')),
+    Number(parts.get('hour'))! % 24,
+    Number(parts.get('minute')),
+    Number(parts.get('second')),
+  )
+  return (asUtc - instant.getTime()) / 60000
+}
+
 /** ISO instant of the default publish time (09:00 Europe/Paris) for a `YYYY-MM-DD` day key. */
 export function scheduledAtIsoForDay(dayKey: string): string {
   const [year, month, day] = dayKey.split('-').map((part) => Number.parseInt(part, 10))
-  const date = new CalendarDate(year!, month!, day!)
-  const zoned = toZoned(
-    toCalendarDateTime(date, new Time(DEFAULT_PUBLISH_HOUR, 0)),
-    CALENDAR_TIME_ZONE
-  )
-  return zoned.toAbsoluteString()
+  const naiveUtc = Date.UTC(year!, month! - 1, day!, DEFAULT_PUBLISH_HOUR)
+  const offset = timeZoneOffsetMinutes(new Date(naiveUtc), CALENDAR_TIME_ZONE)
+  return new Date(naiveUtc - offset * 60000).toISOString()
 }
 
 export function contentEditPath(contentType: CalendarContentType, id: number): string {
