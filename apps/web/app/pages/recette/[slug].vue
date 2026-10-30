@@ -2,6 +2,7 @@
 import type { Category, Cover, Ingredient, Recipe, RecipeUtensil, SEO } from "~/types/strapiMeta";
 import { parseFaqItems } from "@journalducuistot/shared/content-blocks";
 import { recipeOriginCuisineText } from "@journalducuistot/shared/recipe-origin";
+import { markdownToPlainText } from "~/utils/markdown-plain-text";
 
 definePageMeta({
   layout: "content",
@@ -53,7 +54,8 @@ const categoryRecipe = computed(() => recipe.value?.category || ({} as Category)
 const intro = computed(() => recipe.value?.intro || recipe.value?.Intro || "No intro");
 
 // Culinary traditions for Recipe schema.org recipeCuisine (e.g. "Indienne, Japonaise")
-const recipeCuisine = computed(() => recipeOriginCuisineText(recipe.value?.origin));
+// Falls back to "Française" — GSC requires a non-empty recipeCuisine.
+const recipeCuisine = computed(() => recipeOriginCuisineText(recipe.value?.origin) || "Française");
 // SchemaOrgRecipe types `author`/`keywords` strictly: name object + string array.
 const recipeKeywords = computed(() => {
   const value = seo.value?.keywords;
@@ -110,6 +112,58 @@ const dateModifiedFormatted = useDateFormat(dateModified.value, "YYYY-MM-DD", {
 
 const nutrition = computed(() => recipe.value?.nutrition || {});
 
+// Recipe schema.org: single NutritionInformation object (GSC rejects arrays),
+// unit enums expanded to French labels, instruction numbering stripped.
+const UNIT_LABELS: Record<string, string> = {
+  kg: 'kg',
+  g: 'g',
+  ml: 'ml',
+  l: 'l',
+  none: '',
+  cuillere_soupe: 'cuillères à soupe',
+  cuillere_cafe: 'cuillères à café',
+};
+
+const recipeYield = computed(() => `${recipe.value?.servings || 4} personnes`);
+
+const ingredientLines = computed(() =>
+  ingredients.value.map((ingredient) => {
+    const qty = ingredient.qty ? `${ingredient.qty} ` : '';
+    const unit = UNIT_LABELS[ingredient.unit ?? 'none'] ?? ingredient.unit ?? '';
+    return `${qty}${unit ? `${unit} ` : ''}${ingredient.name}`.trim();
+  }),
+);
+
+const instructionSteps = computed(() =>
+  steps.value.map((step) =>
+    markdownToPlainText(step.replace(/^\s*\d+[.)]\s*/, "").replace(/[.]$/, "").trim()),
+  ),
+);
+
+const nutritionSchema = computed(() => ({
+  '@type': 'NutritionInformation',
+  calories: nutrition.value?.calories,
+  carbohydrateContent: nutrition.value?.glucides,
+  fatContent: nutrition.value?.lipides,
+  proteinContent: nutrition.value?.proteine,
+  sugarContent: nutrition.value?.sucre,
+  sodiumContent: nutrition.value?.sodium,
+}));
+
+// Absolute URL for the Recipe image — the public media key alone produced a
+// relative ImageObject url (invalid for GSC). Falls back to the site logo.
+const schemaImage = computed(() => {
+  const ogPath = formatCoverOgImagePath(coverSource.value) || "/img/logo.webp";
+  return useSitePageUrl(ogPath);
+});
+
+// Inline Person (explicit @type) — the identity linker otherwise reduces the
+// author to a bare `{"@id": …}` reference, which GSC flags as invalid.
+const recipeAuthor = computed(() => ({
+  "@type": "Person" as const,
+  name: SITE_AUTHOR_NAME,
+}));
+
 const formated = computed(() =>
   Object.keys(nutrition.value)
     .filter((elm) => elm !== "id")
@@ -155,7 +209,10 @@ useApplyPageSeo(computed(() => ({
     { name: titleContent, item: `/recette/${recipeSlug}` },
   ]" />
   <SchemaOrgRecipe :name="titleContent" :totalTime="`PT${time}M`" :datePublished="dateFormattedDisplay"
-    :dateModified="dateModifiedFormatted" :author="{ name: SITE_AUTHOR_NAME }" :keywords="recipeKeywords"
+    :dateModified="dateModifiedFormatted" :author="recipeAuthor" :keywords="recipeKeywords"
+    :description="metaDescription" :image="schemaImage" :url="pageUrl"
+    :recipeYield="recipeYield" :nutrition="nutritionSchema"
+    :recipeIngredient="ingredientLines" :recipeInstructions="instructionSteps"
     :recipeCategory="categoryRecipe.name" :recipeCuisine="recipeCuisine"
     :prepTime="recipe?.prepTimeMinutes ? `PT${recipe.prepTimeMinutes}M` : undefined"
     :cookTime="recipe?.cookTimeMinutes ? `PT${recipe.cookTimeMinutes}M` : undefined" />
@@ -179,7 +236,7 @@ useApplyPageSeo(computed(() => ({
       </p>
       <p class="mx-2 h-6 text-xs leading-6 font-semibold tracking-widest text-black uppercase align-baseline border-0">
         <Icon name="mdi:silverware-fork-knife" class="h-3 w-3 text-gray-500" />
-        serves 1
+        {{ recipe?.servings || 4 }} personnes
       </p>
       <div class="p-0 my-0 mx-2 h-6 text-xs font-semibold tracking-widest text-black uppercase align-baseline border-0">
         <span itemprop="url"

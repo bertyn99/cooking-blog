@@ -5,20 +5,10 @@ const props = defineProps<{
   ingredients: Ingredient[];
 }>();
 const nbPerson = ref(1);
-const schemaRecipeIngredients = props.ingredients.map((ingredient: Ingredient) => {
-  const qty = ingredient.qty ?? 0;
-  return `${qty > 0 ? qty * nbPerson.value : ""} ${
-    ingredient.unit !== "none" ? ingredient.unit : ""
-  } ${ingredient.name} `;
-});
 </script>
 
 <template>
   <section class="space-y-6 mb-6">
-    <SchemaOrgRecipe
-      :recipeYield="`${nbPerson} personnes`"
-      :recipeIngredient="schemaRecipeIngredients"
-    />
     <h3
       class="flex items-center p-0 m-0 font-serif text-2xl font-normal leading-6 text-black align-baseline break-words border-0"
     >

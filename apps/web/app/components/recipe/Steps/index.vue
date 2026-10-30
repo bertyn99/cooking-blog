@@ -13,11 +13,6 @@ const stepMarkdowns = steps.map((step) =>
     .replace(/[.]$/, "")
     .trim(),
 );
-
-const schemaRecipeSteps = stepMarkdowns.map((text) => ({
-  "@type": "HowToStep",
-  text: markdownToPlainText(text),
-}));
 </script>
 
 <template>
@@ -34,7 +29,6 @@ const schemaRecipeSteps = stepMarkdowns.map((text) => ({
   </section>
 
   <div>
-    <SchemaOrgRecipe :recipeInstructions="schemaRecipeSteps" />
     <RecipeStepsContent
       v-for="(markdown, index) in stepMarkdowns"
       :index="index + 1"

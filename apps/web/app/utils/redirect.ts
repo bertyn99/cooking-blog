@@ -42,6 +42,52 @@ const listRedirects: Record<string, NitroRouteConfig> = {
     },
   },
 
+  // Root slugs of nested CMS pages — equity from the pre-YGG-79 flat tree.
+  // Canonical paths are the parented hierarchy served by /[...slug].vue.
+  // @see YGG-81
+  '/methodes-de-cuisson': {
+    redirect: { to: '/techniques-culinaires/methodes-de-cuisson', statusCode: 301 },
+  },
+  '/technique-cuisson-etouffee': {
+    redirect: { to: '/techniques-culinaires/methodes-de-cuisson/technique-cuisson-etouffee', statusCode: 301 },
+  },
+  '/guide-braisage-plats-mijotes': {
+    redirect: { to: '/techniques-culinaires/methodes-de-cuisson/guide-braisage-plats-mijotes', statusCode: 301 },
+  },
+  '/art-de-rotir-guide-complet': {
+    redirect: { to: '/techniques-culinaires/methodes-de-cuisson/art-de-rotir-guide-complet', statusCode: 301 },
+  },
+  '/guide-cuisson-pochee': {
+    redirect: { to: '/techniques-culinaires/methodes-de-cuisson/guide-cuisson-pochee', statusCode: 301 },
+  },
+  '/guide-friture-maison': {
+    redirect: { to: '/techniques-culinaires/methodes-de-cuisson/guide-friture-maison', statusCode: 301 },
+  },
+  '/cuisson-vapeur-facile': {
+    redirect: { to: '/techniques-culinaires/methodes-de-cuisson/cuisson-vapeur-facile', statusCode: 301 },
+  },
+  '/secrets-grillade-parfaite': {
+    redirect: { to: '/techniques-culinaires/methodes-de-cuisson/secrets-grillade-parfaite', statusCode: 301 },
+  },
+  '/saisir-viande-parfaitement': {
+    redirect: { to: '/techniques-culinaires/methodes-de-cuisson/saisir-viande-parfaitement', statusCode: 301 },
+  },
+  '/techniques-de-decoupes': {
+    redirect: { to: '/techniques-culinaires/techniques-de-decoupes', statusCode: 301 },
+  },
+  '/conservation-aliments': {
+    redirect: { to: '/techniques-culinaires/conservation-aliments', statusCode: 301 },
+  },
+  '/preparation-des-ingredients': {
+    redirect: { to: '/techniques-culinaires/preparation-des-ingredients', statusCode: 301 },
+  },
+  '/les-epices-essentielles-en-cuisine': {
+    redirect: { to: '/techniques-culinaires/les-epices-essentielles-en-cuisine', statusCode: 301 },
+  },
+  '/recettes-du-monde': {
+    redirect: { to: '/recette/recettes-du-monde', statusCode: 301 },
+  },
+
   // Root-level URLs still linked from imported article content. @see YGG-190
   '/epices-indiennes-decouvrez-la-magie-des-saveurs-de-l-inde': {
     redirect: {
