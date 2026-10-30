@@ -4,6 +4,11 @@ import { z } from 'zod'
 import type { AdminPublishContentType } from '~/composables/useContentPublishing'
 import type { ContentStatus } from '~/types/cms'
 
+const props = defineProps<{
+  categoryId?: number
+  categoryType?: 'blog' | 'recette'
+}>()
+
 const schema = z.object({
   type: z.enum(['blog', 'recette']),
   name: z.string().min(1, 'Nom requis'),
@@ -17,12 +22,12 @@ const toast = useToast()
 const saving = ref(false)
 
 const state = reactive<Schema>({
-  type: 'blog',
+  type: props.categoryType ?? 'blog',
   name: '',
   desc: '',
 })
 
-const categoryId = ref<number | null>(null)
+const categoryId = ref<number | null>(props.categoryId ?? null)
 const contentStatus = ref<ContentStatus>('draft')
 
 const typeOptions = [
@@ -59,7 +64,7 @@ async function saveCategory(): Promise<number | undefined> {
       method: 'PUT',
       body: {
         name: body.name,
-        ...(body.desc ? { desc: body.desc } : {}),
+        ...(isRecipeType.value ? { desc: state.desc?.trim() || null } : {}),
       },
     })
     return categoryId.value
@@ -74,6 +79,29 @@ async function saveCategory(): Promise<number | undefined> {
   contentStatus.value = 'draft'
   await refreshNuxtData(['categories-recipes-list', 'categories-articles-list'])
   return created.data.id
+}
+
+async function loadCategory() {
+  if (!categoryId.value) return
+  try {
+    const res = await $api<{ data: { name: string, desc?: string | null, status: ContentStatus } }>(
+      `${writeEndpoint.value}/${categoryId.value}`,
+    )
+    state.name = res.data.name
+    state.desc = res.data.desc ?? ''
+    contentStatus.value = res.data.status
+  }
+  catch {
+    toast.add({
+      title: 'Erreur',
+      description: 'Impossible de charger la catégorie',
+      color: 'error',
+    })
+  }
+}
+
+if (categoryId.value) {
+  void loadCategory()
 }
 
 async function onSubmit(_event: FormSubmitEvent<Schema>) {

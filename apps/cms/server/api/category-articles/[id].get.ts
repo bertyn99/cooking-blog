@@ -8,7 +8,10 @@ export default defineEventHandler(async (event) => {
     throw createApiError('VALIDATION_ERROR', 'Invalid category ID')
   }
 
-  const category = await useQueries(event).categoryArticles.findById(id, 'public')
+  const session = await getUserSession(event)
+  const scope = session.user ? 'admin' : 'public'
+
+  const category = await useQueries(event).categoryArticles.findById(id, scope)
 
   if (!category) {
     throw createApiError('NOT_FOUND', 'Category not found')
