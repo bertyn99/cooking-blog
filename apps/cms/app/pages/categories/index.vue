@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TableColumn } from '@nuxt/ui'
+import type { TableColumn, TableRow } from '@nuxt/ui'
 import type { PaginatedResponse } from '~/types/cms'
 import { DASHBOARD_TABLE_UI } from '~/utils/dashboard-shell'
 
@@ -64,10 +64,11 @@ const rows = computed<CategoryRow[]>(() => [
 
 const loading = computed(() => recipeStatus.value === 'pending' || articleStatus.value === 'pending')
 
-function onRowSelect(_event: Event, row: CategoryRow) {
+function onRowSelect(_event: Event, row: TableRow<CategoryRow>) {
+  const data = row.original
   void navigateTo({
-    path: `/categories/${row.id}`,
-    query: { type: row.type === 'Blog' ? 'blog' : 'recette' },
+    path: `/categories/${data.id}`,
+    query: { type: data.type === 'Blog' ? 'blog' : 'recette' },
   })
 }
 
