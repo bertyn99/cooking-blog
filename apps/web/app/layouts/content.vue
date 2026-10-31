@@ -2,6 +2,11 @@
 const someErrorLogger = (_error: unknown) => {
   console.error(_error);
 };
+
+// Commentaires réservés aux recettes — les pages CMS (hubs, sous-catégories,
+// techniques) posent `comments: true` dans definePageMeta pour l'activer.
+const route = useRoute();
+const showComments = computed(() => Boolean(route.meta.comments));
 </script>
 
 <template>
@@ -17,7 +22,7 @@ const someErrorLogger = (_error: unknown) => {
         <NuxtErrorBoundary @error="someErrorLogger">
           <template #default>
             <slot />
-            <SectionComments />
+            <SectionComments v-if="showComments" />
           </template>
         </NuxtErrorBoundary>
       </UPageBody>

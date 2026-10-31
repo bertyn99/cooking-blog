@@ -7,6 +7,7 @@ import { markdownToPlainText } from "~/utils/markdown-plain-text";
 definePageMeta({
   layout: "content",
   path: "/recette/:slug([^_][^/]*)",
+  comments: true,
 });
 
 const route = useRoute();
