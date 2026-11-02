@@ -1,5 +1,9 @@
 <script lang="ts">
-definePageMeta({ layout: "content" });
+definePageMeta({
+  layout: "content",
+  // Flatten legacy /recette/{cat}/{slug} links — see middleware file.
+  middleware: "legacy-recipe-flatten",
+});
 </script>
 
 <script lang="ts" setup>
@@ -66,25 +70,6 @@ const { data: page, status } = await useAsyncData<CmsPage | null>(
   },
   { watch: [() => route.params.slug] },
 );
-
-// Legacy nested recipe URLs (/recette/{cat}/{slug} from old internal links)
-// flatten to the recipe's canonical /recette/{slug} when a published recipe
-// matches the last segment. Setup flow only — navigateTo keeps the Nuxt
-// instance here, unlike inside async watchers (NUXT_E1001). Restricted to
-// 3+ segments under /recette so nested CMS pages (silo hub → sub-page)
-// render normally. @see YGG-194, YGG-81
-if (!page.value) {
-  const parts = slugArray.value;
-  if (parts.length >= 3 && parts[0] === "recette") {
-    const recipeSlug = parts[parts.length - 1] ?? "";
-    if (recipeSlug) {
-      const recipeHit = await cms.recipes({ slug: recipeSlug, page: 1, pageSize: 1 });
-      if ((recipeHit.data?.length ?? 0) > 0) {
-        await navigateTo(`/recette/${recipeSlug}`, { redirectCode: 301 });
-      }
-    }
-  }
-}
 
 watch(
   [page, status],
