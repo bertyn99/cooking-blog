@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { Category, Cover, Ingredient, Recipe, RecipeUtensil, SEO } from "~/types/strapiMeta";
+import type { CmsPage } from "~/types/cms";
 import { parseFaqItems } from "@journalducuistot/shared/content-blocks";
 import { recipeOriginCuisineText } from "@journalducuistot/shared/recipe-origin";
 import { markdownToPlainText } from "~/utils/markdown-plain-text";
@@ -35,20 +36,41 @@ const { data: recipe, status } = await useAsyncData<Recipe | null>(
   { watch: [recipeSlug] },
 );
 
-watch([recipe, status], ([next, currentStatus]) => {
-  if (currentStatus === "pending") return;
-  if (!next) {
+// Les hubs silo (pages CMS sous le parent « recette ») partagent l'espace
+// d'URL /recette/{slug} avec les recettes : sans recette publiée, on rend
+// la page CMS (ex. /recette/desserts-du-monde, /recette/aperitif).
+const { data: cmsPage } = await useAsyncData<CmsPage | null>(
+  () => `cms-page:${recipeSlug.value}`,
+  async () => {
+    const slug = Array.isArray(route.params.slug) ? route.params.slug[0] : route.params.slug;
+    if (!slug) return null;
+    const result = await cms.pages({
+      slug,
+      parentSlug: "recette",
+      include: ["seoMeta", "parent"],
+      page: 1,
+      pageSize: 1,
+    });
+    return result.data?.[0] ?? null;
+  },
+  { watch: [recipeSlug] },
+);
+
+watch([recipe, cmsPage, status], ([nextRecipe, nextCms, currentStatus]) => {  if (currentStatus === "pending") return;
+  if (!nextRecipe && !nextCms) {
     showError({ statusCode: 404, statusMessage: "Page Not Found" });
     return;
   }
   clearError();
 }, { immediate: true });
 
-if (!recipe.value) {
+if (!recipe.value && !cmsPage.value) {
   throw createError({ statusCode: 404, statusMessage: "Page Not Found" });
 }
 
-const titleContent = computed(() => recipe.value?.title || "No title");
+const isCmsPageView = computed(() => !recipe.value && !!cmsPage.value);
+
+const titleContent = computed(() => cmsPage.value?.title || recipe.value?.title || "No title");
 const time = computed(() => recipe.value?.time || "10");
 const difficulty = computed(() => recipe.value?.difficulty || "easy");
 const categoryRecipe = computed(() => recipe.value?.category || ({} as Category));
@@ -142,13 +164,13 @@ const instructionSteps = computed(() =>
 );
 
 const nutritionSchema = computed(() => ({
-  '@type': 'NutritionInformation',
-  calories: nutrition.value?.calories,
-  carbohydrateContent: nutrition.value?.glucides,
-  fatContent: nutrition.value?.lipides,
-  proteinContent: nutrition.value?.proteine,
-  sugarContent: nutrition.value?.sucre,
-  sodiumContent: nutrition.value?.sodium,
+  "@type": "NutritionInformation",
+  calories: nutrition.value?.calories ?? "",
+  carbohydrateContent: nutrition.value?.glucides ?? "",
+  fatContent: nutrition.value?.lipides ?? "",
+  proteinContent: nutrition.value?.proteine ?? "",
+  sugarContent: nutrition.value?.sucre ?? "",
+  sodiumContent: nutrition.value?.sodium ?? "",
 }));
 
 // Absolute URL for the Recipe image — the public media key alone produced a
@@ -184,23 +206,54 @@ const metaDescription = computed(
     `Recette sur le Journal du cuistot : ${titleContent.value}`,
 );
 
-useApplyPageSeo(computed(() => ({
-  title: titleContent.value || "Journal du cuistot",
-  description: metaDescription.value,
-  keywords: seo.value?.keywords,
-  image: formatCoverOgImagePath(coverSource.value) || "/img/logo.webp",
-  url: pagePath.value,
-  author: SITE_AUTHOR_NAME,
-  articleDatePublished: recipe.value?.publishedAt,
-  articleDateModified: recipe.value?.updatedAt,
-  og: {
-    headline: titleContent.value,
+useApplyPageSeo(computed(() => {
+  if (isCmsPageView.value && cmsPage.value) {
+    const meta = cmsPage.value.seoMeta || {};
+    return {
+      title: cmsPage.value.title || "Journal du cuistot",
+      description: meta.description || metaDescription.value,
+      image: "/img/logo.webp",
+      url: pagePath.value,
+      keywords: meta.keywords ?? undefined,
+      robots: meta.metaRobots ?? undefined,
+      og: {
+        headline: cmsPage.value.title || "Journal du cuistot",
+        description: meta.description || metaDescription.value,
+      },
+    };
+  }
+  return {
+    title: titleContent.value || "Journal du cuistot",
     description: metaDescription.value,
-  },
-})));
+    keywords: seo.value?.keywords,
+    image: formatCoverOgImagePath(coverSource.value) || "/img/logo.webp",
+    url: pagePath.value,
+    author: SITE_AUTHOR_NAME,
+    articleDatePublished: recipe.value?.publishedAt,
+    articleDateModified: recipe.value?.updatedAt,
+    og: {
+      headline: titleContent.value,
+      description: metaDescription.value,
+    },
+  };
+}));
 </script>
 
 <template>
+  <!-- Hub silo : page CMS sous le parent « recette » (ex. desserts du monde) -->
+  <template v-if="isCmsPageView">
+    <SchemaOrgBreadcrumb :itemListElement="[
+      { name: 'Accueil', item: '/' },
+      { name: 'Recettes', item: '/recette' },
+      { name: cmsPage?.title ?? '', item: pagePath },
+    ]" />
+    <h1 class="mb-4 block font-serif text-5xl font-normal text-black align-baseline">
+      {{ cmsPage?.title }}
+    </h1>
+    <BasePageBody :content="cmsPage?.content" />
+  </template>
+
+  <template v-else>
   <SchemaOrgBreadcrumb :itemListElement="[
     { name: 'Accueil', item: '/' },
     {
@@ -265,4 +318,5 @@ useApplyPageSeo(computed(() => ({
   <LazyCta />
   <LazySectionYouMayAlsoLike :category="categoryRecipe.slug ?? ''" type-content="recipes"
     class="print:hidden" />
+  </template>
 </template>
