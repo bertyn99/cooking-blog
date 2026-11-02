@@ -17,6 +17,8 @@ This folder captures post–Strapi-migration SEO direction: what we already publ
 | [Content inventory](./content-inventory.md) | Strapi/live URLs: CMS pages, blog themes, recipe silos |
 | [Keyword validation](./keyword-validation.md) | Nuxt SEO Pro usage, SERP checks, tracked keyword list |
 | [Priorities & silos](./priorities-and-silos.md) | Execution order, hub/spoke model, technical SEO checklist |
+| [Silos brainstorm (2026-11)](./silos-brainstorm-2026-11.md) | Niche→head keyword ladders, 7 silos mapped to live content, prioritized actions |
+| [Keyword clusters (2026-11)](./keyword-clusters-2026-11.md) | GSC striking-distance clusters (90d) × DataForSEO — 6 clusters, actions per cluster |
 | [Product ↔ SEO](./product-features-seo.md) | Glossary, allergens, games, AI assist — mapped to search intent |
 | [Monetization](./monetization.md) | Ads, affiliation (ustensiles-first), sponsors, legal disclosure |
 

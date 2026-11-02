@@ -2,7 +2,7 @@
 
 **Horizon:** Post–Strapi import → first 6 months on `cooking-blog` + CMS  
 **Goal:** Qualified organic traffic (FR), not generic listicle churn.  
-**Status (2026-10-02):** CMS `parent` is restored ([YGG-79](https://linear.app/yggdraz/issue/YGG-79) Done). Nested **and** root slugs both 200 — canonicalize first ([YGG-81](https://linear.app/yggdraz/issue/YGG-81)). Index still 21%. Do not start Phase 3 glossary / allergens until 301s land and GSC reclaims the 3 apéro/dessert queries. 100K December impressions is out of band — see [README](./README.md#goal-check--100k-impressions-in-december-2026).
+**Status (2026-10-31):** canonicals + 301s landed ([YGG-81](https://linear.app/yggdraz/issue/YGG-81) Done), Recipe JSON-LD fixed ([YGG-82](https://linear.app/yggdraz/issue/YGG-82)), world-hub rebuilt + 5 sub-hubs scheduled (nov), [YGG-80](https://linear.app/yggdraz/issue/YGG-80) closed 6/6. Next execution is tracked in the [silos brainstorm](./silos-brainstorm-2026-11.md) — P0: moules FAQ cluster + hub « Recettes de pâtes » (15 orphans, head 18 100/mo). 100K December impressions remains out of band — see [README](./README.md#goal-check--100k-impressions-in-december-2026).
 
 ## Strategic silos
 
