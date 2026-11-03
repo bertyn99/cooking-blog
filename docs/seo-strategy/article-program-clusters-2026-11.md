@@ -94,27 +94,84 @@ Tous validés (7-10 suggestions, variantes boisson/alcool/facile/froid) :
 
 **S1-S4 = le format « listicle/menu » adapté au saisonnier** : les recettes du silo existent (chebakia ✓, bissap ✓, desserts africains ✓ pour le Ramadan ; biryani/bourguignon pour Noël) — c'est un travail d'assemblage + maillage, pas de recherche.
 
+## 5bis. Hiver Europe — France, Italie, Norvège, Finlande, Suisse
+
+Demande validée autocomplete par pays (03/11). **Les fenêtres sont ouvertes** : marchés de Noël et Saint-Nicolas (6 déc) exigent publication mi-nov ; Noël fin nov.
+
+### FRANCE
+
+| # | Sujet | Autocomplete | Template | Fenêtre |
+|---|---|---|---|---|
+| W1 | **Vin chaud : la recette des marchés de Noël** (grand-mère, traditionnelle) | 10 | 8 + 7 | **maintenant** (pics nov-déc) |
+| W2 | **Bredele : les biscuits de Noël alsaciens** (10 bredeles, traditionnelle/alsacienne) | 10 | 1 × 8 listicle | **mi-nov** (avant St-Nicolas 6 déc + marchés) |
+| W3 | **Les 13 desserts de Provence** (tradition, liste) | 10 | 1 × 8 listicle + 9 (légende des 13 = Jésus + 12 apôtres) | **maintenant** |
+| W4 | **Histoire de la bûche de Noël** (« la véritable histoire ») | 4 | 9 (T4 : bûche du solstice → pâtisserie 19e → bûche glacée) | **maintenant** |
+
+### ITALIE
+
+| # | Sujet | Autocomplete | Template | Fenêtre |
+|---|---|---|---|---|
+| W5 | **Panettone : l'histoire (et comment choisir)** | recette 10 + histoire 3 (origine) | 9 T4 parfait : légende Ughetto vs archives Motta 1919 (tradition industrielle plus jeune qu'on croit) | **maintenant** |
+| W6 | **Menu de Noël italien** (réveillon, repas) | 6 | 8 menu-guide (format réplicable par pays) | **maintenant** |
+| — | Struffoli (10 : recette, naples) | — | → vague recettes (intention « recette » = silo recettes) | à créer en recette |
+
+### NORVÈGE / FINLANDE (regroupées : la demande FR les fusionne)
+
+| # | Sujet | Autocomplete | Template | Fenêtre |
+|---|---|---|---|---|
+| W7 | **Gløgg : le vin chaud scandinave** | glögg recette 6 (**finlandais**, suédois) + vin chaud norvégien 4 (scandinave) | 8 + 7 | **mi-nov** |
+| W8 | **Noël en Scandinavie : traditions et pâtisseries** (pepperkaker, piparkakut, julekake, risgrøt et l'amande cachée, joulutahti) | 1-2 chacun mais famille combinée « noël scandinave/norvégien/finlandais traditions » | 1 × 8 listicle + 9 folklore (l'amande : celui qui la trouve…) | **mi-nov** |
+| — | Lohikeitto (soupe de saumon finlandaise, 7 : recette/crème) | — | → vague recettes (intention « recette ») | à créer en recette |
+
+### SUISSE
+
+| # | Sujet | Autocomplete | Template | Fenêtre |
+|---|---|---|---|---|
+| W9 | **Raclette ou fondue : le duel suisse** (raclette 10 + fondue 10 + « raclette suisse ou française » = requête comparatif !) | 10 + 10 | 7 comparatif/technique + affiliation (raclette machine, caquelon = ustensiles) | **maintenant** |
+| — | Fondue/raclette en recettes complètes | intention « recette traditionnelle/vacherin » | → vague recettes | à créer en recette (cuisine européenne) |
+
+**Notes d'exécution hiver :** les listicles W2/W3/W8 exigent des images par item (médiathèque/Pexels) — le seul blocage est la production média. W1/W7 portent la méthode dans le corps de l'article (boissons simples) sans recette dédiée. W9 est le seul sujet hiver à angle affiliation direct.
+
+### Fenêtres récapitulatives hiver
+
+```
+3-13 nov    : W1 vin chaud · W3 13 desserts · W4 bûche · W5 panettone · W6 menu italien · W9 raclette-fondue · S1 menu Noël
+15-25 nov   : W2 bredele (avant St-Nicolas 6 déc) · W7 gløgg · W8 Noël scandinave · S2 Ramadan · S4 Nouvel an chinois
+début déc   : S3 galette des rois (pour le 6 janv)
+```
+
 ---
 
 ## 6. Ordonnancement proposé (après gate nuxtseo à la reprise du provider)
 
+**Règle de tri : fenêtre saisonnière qui expire > demande prouvée > effort.** Les sujets hiver W1-W9 et S1-S4 sautent devant quand leur fenêtre est ouverte.
+
 | Rang | Sujet | Template | Effort | Pourquoi |
 |---|---|---|---|---|
-| 1 | H1 Couscous (histoire) | 9 | rédaction 6-10k | 24 histoires prêtes, silo africain, UNESCO, plat préféré des Français, 5 suggestions |
-| 2 | H3 Bœuf bourguignon (histoire) | 9 | rédaction | recette live ✓, 9 suggestions, hook parfait (Mme Saint-Ange) |
-| 3 | S1 Menu de Noël | 8 | assemblage | la fenêtre est MAINTENANT (publier avant mi-déc) |
-| 4 | U1 Air fryer (comparatif) | 4 | recherche produits | monetization #1, requêtes déjà vues en GSC via fricadelle |
-| 5 | H2 Harissa (histoire) | 9 | rédaction | UNESCO 2022, Tunisie, silo africain |
-| 6 | I1 Gingembre | 2 | rédaction | 10 suggestions, pairing maximal |
-| 7 | L1 Apéritif libanais | 1 | rédaction + photos | le format n°1 du site, houmous live |
-| 8 | H4 Falafel → L1 Liban maillage | 9 | rédaction | 10 suggestions, houmous live |
-| 9 | S2/S4 Menus Ramadan / Nouvel an chinois | 8 | assemblage | publier mi-déc pour février |
-| 10 | U2-U4 Couteau/cocotte/robot | 4 | recherche produits | monetization |
-| 11 | I3 Ras el hanout / I2 Safran | 2 | rédaction | 10/10 suggestions |
-| 12 | H5 Tajine / H6 Croissant / H7 Pizza | 9 | rédaction | 4-10 suggestions |
-| 13 | L2-L6 Antilles/Tunisie/Inde/Japon/Vietnam | 1 | rédaction + photos | 7-10 suggestions |
-| 14 | A1-A7 push des listicles existants (histoire par bouchée) | 1 | enrichissement | pos 8-11 → page 1 |
-| 15 | I4-I7 Vanille/sumac/miso/tahin | 2 | rédaction | selon gate |
+| 1 | **W1 Vin chaud** + S1 Menu Noël | 8 | rédaction/assemblage | fenêtre = maintenant, pics nov-déc |
+| 2 | **W3 13 desserts de Provence** | 1×8 | listicle (13 items + images) | 10 suggestions « tradition/liste », légende intégrée |
+| 3 | **W5 Panettone histoire** | 9 | rédaction 6-9k | T4 parfait (Motta 1919), recette 10 + histoire 3 |
+| 4 | **W9 Raclette vs fondue** | 7+4 | comparatif | 2×10 suggestions + requête comparatif ; affiliation |
+| 5 | H1 Couscous (histoire) | 9 | rédaction 6-10k | 24 histoires prêtes, silo africain, UNESCO, plat préféré des Français, 5 suggestions |
+| 6 | **W2 Bredele** | 1×8 | listicle (10 items + images) | 10 suggestions ; publier avant St-Nicolas 6 déc |
+| 7 | **W4 Bûche de Noël histoire** | 9 | rédaction | 4 suggestions dont « la véritable histoire » |
+| 8 | **W6 Menu de Noël italien** | 8 | assemblage | 6 suggestions, format menu réplicable |
+| 9 | H3 Bœuf bourguignon (histoire) | 9 | rédaction | recette live ✓, 9 suggestions, hook parfait (Mme Saint-Ange) |
+| 10 | **W7 Gløgg + W8 Noël scandinave** | 8/1 | rédaction + images | Norvège/Finlande couvertes ensemble ; mi-nov |
+| 11 | U1 Air fryer (comparatif) | 4 | recherche produits | monetization #1, requêtes GSC via fricadelle |
+| 12 | H2 Harissa (histoire) | 9 | rédaction | UNESCO 2022, Tunisie, silo africain |
+| 13 | I1 Gingembre | 2 | rédaction | 10 suggestions, pairing maximal |
+| 14 | L1 Apéritif libanais | 1 | rédaction + photos | le format n°1 du site, houmous live |
+| 15 | H4 Falafel | 9 | rédaction | 10 suggestions, houmous live |
+| 16 | S2/S4 Menus Ramadan / Nouvel an chinois | 8 | assemblage | publier mi-déc pour février |
+| 17 | S3 Galette des rois | 8 | article/recette | début déc pour le 6 janv |
+| 18 | U2-U4 Couteau/cocotte/robot | 4 | recherche produits | monetization |
+| 19 | H5 Tajine / H6 Croissant / H7 Pizza | 9 | rédaction | 4-10 suggestions |
+| 20 | L2-L6 Antilles/Tunisie/Inde/Japon/Vietnam | 1 | rédaction + photos | 7-10 suggestions |
+| 21 | I3 Ras el hanout / I2 Safran | 2 | rédaction | 10/10 suggestions |
+| 22 | A1-A7 push des listicles existants (histoire par bouchée) | 1 | enrichissement | pos 8-11 → page 1 |
+| 23 | I4-I7 Vanille/sumac/miso/tahin | 2 | rédaction | selon gate |
+| 24 | Recettes hiver du silo : struffoli, lohikeitto, fondue, raclette | recettes | jdc-recipe-creator | intention « recette » confirmée (10/10/7) → silo recettes, pas articles |
 
 ## 7. Règles d'exécution
 
