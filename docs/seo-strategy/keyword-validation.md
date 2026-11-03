@@ -81,6 +81,97 @@ comment utiliser le curry
 coriandre fraîche recette
 ```
 
+### Riz & basmati (article riz basmati, refresh 2026-11)
+
+```
+riz basmati
+cuisson du riz basmati
+cuire du riz basmati
+```
+
+### Patate douce (article #21, refresh 2026-11)
+
+```
+patate douce
+cuisson patate douce
+temps de cuisson patate douce au four
+patate douce calories
+```
+
+### Garam masala (article #27, refresh 2026-11)
+
+```
+garam masala
+garam masala recette
+masala
+chai masala
+```
+
+### Nuoc-mâm (article #2, refresh 2026-11)
+
+```
+sauce nuoc mam
+nuoc mam
+nuoc cham
+```
+
+### Coriandre (article #11, refresh 2026-11)
+
+```
+coriandre
+coriandre ou persil
+coriandre fraîche
+conserver coriandre fraîche
+```
+
+### Clou de girofle (article #3, refresh 2026-11)
+
+```
+clou de girofle
+clou de girofle cuisine
+oignon clouté
+```
+<!-- note: nuxtseo n'a pas de volumes sur ce seed (gap dataset) — gate qualitatif
+     (intention : dosage, oignon clouté, vin chaud/pain d'épices saisonnier) -->
+
+### Cumin (article #40, refresh 2026-11)
+
+```
+cumin
+cumin ou curcuma
+cumin ou carvi
+```
+<!-- note: nuxtseo gap dataset sur ce seed aussi — gate qualitatif (goût, confusion carvi/curcuma) -->
+
+### Curcuma (article #25, refresh 2026-11)
+
+```
+curcuma
+curcuma cuisine
+curcuma et poivre noir
+```
+<!-- note: gap dataset — gate qualitatif (couleur vs goût, bienfaits YMYL hedgés) -->
+
+### Gombo (article #28, refresh 2026-11)
+
+```
+gombo
+gombo mucilage
+```
+<!-- note: gap dataset — gate qualitatif (mucilage = intention dominante, test de la pointe).
+     lien mort sauce-gombo retiré (recette à créer, cf. patate douce #21) -->
+
+### Igname (article #13, refresh 2026-11)
+
+```
+igname
+igname cuisine africaine
+foutou igname
+igname vs patate douce
+```
+<!-- note: gap dataset — gate qualitatif (variétés, pilage/foutou, démangeaison oxalate).
+     lien thiéboudienne à ajouter après sa publication (16 déc) -->
+
 ### Monde & apéro (existing listicles)
 
 ```
