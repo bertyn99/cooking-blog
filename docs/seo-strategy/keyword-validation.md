@@ -172,6 +172,24 @@ igname vs patate douce
 <!-- note: gap dataset — gate qualitatif (variétés, pilage/foutou, démangeaison oxalate).
      lien thiéboudienne à ajouter après sa publication (16 déc) -->
 
+### Niches Afrique (articles NEUFS, série « peu de concurrence », nov 2026)
+
+Gate method : DataForSEO down (provider_payment_required) → volume/difficulty non mesurables
+ce jour. Demande validée par autocomplete Google (chaque seed renvoie recette/variantes).
+Difficulty PENDING : re-mesurer quand le provider revient avant d'investir plus.
+
+```
+thiéboudienne / thiéboudienne recette / ceebu jen      → draft #45 (gastronomie-culture)
+thiakry / thiakry recette / dégué                      → draft #46 (gastronomie-culture)
+mafé / mafé poulet / mafé végétarien / tigadèguèna     → draft #47 (gastronomie-culture)
+```
+
+Shortlist suivante (demande autocomplete confirmée, non écrites) :
+attiéké (+ « attiéké nantes ») · alloco · foutou (+ sauce graine) · saka saka ·
+ndolé · riz jollof (+ facile/origine) · cornes de gazelle · fonio
+<!-- pairing: thiébo=recette 16 déc ; thiakry/cornes=cluster desserts africains ;
+     mafé/attieké/aloco/foutou=hub cuisine africaine -->
+
 ### Monde & apéro (existing listicles)
 
 ```
