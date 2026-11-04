@@ -196,10 +196,10 @@ Volumes réels (provider de retour) :
 vin chaud                    14 800/mois  diff 0   → draft #48 vin-chaud-recette-marches-noel (gastronomie-culture)
 panettone                    40 500/mois  diff 1   → draft #49 panettone-histoire-legende-milan (template 9 T4)
 buche de noel                40 500/mois  diff 4   → draft #50 buche-de-noel-histoire-dessert (template 9 T4)
-bredele                      12 100/mois  diff 1   → listicle à venir (avant St-Nicolas 6 déc)
+bredele                      12 100/mois  diff 1   → draft #51 bredele-biscuits-noel-alsace (listicle 10 items, 5 images)
+glogg                          1 000/mois  diff 0   → draft #52 glogg-recette-vin-chaud-scandinave (8+7, table 9 lignes)
 raclette                    110 000/mois  diff 4   → comparatif/affiliation à venir
 fondue savoyarde              74 000/mois  diff 1   → intention « recette » → vague recettes
-glogg                          1 000/mois  diff 0   → article à venir (mi-nov)
 desserts provence              famille longue-traîne pure (pas de bucket volume) → listicle P2
 ```
 
