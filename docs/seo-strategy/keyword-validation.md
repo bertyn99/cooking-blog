@@ -198,10 +198,12 @@ panettone                    40 500/mois  diff 1   → draft #49 panettone-histo
 buche de noel                40 500/mois  diff 4   → draft #50 buche-de-noel-histoire-dessert (template 9 T4)
 bredele                      12 100/mois  diff 1   → draft #51 bredele-biscuits-noel-alsace (listicle 10 items, 5 images)
 glogg                          1 000/mois  diff 0   → draft #52 glogg-recette-vin-chaud-scandinave (8+7, table 9 lignes)
-raclette                    110 000/mois  diff 4   → comparatif/affiliation à venir
-fondue savoyarde              74 000/mois  diff 1   → intention « recette » → vague recettes
+raclette                    110 000/mois  diff 4   → RECETTE #102 raclette-recette-traditionnelle, sched 4 déc
+fondue savoyarde recette      40 500/mois  diff 0   → RECETTE #101 fondue-savoyarde-recette-traditionnelle, sched 1er déc
 desserts provence              famille longue-traîne pure (pas de bucket volume) → listicle P2
 ```
+
+Vague recettes hiver planifiées via MCP le 04/11 : #101 fondue (1er déc) · #102 raclette (4 déc) · #103 lohikeitto 880/diff 0 (8 déc) · #104 struffoli 1 000/diff 2 (11 déc). Voir YGG-202.
 
 Autres demandes saisonnières validées (gate à faire) : menu noel · menu ramadan · galette des rois · nouvel an chinois.
 
