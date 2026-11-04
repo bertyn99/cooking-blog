@@ -174,9 +174,7 @@ igname vs patate douce
 
 ### Niches Afrique (articles NEUFS, série « peu de concurrence », nov 2026)
 
-Gate method : DataForSEO down (provider_payment_required) → volume/difficulty non mesurables
-ce jour. Demande validée par autocomplete Google (chaque seed renvoie recette/variantes).
-Difficulty PENDING : re-mesurer quand le provider revient avant d'investir plus.
+Gate method : autocomplete Google (chaque seed renvoie recette/variantes) ; volume/difficulty à confirmer au retour du provider (down le 03/11).
 
 ```
 thiéboudienne / thiéboudienne recette / ceebu jen      → draft #45 (gastronomie-culture)
@@ -189,6 +187,23 @@ attiéké (+ « attiéké nantes ») · alloco · foutou (+ sauce graine) · sak
 ndolé · riz jollof (+ facile/origine) · cornes de gazelle · fonio
 <!-- pairing: thiébo=recette 16 déc ; thiakry/cornes=cluster desserts africains ;
      mafé/attieké/aloco/foutou=hub cuisine africaine -->
+
+### Hiver Europe (articles NEUFS, batch saisonnier — GATE DATAFORSEO CONFIRMÉ le 04/11)
+
+Volumes réels (provider de retour) :
+
+```
+vin chaud                    14 800/mois  diff 0   → draft #48 vin-chaud-recette-marches-noel (gastronomie-culture)
+panettone                    40 500/mois  diff 1   → draft #49 panettone-histoire-legende-milan (template 9 T4)
+buche de noel                40 500/mois  diff 4   → draft #50 buche-de-noel-histoire-dessert (template 9 T4)
+bredele                      12 100/mois  diff 1   → listicle à venir (avant St-Nicolas 6 déc)
+raclette                    110 000/mois  diff 4   → comparatif/affiliation à venir
+fondue savoyarde              74 000/mois  diff 1   → intention « recette » → vague recettes
+glogg                          1 000/mois  diff 0   → article à venir (mi-nov)
+desserts provence              famille longue-traîne pure (pas de bucket volume) → listicle P2
+```
+
+Autres demandes saisonnières validées (gate à faire) : menu noel · menu ramadan · galette des rois · nouvel an chinois.
 
 ### Monde & apéro (existing listicles)
 
