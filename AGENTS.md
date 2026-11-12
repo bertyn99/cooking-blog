@@ -24,7 +24,8 @@ cooking-blog/
 │   ├── types/              # strapiMeta.d.ts (HAND-WRITTEN Strapi types), meta.ts (SEO), index.d.ts ($cms augment)
 │   ├── utils/              # redirect.ts (301 map → routeRules), format.ts (slug hierarchy)
 │   ├── providers/          # localImageSharp.ts — custom @nuxt/image provider for Strapi uploads
-│   └── assets/css/         # Tailwind entry (index.css)
+│   ├── assets/css/         # Tailwind entry (index.css)
+│   └── app.vue             # 🌟 Real app root (srcDir = app/): NuxtLayout + NuxtPage + AdsConsentBanner
 ├── server/                 # Nitro — see server/AGENTS.md
 │   ├── api/__sitemap__/    #   Sitemap URL source (fetches Strapi)
 │   ├── api/sitemap-ia.ts   #   AI-oriented grouped routes JSON
@@ -34,8 +35,8 @@ cooking-blog/
 ├── nuxt.config.ts          # 🌟 Central config — modules, ISR rules, Strapi, sitemap, Redis cache
 ├── tailwind.config.ts      # ⚠️ STALE content paths + wrong `FontFace` key (should be fontFamily)
 ├── app.config.ts           # Minimal (umami version flag)
-├── app.vue                 # Root: NuxtLayout+NuxtPage, schema.org defaults
-├── error.vue               # 404/error page
+├── app.vue                 # ⚠️ LEGACY — NOT rendered (srcDir is app/); real root is app/app.vue
+├── error.vue               # 404/error page (same caveat: Nuxt looks for app/error.vue)
 └── .env                    # STRAPI_URL, REDIS_URL, NUXT_UMAMI_*, NUXT_PUBLIC_SITE_URL
 ```
 
@@ -58,6 +59,7 @@ cooking-blog/
 | Change Tailwind theme | `tailwind.config.ts` | ⚠️ Content paths stale (reference root not app/) |
 | Route path generation | `app/utils/format.ts` `generateSlug()` | Recursive parent hierarchy for CMS pages |
 | Image URL | `useFormatUrlCover(cover, size?)` | Never raw Strapi URLs — use composable or `localImageSharp` provider |
+| Change ad consent / banner | `app/composables/useAdConsent.ts` + `app/components/ads/ConsentBanner.vue` | Gate: no AdSense client id → no banner, no tag |
 
 ## CODE MAP
 
@@ -170,10 +172,15 @@ pnpm preview          # Preview production build
 
 **Required env** (`.env`, NOT tracked by git): `STRAPI_URL`, `REDIS_URL`, `NUXT_UMAMI_ID`, `NUXT_UMAMI_HOST`, `NUXT_PUBLIC_SITE_URL`.
 
+**Ads env (optional)** — ads stay fully off while the client id is empty (no tag, no banner):
+- `NUXT_PUBLIC_ADSENSE_CLIENT` (`ca-pub-…`)
+- `NUXT_PUBLIC_ADSENSE_SLOTS_ARTICLE`, `NUXT_PUBLIC_ADSENSE_SLOTS_RECIPE` (empty slot = placement renders nothing)
+- `NUXT_PUBLIC_ADS_CONSENT_MODE` = `local` (default: first-party banner, tag hard-blocked until accept) | `google-cmp` (AdSense's certified GDPR message owns the prompt, tag loads immediately, local banner hidden)
+
 ## NOTES
 
 ### Gotchas
-- **Nuxt 4 compat mode** via `future: { compatibilityVersion: 4 }` — `app/` directory is the source root. `~/` resolves to `app/`. APIs may differ from Nuxt 3 defaults.
+- **Nuxt 4 compat mode** via `future: { compatibilityVersion: 5 }` — `app/` directory is the source root. `~/` resolves to `app/`. APIs may differ from Nuxt 3 defaults. Because `srcDir` is `app/`, the real app root is `app/app.vue`; the repo-root `app.vue` / `error.vue` are legacy and unused.
 - **Strapi v5 + `@nuxtjs/strapi` v2.1.1** — module lags Strapi v5 types, hence `as any` on `populate`.
 - **ISR caching** (Redis via `nitro.storage.cache`): `/` 15min, `/blog/**` 25min, `/uploads/**` 5days, `/sitemap.xml` 24h, `/rss.xml` 3days.
 - **`@nuxt/image` on `2.0.0-alpha.1`** — pre-release. API may shift.
@@ -187,8 +194,8 @@ pnpm preview          # Preview production build
 - **Font loading via CSS** (not `@nuxtjs/google-fonts` — commented out in `nuxt.config.ts`).
 - **Partytown configured but Google Ads script commented out**.
 - **HTTPS dev server config commented out** (requires `localhost.pem` files present).
+- **Ad consent**: `useAdConsent()` is the single source of truth (`local` record `{v:1,ads,ts}` in `localStorage["jdc-ads-consent"]`; legacy bare `"granted"` counts as consent). The first-party banner is **not** a Google-certified CMP: it satisfies the consent gate outside the EEA/UK, but EEA/UK ad serving needs `google-cmp` (AdSense GDPR message) or a certified CMP.
 - **Editor rules**: `.cursor/rules/` and `.continue/rules/` mirror each other (Nuxt architecture + best practices). Read before major architectural changes.
-- **`app.vue:11` has `@todo`** — Schema.org identity selection (Organization vs Person) still pending.
 
 See `app/components/AGENTS.md` for the component domain guide and `server/AGENTS.md` for Nitro routes.
 

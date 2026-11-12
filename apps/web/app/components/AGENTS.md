@@ -13,7 +13,7 @@ components/
 │   ├── Ingredients/     # index.vue + Element.vue
 │   └── Steps/           # index.vue + Content.vue
 ├── article/             # Article domain (2): Card, List
-├── ads/                 # AdSense: Slot.vue (placement → env slot id, dev consent button), Unit.vue (consent-gated <ins>)
+├── ads/                 # AdSense: Slot.vue (placement → env slot id), Unit.vue (consent-gated <ins>), ConsentBanner.vue (RGPD accept/refuse/personalize)
 ├── blocks/              # Comark block renderers used by CMS content: ArticleList, RecipeList
 ├── comark/              # Comark renderer glue: ProseImg, Pele.vue + PeleDiagram.server.vue (island)
 ├── base/                # Primitives: Pagination, content/display (zone dispatcher), input/checkbox

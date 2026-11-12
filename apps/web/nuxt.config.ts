@@ -41,6 +41,16 @@ const adsenseSlots = {
   recipe: process.env.NUXT_PUBLIC_ADSENSE_SLOTS_RECIPE || '',
 }
 
+// Who owns the consent prompt.
+// - `local` (default): the first-party banner gates the tag. Nothing loads
+//   before a decision. NOT a Google-certified CMP, so EEA/UK traffic still
+//   needs a certified CMP to serve ads.
+// - `google-cmp`: AdSense's certified consent message (enabled in the AdSense
+//   UI) renders the prompt; the tag must load immediately for it to appear, so
+//   the local banner stays hidden.
+const adsConsentMode =
+  process.env.NUXT_PUBLIC_ADS_CONSENT_MODE === 'google-cmp' ? 'google-cmp' : 'local'
+
 function isLocalSiteUrl(url: string): boolean {
   try {
     const { hostname } = new URL(url)
@@ -333,6 +343,7 @@ export default defineNuxtConfig({
       // Read by the AdSlot components; empty = ads disabled site-wide.
       adsenseClient,
       adsenseSlots,
+      adsConsentMode,
     },
   },
 

@@ -1,4 +1,13 @@
 <script lang="ts" setup>
+const { mode, adsConfigured, openConsentBanner } = useAdConsent();
+
+// The local banner is the consent surface; in `google-cmp` mode Google's own
+// message holds the settings entry, and with no ad client there is no choice
+// to manage.
+const showConsentSettings = computed(
+  () => mode.value === "local" && adsConfigured.value,
+);
+
 const links = [
   {
     id: 1,
@@ -42,7 +51,17 @@ const links = [
     <div
       class="w-full max-w-7xl mx-auto flex flex-wrap justify-around items-center"
     >
-      <div>© {{ new Date().getFullYear() }} JournalDuCuistot, Tous droit reservée</div>
+      <div class="flex flex-col items-center gap-1 sm:flex-row sm:gap-2">
+        <span>© {{ new Date().getFullYear() }} JournalDuCuistot, Tous droit reservée</span>
+        <button
+          v-if="showConsentSettings"
+          type="button"
+          class="text-xs text-neutral-600 underline underline-offset-2 hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+          @click="openConsentBanner()"
+        >
+          Gérer les cookies
+        </button>
+      </div>
 
       <ul
         class="flex gap-3 text-xs text-center align-top border-0 text-zinc-700 font-semibold tracking-widest uppercase"
