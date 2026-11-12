@@ -24,6 +24,12 @@ const links = [
     url: "/techniques-culinaires",
     current: true,
   },
+  {
+    id: 4,
+    name: "Guide des ustensiles",
+    url: "/techniques-culinaires/guide-des-ustensiles",
+    current: false,
+  },
   { id: 2, name: "A propos", url: "/a-propos", current: false },
 ];
 </script>
@@ -51,7 +57,7 @@ const links = [
       <ul class="flex w-2/3 md:w-auto justify-around">
         <li>
           <NuxtLink
-            to="ttps://www.instagram.com/journalducuistot"
+            to="https://www.instagram.com/journalducuistot"
             class="text-neutral-600"
           >
             <Icon name="uil:instagram" />
