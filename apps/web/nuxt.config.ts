@@ -21,11 +21,20 @@ const siteEnv =
   (process.env.NODE_ENV === 'production' ? 'production' : 'development')
 
 // Google AdSense — stays OFF until a Google-certified CMP serves consent to
-// EEA/UK visitors (Google requirement since 2024-01). Set NUXT_ADSENSE_CLIENT
-// (e.g. ca-pub-1234567890123456) ONLY after the CMP is live.
-// Plain async script on purpose: AdSense is not a supported Partytown library
-// (DOM measurements + iframes crash in a web worker).
-const adsenseClient = process.env.NUXT_ADSENSE_CLIENT || ''
+// EEA/UK visitors (Google requirement since 2024-01). Set
+// NUXT_PUBLIC_ADSENSE_CLIENT (e.g. ca-pub-1234567890123456) plus the
+// per-placement ad unit ids ONLY after the CMP is live. `NUXT_PUBLIC_*` names
+// are deliberate: Nuxt maps them onto `runtimeConfig.public.*` at runtime, so
+// ads can be switched on in the deploy environment without a rebuild. The
+// script itself is loaded by @nuxt/scripts (`useScriptGoogleAdsense`) behind a
+// consent trigger — never by Partytown, which does not support AdSense (DOM
+// measurements + iframes).
+const adsenseClient = process.env.NUXT_PUBLIC_ADSENSE_CLIENT || ''
+const adsenseSlots = {
+  // One ad unit per placement; empty id = placement renders nothing.
+  article: process.env.NUXT_PUBLIC_ADSENSE_SLOT_ARTICLE || '',
+  recipe: process.env.NUXT_PUBLIC_ADSENSE_SLOT_RECIPE || '',
+}
 
 function isLocalSiteUrl(url: string): boolean {
   try {
@@ -71,15 +80,6 @@ export default defineNuxtConfig({
         lang: 'fr', // Set the default language here
       },
       link: [{ rel: 'icon', type: 'image/webp', href: '/img/logo.webp' }],
-      script: adsenseClient
-        ? [
-            {
-              src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`,
-              async: true,
-              crossorigin: 'anonymous',
-            },
-          ]
-        : [],
     },
   },
 
@@ -90,6 +90,7 @@ export default defineNuxtConfig({
     '@nuxt/fonts',
     '@nuxt/icon',
     '@nuxtjs/partytown',
+    '@nuxt/scripts',
     '@nuxt/image',
     '@vueuse/nuxt',
     /*    [
@@ -324,8 +325,9 @@ export default defineNuxtConfig({
       language: 'fr-FR', // prefer more explicit language codes like `en-AU` over `en`
       cmsBaseUrl: process.env.NUXT_PUBLIC_CMS_BASE_URL || 'http://localhost:3001',
       apiBase: process.env.NUXT_PUBLIC_CMS_BASE_URL || 'http://localhost:3001',
-      // Read by future ad-slot components; empty = ads disabled site-wide.
+      // Read by the AdSlot components; empty = ads disabled site-wide.
       adsenseClient,
+      adsenseSlots,
     },
   },
 
@@ -366,12 +368,17 @@ export default defineNuxtConfig({
     },
   },
 
-  /*  devServer: {
-    https: {
-      key: "localhost-key.pem",
-      cert: "localhost.pem",
-    },
-  }, */
+  devServer: {
+    // Explicit host: @nuxt/schema 4.6.x resolves `devServer.host` to a bare
+    // object here, which crashes @nuxt/cli 4.0.1 in #syncAllowedHosts
+    // (`options.hostname.toLowerCase is not a function`). Drop this once the
+    // schema resolver is fixed upstream.
+    host: 'localhost',
+    // https: {
+    //   key: 'localhost-key.pem',
+    //   cert: 'localhost.pem',
+    // },
+  },
 
   devtools: {
     enabled: siteEnv === 'development',

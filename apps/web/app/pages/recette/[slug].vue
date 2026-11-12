@@ -310,6 +310,7 @@ useApplyPageSeo(computed(() => {
   <RecipeUstensiles :utensils="utensils" />
   <RecipeNutritional :data="formated" />
   <LazyRecipeSteps :steps="steps" />
+  <AdsSlot placement="recipe" />
   <BlockFaqClient v-if="faqItems.length" :items="faqItems">
     <template #title>
       FAQ : vos questions sur cette recette

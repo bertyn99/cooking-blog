@@ -186,6 +186,7 @@ useApplyPageSeo(computed(() => ({
   </SectionHeroArticle>
   <BaseToc v-if="tocLinks.length >= 3" :links="tocLinks" class="mb-8" />
   <BaseMarkdownContent :markdown="content" tag="article" />
+  <AdsSlot placement="article" />
   <LazyCta />
   <LazySectionYouMayAlsoLike
     :category="categoryRecipe.slug ?? ''"
