@@ -11,13 +11,13 @@ catalog:
   drizzle-kit: "1.0.0-rc.5-ab785fc"
   drizzle-orm: "1.0.0-rc.5-ab785fc"
   effect: "4.0.1"
-  nuxt: "^4.6.2"
-  oxfmt: "^0.65.0"
-  oxlint: "^1.80.0"
+  nuxt: "^4.6.4"
+  oxfmt: "^0.78.0"
+  oxlint: "^1.93.0"
   typescript: "6.0.3"
   vitest: "^4.1.6"
   vue: "latest"
-  vue-tsc: "^3.2.9"
+  vue-tsc: "^3.3.14"
   zod: "latest"
 
 ignoredBuiltDependencies:

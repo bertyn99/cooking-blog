@@ -18,10 +18,10 @@
     "./blocks/*": "./blocks/*"
   },
   "dependencies": {
-    "comark": "^0.7.0"
+    "comark": "^0.9.1"
   },
   "peerDependencies": {
-    "@comark/vue": "^0.7.0",
+    "@comark/vue": "^0.9.1",
     "@nuxt/ui": "catalog:",
     "@tiptap/core": ">=2.0.0",
     "@tiptap/vue-3": ">=2.0.0",
