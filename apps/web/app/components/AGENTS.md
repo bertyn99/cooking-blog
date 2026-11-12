@@ -1,6 +1,6 @@
 # COMPONENT ARCHITECTURE — app/components/
 
-58 `.vue` files across 11 subdirs + root. **Auto-imported by Nuxt** (no manual imports needed) except `prose/` which uses `global: true` registration.
+72 `.vue` files across 12 subdirs + root. **Auto-imported by Nuxt** (no manual imports needed) except `prose/` which uses `global: true` registration.
 
 ## STRUCTURE
 
@@ -8,11 +8,14 @@
 components/
 ├── section/             # Page layout sections (12) — header, footer, sidebar, hero, lists
 ├── strapi/ui/           # Strapi dynamic zone components (11) — kebab-case, map to __component keys
-├── prose/               # MDC prose overrides (6) — globally registered, Prose* prefix = built-in override
+├── prose/               # MDC prose overrides (5) — globally registered, Prose* prefix = built-in override
 ├── recipe/              # Recipe domain (5 + Ingredients/ + Steps/)
 │   ├── Ingredients/     # index.vue + Element.vue
 │   └── Steps/           # index.vue + Content.vue
 ├── article/             # Article domain (2): Card, List
+├── ads/                 # AdSense: Slot.vue (placement → env slot id, dev consent button), Unit.vue (consent-gated <ins>)
+├── blocks/              # Comark block renderers used by CMS content: ArticleList, RecipeList
+├── comark/              # Comark renderer glue: ProseImg, Pele.vue + PeleDiagram.server.vue (island)
 ├── base/                # Primitives: Pagination, content/display (zone dispatcher), input/checkbox
 ├── preview/             # Strapi preview variants: RecipeDisplay, ArticleDisplay
 ├── comment/             # Form (no backend wired)
@@ -27,7 +30,7 @@ components/
 | Render a Strapi dynamic zone | `base/content/display.vue` — dispatcher maps `__component` strings (e.g. `ui.text`) to `strapi/ui/*` components |
 | Add a new Strapi UI component | `strapi/ui/{name}.vue` kebab-case + register in `base/content/display.vue` |
 | Override MDC prose element | `prose/Prose{Name}.vue` — overrides built-in (`ProsePre`, `ProseImg`) |
-| Add custom MDC block | `prose/{Name}.vue` (no `Prose` prefix) — e.g. `Grid`, `Callout`, `Mermaid` |
+| Add custom MDC block | `prose/{Name}.vue` (no `Prose` prefix) — e.g. `Grid`, `Callout` |
 | Recipe ingredient rendering | `recipe/Ingredients/index.vue` + `Element.vue` (includes `SchemaOrgRecipe`) |
 | Recipe step rendering | `recipe/Steps/index.vue` + `Content.vue` (includes `SchemaOrgRecipe`) |
 | Article/recipe card | `article/Card.vue`, `recipe/Card.vue` — both consume Strapi cover via `useFormatUrlCover` |
@@ -40,7 +43,7 @@ components/
 |-----------|------------|----------|
 | `section/`, `recipe/`, `article/`, `preview/`, `comment/`, `OgImage/`, root | **PascalCase** | `HeroArticle.vue`, `RecipeIngredients/index.vue` |
 | `strapi/ui/`, `base/content/`, `base/input/` | **kebab-case** | `text.vue`, `code-block.vue`, `display.vue` |
-| `prose/` | Mixed — `Prose` prefix = MDC built-in override | `ProsePre.vue`, `Grid.vue`, `Mermaid.vue` |
+| `prose/` | Mixed — `Prose` prefix = MDC built-in override | `ProsePre.vue`, `Grid.vue` |
 
 ## STRAPI DYNAMIC ZONE — strapi/ui/ → __component map
 
@@ -72,6 +75,6 @@ The dispatcher is `base/content/display.vue` — it reads `__component` and rend
 ## NOTES
 
 - **`prose/` registration**: excluded from default component scan, re-registered with `global: true` in `nuxt.config.ts`. Enables MDC overrides + custom blocks for markdown content.
-- **`ProsePre.vue`** routes `mermaid` language blocks to the `Mermaid.vue` component (via `$mermaid` plugin).
+- **`mermaid` fences** become `pele` nodes (`comark-pele` plugin in `base-markdown.ts`). `comark/Pele.vue` is a thin shell around `comark/PeleDiagram.server.vue`, a Nuxt **server component** (island): Pele renders the SVG during SSR and the ~1 MB renderer never reaches the client bundle. Do not swap it for `comark-pele/vue`'s `Pele` — that ships every diagram type to every visitor. Theme via the `--pele-*` variables on `.pele-diagram` in `app/assets/css/index.css`.
 - **`OgImage/Cooking.vue`** is the site-wide OG image template — amber-themed SVG with logo + title + description. Referenced in `routeRules` `"/*/**": { ogImage: { component: "Cooking" } }`.
 - **Lazy loading**: components used with `Lazy` prefix (`LazyRecipeSteps`, `LazySectionFooter`, `LazyCta`) for below-the-fold rendering.

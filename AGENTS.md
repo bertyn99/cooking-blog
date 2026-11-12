@@ -20,8 +20,8 @@ cooking-blog/
 │   ├── composables/        # 6 auto-imported (useLoadMeta, useReadingTime, useFormatCover, useComark, useGenerateSchemaArianne, useFetchContent[DEAD])
 │   ├── pages/              # File-based routing — 8 routes, 3 content silos
 │   ├── layouts/            # default.vue (list pages), content.vue (detail w/ sidebar + comments)
-│   ├── plugins/            # mermaid.client.ts ($mermaid provide), strapi.client.ts (error toast)
-│   ├── types/              # strapiMeta.d.ts (HAND-WRITTEN Strapi types), meta.ts (SEO), index.d.ts ($mermaid augment)
+│   ├── plugins/            # strapi.client.ts (error toast)
+│   ├── types/              # strapiMeta.d.ts (HAND-WRITTEN Strapi types), meta.ts (SEO), index.d.ts ($cms augment)
 │   ├── utils/              # redirect.ts (301 map → routeRules), format.ts (slug hierarchy)
 │   ├── providers/          # localImageSharp.ts — custom @nuxt/image provider for Strapi uploads
 │   └── assets/css/         # Tailwind entry (index.css)
