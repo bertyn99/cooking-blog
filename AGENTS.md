@@ -172,7 +172,7 @@ pnpm preview          # Preview production build
 
 **Required env** (`.env`, NOT tracked by git): `STRAPI_URL`, `REDIS_URL`, `NUXT_UMAMI_ID`, `NUXT_UMAMI_HOST`, `NUXT_PUBLIC_SITE_URL`.
 
-**Ads env (optional)** — ads stay fully off while the client id is empty (no tag, no banner):
+**Ads env (optional)** — ads stay fully off until the client id **and** at least one slot id are set: no tag, no ad unit, no consent banner. `/ads.txt` serves as soon as the client id exists:
 - `NUXT_PUBLIC_ADSENSE_CLIENT` (`ca-pub-…`)
 - `NUXT_PUBLIC_ADSENSE_SLOTS_ARTICLE`, `NUXT_PUBLIC_ADSENSE_SLOTS_RECIPE` (empty slot = placement renders nothing)
 - `NUXT_PUBLIC_ADS_CONSENT_MODE` = `local` (default: first-party banner, tag hard-blocked until accept) | `google-cmp` (AdSense's certified GDPR message owns the prompt, tag loads immediately, local banner hidden)

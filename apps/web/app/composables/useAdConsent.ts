@@ -30,8 +30,14 @@ export function useAdConsent() {
     config.adsConsentMode === "google-cmp" ? "google-cmp" : "local",
   );
   const usesGoogleCmp = computed(() => mode.value === "google-cmp");
-  // Without a client id there is no ad tag at all, hence nothing to consent to.
-  const adsConfigured = computed(() => Boolean(config.adsenseClient));
+  // No client id and no ad unit means no tag and no ad — hence nothing to
+  // consent to. Requiring a slot id too keeps the live site from asking for ad
+  // consent while every placement renders nothing.
+  const adsConfigured = computed(
+    () =>
+      Boolean(config.adsenseClient) &&
+      Boolean(config.adsenseSlots?.article || config.adsenseSlots?.recipe),
+  );
 
   // Google's message needs the tag loaded unconditionally, so `google-cmp`
   // starts as decided + consented; the local banner never opens in that mode.
