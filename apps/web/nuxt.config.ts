@@ -25,15 +25,20 @@ const siteEnv =
 // NUXT_PUBLIC_ADSENSE_CLIENT (e.g. ca-pub-1234567890123456) plus the
 // per-placement ad unit ids ONLY after the CMP is live. `NUXT_PUBLIC_*` names
 // are deliberate: Nuxt maps them onto `runtimeConfig.public.*` at runtime, so
-// ads can be switched on in the deploy environment without a rebuild. The
-// script itself is loaded by @nuxt/scripts (`useScriptGoogleAdsense`) behind a
-// consent trigger — never by Partytown, which does not support AdSense (DOM
-// measurements + iframes).
+// ads can be switched on in the deploy environment without a rebuild.
+//
+// Env names mirror the config path exactly (`applyEnv` joins the object keys
+// with `_`), hence `..._ADSENSE_SLOTS_ARTICLE` for `adsenseSlots.article`. A
+// singular `..._SLOT_ARTICLE` looks right but is silently ignored at runtime.
+//
+// The script itself is loaded by @nuxt/scripts (`useScriptGoogleAdsense`)
+// behind a consent trigger — never by Partytown, which does not support
+// AdSense (DOM measurements + iframes).
 const adsenseClient = process.env.NUXT_PUBLIC_ADSENSE_CLIENT || ''
 const adsenseSlots = {
   // One ad unit per placement; empty id = placement renders nothing.
-  article: process.env.NUXT_PUBLIC_ADSENSE_SLOT_ARTICLE || '',
-  recipe: process.env.NUXT_PUBLIC_ADSENSE_SLOT_RECIPE || '',
+  article: process.env.NUXT_PUBLIC_ADSENSE_SLOTS_ARTICLE || '',
+  recipe: process.env.NUXT_PUBLIC_ADSENSE_SLOTS_RECIPE || '',
 }
 
 function isLocalSiteUrl(url: string): boolean {

@@ -11,7 +11,7 @@
 import { createError, defineEventHandler, setHeader } from 'h3'
 
 export default defineEventHandler((event) => {
-  const client = process.env.NUXT_PUBLIC_ADSENSE_CLIENT || process.env.NUXT_ADSENSE_CLIENT
+  const client = process.env.NUXT_PUBLIC_ADSENSE_CLIENT
   if (!client) {
     throw createError({ statusCode: 404, statusMessage: 'Not Found' })
   }
