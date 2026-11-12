@@ -32,3 +32,51 @@ h1 {
 h3 {
   @apply font-serif text-3xl leading-10 font-bold text-neutral-900;
 }
+
+/* Mermaid diagrams rendered server-side by comark-pele (Pele SVG).
+   Variables live on the wrapper (`.pele-diagram`), not just the `<svg>`:
+   Pele's `mount()` measures labels from the container's computed style, so
+   the font has to cascade from there. Mirror of the JDC palette: neutral
+   page, yellow-800 accent, yellow-50/100 surfaces, yellow-600 borders. No
+   dark mode — the site forces `color-scheme: light`.
+   See https://pele.run/theming */
+.pele-diagram {
+  margin-block: 2rem;
+  overflow-x: auto;
+}
+
+.pele-diagram,
+.pele {
+  --pele-bg: #fafafa; /* neutral-50 — matches body */
+  --pele-fg: #171717; /* neutral-900 */
+  --pele-fg-on-light: #171717;
+  --pele-fg-on-dark: #ffffff;
+  --pele-muted: #737373; /* neutral-500 */
+  --pele-line: #525252; /* neutral-600 */
+  --pele-surface: #fefce8; /* yellow-50 — node fill */
+  --pele-surface-alt: #fef9c3; /* yellow-100 — subgraph fill */
+  --pele-border: #ca8a04; /* yellow-600 */
+  --pele-accent: #854d0e; /* yellow-800 — brand accent */
+  --pele-critical: #dc2626; /* red-600 */
+  --pele-error: #dc2626;
+  --pele-font: Catamaran, ui-sans-serif, system-ui, sans-serif;
+  --pele-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --pele-title-weight: 700;
+  --pele-heading-weight: 700;
+  --pele-bold-weight: 700;
+  --pele-radius: 2px;
+  --pele-series-1: #a16207; /* yellow-700 */
+  --pele-series-2: #c2410c; /* orange-700 */
+  --pele-series-3: #4d7c0f; /* lime-700 */
+  --pele-series-4: #0f766e; /* teal-700 */
+  --pele-series-5: #1d4ed8; /* blue-700 */
+  --pele-series-6: #7e22ce; /* purple-700 */
+  --pele-series-7: #be123c; /* rose-700 */
+  --pele-series-8: #57534e; /* stone-600 */
+}
+
+/* Server-rendered fallback when a diagram cannot be parsed. */
+.pele-source {
+  @apply overflow-x-auto bg-neutral-100 p-4 text-xs text-neutral-700;
+}
+

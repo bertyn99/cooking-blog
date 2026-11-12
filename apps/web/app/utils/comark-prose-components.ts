@@ -1,5 +1,5 @@
 import type { Component } from "vue";
-import ComarkMermaid from "~/components/comark/Mermaid.vue";
+import Pele from "~/components/comark/Pele.vue";
 import ComarkProseImg from "~/components/comark/ProseImg.vue";
 import ProsePre from "~/components/prose/ProsePre.vue";
 
@@ -38,8 +38,7 @@ export function buildComarkProseComponents(): Record<string, Component> {
   registerName(components, "pre", ProsePre);
   registerName(components, "ProseImg", ComarkProseImg);
   registerName(components, "img", ComarkProseImg);
-  registerName(components, "Mermaid", ComarkMermaid);
-  registerName(components, "mermaid", ComarkMermaid);
+  registerName(components, "Pele", Pele);
 
   return components;
 }
