@@ -20,6 +20,13 @@ const siteEnv =
   process.env.NUXT_SITE_ENV ||
   (process.env.NODE_ENV === 'production' ? 'production' : 'development')
 
+// Google AdSense — stays OFF until a Google-certified CMP serves consent to
+// EEA/UK visitors (Google requirement since 2024-01). Set NUXT_ADSENSE_CLIENT
+// (e.g. ca-pub-1234567890123456) ONLY after the CMP is live.
+// Plain async script on purpose: AdSense is not a supported Partytown library
+// (DOM measurements + iframes crash in a web worker).
+const adsenseClient = process.env.NUXT_ADSENSE_CLIENT || ''
+
 function isLocalSiteUrl(url: string): boolean {
   try {
     const { hostname } = new URL(url)
@@ -64,14 +71,15 @@ export default defineNuxtConfig({
         lang: 'fr', // Set the default language here
       },
       link: [{ rel: 'icon', type: 'image/webp', href: '/img/logo.webp' }],
-      /* script: [
-        {
-          src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js",
-          async: true,
-          crossorigin: "anonymous",
-          type: "text/partytown",
-        },
-      ], */
+      script: adsenseClient
+        ? [
+            {
+              src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`,
+              async: true,
+              crossorigin: 'anonymous',
+            },
+          ]
+        : [],
     },
   },
 
@@ -316,6 +324,8 @@ export default defineNuxtConfig({
       language: 'fr-FR', // prefer more explicit language codes like `en-AU` over `en`
       cmsBaseUrl: process.env.NUXT_PUBLIC_CMS_BASE_URL || 'http://localhost:3001',
       apiBase: process.env.NUXT_PUBLIC_CMS_BASE_URL || 'http://localhost:3001',
+      // Read by future ad-slot components; empty = ads disabled site-wide.
+      adsenseClient,
     },
   },
 
