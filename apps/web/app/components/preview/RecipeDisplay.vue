@@ -117,9 +117,7 @@ const recipeKeywords = computed(() => {
     </template>
   </SectionHeroArticle>
 
-  <div class="prose md:prose-lg lg:prose-xl max-w-4xl">
-    {{ intro }}
-  </div>
+  <BaseMarkdownContent :markdown="intro" />
 
   <RecipeReviews />
   <RecipeIngredients :ingredients="ingredients" />
