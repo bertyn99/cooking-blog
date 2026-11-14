@@ -85,8 +85,8 @@ Réserve honnête : sur la requête exacte, **le site n'apparaît pas dans le to
 
 ### Ce qui est déjà bon — ne pas y toucher
 
-- Title front-loadé, 52 c. : *« Apéritif marocain : 10 recettes de bouchées faciles »*
-- Meta 135 c., `index, follow, max-image-preview:large`, canonical propre
+- Title front-loadé, 51 c. : *« Apéritif marocain : 10 recettes de bouchées faciles »*
+- Meta 133 c., `index, follow, max-image-preview:large`, canonical propre
 - URL stable, mot-clé présent dans le slug
 - 1 seul H1, 14 H2 nommés, sommaire automatique
 - 21 images, 9 items sur 10 illustrés
@@ -118,7 +118,7 @@ Réserve honnête : sur la requête exacte, **le site n'apparaît pas dans le to
 ### J1 — Réparer le snippet et la promesse
 
 - [ ] **Title** → `Apéritif marocain : 10 bouchées faciles pour l'apéro` (52 c). Gagne la variante `apéro` (52 impressions, la plus tapée) sans perdre `apéritif`. Abandonne « recettes » tant que la page n'en contient pas — la promesse doit être vraie.
-- [ ] **Meta** → `Apéritif marocain : briouates, kefta, zaalouk, pastilla… 10 bouchées faciles avec les quantités par personne pour un apéro réussi.` (≤ 150 c). Supprime `msemen`, ajoute la promesse chiffrée.
+- [ ] **Meta** → `Apéritif marocain : briouates, kefta, zaalouk, pastilla… 10 bouchées faciles avec les quantités par personne pour un apéro réussi.` (130 c). Supprime `msemen`, ajoute la promesse chiffrée.
 - [ ] **Excerpt** → même correction (il alimente le head et les listings).
 - [ ] **`coverAltText`** → `Briouates, kefta et zaalouk servis en bouchées pour un apéritif marocain` ; `coverDescription` idem.
 - [ ] **Ne pas toucher au slug.** Le 301 sur une page qui vient de gagner 20 positions annule le bénéfice du sprint. « pour-l-ete » dans l'URL ne coûte rien.
