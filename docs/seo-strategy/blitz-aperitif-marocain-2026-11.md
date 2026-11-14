@@ -178,6 +178,7 @@ Réserve honnête : sur la requête exacte, **le site n'apparaît pas dans le to
 | 2026-11-14 | 10,8 | 6 | 383 | 1,6 % | Baseline (GSC 28 j, live) | 121 imp sur la famille de tête, 1 clic. SERP relevé : Pinterest + forums 2005/2007 en page 1 |
 | 2026-11-14 | — | — | — | — | J1→J4 poussés en prod (`update-article` #8 + `upsert-seo`) | Title 52 c, meta 130 c, excerpt 130 c, 13 H2, 11 images, 5 FAQ, 0 `msemen` dans le corps. `::recipe-list` retiré (PROSE_TAGS). |
 | 2026-11-14 | — | — | — | — | J5 : 1 lien depuis #9, #16, chebakia, corne-de-gazelle, m-hanncha, zlabia | Phrases dans le corps / intro, une ancre par page. On-page S1 complète. |
+| 2026-11-14 | 10,8 | 6 | 383 | 1,6 % | J2 approfondi : menu type pour 6 (callout) + olives/amandes comme 4ᵉ variété | GSC inchangé (fenêtre 28 j, trop tôt). Query `pois chiche apéro marocain` (1 imp) laissée de côté — houmous ≠ marocain. |
 
 **Sources de mesure :**
 - Position / clics / CTR → `nuxtseo search analytics page-detail --page-url <url> --period 28d --json`
