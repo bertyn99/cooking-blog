@@ -1,7 +1,7 @@
 # Article #8 — Brouillon v2 (Blitz apéritif marocain, J1 → J5)
 
 **Cible :** `/blog/inspiration-culinaire/10-delicieuses-recettes-de-plat-aperitif-marocain-pour-l-ete`
-**Statut :** brouillon local, **rien n'est poussé en prod**. À valider avant `update-article`.
+**Statut :** J1→J5 poussés en prod le 14/11. On-page S1 complète.
 **Plan de référence :** `docs/seo-strategy/blitz-aperitif-marocain-2026-11.md`
 
 ---
@@ -24,16 +24,20 @@
 
 ---
 
-## 2. Blocs média à créer avant le push (J2)
+## 2. Blocs média — RÉSOLU (photos réelles, 14/11)
 
-Aucune image de zaalouk ni de fekkas n'existe dans la médiathèque (246 fichiers parcourus). Pexels n'en propose pas d'authentiques (les candidats « zaalouk » sont un curry tomate-aubergine, les « fekkas » des biscuits aux noix).
+Aucune image de zaalouk ni de fekkas n'existait dans la médiathèque (246 fichiers parcourus). La génération était indisponible le 14/11 : `generate-media` (prod) renvoie `Cannot set properties of undefined (setting '#options')` sur tous les modèles, et `experimental_image_generate` échoue faute de crédits OpenRouter. Décision humaine : **photos réelles Pexels**, avec un alt qui décrit ce que montre l'image.
 
-| Image | Emplacement | Méthode |
-|---|---|---|
-| Zaalouk | item 7 (seule bouchée sans image aujourd'hui) | `generate-media` — « Overhead shot of Moroccan zaalouk, smoky eggplant and tomato dip in a terracotta bowl, olive oil pooled on top, cumin and parsley, bread beside, warm natural light, food photography » |
-| Fekkas à l'ail | item 5 (remplace la chorba) | `generate-media` — « Moroccan fekkas garlic shortbread bites, small golden round savoury cookies with sesame seeds piled in a ceramic bowl, mint tea glass beside, warm natural light, food photography » |
+| Image | Emplacement | Fichier uploadé | Source |
+|---|---|---|---|
+| Zaalouk | item 7 (seule bouchée sans image) | `uploads/66405b3b-8d65-4779-9f5f-3a5df58797c5-zaalouk-aperitif-marocain.webp` | Pexels 15108368 — aubergine-tomate concassée, oignon frit, pain marocain, zellige |
+| Fekkas à l'ail | item 5 (remplace la chorba) | `uploads/6146fa9c-1b6f-4108-b96e-79481bdd15d1-fekkas-ail-sesame-aperitif-marocain.webp` | Pexels 755721 — petits sablés ronds dorés au sésame |
+
+Candidats écartés : les têtes de classement du re-rank vision pour « zaalouk » (5191817, 19813646, 36879175) sont des purées blanches (houmous, baba ganoush) — les étiqueter « zaalouk » aurait été faux. Les 11 images de l'article répondent 200 en prod (vérifié le 14/11).
 
 L'article contient déjà deux images générées (`pastilla-poulet-generee`, `batbout-farci-genere`) : la cohérence visuelle est acquise.
+
+**Dette ouverte :** `generate-media` reste cassé en prod — à traiter hors chemin critique (binding `CMS_AI_GATEWAY_ID` sur le worker déployé, puis fallback Flux).
 
 ---
 
@@ -90,7 +94,7 @@ La star des grandes occasions : une feuille de warqa croustillante, une farce de
 
 ## 5. Les fekkas à l'ail
 
-![Fekkas à l'ail, petits sablés salés marocains au sésame, servis à l'apéritif](/uploads/PLACEHOLDER_FEKKAS.webp)
+![Fekkas à l'ail, petits sablés salés marocains au sésame, servis à l'apéritif](/uploads/6146fa9c-1b6f-4108-b96e-79481bdd15d1-fekkas-ail-sesame-aperitif-marocain.webp)
 
 Les fekkas sont les sablés marocains, et la version à l'ail est la seule bouchée de cette liste qui se garde. Des petits sablés salés, à la fois secs et fondants en bouche, où l'ail et le cumin prennent la place du sucre. On les sert tièdes ou froids, jamais brûlants, et on en trouve en sachet chez les pâtissiers marocains, à côté des amandes grillées et des ghribas.
 
@@ -108,7 +112,7 @@ Marinées à l'huile d'olive, paprika, ail et persil, grillées deux minutes de 
 
 ## 7. Le zaalouk d'aubergines
 
-![Zaalouk d'aubergines et de tomates confites, huile d'olive et cumin, dans un plat en terre cuite](/uploads/PLACEHOLDER_ZAALOUK.webp)
+![Zaalouk d'aubergines et de tomates, huile d'olive et cumin, servi avec du pain marocain](/uploads/66405b3b-8d65-4779-9f5f-3a5df58797c5-zaalouk-aperitif-marocain.webp)
 
 Le zaalouk, c'est la salade cuite marocaine par excellence : aubergines fondantes, tomates confites, ail et cumin, assaisonnées généreusement d'huile d'olive. Contrairement à la salade européenne, on cuit les légumes longtemps jusqu'à obtenir une compote généreuse. Se tartine sur du pain — le pain fait partie du repas, pas un accessoire.
 
@@ -177,19 +181,19 @@ L'apéritif marocain en questions
 
 | Jour | Changement | Vérifié |
 |---|---|---|
-| **J1** | Title 52 c., excerpt = meta 130 c., `coverAltText` + `coverDescription` remplis d'après l'image réelle, slug inchangé | — |
-| **J2** | Quantités sur les 10 bouchées · chorba → **fekkas à l'ail** (fin du doublon harira) · 2 H2 neufs (`Combien de bouchées` / `Que boire`) · zaalouk illustré | 1 doublon supprimé, 2 images à créer |
-| **J3** | Ancre pastilla corrigée → `/recette/pastilla` · m'hanncha liée · 8 bouchées sans page reçoivent 3 gestes · `::recipe-list` ×3 recettes | 10 ancres testées HTTP 200 |
-| **J4** | FAQ prose → `::faq` (accordéon + schema) · 5 questions, dont `combien` fusionnée dans le H2 et `sans alcool` ajoutée · apostrophes typographiques dans le JSON | syntaxe relue contre `page-blocks.md` |
-| **J5** | Pression interne : #9 et #16 + 4 recettes marocaines (voir §5) | à faire après le push de #8 |
+| **J1** | Title 52 c., excerpt = meta 130 c., `coverAltText` + `coverDescription` remplis d'après l'image réelle, slug inchangé | prod, 14/11 |
+| **J2** | Quantités sur les 10 bouchées · chorba → **fekkas à l'ail** · 2 H2 neufs · zaalouk illustré (Pexels 15108368) · fekkas illustré (Pexels 755721) | prod, 14/11 |
+| **J3** | Ancre pastilla corrigée · m'hanncha liée · 7 bouchées sans page reçoivent 3 gestes · `::recipe-list` **retiré** (PROSE_TAGS) | 9 ancres recette testées HTTP 200 |
+| **J4** | FAQ prose → `::faq` (5 items, accordéon) · apostrophes typographiques | prod, 14/11 |
+| **J5** | Pression interne : #9 et #16 + 4 recettes marocaines (voir §5) | prod, 14/11 |
 
-**Contrôles avant push**
-- [ ] `msemen` : retiré de l'excerpt, absent du corps (0 occurrence) — le head et le texte disent enfin la même chose.
-- [ ] `::faq` : la quote fermante de `items='…'` est présente, et le bloc se ferme par `::`.
-- [ ] `::recipe-list` : `#title` présent → H2 réel ; sans lui, la grille s'affiche sans titre.
-- [ ] Les 3 slugs de `::recipe-list` existent : `pastilla`, `brochettes-de-fruits-de-mer-marines`, `m-hanncha`.
-- [ ] Les deux `PLACEHOLDER_*` sont remplacés par les vrais chemins avant l'appel MCP.
-- [ ] Le compteur d'images du corps passe de 10 à 11 (chorba retirée, fekkas et zaalouk ajoutées).
+**Contrôles (prod, 14/11)**
+- [x] `msemen` : 0 occurrence dans le corps visible (reste éventuellement dans le payload Nuxt / cache ISR — pas dans le HTML rendu).
+- [x] `::faq` : quote fermante présente, 5 questions rendues, H2 « L'apéritif marocain en questions ».
+- [x] `::recipe-list` retiré : le tag n'est pas dans `PROSE_TAGS` des articles, il n'aurait jamais rendu.
+- [x] Placeholders remplacés : zaalouk `66405b3b-…`, fekkas `6146fa9c-…`.
+- [x] 11 images du corps, toutes 200.
+- [x] Meta description alignée via `upsert-seo` (l'`excerpt` seul ne change pas le `<meta name="description">`).
 
 ---
 

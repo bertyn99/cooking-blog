@@ -117,39 +117,37 @@ Réserve honnête : sur la requête exacte, **le site n'apparaît pas dans le to
 
 ### J1 — Réparer le snippet et la promesse
 
-- [ ] **Title** → `Apéritif marocain : 10 bouchées faciles pour l'apéro` (52 c). Gagne la variante `apéro` (52 impressions, la plus tapée) sans perdre `apéritif`. Abandonne « recettes » tant que la page n'en contient pas — la promesse doit être vraie.
-- [ ] **Meta** → `Apéritif marocain : briouates, kefta, zaalouk, pastilla… 10 bouchées faciles avec les quantités par personne pour un apéro réussi.` (130 c). Supprime `msemen`, ajoute la promesse chiffrée.
-- [ ] **Excerpt** → même correction (il alimente le head et les listings).
-- [ ] **`coverAltText`** → `Briouates, kefta et zaalouk servis en bouchées pour un apéritif marocain` ; `coverDescription` idem.
-- [ ] **Ne pas toucher au slug.** Le 301 sur une page qui vient de gagner 20 positions annule le bénéfice du sprint. « pour-l-ete » dans l'URL ne coûte rien.
+- [x] **Title** → `Apéritif marocain : 10 bouchées faciles pour l'apéro` (52 c). Gagne la variante `apéro` (52 impressions, la plus tapée) sans perdre `apéritif`. Abandonne « recettes » tant que la page n'en contient pas — la promesse doit être vraie.
+- [x] **Meta** → `Apéritif marocain : briouates, kefta, zaalouk, pastilla… 10 bouchées faciles avec les quantités par personne pour un apéro réussi.` (130 c). Supprime `msemen`, ajoute la promesse chiffrée. ⚠️ La meta **ne vient pas de `excerpt`** : elle vit dans `seo.description` (ligne 63) et se change via `upsert-seo`, pas `update-article`.
+- [x] **Excerpt** → même correction (il alimente le head et les listings).
+- [x] **`coverAltText`** → `Table d'apéritif marocain : brochettes grillées, petites salades, théière et lanterne sur une nappe rayée` (105 c), `coverDescription` en 152 c. Rédigés **d'après l'image réelle**, pas d'après un alt inventé.
+- [x] **Ne pas toucher au slug.** Le 301 sur une page qui vient de gagner 20 positions annule le bénéfice du sprint. « pour-l-ete » dans l'URL ne coûte rien.
 
 ### J2 — Réparer l'intention (le vrai travail)
 
-- [ ] **Quantités sur les 10 items.** Chaque bouchée reçoit une ligne concrète : `Pour 6 personnes : 20 briouates (3 par personne), 30 min de montage.` C'est ce qui transforme un catalogue en page utile, et ce que le hub fait déjà.
-- [ ] **Remplacer la chorba (#5) par les fekkas.** Trois raisons cumulées : supprime le doublon avec la harira, honore un plat que le SERP place en 3, 4 et 13 (personne ne le couvre bien), et donne au listicle sa seule bouchée croquante à garder.
-- [ ] **Ajouter un H2 `## Combien de bouchées par personne pour un apéritif marocain ?`** — réponse chiffrée en première phrase (8 à 10 bouchées pour un apéro simple, 12 à 15 pour un dîner-dinatoire, 3 à 4 variétés).
-- [ ] **Ajouter un H2 `## Que boire avec un apéritif marocain ?`** — thé à la menthe (déjà raconté, à déplacer là), vin blanc sec, et la vérité sur l'alcool au Maroc. Capte `boisson apéritif marocain` + `apéritif marocain alcool`.
-- [ ] **Illustrer le zaalouk** (item 7) — réutiliser l'image déjà présente plus bas si elle existe, sinon `search-stock-media`, importer, alt descriptif.
+- [x] **Quantités sur les 10 items.** Chaque bouchée reçoit une ligne concrète : `Pour 6 personnes : 20 briouates (3 par personne), 30 min de montage.` C'est ce qui transforme un catalogue en page utile, et ce que le hub fait déjà.
+- [x] **Remplacer la chorba (#5) par les fekkas.** Trois raisons cumulées : supprime le doublon avec la harira, honore un plat que le SERP place en 3, 4 et 13 (personne ne le couvre bien), et donne au listicle sa seule bouchée croquante à garder. Retenu : **fekkas à l'ail** (sablés salés), confirmé par le snippet SERP pos 3/13.
+- [x] **Ajouter un H2 `## Combien de bouchées par personne pour un apéritif marocain ?`** — réponse chiffrée en première phrase (8 à 10 bouchées pour un apéro simple, 12 à 15 pour un dîner-dinatoire, 3 à 4 variétés).
+- [x] **Ajouter un H2 `## Que boire avec un apéritif marocain ?`** — thé à la menthe (déjà raconté, à déplacer là), vin blanc sec, et la vérité sur l'alcool au Maroc. Capte `boisson apéritif marocain` + `apéritif marocain alcool`.
+- [x] **Illustrer le zaalouk** (item 7) — photo réelle Pexels 15108368 (aubergine-tomate concassée, pain marocain, zellige). La génération était hors service le 14/11, voir la dette en §8.
 
 ### J3 — Lier chaque plat à sa recette
 
-- [ ] Relier explicitement les plats qui ont une page : pastilla → `/recette/pastilla` (corriger l'ancre actuelle qui pointe vers `m-hanncha`), m'hanncha → `/recette/m-hanncha`, brochettes → `/recette/brochettes-de-fruits-de-mer-marines`.
-- [ ] Pour les 6 plats sans recette (briouates, kefta, poivrons, zaalouk, tajine, batbout, fekkas) : **assumer** — une ligne « pas encore de recette sur le journal, la voici en trois gestes » avec 3 étapes courtes. Une bouchée expliquée vaut mieux qu'une bouchée nommée.
-- [ ] Ajouter `::recipe-list{source="slugs" slugs="pastilla,m-hanncha,chebakia" limit="3"}` en fin d'article, sous un H2 « Les recettes maison qui vont avec ».
+- [x] Relier explicitement les plats qui ont une page : pastilla → `/recette/pastilla` (ancre corrigée, elle ne pointe plus vers `m-hanncha`), m'hanncha → `/recette/m-hanncha`, brochettes → `/recette/brochettes-de-fruits-de-mer-marines`, cornes de gazelle, chebakia, zlabia, plus les hubs `/recette/aperitif` et `/recette/boissons-du-monde`. 9 liens recette, tous testés 200 en prod.
+- [x] Pour les 6 plats sans recette (briouates, kefta, poivrons, zaalouk, tajine, batbout, fekkas) : **assumer** — une ligne « pas encore de recette sur le journal, la voici en trois gestes » avec 3 étapes courtes. Une bouchée expliquée vaut mieux qu'une bouchée nommée.
+- [x] ~~Ajouter `::recipe-list{…}` en fin d'article~~ → **impossible dans un article**. `PROSE_TAGS` (`packages/shared/app/utils/content-block-clients.ts:6`) n'autorise pour les articles que `callout, grid, timeline, table, carousel, faq` : le bloc est silencieusement ignoré (il reste dans le payload, jamais dans le HTML). Les 3 recettes visées étaient déjà liées en ligne — rien ne manque. Voir la dette en §8.
 
 ### J4 — Structure sémantique (hygiène, pas moteur)
 
-- [ ] Convertir la FAQ (4 questions en gras markdown) en `::faq{items='[…]'}`.
-  - **Piège connu :** la quote fermante de l'attribut est régulièrement oubliée. Écrire via script, vérifier la fermeture `::` avant push.
-  - Apostrophes **typographiques** (`’`) obligatoires dans le JSON de l'attribut.
-- [ ] Ajouter une 5ᵉ question PAA : « Peut-on préparer un apéritif marocain la veille ? » (réponse chiffrée : quelles bouchées tiennent 24 h, lesquelles se montent à la minute).
+- [x] Convertir la FAQ (4 questions en gras markdown) en `::faq{items='[…]'}`. 5 items rendus en accordéon (vérifié prod 14/11), H2 « L'apéritif marocain en questions ». Apostrophes typographiques dans le JSON. `@type` WebPage+FAQPage dans le JSON-LD (hygiène seulement : FAQ rich result retiré par Google depuis 2026-05-07).
+- [x] 5ᵉ question PAA : « Peut-on servir un apéritif marocain sans alcool ? » (capte `apéritif marocain alcool`, 20/mo). « Combien de bouchées » et « que boire » sont des H2, pas dupliqués en FAQ. « Peut-on préparer la veille ? » est aussi dans le `::faq`.
 
 ### J5 — Pression interne restante
 
-- [ ] **#9 desserts Afrique du Nord** : la page mentionne « marocain » 3× et ne lie pas #8. Une phrase dans l'intro : l'apéro avant les douceurs.
-- [ ] **#16 apéritif belge** : zéro mention du Maroc. Ajouter #8 à la phrase de clôture « pour continuer le voyage » (qui ne cite aujourd'hui que le hub).
-- [ ] **4 recettes marocaines** (chebakia, corne-de-gazelle, m-hanncha, zlabia) : 1 lien retour dans l'`intro`, contexte Ramadan/fête — jamais deux.
-- [ ] Vérifier que le lien du hub `/recette/aperitif` est dans un paragraphe (c'est le cas) et non en pied de liste.
+- [x] **#9 desserts Afrique du Nord** : phrase ajoutée en fin d'intro (« L'apéro, avant les douceurs… »). Lien visible en prod (14/11).
+- [x] **#16 apéritif belge** : phrase de clôture « pour continuer le voyage » étendue vers les bouchées marocaines. Lien visible en prod (14/11).
+- [x] **4 recettes marocaines** (chebakia #21, corne-de-gazelle #2, m-hanncha #5, zlabia #51) : 1 lien retour dans l'`intro`. Une ancre par page.
+- [x] Lien du hub `/recette/aperitif` déjà dans un paragraphe du corps de #8.
 
 ---
 
@@ -178,6 +176,8 @@ Réserve honnête : sur la requête exacte, **le site n'apparaît pas dans le to
 | Date | Pos | Clics | Imp. | CTR | Changement du jour | Note |
 |---|---|---|---|---|---|---|
 | 2026-11-14 | 10,8 | 6 | 383 | 1,6 % | Baseline (GSC 28 j, live) | 121 imp sur la famille de tête, 1 clic. SERP relevé : Pinterest + forums 2005/2007 en page 1 |
+| 2026-11-14 | — | — | — | — | J1→J4 poussés en prod (`update-article` #8 + `upsert-seo`) | Title 52 c, meta 130 c, excerpt 130 c, 13 H2, 11 images, 5 FAQ, 0 `msemen` dans le corps. `::recipe-list` retiré (PROSE_TAGS). |
+| 2026-11-14 | — | — | — | — | J5 : 1 lien depuis #9, #16, chebakia, corne-de-gazelle, m-hanncha, zlabia | Phrases dans le corps / intro, une ancre par page. On-page S1 complète. |
 
 **Sources de mesure :**
 - Position / clics / CTR → `nuxtseo search analytics page-detail --page-url <url> --period 28d --json`
@@ -209,3 +209,12 @@ Réserve honnête : sur la requête exacte, **le site n'apparaît pas dans le to
 - **Pas de bourrage `apéro`.** Une occurrence dans le title, une dans le H1, une dans la meta. Le reste vient du texte.
 - **Pas d'achat de liens, pas de dépôt de lien en commentaire.** Trois partages où l'on participe vraiment, ou rien.
 - **Pas de promesse de volume.** 390/mois, c'est 390/mois.
+
+---
+
+## 8. Dette hors chemin critique (ouverte le 14/11)
+
+- **`generate-media` cassé en prod.** `Cannot set properties of undefined (setting '#options')` sur nano-banana-2, seedream-5-pro et le fallback Flux. Cause probable : binding `CMS_AI_GATEWAY_ID` manquant sur le worker déployé, puis `ai.run('@cf/black-forest-labs/flux-2-klein-9b')` tombe sur un schéma `AiModels` inconnu du runtime. Diagnostic : deploy preview + inspection de l'env. Les 2 images manquantes ont été remplacées par des photos Pexels (15108368, 755721).
+- **`::recipe-list` n'est pas un bloc d'article.** `PROSE_TAGS` dans `packages/shared/app/utils/content-block-clients.ts` n'autorise que `callout, grid, timeline, table, carousel, faq`. Un `::recipe-list` dans un article est ignoré silencieusement. Pour l'afficher, il faudrait ajouter `recipe-list` à `PROSE_TAGS` (et vérifier que `useBlockContentList` tourne côté article). Hors sprint : les 3 recettes visées sont déjà liées en ligne.
+- **La meta description d'un article live ne suit pas `excerpt`.** Elle vit dans `seo.description` (`upsert-seo`). `update-article` seul laisse l'ancienne meta en prod.
+- **L'intro recette était du texte brut (`{{ intro }}`).** Les liens markdown (déjà présents dans chebakia, cornes, m'hanncha, zlabia — et les 4 ancres J5) n'étaient pas de vrais `<a href>`. Corrigé en local : `BaseMarkdownContent` sur `recette/[slug].vue` + preview. **Pas encore en prod** — il faut un deploy web.
