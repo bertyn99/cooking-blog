@@ -172,7 +172,7 @@ pnpm preview          # Preview production build
 
 **Required env** (`.env`, NOT tracked by git): `STRAPI_URL`, `REDIS_URL`, `NUXT_UMAMI_ID`, `NUXT_UMAMI_HOST`, `NUXT_PUBLIC_SITE_URL`.
 
-**Ads env (optional)** — ads stay fully off until the client id **and** at least one slot id are set: no tag, no ad unit, no consent banner. `/ads.txt` serves as soon as the client id exists:
+**Ads env (optional)** — Alchemy binds these on the **Web Worker** (`infra/workers.ts`), from GitHub Actions secrets on `alchemy deploy`. Local `apps/web/.env` only affects `nuxt dev`. Ads stay off until the client id **and** at least one slot id are set: no tag, no ad unit, no consent banner. `/ads.txt` serves as soon as the client id exists (Alchemy defaults the publisher id to `ca-pub-5406721051491594`):
 - `NUXT_PUBLIC_ADSENSE_CLIENT` (`ca-pub-…`)
 - `NUXT_PUBLIC_ADSENSE_SLOTS_ARTICLE`, `NUXT_PUBLIC_ADSENSE_SLOTS_RECIPE` (empty slot = placement renders nothing)
 - `NUXT_PUBLIC_ADS_CONSENT_MODE` = `local` (default: first-party banner, tag hard-blocked until accept) | `google-cmp` (AdSense's certified GDPR message owns the prompt, tag loads immediately, local banner hidden)
@@ -186,7 +186,7 @@ pnpm preview          # Preview production build
 - **`@nuxt/image` on `2.0.0-alpha.1`** — pre-release. API may shift.
 - **`@vercel/kv` misplaced in `devDependencies`** — actually a runtime dependency for ISR cache.
 - **SSL certs tracked in git** — `localhost-key.pem` and `localhost.pem` are committed (should be `.gitignored`). Local-only artifacts.
-- **No CI/CD** — no `.github/workflows/`, no `vercel.json`/`netlify.toml`/`wrangler.toml`. Deployment target is **implicitly Vercel** (via `@vercel/kv` + `REDIS_URL` pointing to `vercel-storage.com`).
+- **Deploy is Alchemy → Cloudflare Workers**, not Vercel. Push `dev` → `alchemy deploy --stage preview`; push `main` → `--stage prod`. See `docs/architecture/ci-cd-alchemy.md`. Worker env (including AdSense) is set in `infra/workers.ts`, not a Vercel dashboard.
 - **No tests** — zero test files, no vitest/jest/playwright config, no test deps. Greenfield — recommended stack: `vitest` + `@vue/test-utils` + `@nuxt/test-utils`.
 - **No middleware** (`app/middleware/` doesn't exist). Auth/guards handled at CDN or via `routeRules`.
 - **Strapi collections in use**: `articles`, `recipes`, `pages` (with recursive `parent`), `categories`, `category-articles`.

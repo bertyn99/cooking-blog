@@ -2,9 +2,8 @@
  * ads.txt — served only when the AdSense client id is configured.
  *
  * An empty or placeholder ads.txt is worse than a 404: invalid entries make
- * Google treat ALL inventory as unauthorized. Once AdSense approves the site,
- * set NUXT_PUBLIC_ADSENSE_CLIENT (ca-pub-…) in the deploy env and this route
- * serves the correct line automatically.
+ * Google treat ALL inventory as unauthorized. The publisher id is bound on the
+ * Web Worker by Alchemy (`infra/workers.ts` → `NUXT_PUBLIC_ADSENSE_CLIENT`).
  *
  * @see seo/roast-roadmap.md — monetization track
  */

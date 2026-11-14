@@ -90,6 +90,10 @@ export default Alchemy.Stack(
       'PROD_CMS_HOST',
       'NUXT_UMAMI_ID',
       'NUXT_UMAMI_HOST',
+      'NUXT_PUBLIC_ADSENSE_CLIENT',
+      'NUXT_PUBLIC_ADSENSE_SLOTS_ARTICLE',
+      'NUXT_PUBLIC_ADSENSE_SLOTS_RECIPE',
+      'NUXT_PUBLIC_ADS_CONSENT_MODE',
     ] as const
 
     for (const name of optionalSecrets) {

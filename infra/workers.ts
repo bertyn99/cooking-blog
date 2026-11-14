@@ -222,6 +222,24 @@ export const workers = Effect.fn(function* (input: {
     ? yield* Config.String('NUXT_UMAMI_HOST').pipe(Config.withDefault(''))
     : ''
 
+  // Public publisher id (also the ads.txt line). Empty GitHub secrets arrive as
+  // `""`, which would skip Config.withDefault — treat blank as the known id.
+  const adsenseClientRaw = yield* Config.String('NUXT_PUBLIC_ADSENSE_CLIENT').pipe(
+    Config.withDefault(''),
+  )
+  const adsenseClient = adsenseClientRaw.trim() || 'ca-pub-5406721051491594'
+  const adsenseSlotArticle = yield* Config.String('NUXT_PUBLIC_ADSENSE_SLOTS_ARTICLE').pipe(
+    Config.withDefault(''),
+  )
+  const adsenseSlotRecipe = yield* Config.String('NUXT_PUBLIC_ADSENSE_SLOTS_RECIPE').pipe(
+    Config.withDefault(''),
+  )
+  const adsConsentModeRaw = yield* Config.String('NUXT_PUBLIC_ADS_CONSENT_MODE').pipe(
+    Config.withDefault('local'),
+  )
+  const adsConsentMode =
+    adsConsentModeRaw.trim() === 'google-cmp' ? 'google-cmp' : 'local'
+
   const SkewProtection = yield* Cloudflare.KV.Namespace('WebSkewProtection', {})
 
   // Deploy-time Nuxt overrides (merge over apps/web/nuxt.config.ts).
@@ -257,6 +275,10 @@ export const workers = Effect.fn(function* (input: {
       NUXT_APP_SECRET: ogImageSecretValue,
       STRAPI_URL: strapiUrlValue,
       NUXT_UMAMI_ID: umamiId,
+      NUXT_PUBLIC_ADSENSE_CLIENT: adsenseClient,
+      NUXT_PUBLIC_ADSENSE_SLOTS_ARTICLE: adsenseSlotArticle,
+      NUXT_PUBLIC_ADSENSE_SLOTS_RECIPE: adsenseSlotRecipe,
+      NUXT_PUBLIC_ADS_CONSENT_MODE: adsConsentMode,
       ...(isProd && umamiHost ? { NUXT_UMAMI_HOST: umamiHost } : {}),
       ...(isProd
         ? {

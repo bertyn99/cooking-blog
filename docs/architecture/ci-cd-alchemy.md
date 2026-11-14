@@ -23,6 +23,8 @@ Workflow: `.github/workflows/deploy.yml`. Remote Alchemy state is enabled via `C
 
 **Production analytics (Umami):** `NUXT_UMAMI_ID` and `NUXT_UMAMI_HOST` (prod stage only; same workflow `env` block).
 
+**AdSense:** bound on the **Web** Worker in `infra/workers.ts` (`NUXT_PUBLIC_*`). The publisher id defaults to `ca-pub-5406721051491594` (public — it is the `/ads.txt` line) when the GitHub secret is unset or blank. Slot ids stay empty until set; empty slots mean no ad tag and no consent banner. Override or add slots via Actions secrets (or root `.env` + `pnpm deploy:github`): `NUXT_PUBLIC_ADSENSE_CLIENT`, `NUXT_PUBLIC_ADSENSE_SLOTS_ARTICLE`, `NUXT_PUBLIC_ADSENSE_SLOTS_RECIPE`, `NUXT_PUBLIC_ADS_CONSENT_MODE`.
+
 **Preview** uses `*.workers.dev` URLs (no custom domain). Web points at the preview CMS Worker URL.
 
 ## App secrets (Actions)
@@ -40,6 +42,10 @@ Set via `pnpm deploy:github` from `.env`, or manually under **Settings → Secre
 | `PROD_CMS_HOST` | Prod only — CMS hostname |
 | `NUXT_UMAMI_ID` | Prod only — Umami website id |
 | `NUXT_UMAMI_HOST` | Prod only — Umami instance URL (e.g. `https://analytics.example.com`) |
+| `NUXT_PUBLIC_ADSENSE_CLIENT` | Web Worker — AdSense publisher id (`ca-pub-…`). Optional; Alchemy defaults to `ca-pub-5406721051491594` |
+| `NUXT_PUBLIC_ADSENSE_SLOTS_ARTICLE` | Web Worker — article ad unit id (`data-ad-slot`). Empty = no article ad |
+| `NUXT_PUBLIC_ADSENSE_SLOTS_RECIPE` | Web Worker — recipe ad unit id. Empty = no recipe ad |
+| `NUXT_PUBLIC_ADS_CONSENT_MODE` | Web Worker — `local` (default) or `google-cmp` |
 
 ## One-time setup (from your laptop)
 
