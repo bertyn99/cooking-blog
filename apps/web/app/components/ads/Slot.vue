@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const props = withDefaults(
   defineProps<{
-    placement: "article" | "recipe";
+    placement: "article" | "recipe" | "page";
     format?: "auto" | "fluid" | "rectangle";
     class?: string;
   }>(),

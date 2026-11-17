@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import type { Recipe } from "~/types/strapiMeta";
 
-const { list, showDetails, full } = defineProps<{
+const { list, showDetails, full, feedAfter } = defineProps<{
   list: Recipe[];
   showDetails?: boolean;
   full?: boolean;
+  /** 0-based card index after which to insert the in-feed unit. */
+  feedAfter?: number;
 }>();
 </script>
 
@@ -17,12 +19,14 @@ const { list, showDetails, full } = defineProps<{
       role="list"
       class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-4"
     >
-      <RecipeCard
-        v-for="recipe in list"
-        :key="recipe?.id || recipe?.title"
-        :recipe="recipe"
-        :details="showDetails"
-      ></RecipeCard>
+      <template v-for="(recipe, index) in list" :key="recipe?.id || recipe?.title">
+        <RecipeCard :recipe="recipe" :details="showDetails" />
+        <AdsFeed
+          v-if="feedAfter !== undefined && index === feedAfter && list.length > feedAfter"
+          placement="feedRecipes"
+          dense
+        />
+      </template>
     </div>
   </div>
 </template>

@@ -88,7 +88,7 @@ const searchWithFilter = async () => {
         @filter="searchWithFilter"
       />
       <div class="lg:col-span-3">
-        <ArticleList :articles="articles?.data ?? []"></ArticleList>
+        <ArticleList :articles="articles?.data ?? []" :feed-after="2" />
         <BasePagination
           :totalPage="pageCount"
           :currentPage="currentPage"

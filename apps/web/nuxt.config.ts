@@ -36,9 +36,17 @@ const siteEnv =
 // AdSense (DOM measurements + iframes).
 const adsenseClient = process.env.NUXT_PUBLIC_ADSENSE_CLIENT || ''
 const adsenseSlots = {
-  // One ad unit per placement; empty id = placement renders nothing.
+  // Display units. Empty id = placement renders nothing.
   article: process.env.NUXT_PUBLIC_ADSENSE_SLOTS_ARTICLE || '',
   recipe: process.env.NUXT_PUBLIC_ADSENSE_SLOTS_RECIPE || '',
+  page: process.env.NUXT_PUBLIC_ADSENSE_SLOTS_PAGE || '',
+  // In-feed units (need matching adsenseLayoutKeys).
+  feedRecipes: process.env.NUXT_PUBLIC_ADSENSE_SLOTS_FEED_RECIPES || '',
+  feedArticles: process.env.NUXT_PUBLIC_ADSENSE_SLOTS_FEED_ARTICLES || '',
+}
+const adsenseLayoutKeys = {
+  feedRecipes: process.env.NUXT_PUBLIC_ADSENSE_LAYOUT_KEYS_FEED_RECIPES || '',
+  feedArticles: process.env.NUXT_PUBLIC_ADSENSE_LAYOUT_KEYS_FEED_ARTICLES || '',
 }
 
 // Who owns the consent prompt.
@@ -343,6 +351,7 @@ export default defineNuxtConfig({
       // Read by the AdSlot components; empty = ads disabled site-wide.
       adsenseClient,
       adsenseSlots,
+      adsenseLayoutKeys,
       adsConsentMode,
     },
   },

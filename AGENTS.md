@@ -174,7 +174,8 @@ pnpm preview          # Preview production build
 
 **Ads env (optional)** — Alchemy binds these on the **Web Worker** (`infra/workers.ts`), from GitHub Actions secrets on `alchemy deploy`. Local `apps/web/.env` only affects `nuxt dev`. Ads stay off until the client id **and** at least one slot id are set: no tag, no ad unit, no consent banner. `/ads.txt` serves as soon as the client id exists (Alchemy defaults the publisher id to `ca-pub-5406721051491594`):
 - `NUXT_PUBLIC_ADSENSE_CLIENT` (`ca-pub-…`)
-- `NUXT_PUBLIC_ADSENSE_SLOTS_ARTICLE`, `NUXT_PUBLIC_ADSENSE_SLOTS_RECIPE` (empty slot = placement renders nothing)
+- `NUXT_PUBLIC_ADSENSE_SLOTS_ARTICLE`, `NUXT_PUBLIC_ADSENSE_SLOTS_RECIPE`, `NUXT_PUBLIC_ADSENSE_SLOTS_PAGE` (empty slot = placement renders nothing)
+- `NUXT_PUBLIC_ADSENSE_SLOTS_FEED_RECIPES` / `FEED_ARTICLES` plus matching `NUXT_PUBLIC_ADSENSE_LAYOUT_KEYS_FEED_*` (`data-ad-layout-key`)
 - `NUXT_PUBLIC_ADS_CONSENT_MODE` = `local` (default: first-party banner, tag hard-blocked until accept) | `google-cmp` (AdSense's certified GDPR message owns the prompt, tag loads immediately, local banner hidden)
 
 ## NOTES

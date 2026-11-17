@@ -234,6 +234,21 @@ export const workers = Effect.fn(function* (input: {
   const adsenseSlotRecipe = yield* Config.String('NUXT_PUBLIC_ADSENSE_SLOTS_RECIPE').pipe(
     Config.withDefault(''),
   )
+  const adsenseSlotPage = yield* Config.String('NUXT_PUBLIC_ADSENSE_SLOTS_PAGE').pipe(
+    Config.withDefault(''),
+  )
+  const adsenseSlotFeedRecipes = yield* Config.String('NUXT_PUBLIC_ADSENSE_SLOTS_FEED_RECIPES').pipe(
+    Config.withDefault(''),
+  )
+  const adsenseSlotFeedArticles = yield* Config.String('NUXT_PUBLIC_ADSENSE_SLOTS_FEED_ARTICLES').pipe(
+    Config.withDefault(''),
+  )
+  const adsenseLayoutFeedRecipes = yield* Config.String('NUXT_PUBLIC_ADSENSE_LAYOUT_KEYS_FEED_RECIPES').pipe(
+    Config.withDefault(''),
+  )
+  const adsenseLayoutFeedArticles = yield* Config.String('NUXT_PUBLIC_ADSENSE_LAYOUT_KEYS_FEED_ARTICLES').pipe(
+    Config.withDefault(''),
+  )
   const adsConsentModeRaw = yield* Config.String('NUXT_PUBLIC_ADS_CONSENT_MODE').pipe(
     Config.withDefault('local'),
   )
@@ -278,6 +293,11 @@ export const workers = Effect.fn(function* (input: {
       NUXT_PUBLIC_ADSENSE_CLIENT: adsenseClient,
       NUXT_PUBLIC_ADSENSE_SLOTS_ARTICLE: adsenseSlotArticle,
       NUXT_PUBLIC_ADSENSE_SLOTS_RECIPE: adsenseSlotRecipe,
+      NUXT_PUBLIC_ADSENSE_SLOTS_PAGE: adsenseSlotPage,
+      NUXT_PUBLIC_ADSENSE_SLOTS_FEED_RECIPES: adsenseSlotFeedRecipes,
+      NUXT_PUBLIC_ADSENSE_SLOTS_FEED_ARTICLES: adsenseSlotFeedArticles,
+      NUXT_PUBLIC_ADSENSE_LAYOUT_KEYS_FEED_RECIPES: adsenseLayoutFeedRecipes,
+      NUXT_PUBLIC_ADSENSE_LAYOUT_KEYS_FEED_ARTICLES: adsenseLayoutFeedArticles,
       NUXT_PUBLIC_ADS_CONSENT_MODE: adsConsentMode,
       ...(isProd && umamiHost ? { NUXT_UMAMI_HOST: umamiHost } : {}),
       ...(isProd

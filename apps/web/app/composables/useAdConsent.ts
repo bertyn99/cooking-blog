@@ -36,7 +36,13 @@ export function useAdConsent() {
   const adsConfigured = computed(
     () =>
       Boolean(config.adsenseClient) &&
-      Boolean(config.adsenseSlots?.article || config.adsenseSlots?.recipe),
+      Boolean(
+        config.adsenseSlots?.article
+          || config.adsenseSlots?.recipe
+          || config.adsenseSlots?.page
+          || config.adsenseSlots?.feedRecipes
+          || config.adsenseSlots?.feedArticles,
+      ),
   );
 
   // Google's message needs the tag loaded unconditionally, so `google-cmp`

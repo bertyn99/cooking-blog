@@ -87,7 +87,7 @@ useApplyPageSeo(computed(() => ({
   <template v-else>
     <SectionHero />
     <SectionNewsletter />
-    <LazyRecipeList :list="recipes" :show-details="true" />
+    <LazyRecipeList :list="recipes" :show-details="true" :feed-after="3" />
     <LazySectionRecentArticles :articles="articles" />
   </template>
 </template>

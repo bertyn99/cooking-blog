@@ -79,7 +79,7 @@ const searchWithFilter = async () => {
       <Filter :categories="formatCategories ?? []" :searchValue="search" @update:search-value="search = $event"
         v-model:selected="checkedCategories" @filter="searchWithFilter" />
       <div class="lg:col-span-3">
-        <RecipeList :list="recipes?.data ?? []" showDetails />
+        <RecipeList :list="recipes?.data ?? []" show-details :feed-after="7" />
         <BasePagination :totalPage="pageCount" :currentPage="currentPage" />
       </div>
     </div>

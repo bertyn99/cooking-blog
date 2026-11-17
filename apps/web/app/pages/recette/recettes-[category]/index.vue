@@ -83,4 +83,5 @@ useApplyPageSeo(computed(() => ({
     {{ titleContent }}
   </h1>
   <BasePageBody :content="pageContent" />
+  <AdsSlot placement="page" />
 </template>

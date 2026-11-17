@@ -130,4 +130,5 @@ const pageContent = computed(() => page.value?.content);
     {{ page?.title }}
   </h1>
   <BasePageBody :content="pageContent" />
+  <AdsSlot placement="page" />
 </template>
