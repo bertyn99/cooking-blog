@@ -59,9 +59,16 @@ Longues traînées à capter dans le corps : `apéritif portugais facile`, `bouc
 
 ### Cible 3 — les déclinaisons pays, une par mois, jamais deux
 
-Ordre par demande prouvée + fenêtre : **libanais** (L1 déjà dans le programme, `apéritif oriental
-facile` 590/mo — le mot-clé est déjà confirmé), puis italien, espagnol, grec. Chaque article suit le
-gate complet (GSC ou nuxtseo avant rédaction). Ils entrent dans le programme v2, pas dans ce sprint.
+Ordre par demande prouvée + fenêtre : **libanais** d'abord, puis italien, espagnol, grec. Chaque
+article suit le gate complet (GSC ou nuxtseo avant rédaction). Ils entrent dans le programme v2, pas
+dans ce sprint.
+
+Gate libanais **fait le 18/11** (détail : `keyword-validation.md`). Il change la cible : `apéritif
+libanais` ne fait que 90/mo et son SERP renvoie des résultats anglais/espagnols — la demande FR vit
+sur **`mezzé libanais` 5 400/mo** et `recette mezzé libanais` 480. `apéritif oriental facile` (590)
+passe en secondaire. Dépendance bloquante : le CMS n'a qu'**une** recette levantine (houmous #56) —
+3 recettes minimum (falafel, taboulé, labneh) avant d'écrire le listicle, sinon on refait le défaut
+de #8 (des bouchées sans page).
 
 ---
 
@@ -102,7 +109,7 @@ gate complet (GSC ou nuxtseo avant rédaction). Ils entrent dans le programme v2
 | Jour | Livrable |
 |---|---|
 | 20-31 déc | Rituel allégé (relevé GSC + 1 lien) — les retouches on-page s'arrêtent, Google digère |
-| 22 déc | **Décision libanais** : les DEUX conditions sinon rien — marocain ≤ 7 ET portugais ≤ 9. Si oui : gate mot-clé libanais (`apéritif oriental facile` 590/mo déjà confirmé) + brouillon local avant le 31 (rédaction complète en janvier, publication fin janv. — jamais entre Noël et le jour de l'an) |
+| 22 déc | **Décision libanais** : les DEUX conditions sinon rien — marocain ≤ 7 ET portugais ≤ 9. Si oui : brouillon local avant le 31 (rédaction complète en janvier, publication fin janv. — jamais entre Noël et le jour de l'an). Cible corrigée le 18/11 : **`mezzé libanais`**, pas `apéritif libanais` (gate fait, voir §2). Prérequis : 3 recettes levantine publiées avant rédaction |
 | 31 déc | **Mesure finale famille** : le tableau §4 se remplit, bilan écrit dans le journal, cibles 2027 posées |
 
 ### Ce que la compression coûte (dit franchement)
@@ -121,6 +128,7 @@ gate complet (GSC ou nuxtseo avant rédaction). Ils entrent dans le programme v2
 | 2026-11-14 | #16 | 6,2 | 31 | 353 | — | gagné, surveiller sans retoucher |
 | 2026-11-14 | #34 | 13,0 | 1 | 45 | baseline | Blitz 2 à J21 |
 | 2026-11-14 | hub | — | 0 | 0 | **noindex trouvé et retiré** + section « pays par pays » (7 liens, Portugal ajouté) + meta 148 c | C'était le bug : le hub n'était pas indexable. Le 17/11, retours satellites → hub. |
+| 2026-11-18 | libanais | — | 0 | 0 | **Gate YGG-264 fait** : cible corrigée en `mezzé libanais` (5 400/mo) | `apéritif libanais` 90/mo, SERP EN/ES → pas une cible. Manque 3 recettes levantine. |
 
 ---
 

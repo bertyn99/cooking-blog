@@ -207,6 +207,31 @@ Vague recettes hiver planifiées via MCP le 04/11 : #101 fondue (1er déc) · #1
 
 Autres demandes saisonnières validées (gate à faire) : menu noel · menu ramadan · galette des rois · nouvel an chinois.
 
+### Apéritif libanais / mezzé — gate du 18/11/2026 (YGG-264)
+
+Gate rejoué avant rédaction. **La cible de l'issue était trop étroite** : `apéritif libanais` ne
+porte aucune demande FR.
+
+| Requête | Volume FR | GSC 3 mois | SERP (18/11) | Verdict |
+|---|---|---|---|---|
+| `apéritif libanais` | 90 | 0 imp | résultats **EN/ES/DE** (Lebanese recipes, Recetas) → Google ne voit pas d'intention FR | **pas une cible** — au mieux un H2 |
+| `apéritif oriental facile` | 590 | 2 imp pos 3,5 (sur #8) | AI overview + recettes, blogs généralistes (Ptitchef) | **secondaire** — gagnable, mais « oriental » ≠ libanais |
+| `mezzé libanais` | **5 400** | 0 imp | éditorial (magazines, dossiers), pas de Marmiton en tête | **tête de série** |
+| `recette mezzé libanais` | 480 | 0 imp | recettes + guides | **cible réaliste** du listicle |
+| `mezzé et falafel` | 1 300 | 0 imp | plat/recette | longue traîne forte |
+| `mezze chaud / froid libanais` | 110 / 40 | 0 imp | — | structure H2 du plateau |
+| `recette apéro oriental` | — | 5 imp pos **36,8** (sur #8) | — | pas un appui : c'est le marocain qui traîne |
+
+**Conclusion :** la cible passe à `mezzé libanais` (5 400) + `recette mezzé libanais` (480), avec
+`apéritif oriental facile` (590) en secondaire assumé. `apéritif libanais` (90) reste dans le title
+comme variante, jamais comme objectif.
+
+**Dépendance bloquante (inventaire CMS au 18/11) :** rien sur le site sauf **houmous maison (recette
+#56)**. Pas de falafel, taboulé, labneh, fatayé, sambousek, baba ganoush, halloumi — et la recette
+houmous de betterave (#63) est encore en draft. Un listicle « 10 mezzés » avec **1 seule recette
+liée** répéterait exactement le défaut corrigé sur #8 (7 bouchées sans page). Avant rédaction :
+3 recettes levantine publiées minimum — falafel, taboulé, labneh (ou fatayé).
+
 ### Monde & apéro (existing listicles)
 
 ```
