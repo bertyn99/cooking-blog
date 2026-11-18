@@ -125,5 +125,59 @@ Preview : https://journalducuistot.fr/preview?type=recipe&slug=recette-taboule-l
 
 1. Publier 105, 106, 107 dans l'admin — rien n'est publié par le MCP.
 2. Ajouter les liens entrants : houmous #56 → falafel, labneh, taboulé ; et les trois entre eux.
-3. Alors seulement écrire l'article « Mezzé libanais » (YGG-264), qui garde le choix, l'histoire
-   et les quantités par personne — pas les étapes.
+3. Publier ensuite l'article mezzé (#53) et ses liens entrants houmous.
+
+---
+
+## 4. Article mezzé — draft 53 (18/11)
+
+Écrit en avance sur la checklist : **le listicle linkera les 3 recettes en draft** (préview 200
+OK), donc il peut exister avant elles — à la condition expresse qu'il soit publié APRÈS elles
+(liens internes vers des drafts = 404 en prod).
+
+- `id 53`, slug `mezze-libanais`, catégorie Inspiration Culinaire (5), statut **draft**.
+- Preview : `https://journalducuistot.fr/preview?type=article&slug=inspiration-culinaire%2Fmezze-libanais`
+- Cible : `mezzé libanais` (5 400) + `recette mezzé libanais` (480), secondaire
+  `apéritif oriental facile` (590). Gate du 18/11 dans `keyword-validation.md`.
+- Title 54 c (`Mezzé libanais : 11 mezzés froids et chauds à partager`) · meta 148 c (SEO id 522,
+  via `upsert-seo`) · excerpt 154 c.
+- Template 1 (listicle pays/apéro), 11 items : 6 froids (houmous, moutabal, taboulé, labneh,
+  fattouche, feuilles de vigne) + 5 chauds (falafel, fatayer, kibbeh, batata harra, halloumi).
+- Pas d'ItemList, pas d'étapes de recettes (article = choisir/histoire/quantités ; recettes = exécution).
+- `::table` repères par convives · 2 `::callout` (menu pour six + découpage veille/jour) ·
+  `::faq` 5 questions (PAA) · maillage : houmous + 3 recettes levantine + hub `/recette/aperitif`
+  + apéritif marocain #8. Ancres variées, pas de « Notre recette de » répété.
+- Source de vérité : `docs/seo-strategy/drafts/article-mezze-libanais-v1.md` (passe 2 poussée).
+
+### Images (12, toutes Pexels réelles, importées et inspectées visuellement)
+
+| Usage | Pexels id | Pathname |
+|---|---|---|
+| Cover | 39018407 | `uploads/98ccaa8b-6213-4703-89bf-a07d2bb00515-pexels-39018407.webp` |
+| Houmous | 1618898 | `uploads/d3326331-809e-47a9-9419-46fec3b5b5b6-pexels-1618898.webp` |
+| Moutabal | 5191817 | `uploads/c873a4ea-4f72-48e7-9dce-f03e7b587507-pexels-5191817.webp` |
+| Taboulé | 4899790 | `uploads/7518b33c-66e9-43dd-bae7-fcc129546472-pexels-4899790.webp` |
+| Labneh | 14930619 | `uploads/4c14fba5-0d45-4673-b700-7f9a8031f908-pexels-14930619.webp` |
+| Fattouche | 4768991 | `uploads/20e12c54-8af1-44cc-87f2-43c5f6cc3bc3-pexels-4768991.webp` |
+| Warak enab | 36876770 | `uploads/b27639b4-9044-4d46-9f2c-ba64af81726a-pexels-36876770.webp` |
+| Falafel | 31610388 | `uploads/47559d8d-12a3-4a45-aa6f-dbec00975edd-pexels-31610388.webp` |
+| Fatayer | 6889716 | `uploads/504214ba-3439-452e-aff7-a5314ce437ec-pexels-6889716.webp` |
+| Kibbeh | 10837799 | `uploads/281501f5-a5e1-4b4e-9c9a-9532bdc4c024-pexels-10837799.webp` |
+| Batata harra | 5191836 | `uploads/33c8025b-f4ac-4f79-9f36-0df7c4cba8b6-pexels-5191836.webp` |
+| Halloumi | 17615597 | `uploads/0be678b2-2668-4a22-b02e-a1be1c704a7f-pexels-17615597.webp` |
+
+Sambousek/rakakat abandonné faute de photo Pexels valide (les candidats étaient des nems /
+spring rolls) → remplacé par le kibbeh. Taboulé et labneh réutilisent les photos de corps des
+recettes 107 et 106 — cohérence visuelle voulue.
+
+### Render check v2 (18/11)
+
+HTTP 200, `[PREVIEW]` dans le title, canonical `/preview` + `noindex, nofollow` (normal en
+preview), 1 H1, 6 H2, 11 H3 items, 12 images (22 `<img>` avec lazy), table 4 `<tr>`,
+5 questions FAQ rendues, 0 `::` résiduel dans le rendu, ancres et liens internes vérifiés.
+
+### Ordre de publication (figé)
+
+1. Recettes 105 (falafel) → 106 (labneh) → 107 (taboulé).
+2. Liens entrants houmous #56 + liens croisés entre les trois.
+3. Article #53 (mezzé) en dernier.
