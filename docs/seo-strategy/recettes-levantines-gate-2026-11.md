@@ -95,3 +95,35 @@ Preview : https://journalducuistot.fr/preview?type=recipe&slug=recette-falafel-l
 **Bug frontend trouvé au passage** : les unités s'affichaient en enum brut (`1 cuillere_cafe`) sur
 toutes les recettes, houmous compris. Corrigé dans `app/components/recipe/Ingredients/Element.vue`
 (labels français + décimales à la virgule). Le rendu prod ne changera qu'au prochain déploiement.
+
+
+### 2. Labneh — draft 106
+
+`id 106`, slug `recette-labneh`, Entrée, 6 portions (mezze), 10 min + 12-24 h d'égouttage.
+Preview : https://journalducuistot.fr/preview?type=recipe&slug=recette-labneh
+
+- Titre 60 c · meta 154 c (`recette labneh maison` en tête, rendement chiffré) · excerpt 128 c.
+- 5 ingrédients (yaourt entier, sel, huile d'olive, zaatar, menthe), 4 ustensiles, 6 étapes.
+- Angle tenu : la version fausse (fromage blanc + citron) est nommée et écartée dès l'intro,
+  rendement 1 kg → 400 g (12 h) / 350 g (24 h), petit-lait réutilisé, conservation réelle,
+  zaatar traité comme usage. Le yaourt grec est donné comme raccourci honnête (4-6 h), pas comme équivalent.
+- Glossaire créé : Yaourt entier (308), Zaatar (309), Étamine ou filtre à café (310), Passoire (311), Bocal en verre (312).
+
+### 3. Taboulé libanais — draft 107
+
+`id 107`, slug `recette-taboule-libanais`, Entrée, 6 portions, 25 min.
+Preview : https://journalducuistot.fr/preview?type=recipe&slug=recette-taboule-libanais
+
+- Titre 58 c · meta 150 c (`recette taboulé libanais traditionnel`) · excerpt 132 c.
+- 10 ingrédients, 4 ustensiles, 7 étapes.
+- Angle tenu : « le taboulé que j'ai mangé pendant vingt ans était une salade de semoule » →
+  ratio 100 g persil / 30 g menthe / 30 g bourghol / 300 g tomates pour 6. Les deux causes du
+  taboulé détrempé sont traitées en étapes (herbes séchées, bourghol gonflé au citron, tomates égouttées).
+- Glossaire créé : Bourghol fin (313), Essoreuse à salade (314), Planche à découper (315).
+
+### Ce qui reste à faire à la publication (humain)
+
+1. Publier 105, 106, 107 dans l'admin — rien n'est publié par le MCP.
+2. Ajouter les liens entrants : houmous #56 → falafel, labneh, taboulé ; et les trois entre eux.
+3. Alors seulement écrire l'article « Mezzé libanais » (YGG-264), qui garde le choix, l'histoire
+   et les quantités par personne — pas les étapes.
