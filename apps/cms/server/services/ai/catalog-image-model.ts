@@ -208,14 +208,13 @@ export function createCatalogImageModel(options: CatalogImageModelOptions): Imag
       }
 
       const request = buildCatalogGatewayRequest(modelId, text, ratio)
-      const response = await binding.gateway(gateway.id).run(request, {
-        signal: abortSignal,
-        gateway: {
-          ...(gateway.metadata ? { metadata: gateway.metadata } : {}),
-          ...(gateway.cacheTtl != null ? { cacheTtl: gateway.cacheTtl } : {}),
-          ...(gateway.skipCache != null ? { skipCache: gateway.skipCache } : {}),
-        },
-      })
+      // Options sub-object ({ gateway: { metadata, cacheTtl, skipCache } }) is
+      // NOT accepted by the runtime at compat date 2026-09-15 — it throws
+      // `Cannot set properties of undefined (setting '#options')` while
+      // applying it. The plain universal request works; metadata/cache
+      // tuning is dropped until the runtime supports it.
+      // @see YGG generate-media broken since 2026-11
+      const response = await binding.gateway(gateway.id).run(request)
 
       const bytes = await bytesFromGatewayResponse(response)
 
