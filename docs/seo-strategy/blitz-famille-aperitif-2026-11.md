@@ -131,7 +131,7 @@ de #8 (des bouchées sans page).
 | 2026-11-18 | libanais | — | 0 | 0 | **Gate YGG-264 fait** : cible corrigée en `mezzé libanais` (5 400/mo) | `apéritif libanais` 90/mo, SERP EN/ES → pas une cible. Manque 3 recettes levantine. |
 | 2026-11-20 | #8 | 11,5 (7j) | 9 | 159 | — | Cible J7 ≤ 10 non tenue mais fenêtre 7 j encore chargée de pré-blitz. Le vrai juge = J21 (4 déc). |
 | 2026-11-20 | #16 | 4,7 (7j) | 14 | 115 | — | continue de remonter sans qu'on y touche. |
-| 2026-11-20 | #34 | **7,5 (7j)** | 0 | 21 | — | 13,0 → 7,5 en 6 jours (21 imp : échantillon petit, à confirmer). Cible 15 déc ≤ 11 déjà atteinte. |
+| 2026-11-20 | #34 | **7,5 (7j)** | 0 | 21 | **v2 poussée à J0 au lieu du 24-26 nov** (accord humain) : title 59 c petiscos, meta 150 c, H2 « Combien » + table + callout, quantités sur les 10 items, FAQ → `::faq` 5 items (FAQPage schema vérifié), liens hub + belge, sardines AI → vraie photo Pexels 6872184. Intro/H3 intacts. Render check complet OK | 13,0 → 7,5 en 6 jours (21 imp : échantillon petit). Re-soumission GSC à faire côté humain dès aujourd'hui, puis rituel du mardi. |
 | 2026-11-20 | hub | — | 0 | 0 | **2e bug trouvé** : absent des sitemaps XML depuis le 6 août (`exclude: '/recette/**'` sur le sitemap pages éjectait aussi toutes les pages CMS racine `recette` — hub, boissons, desserts, pâtes, pickles, cuisines Asia/EU). Fix `nuxt.config.ts` local, **déployé seulement quand la facture GitHub est réglée** | Le dé-noindex du 14/11 ne pouvait rien donner sans signal sitemap. Vérifier après deploy : hub dans pages.xml, et PAS de doublon dans recipes.xml. |
 
 ---

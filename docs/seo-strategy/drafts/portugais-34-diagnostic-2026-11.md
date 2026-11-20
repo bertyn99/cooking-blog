@@ -78,9 +78,12 @@ reconstruit pas.
 
 ## 5. Fenêtre de poussée
 
-- **Mar. 24 ou mer. 25 nov** : `update-article` (title + contenu) puis `upsert-seo` (meta) ;
-  render check preview ; re-soumission GSC même jour.
-- 27-28 nov : vérifier les liens retours (hub→#34 déjà fait ; #34→hub/belge dans la v2).
+- ✅ **20/11 (J7) : v2 poussée** — `update-article` (title + contenu + excerpt) puis
+  `upsert-seo` (meta 150 c, robots `index, follow` intacts). Render check : title 59 c,
+  1 H1 / 5 H2 / 10 H3 intacts, table 4 `<tr>`, 5 FAQ rendues + FAQPage schema, liens hub
+  et belge présents, sardines Pexels 200. **Fait 4 jours avant la fenêtre prévue, sur
+  accord humain** — le maillage (27-28 nov) est donc déjà couvert côté #34.
+- Restant : re-soumission GSC manuelle (humain), puis rituel du mardi.
 - 15/12 : mesure — cible pos ≤ 11. 31/12 : ≤ 8.
 
 Journal : la mesure J7 (20/11) est dans `../blitz-famille-aperitif-2026-11.md` §4.
