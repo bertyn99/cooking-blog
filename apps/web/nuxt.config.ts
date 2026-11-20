@@ -361,10 +361,13 @@ export default defineNuxtConfig({
     sitemaps: {
       pages: {
         // CMS handler owns URL list — avoid duplicate `/` from app route discovery.
+        // NO include/exclude here: `_sitemap` tags alone decide membership, and an
+        // exclude on '/recette/**' silently DROPPED every CMS page rooted at
+        // `recette` (hub aperitif, boissons, desserts, pâtes…) from BOTH sitemaps —
+        // the recipes sitemap never re-routes URLs tagged `_sitemap: 'pages'`.
         includeAppSources: false,
         sitemapName: 'sitemap-pages.xml',
         sources: ['/api/__sitemap__/urls'],
-        exclude: ['/blog', '/blog/**', '/recette', '/recette/**'],
         defaults: {
           changefreq: 'daily' as const,
           priority: 0.8,

@@ -129,6 +129,10 @@ de #8 (des bouchées sans page).
 | 2026-11-14 | #34 | 13,0 | 1 | 45 | baseline | Blitz 2 à J21 |
 | 2026-11-14 | hub | — | 0 | 0 | **noindex trouvé et retiré** + section « pays par pays » (7 liens, Portugal ajouté) + meta 148 c | C'était le bug : le hub n'était pas indexable. Le 17/11, retours satellites → hub. |
 | 2026-11-18 | libanais | — | 0 | 0 | **Gate YGG-264 fait** : cible corrigée en `mezzé libanais` (5 400/mo) | `apéritif libanais` 90/mo, SERP EN/ES → pas une cible. Manque 3 recettes levantine. |
+| 2026-11-20 | #8 | 11,5 (7j) | 9 | 159 | — | Cible J7 ≤ 10 non tenue mais fenêtre 7 j encore chargée de pré-blitz. Le vrai juge = J21 (4 déc). |
+| 2026-11-20 | #16 | 4,7 (7j) | 14 | 115 | — | continue de remonter sans qu'on y touche. |
+| 2026-11-20 | #34 | **7,5 (7j)** | 0 | 21 | — | 13,0 → 7,5 en 6 jours (21 imp : échantillon petit, à confirmer). Cible 15 déc ≤ 11 déjà atteinte. |
+| 2026-11-20 | hub | — | 0 | 0 | **2e bug trouvé** : absent des sitemaps XML depuis le 6 août (`exclude: '/recette/**'` sur le sitemap pages éjectait aussi toutes les pages CMS racine `recette` — hub, boissons, desserts, pâtes, pickles, cuisines Asia/EU). Fix `nuxt.config.ts` local, **déployé seulement quand la facture GitHub est réglée** | Le dé-noindex du 14/11 ne pouvait rien donner sans signal sitemap. Vérifier après deploy : hub dans pages.xml, et PAS de doublon dans recipes.xml. |
 
 ---
 
