@@ -5,8 +5,8 @@
  * Stages: `prod` (main) and `preview` (dev). See docs/architecture/ci-cd-alchemy.md.
  */
 import * as Alchemy from 'alchemy'
-import * as Cloudflare from 'alchemy/Cloudflare'
-import * as Drizzle from 'alchemy/Drizzle'
+import * as Cloudflare from '@alchemy.run/cloudflare'
+import * as Drizzle from '@alchemy.run/drizzle'
 import * as Effect from 'effect/Effect'
 import * as Layer from 'effect/Layer'
 import { database } from './infra/database.ts'

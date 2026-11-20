@@ -35,6 +35,9 @@
   "packageManager": "pnpm@10.33.4",
   "devDependencies": {
     "@alchemy.run/frontend-frameworks": "catalog:",
+    "@alchemy.run/cloudflare": "catalog:",
+    "@alchemy.run/drizzle": "catalog:",
+    "@alchemy.run/github": "catalog:",
     "@cloudflare/workers-types": "^5.20260804.1",
     "@distilled.cloud/nuxt": "^0.17.1",
     "@effect/platform-node": "catalog:",
