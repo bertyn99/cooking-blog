@@ -11,7 +11,7 @@ catalog:
   "@nuxt/eslint-plugin": "^1.15.2"
   "@nuxt/ui": "4.12.0"
   alchemy: "2.0.0-beta.87"
-  drizzle-kit: "1.0.0-rc.5-ab785fc"
+  drizzle-kit: "1.0.0-rc.5"
   drizzle-orm: "1.0.0-rc.5-ab785fc"
   effect: "4.1.4"
   nuxt: "^4.6.4"
