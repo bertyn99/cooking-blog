@@ -255,6 +255,25 @@ types de poêles cuisine
 recettes du monde
 ```
 
+### Février 2027 (Chandeleur / Mardi gras / pâte à crêpes) — gate du 21/11/2026
+
+Détail des drafts et de l'ordonnancement : [saisonnier-fev](./saisonnier-fev-2026-11.md).
+
+| Requête | Volume FR | Diff | Pic | SERP (21/11) | Verdict |
+|---|---|---|---|---|---|
+| `pâte à crêpes` | **301 000** | **9** | 823 000 fév | Marmiton, Hervé, 750g — mais personne ne traite la texture | ✅ recette #110 |
+| `chandeleur` | **74 000** | 9 | 450 000 janv | encyclopédique + presse, **0 concurrent culinaire** | ✅ article #54 |
+| `mardi gras` | **49 500** | **0** | 368 000 fév | encyclopédique, 0 concurrent culinaire | ✅ article #55 |
+| `recette crepes` | 673 000 | 18 | 1 500 000 fév | Marmiton / Hervé / 750g / Tellier en page 1 | ❌ front perdu — cibler `pâte à crêpes` |
+| `nouvel an chinois` | 49 500 | 2 | 368 000 fév | 100 % encyclopédique / presse | ❌ intention non culinaire |
+| `beignets` | 27 100 | 0 | 74 000 fév | recettes + blogs, plus dense | ⏸ réserve |
+| `crepes suzette` | 40 500 | 0 | 49 500 oct | — | ⏸ réserve (pas de pic fév) |
+| `galette bretonne` | 22 200 | 0 | 27 100 fév | — | ⏸ réserve (risque de cannibalisation galette des rois) |
+
+**Leçon de gate :** sur un même sujet, la requête « recette + plat » est plus dure que la
+requête « préparation » (`recette crepes` diff 18 vs `pâte à crêpes` diff 9, pour 2× moins de
+volume). Toujours tester la variante ingrédient/préparation avant de refuser un sujet.
+
 ---
 
 ## Workflow for a new page or hub
