@@ -131,6 +131,15 @@ const listRedirects: Record<string, NitroRouteConfig> = {
     },
   },
 
+  // Pre-migration flat blog URL still cited by GSC (linked from the coriandre
+  // article before its content was rewritten). Replaced by the cuisine-sante
+  // spice guide. @see YGG-81
+  '/blog/les-secrets-de-la-cuisine-indienne-introduction-aux-epices-indiennes': {
+    redirect: {
+      to: '/blog/cuisine-sante/epices-essentielles-cuisine-indienne',
+      statusCode: 301,
+    },
+  },
   '/blog/astuces-de-cuisine/epices-indiennes-decouvrez-la-magie-des-saveurs-de-l-inde': {
     redirect: {
       to: '/blog/astuces-de-cuisine/comment-utiliser-les-epices-et-les-herbes-aromatiques',
