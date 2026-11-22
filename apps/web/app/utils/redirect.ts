@@ -34,6 +34,48 @@ const listRedirects: Record<string, NitroRouteConfig> = {
     redirect: { to: '/recette', statusCode: 301 },
   },
 
+  // GSC "Introuvable (404)" batch — legacy paths still crawled. @see YGG-81
+  // Wrong-route-prefix article URLs (imported content linked them under /recette/).
+  '/recette/la-cardamome-utilisations-et-bienfaits-en-cuisine-indienne': {
+    redirect: {
+      to: '/blog/cuisine-sante/la-cardamome-utilisations-et-bienfaits-en-cuisine-indienne',
+      statusCode: 301,
+    },
+  },
+  '/recette/le-masala-l-epice-indienne-emblematique': {
+    redirect: { to: '/blog/cuisine-sante/le-masala-l-epice-indienne-emblematique', statusCode: 301 },
+  },
+  '/recette/tous-savoir-sur-le-coriandre': {
+    redirect: { to: '/blog/cuisine-sante/tous-savoir-sur-le-coriandre', statusCode: 301 },
+  },
+
+  // Flat legacy recipe/article paths.
+  '/jus-de-bissap': {
+    redirect: { to: '/recette/jus-de-bissap', statusCode: 301 },
+  },
+  '/guide-ustensiles': {
+    redirect: { to: '/techniques-culinaires/guide-des-ustensiles', statusCode: 301 },
+  },
+  '/du-monde': {
+    redirect: { to: '/recette/recettes-du-monde', statusCode: 301 },
+  },
+
+  // Wrong article slug (real one has "de-plat").
+  '/blog/inspiration-culinaire/10-delicieuses-recettes-d-aperitif-belge-pour-l-ete': {
+    redirect: {
+      to: '/blog/inspiration-culinaire/10-delicieuses-recettes-de-plat-aperitif-belge-pour-l-ete',
+      statusCode: 301,
+    },
+  },
+
+  // Category paths GSC discovered (/blog/{category} alone isn't a route).
+  '/blog/cuisine-sante': {
+    redirect: { to: '/blog?category=cuisine-sante', statusCode: 301 },
+  },
+  '/blog/gastronomie-culture': {
+    redirect: { to: '/blog?category=gastronomie-culture', statusCode: 301 },
+  },
+
   // Pre-migration recipe URL → blog article replacement. @see YGG-189
   '/recette/les-ustensiles-de-cuisine-indispensables-pour-les-cuisiniers-debutants': {
     redirect: {
