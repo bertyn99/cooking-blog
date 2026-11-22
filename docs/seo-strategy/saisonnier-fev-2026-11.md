@@ -46,8 +46,8 @@ Preview : https://journalducuistot.fr/preview?type=recipe&slug=pate-a-crepes
 
 ## 2. Article Chandeleur — draft 54
 
-`id 54`, slug `chandeleur-pour-crepes`, catégorie Gastronomie & Culture (3), ~10 800 c.
-Preview : https://journalducuistot.fr/preview?type=article&slug=gastronomie-culture%2Fchandeleur-pour-crepes
+`id 54`, slug `chandeleur-pourquoi-crepes`, catégorie Gastronomie & Culture (3), ~10 800 c.
+Preview : https://journalducuistot.fr/preview?type=article&slug=gastronomie-culture%2Fchandeleur-pourquoi-crepes
 
 - Gate : `chandeleur` 74 000/mo (diff 9), pic 450 000 janvier / 368 000 février.
   SERP : encyclopédique (Wikipédia, presse régionale, sites de mairie) — **aucun concurrent
@@ -67,6 +67,11 @@ Preview : https://journalducuistot.fr/preview?type=article&slug=gastronomie-cult
   (crêpes à la confiture et aux prunes).
 - Liens internes : `/recette/pate-a-crepes` (×2), `/recette/desserts-du-monde`.
 - SEO id 536 · title 56 c · meta 145 c ✓.
+- Preview vérifiée le 22/11 : 7 h2, timeline rendue, FAQPage, liens `/recette/pate-a-crepes`
+  et `/recette/desserts-du-monde` actifs. Les 404 observés ce jour-là venaient d'un slug de
+  test erroné (`chandeleur-pour-crepes`) — le slug réel est `chandeleur-pourquoi-crepes`.
+  Même cause pour #53 : il est en catégorie **Inspiration Culinaire (5)**, pas Gastronomie
+  & Culture, donc `gastronomie-culture/mezze-libanais` ne résout pas. Aucun bug de preview.
 
 ## 3. Article Mardi gras — draft 55
 
@@ -83,7 +88,7 @@ Preview : https://journalducuistot.fr/preview?type=article&slug=gastronomie-cult
 - Blocs : `::timeline` (5 jalons, Antiquité → 9 février 2027), `::faq` (6 questions, FAQPage).
 - Images : Pexels cover `39551167` (pile de beignets), corps `6746524` (faworki / merveilles).
 - Liens internes : `/recette/beignets-de-fleurs-de-courgettes` (publiée), `/recette/pate-a-crepes`
-  (draft #110), `/blog/gastronomie-culture/chandeleur-pour-crepes` (draft #54),
+  (draft #110), `/blog/gastronomie-culture/chandeleur-pourquoi-crepes` (draft #54),
   `/recette/desserts-du-monde` (publiée).
 - SEO id 537 · title 59 c · meta 151 c ✓.
 
