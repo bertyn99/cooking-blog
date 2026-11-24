@@ -176,7 +176,9 @@ de #8 (des bouchées sans page).
   composant code (`app/pages/recette/index.vue`, filtres + `recipe-list`), le contenu CMS ne
   s'affiche jamais. Ne pas y écrire de maillage : ça ne sort pas. Même logique pour le header :
   `app/components/section/BasicHeader.vue` est en dur — mettre le hub dans le menu « Recettes »
-  demande un **deploy**, donc reste en attente (facturation GitHub + bindings prod à reconstruire).
+  demande un **deploy**. Le changement est **prêt sur la branche `seo/hub-nav-aperitif`**
+  (entrée « Apéritifs du monde » → `/recette/aperitif` dans le dropdown Recettes), à merger et
+  déployer quand la facturation GitHub est réglée et `prod-bindings.env` reconstruit.
 
 ---
 
