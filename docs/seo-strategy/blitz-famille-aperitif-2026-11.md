@@ -140,7 +140,7 @@ de #8 (des bouchées sans page).
 | 2026-11-24 | #8 | 10,6 (7j) | 5 | 157 | — | Plateau. URL Inspection : **dernier crawl Google = 30 mai 2026** — les retouches on-page ne sont pas encore recrawées, ce qui plafonne mécaniquement le J21. |
 | 2026-11-24 | #16 | 4,7 (7j) | 5 | 50 | **aucune** (règle « gagné = on ne touche pas ») | Position tenue en top 5, impressions divisées par 2 : requêtes « apéritif belge pour l'été », saisonnalité, pas une régression. |
 | 2026-11-24 | #34 | 7,8 (7j) | 1 | 27 | — | Stable après la v2. Dernier crawl Google = 28 juillet : la v2 du 20/11 n'est pas encore recrawée. |
-| 2026-11-24 | hub | — | 0 | 0 | **Retour satellites → hub ajouté sur #7 italien, #6 français, #4 sud-africain, #1 espagnol** (4/8 ; #8 et #34 y étaient déjà, #53 est en draft) | Cause du 0 enfin nommée : l'index Google répond **« Excluded by noindex tag »**, crawl du **12/11**, donc *avant* le dé-noindex du 14/11, et `sitemaps: []`. Le sitemap corrigé date du 20/11 : il faut un re-crawl. |
+| 2026-11-24 | hub | — | 0 | 0 | **Retour satellites → hub ajouté sur #7 italien, #6 français, #4 sud-africain, #1 espagnol** (4/8 ; #8 et #34 y étaient déjà, #53 est en draft) + **premier lien de navigation** en fin de `/recette/recettes-du-monde` (#1) | Cause du 0 enfin nommée : l'index Google répond **« Excluded by noindex tag »**, crawl du **12/11**, donc *avant* le dé-noindex du 14/11, et `sitemaps: []`. Le sitemap corrigé date du 20/11 : il faut un re-crawl. |
 
 ### Diagnostic indexation du 24/11 (à ne pas relire de travers)
 
@@ -166,9 +166,17 @@ de #8 (des bouchées sans page).
   `rissois-de-camarao`, `masala-chai` répondent tous **200** (recettes portugaises publiées
   après le crawl qui les a vus en 404). Aucun lien mort dans #34 : les 10 liens de la v2
   pointent sur des pages existantes.
-- **Leçon de lecture :** ce magasin d'URL Inspection date d'août (`oldestCheckAt`) et décrit
-  des crawls parfois très anciens. Ne pas en tirer « le site est cassé » ; le seul verdict
-  actionnable est le re-crawl du hub et des satellites modifiés.
+- **Le maillage interne du hub était le maillon faible** (constat 24/11) : les 7 satellites
+  publiés pointent bien vers lui, mais **aucune page de navigation ne le faisait**. `/recette`,
+  `/recette/recettes-du-monde`, l'accueil et `/blog` : zéro lien. Correctif appliqué sans deploy :
+  lien ajouté en fin de `/recette/recettes-du-monde` (page #1), qui est dans le menu déroulant
+  « Recettes » du header — le hub passe donc à un clic d'une page liée sur tout le site.
+  Vérifié en prod (`ancre: apéritifs du monde`, HTTP 200).
+- **Piège à connaître : la page CMS `recette` (#11) est inerte.** La route `/recette` est un
+  composant code (`app/pages/recette/index.vue`, filtres + `recipe-list`), le contenu CMS ne
+  s'affiche jamais. Ne pas y écrire de maillage : ça ne sort pas. Même logique pour le header :
+  `app/components/section/BasicHeader.vue` est en dur — mettre le hub dans le menu « Recettes »
+  demande un **deploy**, donc reste en attente (facturation GitHub + bindings prod à reconstruire).
 
 ---
 
