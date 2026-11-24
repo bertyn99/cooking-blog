@@ -153,6 +153,13 @@ de #8 (des bouchées sans page).
 - **Site entier : 58 URL indexées sur 156** (`search indexing summary`, asOf 23/11).
   Sur l'échantillon de 101 : 40 « Discovered - currently not indexed », 27 « URL is unknown
   to Google », 18 « Crawled - currently not indexed », 11 « Not found (404) ».
+- **Sitemap : Google a re-téléchargé les trois sitemaps enfants le 24/11 à 08:35** avec les bons
+  comptes — `pages.xml` **26** URL (contre 18 le 16/11 : les 8 pages CMS racine `recette` sont
+  de retour, hub compris), `blog.xml` 46, `recipes.xml` 85. Un `sitemaps submit` sur
+  `sitemap.xml` a été passé le 24/11 pour devancer la passe suivante. Reste à obtenir le
+  **re-crawl de l'URL** elle-même : le compte Google du navigateur de travail
+  (`bertynboulikou@gmail.com`) n'a que `bertynboulikou.com` — la demande d'indexation doit se
+  faire depuis le compte propriétaire de `journalducuistot.fr`.
 - **Les 11 « 404 » sont des faux positifs** — vérifié un par un le 24/11 : `caldo-verde`,
   `gambas-a-la-plancha`, `sardinhas-assadas`, `salada-de-tremocos`, `pasteis-de-nata`,
   `ameijoas-a-bulhao-pato`, `bolinhos-de-bacalhau`, `peixinhos-da-horta`, `pica-pau`,
