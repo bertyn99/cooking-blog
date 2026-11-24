@@ -23,7 +23,8 @@ const links = [
     current: true,
     children: [
       { name: "Toutes les recettes", url: "/recette" },
-      { name: "Recettes du monde", url: "/recette/recettes-du-monde" }
+      { name: "Recettes du monde", url: "/recette/recettes-du-monde" },
+      { name: "Apéritifs du monde", url: "/recette/aperitif" }
     ]
   },
   {
