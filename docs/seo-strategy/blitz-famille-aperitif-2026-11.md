@@ -46,7 +46,11 @@ apéritif ») et il redistribue l'autorité vers les satellites.
 - [x] Section « Le même apéro, pays par pays » : 7 paragraphes courts, une ligne de contexte par pays, 7 liens articles (Portugal était absent — #34 jamais lié par le hub). Ancres variées (« bouchées marocaines », « bouchées portugaises »…), plus de liste sèche.
 - [x] Meta 148 c avec les pays nommés ; keywords → `apéritif du monde`, `amuse-bouche par pays`, etc. (les requêtes que le hub peut gagner, pas `apéritif dînatoire`).
 - [x] Title inchangé (47 c, déjà exact). Vérifié en prod 14/11 : robots `index, follow`, Portugal lié, H2 rendu, 15 images.
-- [ ] Lier chaque satellite depuis son paragraphe (fait pour le hub → satellites ; reste le retour : satellites → hub).
+- [x] Lier chaque satellite depuis son paragraphe (fait pour le hub → satellites ; reste le retour : satellites → hub).
+- [x] **Retour satellites → hub (24/11)** : ajouté sur #7 italien, #6 français, #4 sud-africain,
+  #1 espagnol (ancres variées, fin du paragraphe « pour continuer le voyage »). #8 et #34 y
+  étaient déjà, #53 (mezzé) le porte en draft. **#16 belge volontairement non touché** — règle
+  « gagné = on ne touche pas » ; décision humaine si on veut lui ajouter le lien.
 
 ### Cible 1 (J21 du Blitz 1 → J14 du Blitz 2) — apéritif portugais #34
 
@@ -133,6 +137,31 @@ de #8 (des bouchées sans page).
 | 2026-11-20 | #16 | 4,7 (7j) | 14 | 115 | — | continue de remonter sans qu'on y touche. |
 | 2026-11-20 | #34 | **7,5 (7j)** | 0 | 21 | **v2 poussée à J0 au lieu du 24-26 nov** (accord humain) : title 59 c petiscos, meta 150 c, H2 « Combien » + table + callout, quantités sur les 10 items, FAQ → `::faq` 5 items (FAQPage schema vérifié), liens hub + belge, sardines AI → vraie photo Pexels 6872184. Intro/H3 intacts. Render check complet OK | 13,0 → 7,5 en 6 jours (21 imp : échantillon petit). Re-soumission GSC à faire côté humain dès aujourd'hui, puis rituel du mardi. |
 | 2026-11-20 | hub | — | 0 | 0 | **2e bug trouvé** : absent des sitemaps XML depuis le 6 août (`exclude: '/recette/**'` sur le sitemap pages éjectait aussi toutes les pages CMS racine `recette` — hub, boissons, desserts, pâtes, pickles, cuisines Asia/EU). Fix `nuxt.config.ts` local, **déployé seulement quand la facture GitHub est réglée** | Le dé-noindex du 14/11 ne pouvait rien donner sans signal sitemap. Vérifier après deploy : hub dans pages.xml, et PAS de doublon dans recipes.xml. |
+| 2026-11-24 | #8 | 10,6 (7j) | 5 | 157 | — | Plateau. URL Inspection : **dernier crawl Google = 30 mai 2026** — les retouches on-page ne sont pas encore recrawées, ce qui plafonne mécaniquement le J21. |
+| 2026-11-24 | #16 | 4,7 (7j) | 5 | 50 | **aucune** (règle « gagné = on ne touche pas ») | Position tenue en top 5, impressions divisées par 2 : requêtes « apéritif belge pour l'été », saisonnalité, pas une régression. |
+| 2026-11-24 | #34 | 7,8 (7j) | 1 | 27 | — | Stable après la v2. Dernier crawl Google = 28 juillet : la v2 du 20/11 n'est pas encore recrawée. |
+| 2026-11-24 | hub | — | 0 | 0 | **Retour satellites → hub ajouté sur #7 italien, #6 français, #4 sud-africain, #1 espagnol** (4/8 ; #8 et #34 y étaient déjà, #53 est en draft) | Cause du 0 enfin nommée : l'index Google répond **« Excluded by noindex tag »**, crawl du **12/11**, donc *avant* le dé-noindex du 14/11, et `sitemaps: []`. Le sitemap corrigé date du 20/11 : il faut un re-crawl. |
+
+### Diagnostic indexation du 24/11 (à ne pas relire de travers)
+
+- **Le hub n'est pas « mauvais », il est périmé côté Google.** `search inspect` renvoie
+  `coverageState: Excluded by 'noindex' tag`, `indexingState: BLOCKED_BY_META_TAG`,
+  `lastCrawlTime: 2026-11-12`, `sitemaps: []`. La page live sert bien
+  `robots: index, follow, max-image-preview:large` depuis le 14/11 et figure dans
+  `__sitemap__/pages.xml` depuis le 20/11 (vérifié). Rien d'autre à corriger dans le code :
+  c'est une demande de re-crawl, pas une retouche.
+- **Site entier : 58 URL indexées sur 156** (`search indexing summary`, asOf 23/11).
+  Sur l'échantillon de 101 : 40 « Discovered - currently not indexed », 27 « URL is unknown
+  to Google », 18 « Crawled - currently not indexed », 11 « Not found (404) ».
+- **Les 11 « 404 » sont des faux positifs** — vérifié un par un le 24/11 : `caldo-verde`,
+  `gambas-a-la-plancha`, `sardinhas-assadas`, `salada-de-tremocos`, `pasteis-de-nata`,
+  `ameijoas-a-bulhao-pato`, `bolinhos-de-bacalhau`, `peixinhos-da-horta`, `pica-pau`,
+  `rissois-de-camarao`, `masala-chai` répondent tous **200** (recettes portugaises publiées
+  après le crawl qui les a vus en 404). Aucun lien mort dans #34 : les 10 liens de la v2
+  pointent sur des pages existantes.
+- **Leçon de lecture :** ce magasin d'URL Inspection date d'août (`oldestCheckAt`) et décrit
+  des crawls parfois très anciens. Ne pas en tirer « le site est cassé » ; le seul verdict
+  actionnable est le re-crawl du hub et des satellites modifiés.
 
 ---
 
